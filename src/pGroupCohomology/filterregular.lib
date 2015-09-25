@@ -1,0 +1,313 @@
+//*****************************************************************************
+//
+//    Testing Filter Regularity
+//
+//    Copyright (C) 2009 Simon A. King <simon.king@nuigalway.ie>
+//    Copyright (C) 2013 Simon A. King <simon.king@uni-jena.de>
+//
+//  Distributed under the terms of the GNU General Public License (GPL),
+//  version 2 or later (at your choice)
+//
+//    This code is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//    General Public License for more details.
+//
+//  The full text of the GPL is available at:
+//
+//                  http://www.gnu.org/licenses/
+//*****************************************************************************
+
+LIB "poly.lib"; // fuer maxdeg1
+LIB "dickson.lib"; // fuer ringweights
+LIB "gkdim.lib"; // fuer Gelfand-Kirillov-Dimension GKdim
+
+proc gcRingSum(def R, def S)
+"USAGE:      gcRingSum(R,S); R a graded commutative ring modeled by a 
+            SuperCommutative ring; S a polynomial ring
+RETURN:     the tensor product of R and S with block order
+NOTE:       R+S yields an error message, and it seems that 
+            subsequent computations may fail.
+"
+{ if ((typeof(R)!="ring") and (typeof(R)!="qring")) { ERROR("First argument must be a ring or qring"); }
+  if (typeof(S)!="ring") { ERROR("Second argument must be a ring"); }
+  if (char(R)==2) { return(R+S); }
+  setring R;
+  def L = ringlist(R);
+  L[4] = ideal(0);
+  def r = ring(list(L[1..4])); // this is a commutative non-quotient version of R 
+  def rS = r+S;
+  int i, fo, lo;
+  for (i=1; i<=nvars(R); i++)
+    { if ((fo == 0) and (deg(var(i))%2)) { fo = i; }
+      if ((fo != 0) and (lo == 0) and (deg(var(i))%2 ==0)) { lo = i-1; }
+    }
+  setring rS;
+  if (lo == 0) 
+    { def RS = superCommutative(fo);
+    }
+  else
+    { def RS = superCommutative(fo,lo);
+    }
+  return(RS);
+}
+
+// Auxiliar procedure, since NF in non-commutative rings now removes zeroes from ideals:
+proc Normalize(ideal id, ideal GB)
+"USAGE:      Normalize(id,GB); id, GB ideals, GB standard
+RETURN:     an ideal, with normalize(NF(id[i],GB)) at position i for all i.
+"
+{ if (char(basering) == 2) { return(normalize(NF(id,GB))); }
+	ideal OUT;
+	for (int i = ncols(id); i>0; i--)
+	{ OUT[i] = normalize(NF(id[i],GB));
+	}
+	return(OUT);
+}
+
+proc intersectOnce(ideal id, poly f)
+"USAGE:      intersectOnce(id,f); id homogeneous ideal, f homogeneous poly
+RETURN:     intersection of id and ideal(f)
+ASSUMPTION: id is given by a Groebner basis
+"
+{ def br = basering;
+  int nc;
+  //if (NF(f^2,id)==0)
+  //  { nc=1;
+  //  }
+  if (char(br)==2) 
+    {
+      // We have a commutative rings and hence the Hilbert function is
+      // available.
+      ring r = char(br),(@t),wp(deg(f));
+      def R = gcRingSum(br,r);
+      intvec   hv;
+      def RHilb = r+br;
+      setring RHilb;
+      ideal id = imap(br,id)+ideal(imap(br,f)-@t);
+      attrib(id,"isSB",1); // It should be standard actually without std
+      //if (nc)
+      //  { id = std(id,@t^2);
+      //  }
+      // not needed: id = std(id,imap(br,f)-@t); 
+      hv = hilb(id,1,ringweights(RHilb));
+      setring R;
+      // ideal id = imap(RHilb,id);
+      kill RHilb;
+      ideal id = std(imap(br,id)+ideal(imap(br,f)-@t),hv,ringweights(R));
+      ideal filter = NF(id,std(ideal(@t)));
+      ideal schnitt;
+      for (int i=1;i<=ncols(id);i++)
+	{ if (filter[i]==0) // i.e., it is a multiple of @t
+	    { schnitt = schnitt,id[i];
+	    }
+	}
+      setring br;
+      ideal id_ev = maxideal(1),f;
+      map ev = R,id_ev;
+      return(interred(ev(schnitt)));
+    }
+  else
+    { // setring R;
+      // ideal id = imap(br,id);
+      // attrib(id,"isSB",1);
+      // id=std(id,imap(br,f)-@t);
+      // id=slimgb(id+ideal(imap(br,f)-@t));
+      return(intersect(id, ideal(f)));
+    }
+}
+
+proc is_regular (poly f, ideal id)
+"USAGE:   is_regular(f,id); f poly, id ideal
+RETURN:  1 if f is regular with respect to id, 0 otherwise.
+NOTE:    Let R be the basering and id a submodule of R^n. The procedure checks
+         injectivity of multiplication with f on R^n/id. The basering may be a
+         quotient ring.
+ASSUMPTION: We have degBound==0, and id is a Groebner basis.
+EXAMPLE: example is_regular; shows an example
+"
+{ if( f==0 ) { return(0); }
+  int d,ii;
+  // First, use one important special case:
+  // f is regular if its gcd with each of the leading monomials of id is 1.
+  // This holds since we assume that id is a Groebner basis
+  int easyCase=1;
+  intvec ldE1,ldE2;
+  if (char(basering)==2)
+    {
+      for (ii=ncols(id);(ii>0) and (easyCase);ii--)
+        { if (gcd(leadmonom(f),leadmonom(id[ii]))!=1) { easyCase=0;}
+        }
+    }
+  else
+    { ldE1 = leadexp(f);
+      for (ii=ncols(id);(ii>0) and (easyCase);ii--)
+        { ldE2 = leadexp(id[ii]);
+          for (d=nvars(basering);d>0,easyCase;d--)
+            { if (ldE1[d]*ldE2[d]>0) { easyCase=0; }
+            }
+        }
+    }
+  if (easyCase) { return(1); }
+  // // compute the quotient id:ideal(f) -- "manually"
+  // def q = intersect(id,ideal(f));
+
+  // attempt to do intersection using Hilbert driven elimination WARNING: In
+  // previous versions, the computation of Hilbert series was buggy in
+  // Singular! So, if you use an old version of Singular, you should replace
+  // "if (1)" by "if (0)".
+  if (1)
+    { def q = intersectOnce(id,f);}
+  else
+    { def q = intersect(id,ideal(f)); }
+  for (ii=1;ii<=ncols(q);ii++)
+    { q[ii]=q[ii]/f;
+    }
+  if( size(NF(q,id))==0 ){ return(1); } else { return(0); }
+}
+
+proc is_freg (poly f, ideal id)
+"USAGE:   is_freg(f,id); f poly, id ideal
+RETURN:  The intvec of dimensions of the homogeneous parts of the kernel
+         of the multiplication with f, if it is of finite dimension. 
+         intvec(-1) is returned otherwise.
+NOTE:    Let R be the basering and id a submodule of R^n. The procedure checks
+         injectivity of multiplication with f on R^n/id. The basering may be a
+         quotient ring.
+ASSUMPTION: We have degBound==0, and id is a Groebner basis.
+EXAMPLE: example is_freg; shows an example
+"
+{ if( f==0 ) { return(intvec(-1)); }
+  int d,ii;
+  intvec HV=0;
+  intvec ldE1,ldE2;
+  // First, use one important special case:
+  // f is regular if its gcd with each of the leading monomials of id is 1. 
+  // This holds since we assume that id is a Groebner basis
+  int easyCase=1;
+  if (char(basering)==2)
+    {
+      for (ii=ncols(id);(ii>0) and (easyCase);ii--)
+	{ if (gcd(leadmonom(f),leadmonom(id[ii]))!=1) { easyCase=0;}
+	}
+    }
+  else
+    { ldE1 = leadexp(f);
+      for (ii=ncols(id);(ii>0) and (easyCase);ii--)
+	{ ldE2 = leadexp(id[ii]);
+	  for (d=nvars(basering);d>0,easyCase;d--)
+	    { if (ldE1[d]*ldE2[d]>0) { easyCase=0; }
+	    }
+	}
+    }
+  if (easyCase) { return(HV); }
+  // // compute the quotient id:ideal(f) -- "manually"
+  // def q = intersect(id,ideal(f));
+   
+  // attempt to do intersection using Hilbert driven elimination WARNING: In
+  // previous versions, the computation of Hilbert series was buggy in
+  // Singular! So, if you use an old version of Singular, you should replace
+  // "if (1)" by "if (0)".
+  if (1)
+    { def q = intersectOnce(id,f);}
+  else
+    { def q = intersect(id,ideal(f)); }
+  for (ii=1;ii<=ncols(q);ii++)
+    { q[ii]=q[ii]/f;
+    }
+  //// Standard procedure -- which is buggy for nc rings
+  // def q = quotient(id,ideal(f));
+  def rw = ringweights(basering);
+  intvec qw;
+  for (ii=1;ii<=ncols(q);ii++)
+    { qw[ii] = deg(q[ii]);
+    }
+  //id=std(id); // not needed, since we assume that it is already Groebner!
+  def m = std(modulo(q,id));
+  int mdeg;
+  int mvdim;
+  int mdim = vdim(m);
+  if (mdim==0) // it is even *regular*
+    { return(HV);
+    }
+  if (mdim==-1) // it is not filter regular
+    { return(intvec(-1));
+    }
+  int sumdim;
+  for (ii=1;sumdim<mdim;ii++)
+    { HV[ii+1]= size(weightKB(m,ii,list(rw,qw)));
+      sumdim=sumdim+HV[ii+1];
+    // mvdim = size(weightKB(m,mdeg,list(rw,qw)));
+  }
+  return(HV);
+}
+
+proc is_fregs (ideal i, list #)
+"USAGE:   is_fregs(i[,id]); i poly, id ideal (default: id=0)
+RETURN:  a list of Hilbert vectors for the kernels of the multiplication
+         maps of the elements of i and of the quotient by i, if the elements
+         of i form a filter regular homogeneous system of parameters.
+         0 otherwise
+NOTE:    Let R be the basering and id a submodule of R^n. The procedure checks
+         if the kernel of the multiplication with i[k] on R^n/id+i[1..k-1] has 
+         finite dimension. It does not check if i is homogeneous.
+         The basering may be a quotient ring.
+         printlevel >=0: display comments (default)
+         printlevel >=1: display comments during computation
+ASSUMPTION: We have degBound==0, and the (optional) parameter id is a Groebner basis.
+EXAMPLE: example is_fregs; shows an example
+"
+{ int d,ii,r;
+  int p = printlevel-voice+3;  // p=printlevel+1 (default: p=1)
+  if( size(#)==0 ) { ideal id; }
+  else { def id=#[1]; }
+  if( typeof(id)<>"ideal") 
+  { print("Optional argument must be an ideal"); 
+    return;
+  }
+  intvec rw = ringweights(basering);
+  def br = basering;
+  if( size(i)==0 ) { return(0); }
+  d=ncols(i);
+  list OUT;
+  // intvec mdegv,mvdimv;
+  // int mdeg,mvdim;
+  for( ii=1; ii<=d; ii=ii+1 )
+  {
+     if( p>=2 )
+     { "// checking whether element",ii,"is filter regular mod 1 ..",ii-1; }
+     OUT[ii] = is_freg(i[ii],id);
+     if( OUT[ii][1]==-1 )
+     { if (ii>1) 
+       { dbprint(p,"// elements 1.."+string(ii-1)+" are filter regular,");
+       }
+       if (ii==1)
+       { dbprint(p,"// the first element is filter regular,");
+       }
+       dbprint(p,"// "+string(ii)+" is not filter regular");
+       return(0);
+     }
+     if (0) //(char(br)==2)
+       { id=std(id,i[ii]); }
+     else
+       { id=std(id+ideal(i[ii])); 
+       } // this may work around a bug in old versions of Singular, thus, you
+	 // might change "if (1)" to "if (0)".
+  }
+  dbprint(p, "// elements form a filter regular sequence of length "+string(d));
+  int quotdim = vdim(id); 
+  if (quotdim==-1)
+    { return(0);
+    }
+  else
+    { int sumdim;
+      intvec HV;
+      for (ii=0;sumdim<quotdim;ii++)
+      { HV[ii+1] = size(weightKB(id,ii,rw));
+        sumdim = sumdim+HV[ii+1];
+      }
+      OUT[d+1] = HV;
+      return(OUT);
+    }
+}
+
