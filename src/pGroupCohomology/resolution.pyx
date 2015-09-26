@@ -2077,7 +2077,6 @@ cdef class RESL:
         cdef nFgs_t *ker
         ker = nRgs.ker
         nRgsBuchberger(nRgs, G)
-        # setRankProj(self.Data, n, countGenerators(ker))
         setRankProj(self.Data, n, numberOfHeadyVectors(ker.ngs))
         sig_off()
         print_protocol("> > rk P_%02ld = %3ld"%(n, self.Data.projrank[n]), self)

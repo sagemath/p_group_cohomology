@@ -69,8 +69,10 @@ static void updateCommonBuchStatus(ngs_t *ngs, group_t *group)
   return;
 }
 
-/******************************************************************************/
-static void nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   register long nor = ngs->r + ngs->s;
@@ -93,13 +95,15 @@ static void nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
       {
         if (!ext->child[a] || node->child[a]) continue;
         w = nodeVector(ngs, group, node);
+        if (!w) return 1;
         gv = popGeneralVector(ngs);
+        if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != F_ZERO)
         {
-          makeVectorMonic(ngs, gv);
-          insertNewUnreducedVector(ngs,gv); /* gv->radical true */
+          if (makeVectorMonic(ngs, gv)) return 1;
+          if (insertNewUnreducedVector(ngs,gv)) return 1; /* gv->radical true */
         }
         else pushGeneralVector(ngs, gv);
       }
@@ -108,11 +112,13 @@ static void nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
   for (rv = ngs->firstReduced; rv; rv = rv->next)
     if (rv->expDim == dim) rv->expDim++;
   ngs->expDim++;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
 {
   ngs_t *ngs = nRgs->ngs;
   long nor = ngs->r + ngs->s;
@@ -137,13 +143,15 @@ static void nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
       {
         if (!ext->child[a] || node->child[a]) continue;
         w = nodeVector(ngs, group, node);
+        if (!w) return 1;
         gv = popGeneralVector(ngs);
+        if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != F_ZERO)
         {
-          makeVectorMonic(ngs, gv);
-          insertNewUnreducedVector(ngs,gv);
+          if (makeVectorMonic(ngs, gv)) return 1;
+          if (insertNewUnreducedVector(ngs,gv)) return 1;
         }
         else
         {
@@ -156,7 +164,7 @@ static void nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
   for (rv = ngs->firstReduced; rv; rv = rv->next)
     if (rv->expDim == dim) rv->expDim++;
   ngs->expDim++;
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -180,8 +188,10 @@ static int allExpansionsDone(ngs_t *ngs, group_t *group)
   return (ngs->expDim <= group->maxlength) ? 0 : 1;
 }
 
-/******************************************************************************/
-static boolean hardCorrectRank(nFgs_t *nFgs, group_t *group)
+/*****
+ * -1 on error
+ **************************************************************************/
+static int hardCorrectRank(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   if (easyCorrectRank(ngs, group)) return true;
@@ -190,12 +200,18 @@ static boolean hardCorrectRank(nFgs_t *nFgs, group_t *group)
   return allExpansionsDone(ngs, group);
 }
 
-/******************************************************************************/
-static boolean nFgsBuchbergerFinished(nFgs_t *nFgs, group_t *group)
+/****
+ * -1 on error
+ ***************************************************************************/
+static int nFgsBuchbergerFinished(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
-  return (hardCorrectRank(nFgs, group) &&
-    dimensionOfDeepestHeady(ngs) <= ngs->expDim) ? true : false;
+  int hCR = hardCorrectRank(nFgs, group);
+  swith (hCR)
+  { case -1: return -1;
+    case 0: return 0;
+    default: return (dimensionOfDeepestHeady(ngs) <= ngs->expDim) ? 1 : 0;
+  }
 }
 
 /******************************************************************************/
@@ -243,24 +259,30 @@ static inline boolean shouldFetchMoreGenerators(nFgs_t *nFgs, group_t *group)
   return (dimensionOfDeepestHeady(nFgs->ngs) <= ngs->expDim) ? true : false;
 }
 
-/******************************************************************************/
-void nFgsBuchberger(nFgs_t *nFgs, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
 {
   register ngs_t *ngs = nFgs->ngs;
-  nFgsAufnahme (nFgs, group);
+  if (nFgsAufnahme (nFgs, group)) return 1;
   initializeCommonBuchStatus(ngs);
-  if (nFgsBuchbergerFinished(nFgs, group)) /* Can happen on reentry */
+  int allExpDone;
+  int BuchFinished = nFgsBuchbergerFinished(nFgs, group);
+  if (BuchFinished==-1) return 1;
+  if (BuchFinished) /* Can happen on reentry */
     assertMinimalGeneratorsFound(nFgs);
-  else while (!allExpansionsDone(ngs, group))
+  else while (allExpDone=allExpansionsDone(ngs, group) == 0)
   {
     /* Can assume expDim slice precalculated; cannot assume preloaded */
-    loadExpansionSlice(ngs, group);
-    nFgsExpandThisLevel(nFgs, group); /* increments ngs->expDim */
-    incrementSlice(ngs, group);
-    nFgsAufnahme (nFgs, group);
+    if (loadExpansionSlice(ngs, group)) return 1;
+    if (nFgsExpandThisLevel(nFgs, group)) return 1; /* increments ngs->expDim */
+    if (incrementSlice(ngs, group)) return 1;
+    if (nFgsAufnahme (nFgs, group)) return 1;
     updateCommonBuchStatus(ngs, group);
-    if (nFgsBuchbergerFinished(nFgs, group))
+    if (BuchFinished=nFgsBuchbergerFinished(nFgs, group))
     {
+      if (BuchFinished==-1) return 1;
       assertMinimalGeneratorsFound(nFgs);
       break;
     }
@@ -269,39 +291,47 @@ void nFgsBuchberger(nFgs_t *nFgs, group_t *group)
       break;
     }
   }
+  if (allExpDone==-1) return 1;
   if (nFgs->finished) destroyExpansionSliceFile(ngs);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void nRgsBuchberger(nRgs_t *nRgs, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
 {
   register ngs_t *ngs = nRgs->ngs;
   register nFgs_t *ker = nRgs->ker;
   ker->nRgsUnfinished = true;
-  nRgsAufnahme (nRgs, group);
+  if (nRgsAufnahme (nRgs, group)) return 1;
   initializeCommonBuchStatus(ngs);
-  while (!allExpansionsDone(ngs, group))
+  int allExpDone, allExpDone2;
+  while (allExpDone = allExpansionsDone(ngs, group) == 0)
   {
     recordCurrentSizeOfVisibleKernel(nRgs);
     /* Can assume expDim slice precalculated; cannot assume preloaded */
-    loadExpansionSlice(ngs, group);
-    nRgsExpandThisLevel(nRgs, group); /* increments ngs->expDim */
-    incrementSlice(ngs, group);
-    nRgsAufnahme (nRgs, group); /* Now certain no slice loaded */
-    if (allExpansionsDone(ngs, group)) ker->nRgsUnfinished = false;
+    if (loadExpansionSlice(ngs, group)) return 1;
+    if (nRgsExpandThisLevel(nRgs, group)) return 1; /* increments ngs->expDim */
+    if (incrementSlice(ngs, group)) return 1;
+    if (nRgsAufnahme (nRgs, group)) return 1; /* Now certain no slice loaded */
+    allExpDone2 = allExpansionsDone(ngs, group);
+    if (allExpDone2==1) ker->nRgsUnfinished = false;
+    if (allExpDone2==-1) return 1;
     updateCommonBuchStatus(ngs, group);
-    nFgsAufnahme (ker, group);
+    if (nFgsAufnahme (ker, group)) return 1;
     if (appropriateToPerformHeadyBuchberger(nRgs, group))
     {
-      nFgsBuchberger(ker, group);
+      if (nFgsBuchberger(ker, group)) return 1;
       if (ker->finished) break;
     }
   }
+  if (allExpDone==-1) return 1;
   /* If targetRank known, then nFgsBuchberger guaranteed already finished. */
   /* So next line should only apply if unknown. NB nRgsUnfinished now false. */
-  if (!ker->finished) nFgsBuchberger(ker, group);
-  checkRanksCorrect(nRgs);
+  if (!ker->finished)
+  { if (nFgsBuchberger(ker, group)) return 1;}
+  int r = checkRanksCorrect(nRgs); /* 0 on error */
   destroyExpansionSliceFile(ngs);
-  return;
+  return 1-r;
 }

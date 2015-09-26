@@ -22,8 +22,8 @@
 inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem);
 void freeInclusionRecord(inclus_t *inclus);
 
-void makeInclusionMatrix(inclus_t *inclus);
-void saveInclusionMatrix(inclus_t *inclus);
-void loadInclusionMatrix(inclus_t *inclus);
+int makeInclusionMatrix(inclus_t *inclus);
+int saveInclusionMatrix(inclus_t *inclus);
+int loadInclusionMatrix(inclus_t *inclus);
 
 #endif

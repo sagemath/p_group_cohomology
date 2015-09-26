@@ -48,9 +48,9 @@ int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
       nor += ngs->r;
     }
   }
-  alterhdrplus(fp,nor);
+  int r = alterhdrplus(fp,nor);
   fclose(fp);
-  return 0;
+  return r;
 }
 
 /******************************************************************************/
@@ -117,9 +117,9 @@ int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
     }
     nor += t;
   }
-  alterhdrplus(fp,nor);
+  int r = alterhdrplus(fp,nor);
   fclose(fp);
-  return 0;
+  return r;
 }
 
 /******************************************************************************/
@@ -186,8 +186,9 @@ int saveNFgs(nFgs_t *nFgs, group_t *group, char *outfile, char *markfile)
     { fclose(fp);
       return 1;
     }
-  alterhdrplus(fp,nor);
+  int r = alterhdrplus(fp,nor);
   fclose(fp);
+  if (r) return 1;
   fp = fopen(markfile, "w");
   if (!fp) return 1;
   for (rv = ngs->firstReduced; rv ; rv = rv->next)
@@ -214,8 +215,9 @@ int saveNRgs(nRgs_t *nRgs, group_t *group, char *outfile, char *markfile)
     { fclose(fp);
       return 1;
     }
-  alterhdrplus(fp,nor);
+  int r = alterhdrplus(fp,nor);
   fclose(fp);
+  if (r) return 1;
   fp = writehdrplus(markfile, zfl, 0, group->nontips);
   if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->s)
@@ -224,10 +226,10 @@ int saveNRgs(nRgs_t *nRgs, group_t *group, char *outfile, char *markfile)
         fclose(fp);
         return 1;
     }
-  alterhdrplus(fp,nor);
+  r = alterhdrplus(fp,nor);
   fclose(fp);
   /* printf("preimages saved to %s\n", markfile); */
-  return 0;
+  return r;
 }
 
 /****
@@ -463,8 +465,10 @@ static int lowerExpDimIfNecessary(ngs_t *ngs, long d)
   return 0;
 }
 
-/******************************************************************************/
-void insertReducedVector(ngs_t *ngs, rV_t *rv)
+/*****
+ * 1 on error
+ **************************************************************************/
+int insertReducedVector(ngs_t *ngs, rV_t *rv)
 /* See expansion routines for info on expDim */
 {
   rV_t *base = ngs->lastReduced;
@@ -472,8 +476,7 @@ void insertReducedVector(ngs_t *ngs, rV_t *rv)
     base = base->prev;
   insertReducedVectorAfter(ngs, base, rv);
   rv->expDim = rv->gv->dim;
-  lowerExpDimIfNecessary(ngs, rv->expDim);
-  return;
+  return lowerExpDimIfNecessary(ngs, rv->expDim);
 }
 
 /******************************************************************************/
@@ -542,12 +545,15 @@ void insertUnreducedVector(ngs_t *ngs, uV_t *uv)
   return;
 }
 
-/******************************************************************************/
-void insertNewUnreducedVector(ngs_t *ngs, gV_t *gv)
+/*****
+ * 1 on error
+ **************************************************************************/
+int insertNewUnreducedVector(ngs_t *ngs, gV_t *gv)
 {
   uV_t *uv = unreducedVector(ngs, gv);
+  if (!uv) return 1;
   insertUnreducedVector(ngs, uv);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -582,11 +588,14 @@ rV_t *reducedVector(gV_t *gv, group_t *group)
   return rv;
 }
 
-/******************************************************************************/
-void processNewFlaggedGenerator(nFgs_t *nFgs, PTR w, group_t *group)
+/******
+ * 1 on error
+ *************************************************************************/
+int processNewFlaggedGenerator(nFgs_t *nFgs, PTR w, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   gV_t *gv = popGeneralVector(ngs);
+  if (!gv) return 1;
   /* gv->radical is set to true on creation; set to false below */
   PTR w_tmp = gv->w;
   gv->w = w;
@@ -597,26 +606,30 @@ void processNewFlaggedGenerator(nFgs_t *nFgs, PTR w, group_t *group)
     memcpy(gv->w, w, zsize(ngs->r));
     gv->radical = false;
     /* false means: not known to be in radical of kernel */
-    makeVectorMonic(ngs, gv);
-    insertNewUnreducedVector (ngs, gv);
+    if (makeVectorMonic(ngs, gv)) return 1;
+    if (insertNewUnreducedVector (ngs, gv)) return 1;
   }
   else pushGeneralVector(ngs, gv);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void nFgsInitializeVectors(nFgs_t *nFgs, PTR mat, long n, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+int nFgsInitializeVectors(nFgs_t *nFgs, PTR mat, long n, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   PTR w;
   register long i;
   for (w = mat, i = 0; i < n; i++, zadvance(&w, ngs->r))
-    processNewFlaggedGenerator(nFgs, w, group);
-  return;
+    if (processNewFlaggedGenerator(nFgs, w, group)) return 1;
+  return 0;
 }
 
-/******************************************************************************/
-void nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
+/******
+ * 1 on error
+ *************************************************************************/
+int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
   group_t *group)
 {
   ngs_t *ngs = nRgs->ngs;
@@ -627,6 +640,7 @@ void nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
     i++, zadvance(&w, ngs->r), zadvance(&m, ngs->s))
   {
     gv = popGeneralVector(ngs);
+    if (!gv) return 1;
     /* gv->radical is true by default; superfluous for nRgs */
     w_tmp = gv->w;
     gv->w = w;
@@ -635,15 +649,15 @@ void nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
     if (gv->dim == ZERO_BLOCK)
     {
       pushGeneralVector(ngs, gv);
-      processNewFlaggedGenerator (nRgs->ker, m, group);
+      if (processNewFlaggedGenerator (nRgs->ker, m, group)) return 1;
     }
     else
     {
       memcpy(gv->w, w, zsize(ngs->r));
       memcpy(ptrPlus(gv->w, ngs->r), m, zsize(ngs->s));
-      makeVectorMonic(ngs, gv);
-      insertNewUnreducedVector(ngs, gv);
+      if (makeVectorMonic(ngs, gv)) return 1;
+      if (insertNewUnreducedVector(ngs, gv)) return 1;
     }
   }
-  return;
+  return 0;
 }

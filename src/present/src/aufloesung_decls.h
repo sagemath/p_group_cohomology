@@ -43,7 +43,7 @@ void freeResolutionRecord(resol_t *resol);
 
 long rankProj(resol_t *resol, long n);
 long dimIm(resol_t *resol, long n);
-void setRankProj(resol_t *resol, long n, long r);
+int setRankProj(resol_t *resol, long n, long r);
 void setRankProjCoverForModule(resol_t *resol, long rkP0, long dimM);
 
 void initializeDateCommand(char *stem);
@@ -58,14 +58,14 @@ nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n);
 
 void readKnownResolution(resol_t *resol, long N);
 
-void innerPreimages(nRgs_t *nRgs, PTR images, long noi, group_t *group,
+int innerPreimages(nRgs_t *nRgs, PTR images, long noi, group_t *group,
   PTR preimages);
 /* PTR preimages(nRgs_t *nRgs, PTR images, long noi, group_t *group); */
 
-void makeThisDifferential(resol_t *resol, long n);
+int makeThisDifferential(resol_t *resol, long n);
 /* n must be at least two */
-void readOrConstructThisProjective(resol_t *resol, long n);
-void ensureThisProjectiveKnown(resol_t *resol, long n);
-void ensureThisUrbildGBKnown(resol_t *resol, long n);
+int readOrConstructThisProjective(resol_t *resol, long n);
+int ensureThisProjectiveKnown(resol_t *resol, long n);
+int ensureThisUrbildGBKnown(resol_t *resol, long n);
 
 #endif

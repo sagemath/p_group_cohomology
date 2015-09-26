@@ -53,6 +53,6 @@ int main(int argc, char *argv[])
   char infile[MAXLINE], outfile[MAXLINE];
   MtxInitLibrary();
   if (InterpretCommandLine(argc, argv, infile, outfile)) exit(1);
-  convertPermutationsToAsci(infile, outfile);
+  if (convertPermutationsToAsci(infile, outfile)) exit(1);
   exit(0);
 }

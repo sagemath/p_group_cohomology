@@ -91,6 +91,9 @@ int alterhdrplus(FILE *fp, long nor)
   }
 }
 
+/**
+ * NULL on error
+ ******/
 FILE *writehdrplus(char *name, long fl, long nor, long noc)
 {
   FILE *fp;

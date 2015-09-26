@@ -81,11 +81,18 @@ static resol_t *innerNewResolutionRecord (void)
   return resol;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 resol_t *newResolutionRecord (void)
 {
   resol_t *resol = innerNewResolutionRecord();
+  if (!resol) return NULL;
   resol->group = newGroupRecord();
+  if (!resol->group)
+  { freeResolutionRecord(resol);
+    return NULL;
+  }
   return resol;
 }
 
@@ -97,12 +104,19 @@ static void setDimIm(resol_t *resol, long n)
   return;
 }
 
-/******************************************************************************/
-static void initializeResolSizeArrays(resol_t *resol)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int initializeResolSizeArrays(resol_t *resol)
 {
   long alloc = NUMPROJ_BASE;
   long *projrank = newLongArray(alloc + 1);
+  if (!projrank) return 1;
   long *Imdim = newLongArray(alloc + 2);
+  if (!Imdim)
+  { free(projrank);
+    return 1;
+  }
   projrank[0] = 1;
   Imdim[0] = 1;
   resol->projrank = projrank;
@@ -110,11 +124,13 @@ static void initializeResolSizeArrays(resol_t *resol)
   resol->numproj_alloc = alloc;
   resol->numproj = 0;
   setDimIm(resol, 1);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void ensureResolSizeArraysLargeEnough(resol_t *resol, long N)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int ensureResolSizeArraysLargeEnough(resol_t *resol, long N)
 {
   long alloc, alloc_old = resol->numproj_alloc;
   long *projrank_old = resol->projrank, *Imdim_old = resol->Imdim;
@@ -122,7 +138,12 @@ static void ensureResolSizeArraysLargeEnough(resol_t *resol, long N)
   if (N <= alloc_old) return;
   for (alloc = alloc_old; alloc < N; alloc += NUMPROJ_INCREMENT);
   projrank = newLongArray(alloc + 1);
+  if (!projrank) return 1;
   Imdim = newLongArray(alloc + 2);
+  if (!Imdim)
+  { free(projrank);
+    return 1;
+  }
   memcpy(projrank, projrank_old, (alloc + 1) << LONGSH);
   memcpy(Imdim, Imdim_old, (alloc + 2) << LONGSH);
   resol->projrank = projrank;
@@ -130,17 +151,21 @@ static void ensureResolSizeArraysLargeEnough(resol_t *resol, long N)
   resol->numproj_alloc = alloc;
   free(projrank_old);
   free(Imdim_old);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 resol_t *newResolWithGroupLoaded (char *RStem, char *GStem, long N)
 {
   resol_t *resol;
   resol = innerNewResolutionRecord();
+  if (!resol) return NULL;
   resol->group = fullyLoadedGroupRecord(GStem);
-  resol->stem = djg_strdup(RStem);
-  initializeResolSizeArrays(resol);
+  if (!resol->group) return NULL;
+  if (resol->stem = djg_strdup(RStem) == NULL) return NULL;
+  if (initializeResolSizeArrays(resol)) return NULL;
   ensureResolSizeArraysLargeEnough(resol, N);
   return resol;
 }
@@ -214,8 +239,7 @@ int setRankProjCoverForModule(resol_t *resol, long rkP0, long dimM)
   }
   resol->Imdim[0] = dimM;
   resol->numproj = -1;
-  setRankProj(resol, 0, rkP0);
-  return 0;
+  return setRankProj(resol, 0, rkP0);
 }
 
 /****
@@ -229,7 +253,9 @@ nRgs_t *urbildSetup(resol_t *resol, long n, PTR mat, long numnor)
   ngs_t *ngs;
   group_t *group = resol->group;
   long r = rankProj(resol, n-1);
+  if (r==-1) return NULL;
   long s = rankProj(resol, n);
+  if (s==-1) return NULL;
   long nor = r+s;
   long num = numnor / nor;
   if (numnor != num * nor)
@@ -243,8 +269,22 @@ nRgs_t *urbildSetup(resol_t *resol, long n, PTR mat, long numnor)
   ngs = nRgs->ngs;
   ngs->expDim = NO_BUCHBERGER_REQUIRED;
   ngs->targetRank = dimIm(resol, n);
+  if (ngs->targetRank == -1)
+  {
+      freeNRgs(nRgs);
+      return NULL;
+  }
   nRgs->ker->ngs->targetRank = dimIm(resol, n+1);
-  nRgsAssertReducedVectors(nRgs, mat, num, group);
+  if (nRgs->ker->ngs->targetRank == -1)
+  {
+      freeNRgs(nRgs);
+      return NULL;
+  }
+  if (nRgsAssertReducedVectors(nRgs, mat, num, group))
+  {
+      freeNRgs(nRgs);
+      return NULL;
+  }
   return nRgs;
 }
 
@@ -260,7 +300,9 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   FEL minus_one = zsub(F_ZERO, F_ONE);
   group_t *group = resol->group;
   long r = rankProj(resol, n-1);
+  if (r==-1) return NULL;
   long s = rankProj(resol, n);
+  if (s==-1) return NULL;
   nRgs_t *nRgs;
   ngs_t *ngs;
   register PTR pre = zalloc(s * s); /* Initialization guaranteed */
@@ -270,13 +312,22 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   }
   sprintf(thisStem, "%sd%ld", resol->stem, n);
   nRgs = nRgsAllocation(group, r, s, thisStem);
+  if (!nRgs) return NULL;
   ngs = nRgs->ngs;
   for (i = 1, ptr = pre; i <= s; i++, zadvance(&ptr, s+1))
     zinsert(ptr, 1, minus_one);
-  nRgsInitializeVectors(nRgs, mat, pre, s, group);
+  if (nRgsInitializeVectors(nRgs, mat, pre, s, group)) return NULL;
   free(pre);
   ngs->targetRank = dimIm(resol, n);
+  if (ngs->targetRank == -1)
+  { freeNRgs(nRgs);
+    return NULL;
+  }
   nRgs->ker->ngs->targetRank = dimIm(resol, n+1);
+  if (nRgs->ker->ngs->targetRank == -1)
+  { freeNRgs(nRgs);
+    return NULL;
+  }
   /* nRgs->ker->ngs->targetRank = RANK_UNKNOWN; */
   return nRgs;
 }
@@ -331,10 +382,10 @@ matrix_t *makeFirstDifferential(resol_t *resol)
   }
   for (i = 2, ptr = pres->d; i <= dimP1 + 1; i++, zsteprow(&ptr))
     zinsert(ptr, i, F_ONE);
-  /*matsave(pres, differentialFile(resol, 1));
-  matfree(pres);
-  */
-  setRankProj(resol, 1, dimP1);
+  if (setRankProj(resol, 1, dimP1))
+  { MatFree(pres);
+    return NULL;
+  }
   return pres;
 }
 
@@ -377,13 +428,14 @@ static int readThisProjective(resol_t *resol, long n)
 {
   long rs, r;
   r = rankProj(resol, n-1);
+  if (r==-1) return 1;
   rs = numberOfRowsStored(differentialFile(resol, n));
+  if (rs==-1) return 1;
   if (rs % r != 0)
   { MTX_ERROR("theoretical error");
     return 1;
   }
-  setRankProj(resol, n, rs/r);
-  return 0;
+  return setRankProj(resol, n, rs/r);
 }
 
 /******************************************************************************/
@@ -405,8 +457,10 @@ static void initializeRows(PTR base, long nor)
   return;
 }
 
-/******************************************************************************/
-void innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
+/****
+ * 1 on error
+ ***************************************************************************/
+int innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
   PTR preimages)
 /* Assumes urbildGB already loaded */
 /* images should be a block of length num * ngs->r */
@@ -421,6 +475,7 @@ void innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
   for (i = 0; i < num; i++)
   {
     gv = popGeneralVector(ngs);
+    if (!gv) return 1;
     tmp = gv->w;
     gv->w = ptrPlus(images, i * ngs->r);
     findLeadingMonomial(gv, ngs->r, group);
@@ -436,39 +491,45 @@ void innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
       initializeRows(ptrPlus(gv->w, ngs->r), ngs->s);
       /* That gv->w is initialized is very likely, but not absolutely certain */
       uv = unreducedVector(ngs, gv);
+      if (!uv) return 1;
       uv->index = i;
       insertUnreducedVector(ngs, uv);
     }
   }
-  urbildAufnahme(nRgs, group, preimages);
-  return;
+  return urbildAufnahme(nRgs, group, preimages);
 }
 
-/******************************************************************************/
-void makeThisDifferential(resol_t *resol, long n)
+/****
+ * 1 on error
+ ***************************************************************************/
+int makeThisDifferential(resol_t *resol, long n)
 /* n must be at least two */
 {
   group_t *G = resol->group;
   nRgs_t *nRgs = loadDifferential(resol, n-1);
   nFgs_t *ker = nRgs->ker;
-  nRgsBuchberger(nRgs, G);
-  // setRankProj(resol, n, countGenerators(ker));
-  setRankProj(resol, n, numberOfHeadyVectors(ker->ngs));
-  saveMinimalGenerators(ker, differentialFile(resol, n), G);
-  saveUrbildGroebnerBasis(nRgs, urbildGBFile(resol, n-1), G);
+  if (nRgsBuchberger(nRgs, G)) return 1;
+  if (setRankProj(resol, n, numberOfHeadyVectors(ker->ngs)))
+  {
+      freeNRgs(nRgs);
+      return 1;
+  }
+  if (saveMinimalGenerators(ker, differentialFile(resol, n), G)) return 1;
+  if (saveUrbildGroebnerBasis(nRgs, urbildGBFile(resol, n-1), G)) return 1;
   freeNRgs(nRgs);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void makeThisCohringDifferential(resol_t *resol, long n)
+/****
+ * NULL on error
+ ***************************************************************************/
+static Matrix_t *makeThisCohringDifferential(resol_t *resol, long n)
 /* Know resolving trivial mod, so can use makeFirstDifferential if n=1 */
 {
   if (n == 1)
-    makeFirstDifferential(resol);
+    return makeFirstDifferential(resol);
   else
-    makeThisDifferential(resol, n);
-  return;
+    return makeThisDifferential(resol, n);
 }
 
 /*****
@@ -483,19 +544,23 @@ int readOrConstructThisProjective(resol_t *resol, long n)
   }
   if (fileExists(differentialFile(resol, n)))
   {
-    readThisProjective(resol, n);
+    return readThisProjective(resol, n);
   }
-  else makeThisCohringDifferential(resol, n);
-  return 0;
+  else
+  { if (!makeThisCohringDifferential(resol, n)) return 1;
+    return 0;
+  }
 }
 
-/******************************************************************************/
-void ensureThisProjectiveKnown(resol_t *resol, long n)
+/***
+ * 1 on error
+ ****************************************************************************/
+int ensureThisProjectiveKnown(resol_t *resol, long n)
 {
   long d;
   while ((d = resol->numproj + 1) <= n)
-    readOrConstructThisProjective(resol, d);
-  return;
+    if (readOrConstructThisProjective(resol, d)) return 1;
+  return 0;
 }
 
 /****
@@ -508,7 +573,6 @@ int ensureThisUrbildGBKnown(resol_t *resol, long n)
     return 1;
   }
   if (fileExists(urbildGBFile(resol, n))) return;
-  makeThisDifferential(resol, n+1);
-  return 0;
+  return makeThisDifferential(resol, n+1);
 }
 

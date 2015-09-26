@@ -26,17 +26,16 @@ PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node);
 void freeGeneralVector(gV_t *gv);
 // gV_t *popGeneralVector(ngs_t *ngs);
 void pushGeneralVector(ngs_t *ngs, gV_t *gv);
-inline void makeVectorMonic(ngs_t *ngs, gV_t *gv);
+inline int makeVectorMonic(ngs_t *ngs, gV_t *gv);
 inline void multiply(PTR row, matrix_t *mat, PTR result, long r);
 int createWordForest(ngs_t *ngs, group_t *group);
 // void freeWordForest(ngs_t *ngs);
-long maxDim(group_t *group);
-void destroyCurrentDimension(ngs_t *ngs);
-void destroyCurrentDimensionIfAny(ngs_t *ngs);
+int destroyCurrentDimension(ngs_t *ngs);
+int destroyCurrentDimensionIfAny(ngs_t *ngs);
 void destroyExpansionSliceFile(ngs_t *ngs);
-void selectNewDimension(ngs_t *ngs, group_t *group, long dim);
-void loadExpansionSlice(ngs_t *ngs, group_t *group);
-void incrementSlice(ngs_t *ngs, group_t *group);
+int selectNewDimension(ngs_t *ngs, group_t *group, long dim);
+int loadExpansionSlice(ngs_t *ngs, group_t *group);
+int incrementSlice(ngs_t *ngs, group_t *group);
 
 void findLeadingMonomial(gV_t *gV, long r, group_t *group);
 

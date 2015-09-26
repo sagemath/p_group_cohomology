@@ -27,7 +27,9 @@ static proginfo_t pinfo =
   { "writeGroebnerBasis", "Write out Groebner basis",
     "$Revision: 30_April_1998", helptext };
 
-/******************************************************************************/
+/*****
+ * 1 on error
+ **************************************************************************/
 int InterpretCommandLine(int argc, char *argv[], group_t *group)
 {
   //register int i;
@@ -43,7 +45,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
     return 1;
   }
   this = argv[opt_ind++];
-  group->stem = djg_strdup(this);
+  if (group->stem = djg_strdup(this) == NULL) return 1;
   return 0;
 }
 
@@ -180,7 +182,9 @@ static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
   return;
 }
 
-/******************************************************************************/
+/****
+ * 1 on error
+ ***************************************************************************/
 int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
 {
   group_t *group = folder->group;
@@ -190,8 +194,8 @@ int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
   char *mintip = folder->mintip[this];
   strcpy(mintip, p->path);         /* N.B. Even if p has length zero, these  */
   newname = arrowName(a);          /* lines ensure path p.a written to */
-  mintip[p->depth + 1] = '\0';     /* mintip. No corruption problems either. */
   if (newname==" ") return 1;
+  mintip[p->depth + 1] = '\0';     /* mintip. No corruption problems either. */
   if (!mintipsOnly)
   {
     PTR src = FfGetPtr(group->action[a]->d, p->index);
@@ -242,7 +246,9 @@ int writeGB(wgbFolder_t *folder)
   return 0;
 }
 
-/******************************************************************************/
+/****
+ * 1 on error
+ ***************************************************************************/
 int findGB(wgbFolder_t *folder)
 {
   group_t *group = folder->group;
@@ -308,12 +314,17 @@ int main(int argc, char *argv[])
   group_t *group;
   MtxInitLibrary();
   group = newGroupRecord();
+  if (!group) exit(1);
   if (InterpretCommandLine(argc, argv, group)) exit(1);
   if (loadNonTips(group)) exit(1);
-  if (group->ordering == 'J') loadDimensions(group);
-  buildPathTree(group);
-  buildLeftPathTree(group);
-  if (!mintipsOnly) loadActionMatrices(group);
+  if (group->ordering == 'J')
+  { if (loadDimensions(group)) exit(1);
+  }
+  if (buildPathTree(group)) exit(1);
+  if (buildLeftPathTree(group)) exit(1);
+  if (!mintipsOnly)
+  { if (loadActionMatrices(group)) exit(1);
+  }
   folder = newDmsFolder(group);
   if (findGB(folder)) exit(1);
   if (group->ordering == 'J') sortGBJennings(folder);

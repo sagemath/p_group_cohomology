@@ -69,30 +69,30 @@ inline long modifiedMinlong(long n1, long n2);
 char *booleanString(boolean stat);
 char *yesnoString(yesno yn);
 
-void loadDimensions(group_t *group);
+int loadDimensions(group_t *group);
 long pathDimension(group_t *group, path_t *p);
-void markPathDimensions(group_t *group);
+int markPathDimensions(group_t *group);
 
 group_t *newGroupRecord (void);
 inline group_t *namedGroupRecord(char *stem);
 void freeGroupRecord (group_t *group);
 
-void readHeader(group_t *group); /* WARNING: only for groupInfo */
-void loadNonTips(group_t *group);
+int readHeader(group_t *group); /* WARNING: only for groupInfo */
+int loadNonTips(group_t *group);
 inline void freeNonTips(char **nontip);
 
 path_t *allocatePathTree(group_t *group);
-void buildPathTree(group_t *group);
-void buildLeftPathTree(group_t *group);
+int buildPathTree(group_t *group);
+int buildLeftPathTree(group_t *group);
 inline void freeRoot(path_t *root);
 
 matrix_t **loadMatrixList(group_t *group, char *name, long num);
-inline void loadActionMatrices(group_t *group);
-inline void loadLeftActionMatrices(group_t *group);
-void makeLeftActionMatrices(group_t *group);
-void saveMatrixList(group_t *group, matrix_t **action, long num, char *name);
-void saveActionMatrices(group_t *group);
-void saveLeftActionMatrices(group_t *group);
+inline int loadActionMatrices(group_t *group);
+inline int loadLeftActionMatrices(group_t *group);
+int makeLeftActionMatrices(group_t *group);
+int saveMatrixList(group_t *group, matrix_t **action, long num, char *name);
+int saveActionMatrices(group_t *group);
+int saveLeftActionMatrices(group_t *group);
 matrix_t **allocateMatrixList(group_t *group, long num);
 inline matrix_t **allocateActionMatrices(group_t *group);
 inline void freeMatrixList(matrix_t **mat);
@@ -111,18 +111,18 @@ void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest);
 inline matrix_t *leftActionMatrix(group_t *group, PTR vec);
 void innerRightActionMatrix(group_t *group, PTR vec, PTR dest);
 inline matrix_t *rightActionMatrix(group_t *group, PTR vec);
-void loadActionMatrices(group_t *group);
-void loadLeftActionMatrices(group_t *group);
+inline int loadActionMatrices(group_t *group);
+inline int loadLeftActionMatrices(group_t *group);
 
-void loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
+int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
   char *name, long nor);
-void loadRegularActionMatrices(group_t *group);
-void makeBasisChangeMatrices(group_t *group);
-void saveBasisChangeMatrices(group_t *group);
-void loadBasisChangeMatrices(group_t *group);
-void readRegFileHeader(group_t *group);
+int loadRegularActionMatrices(group_t *group);
+int makeBasisChangeMatrices(group_t *group);
+int saveBasisChangeMatrices(group_t *group);
+int loadBasisChangeMatrices(group_t *group);
+int readRegFileHeader(group_t *group);
 
-void convertPermutationsToAsci(char *infile, char *outfile);
+int convertPermutationsToAsci(char *infile, char *outfile);
 
 void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   long q, PTR scratch, PTR gamma);
@@ -149,16 +149,16 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
    Left: use left action matrix of beta_kj
 */
 
-void innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch);
-void innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
+int innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch);
+int innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
   long num, PTR workspace);
-void innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
+int innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
   long num, PTR workspace);
-void basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num);
-void changeActionMatricesReg2Nontips(group_t *group);
+int basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num);
+int changeActionMatricesReg2Nontips(group_t *group);
 
 long pathTreeGirth(group_t *group);
-void calculateDimSteps(group_t *group);
+int calculateDimSteps(group_t *group);
 group_t *fullyLoadedGroupRecord(char *stem);
 
 inline boolean fileExists(const char *name);
@@ -167,10 +167,6 @@ inline boolean mateq(matrix_t *mat1, matrix_t *mat2);
 int verifyGroupIsAbelian(group_t *A);
 
 long *newLongArray(long N);
-matrix_t *myMatalloc(long fl, long nor, long noc);
-/* Can handle nor==0 */
-matrix_t *myMatmul(matrix_t *dest, matrix_t *src);
-/* Can handle dest->nor==0; znoc is src->noc at end */
 
 /* l[0] is length of l */
 long listPos(long *l, long n);

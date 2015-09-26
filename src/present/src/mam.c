@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
   control = newController();
   if (InterpretCommandLine(argc, argv, control)) exit(1);
   group = namedGroupRecord(control->stem);
+  if (!group) exit(1);
   if (loadNonTips(group)) exit(1);
   if (control->q != -1)
   {
@@ -156,27 +157,27 @@ int main(int argc, char *argv[])
         exit(1);
       }
   }
-  buildPathTree(group);
+  if (buildPathTree(group)) exit(1);
   if (rightActionMatricesNotYetKnown(control))
     if (loadRegularActionMatrices(group)) exit(1);
   else
     if (loadActionMatrices(group)) exit(1);
   if (basisChangeMatricesNotYetKnown(control))
   {
-    makeBasisChangeMatrices(group);
-    saveBasisChangeMatrices(group);
+    if (makeBasisChangeMatrices(group)) exit(1);
+    if (saveBasisChangeMatrices(group)) exit(1);
   }
   else
-    loadBasisChangeMatrices(group);
+    if (loadBasisChangeMatrices(group)) exit(1);
   if (rightActionMatricesRequired(control))
   {
     if (changeActionMatricesReg2Nontips(group)) exit(1);
-    saveActionMatrices(group);
+    if (saveActionMatrices(group)) exit(1);
   }
   if (leftActionMatricesRequired(control))
   {
-    makeLeftActionMatrices(group);
-    saveLeftActionMatrices(group);
+    if (makeLeftActionMatrices(group)) exit(1);
+    if (saveLeftActionMatrices(group)) exit(1);
   }
   freeGroupRecord(group);
   exit(0);

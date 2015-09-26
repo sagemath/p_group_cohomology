@@ -69,20 +69,6 @@ inline gV_t *generalVectorTemplate(long nor)
   return gv;
 }
 
-/******************************************************************************
-gV_t *popGeneralVector(ngs_t *ngs)
-{
-  gV_t *gv;
-  if (ngs->gVwaiting)
-  {
-    gv = ngs->gVwaiting;
-    ngs->gVwaiting = NULL;
-  }
-  else
-    gv = generalVectorTemplate(ngs->r + ngs->s);
-  return gv;
-}
-*/
 /******************************************************************************/
 void pushGeneralVector(ngs_t *ngs, gV_t *gv)
 {
@@ -218,27 +204,6 @@ void freeWordForest(ngs_t *ngs)
 }
 */
 
-/*****
- * -1 on error
- **************************************************************************/
-long maxDim(group_t *group)
-{
-  register long d = 0;
-  switch (group->ordering)
-  {
-  case 'R' :
-    d = group->maxlength;
-    break;
-  case 'J' :
-    for (d = 0; group->dS[d+1] != group->nontips; d++);
-    break;
-  default :
-    MTX_ERROR("not implemented for this ordering");
-    return -1;
-  }
-  return d;
-}
-
 /****
  * 1 on error
  ***************************************************************************/
@@ -296,12 +261,13 @@ int destroyCurrentDimension(ngs_t *ngs)
   return 0;
 }
 
-/******************************************************************************/
-void destroyCurrentDimensionIfAny(ngs_t *ngs)
+/****
+ * 1 on error
+ ***************************************************************************/
+int destroyCurrentDimensionIfAny(ngs_t *ngs)
 {
-  if (ngs->dimLoaded == NONE) return;
-  destroyCurrentDimension(ngs);
-  return;
+  if (ngs->dimLoaded == NONE) return 0;
+  return destroyCurrentDimension(ngs);
 }
 
 /******************************************************************************/
@@ -368,7 +334,9 @@ PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node)
     long block = i / ngs->blockSize;
     long pos = i % ngs->blockSize;
     long nor = ngs->r + ngs->s;
-    if (ngs->blockLoaded != block) loadBlock(ngs, block);
+    if (ngs->blockLoaded != block)
+    { if (loadBlock(ngs, block)) return NULL;
+    }
     w = ptrPlus(ngs->thisBlock, pos * nor);
   }
   return w;
@@ -397,12 +365,14 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
   modW_t *node;
   PTR w, dest;
   FILE *fp = writehdrplus(storedProductFile(ngs, d+1), zfl, 0, group->nontips);
+  if (!fp) return 1;
   for (blo = 0; blo < ngs->r; blo++)
     for (pat = group->dS[d]; pat < group->dS[d+1]; pat++)
     {
       node = ngs->proot[blo] + pat;
       if (node->status == NO_DIVISOR) continue;
       w = nodeVector(ngs, group, node);
+      if (!w) return 1;
       for (a = 0; a < group->arrows; a++)
       {
         if (node->child[a])
@@ -430,17 +400,20 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
       return 1;
     }
   }
-  alterhdrplus(fp, nops * nor);
+  int r = alterhdrplus(fp, nops * nor);
   fclose(fp);
-  return 0;
+  return r;
 }
 
-/******************************************************************************/
-static void createEmptySliceFile(ngs_t *ngs, group_t *group, long d)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int createEmptySliceFile(ngs_t *ngs, group_t *group, long d)
 {
   FILE *fp = writehdrplus(storedProductFile(ngs, d), zfl, 0, group->nontips);
+  if (!fp) return 1;
   fclose(fp);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -483,8 +456,8 @@ int incrementSlice(ngs_t *ngs, group_t *group)
   { MTX_ERROR1("nothing loaded: %E", MTX_ERR_BADUSAGE);
     return 1;
   }
-  calculateNextProducts(ngs, group);
-  destroyCurrentDimension(ngs);
+  if (calculateNextProducts(ngs, group)) return 1;
+  if (destroyCurrentDimension(ngs)) return 1;
   commenceNewDimension(ngs,group,n+1);
   return 0;
 }
@@ -499,18 +472,18 @@ int selectNewDimension(ngs_t *ngs, group_t *group, long dim)
   if (ngs->dimLoaded != NONE && ngs->dimLoaded > dim)
   {
     printf("Warning sND: Backtracking\n");
-    destroyCurrentDimension(ngs);
+    if (destroyCurrentDimension(ngs)) return 1;
   }
   if (shouldUseExpansionSlice(ngs, dim))
   {
-    destroyCurrentDimensionIfAny(ngs);
-    loadExpansionSlice(ngs, group);
+    if (destroyCurrentDimensionIfAny(ngs)) return 1;
+    if (loadExpansionSlice(ngs, group)) return 1;
   }
   if (ngs->dimLoaded == NONE)
   {
     n = smallestDimensionOfReduced(ngs);
     if (n == NONE || n > dim) n = dim;
-    createEmptySliceFile(ngs, group, n);
+    if (createEmptySliceFile(ngs, group, n)) return 1;
     commenceNewDimension(ngs, group, n); /* uWSD should set nops = 0 */
     if (ngs->nops != 0)
     { MTX_ERROR("theoretical error");
@@ -518,6 +491,6 @@ int selectNewDimension(ngs_t *ngs, group_t *group, long dim)
     }
   }
   for (n = ngs->dimLoaded; n < dim; n++)
-    incrementSlice(ngs, group);
+    if (incrementSlice(ngs, group)) return 1;
   return 0;
 }

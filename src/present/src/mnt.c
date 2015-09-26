@@ -30,7 +30,9 @@ static proginfo_t pinfo =
   { "makeNontips", "Makes .nontips file using regular representation",
     "$Revision: 30_April_1998", helptext };
 
-/******************************************************************************/
+/****
+ * 1 on error
+ ***************************************************************************/
 int InterpretCommandLine(int argc, char *argv[], group_t *group)
 {
   //register int i;
@@ -59,7 +61,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
   group->p = atoi(this);
   FfSetField(group->p);
   this = argv[opt_ind++];
-  group->stem = djg_strdup(this);
+  if (group->stem = djg_strdup(this) == NULL) return 1;
   /* printf("%s: chosen order is %c\n", pinfo.name, group->ordering); */
   return 0;
 }
@@ -134,7 +136,9 @@ static int writeOutJenningsNontips(group_t *group, JenningsWord_t **word)
   return 0;
 }
 
-/******************************************************************************/
+/*****
+ * 1 on error
+ **************************************************************************/
 int constructNontips_LengthLex(group_t *group)
 /* sets mintips but not maxlength */
 {
@@ -223,7 +227,9 @@ int constructNontips_LengthLex(group_t *group)
   return 0;
 }
 
-/******************************************************************************/
+/*****
+ * 1 on error
+ **************************************************************************/
 int constructNontips_ReverseLengthLex(group_t *group)
 /* sets mintips but not maxlength */
 {
@@ -350,7 +356,9 @@ static void sortJenningsWords(group_t *group, JenningsWord_t **word)
   return;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 static char *newPath(long a, char *prev)
 {
   char *this;
@@ -368,7 +376,9 @@ static char *newPath(long a, char *prev)
   return this;
 }
 
-/******************************************************************************/
+/****
+ * 1 on error
+ ***************************************************************************/
 int constructNontips_Jennings(group_t *group)
 /* sets maxlength but not mintips */
 {
@@ -424,6 +434,7 @@ int main(int argc, char *argv[])
   group_t *group;
   MtxInitLibrary();
   group = newGroupRecord();
+  if (!group) exit(1);
   if (InterpretCommandLine(argc, argv, group)) exit(1);
   if (group->ordering == 'J')
     if (constructNontips_Jennings(group)) exit(1);

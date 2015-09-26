@@ -86,13 +86,13 @@ cdef extern from "pgroup_decls.h":
     group_t *newGroupRecord () except NULL
     group_t *namedGroupRecord(char *stem) except NULL
     void freeGroupRecord (group_t *group)
-    int readHeader(group_t *group)
-    int loadNonTips(group_t *group)
-    void loadActionMatrices(group_t *group)
-    void loadLeftActionMatrices(group_t *group)
-    path_t *allocatePathTree(group_t *group)
-    void buildPathTree(group_t *group)
-    void buildLeftPathTree(group_t *group)
+    int readHeader(group_t *group) except 1
+    int loadNonTips(group_t *group) except 1
+    int loadActionMatrices(group_t *group) except 1
+    int loadLeftActionMatrices(group_t *group) except 1
+    path_t *allocatePathTree(group_t *group) except NULL
+    int buildPathTree(group_t *group) except 1
+    int buildLeftPathTree(group_t *group) except 1
 
     Matrix_t *rightActionMatrix(group_t *group, PTR vec)
     Matrix_t *leftActionMatrix(group_t *group, PTR vec)
@@ -201,54 +201,46 @@ cdef extern from "aufloesung_decls.h":
     cdef char *resolDir(long Gsize)
     # /* String returned must be used at once, never reused, never freed. */
 
-    cdef nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
+    cdef nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat) except NULL
     # /* mat should be a block of length rankProj(resol, n-1) x rankProj(resol, n) */
 
-    cdef resol_t *newResolutionRecord()
-    cdef resol_t *newResolWithGroupLoaded (char *RStem, char *GStem, long N)
+    cdef resol_t *newResolutionRecord() except NULL
+    cdef resol_t *newResolWithGroupLoaded (char *RStem, char *GStem, long N) except NULL
     cdef void freeResolutionRecord(resol_t *resol)
 
-    ## diese zwei Funktionen geben nur Teile von resol_t zurück
-    # cdef long rankProj(resol_t *resol, long n)
-    # cdef long dimIm(resol_t *resol, long n)
-    cdef void setRankProj(resol_t *resol, long n, long r)
+    cdef long rankProj(resol_t *resol, long n) except -1
+    cdef long dimIm(resol_t *resol, long n) except -1
+    cdef int setRankProj(resol_t *resol, long n, long r) except 1
     cdef void setRankProjCoverForModule(resol_t *resol, long rkP0, long dimM)
 
-    ## dies mache ich lieber von Sage aus...
-    #cdef void initializeDateCommand(char *stem)
-    #void chatterDate()
-    #cdef char *numberedFile(long n, char *stem, char *ext)
-    # /* String returned must be used at once, never reused, never freed. */
-    # /* extension WITHOUT dot */
-
-    cdef Matrix_t *makeFirstDifferential(resol_t *resol)
-    cdef void makeThisDifferential(resol_t *resol, long n)
+    cdef Matrix_t *makeFirstDifferential(resol_t *resol) except NULL
+    cdef int makeThisDifferential(resol_t *resol, long n) except 1
     # /* n must be at least two */
     cdef nRgs_t *loadDifferential(resol_t *resol, long n)
     cdef nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n)
 
     cdef int readKnownResolution(resol_t *resol, long N)
 
-    cdef void innerPreimages(nRgs_t *nRgs, PTR images, long noi, group_t *group, PTR preimages)
+    cdef int innerPreimages(nRgs_t *nRgs, PTR images, long noi, group_t *group, PTR preimages) except 1
     # /* PTR preimages(nRgs_t *nRgs, PTR images, long noi, group_t *group); */
 
-    cdef int readOrConstructThisProjective(resol_t *resol, long n)
-    cdef void ensureThisProjectiveKnown(resol_t *resol, long n)
-    cdef void ensureThisUrbildGBKnown(resol_t *resol, long n)
+    cdef int readOrConstructThisProjective(resol_t *resol, long n) except 1
+    cdef int ensureThisProjectiveKnown(resol_t *resol, long n) except 1
+    cdef int ensureThisUrbildGBKnown(resol_t *resol, long n) except 1
 
 
 #####################################################################
 ## Urbilder / Urbild-GB
 cdef extern from "urbild_decls.h":
     void freeNRgs(nRgs_t *nRgs)
-    void saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
+    int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group) except 1
     #long countGenerators(nFgs_t *nFgs)
     long numberOfHeadyVectors(ngs_t *ngs)
-    void saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
+    int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group) except 1
     Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
 
 cdef extern from "nBuchberger_decls.h":
-    void nRgsBuchberger(nRgs_t *nRgs, group_t *group)
+    int nRgsBuchberger(nRgs_t *nRgs, group_t *group) except 1
 
 ####################################################################
 ####################################################################

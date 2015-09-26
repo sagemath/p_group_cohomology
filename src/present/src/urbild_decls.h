@@ -29,8 +29,8 @@ nRgs_t *nRgsAllocation(group_t *group, long r, long s, char *stem);
 void freeNFgs(nFgs_t *nFgs);
 void freeNRgs(nRgs_t *nRgs);
 
-void saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group);
-void saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group);
+int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group);
+int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group);
 
 matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group);
 
@@ -48,15 +48,15 @@ void freeReducedVector(rV_t *rv, ngs_t *ngs);
 rV_t *reducedVector(gV_t *gv, group_t *group);
 inline long numberOfHeadyVectors(ngs_t *ngs);
 long dimensionOfDeepestHeady(ngs_t *ngs);
-void insertNewUnreducedVector(ngs_t *ngs, gV_t *gv);
-void insertReducedVector(ngs_t *ngs, rV_t *rv);
+int insertNewUnreducedVector(ngs_t *ngs, gV_t *gv);
+int insertReducedVector(ngs_t *ngs, rV_t *rv);
 gV_t *duplicate_gVtmp(ngs_t *ngs, boolean radical);
 void unlinkUnreducedVector(ngs_t *ngs, uV_t *uv);
 void freeUnreducedVector(uV_t *uv);
 uV_t *unreducedVector(ngs_t *ngs, gV_t *gv);
 
-void nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
+int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
   group_t *group);
-void nFgsInitializeVectors(nFgs_t *nFgs, PTR mat, long n, group_t *group);
+int nFgsInitializeVectors(nFgs_t *nFgs, PTR mat, long n, group_t *group);
 
 #endif

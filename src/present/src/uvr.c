@@ -58,17 +58,22 @@ uvr_t *newBoundedUvr(long Vdim, long Udim)
   return U;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 uvr_t *newUvr(long Vdim)
 {
   return newBoundedUvr(Vdim, Vdim);
 }
 
-/******************************************************************************/
+/******
+ * NULL on error
+ *************************************************************************/
 uvr_t *ambientVr(long Vdim)
 {
   long i;
   uvr_t *V = newBoundedUvr(Vdim, Vdim);
+  if (!V) return NULL;
   PTR row;
   row = V->basis;
   for (i = 1; i <= Vdim; i++)
@@ -136,18 +141,27 @@ static int uvrCopy(uvr_t *dest, uvr_t *src)
   return 0;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 static uvr_t *duplicateUvr(uvr_t *old)
 {
   uvr_t *new = newBoundedUvr(old->Vdim, old->Udim);
-  uvrCopy(new, old);
+  if (!new) return NULL;
+  if (uvrCopy(new, old))
+  { freeUvr(new);
+    return NULL;
+  }
   return new;
 }
 
-/******************************************************************************/
+/******
+ * NULL on error
+ *************************************************************************/
 PTR duplicateUvrBasis(uvr_t *uvr)
 {
   uvr_t *dup = duplicateUvr(uvr);
+  if (!dup) return NULL;
   PTR basis = dup->basis;
   dup->basis = NULL;
   freeUvr(dup);
@@ -251,7 +265,9 @@ static long innerIntersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest, long dimA,
   return crank;
 }
 
-/******************************************************************************/
+/****
+ * -1 on error
+ ***************************************************************************/
 static long intersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest)
 {
   long dimA = uvrDimension(A);
@@ -265,24 +281,27 @@ static long intersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest)
   }
   if (dimA == Vdim)
   {
-    uvrCopy(dest, B);
+    if (uvrCopy(dest, B)) return -1;
     return dimB;
   }
   if (dimB == Vdim)
   {
-    uvrCopy(dest, A);
+    if (uvrCopy(dest, A)) return -1;
     return dimA;
   }
   return innerIntersectUvrs(A, B, dest, dimA, dimB, nor);
 }
 
-/******************************************************************************/
+/******
+ * NULL on error
+ *************************************************************************/
 uvr_t *uvrIntersection(uvr_t *A, uvr_t *B)
 {
   long Vdim = uvrAmbientDimension(A);
   long Udim = minlong(uvrDimension(A), uvrDimension(B));
   uvr_t *C = newBoundedUvr(Vdim, Udim);
-  intersectUvrs(A,B,C);
+  if (!C) return NULL;
+  if (intersectUvrs(A,B,C)==-1) return NULL;
   return C;
 }
 
@@ -305,12 +324,14 @@ static int uvrSwap(uvr_t *A, uvr_t *B)
   return 0;
 }
 
-/******************************************************************************/
+/*****
+ * -1 on error
+ **************************************************************************/
 long repeatIntersectUvrs(uvr_t *dest, uvr_t *src, uvr_t *tmp)
 /* dest, src and tmp must all have same Vdim and all have Udim = Vdim */
 /* Not checked here: responsibility of calling routine */
 {
-  uvrSwap(dest, tmp);
+  if (uvrSwap(dest, tmp)) return -1;
   return intersectUvrs(tmp, src, dest);
 }
 
@@ -350,32 +371,42 @@ static int innerUvrComplement(uvr_t *dest, uvr_t *src)
   return 0;
 }
 
-/******************************************************************************/
+/*******
+ * NULL on error
+ ************************************************************************/
 uvr_t *uvrComplement(uvr_t *big, uvr_t *small)
 {
   uvr_t *com = duplicateUvr(big);
-  innerUvrComplement(com, small);
+  if (!com) return NULL;
+  if (innerUvrComplement(com, small)) return NULL;
   return com;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 uvr_t *uvrAmbientComplement(uvr_t *A)
 {
   long Vdim = uvrAmbientDimension(A);
   uvr_t *V = ambientVr(Vdim);
+  if (!V) return NULL;
   uvr_t *B = uvrComplement(V, A);
   freeUvr(V);
   return B;
 }
 
-/******************************************************************************/
+/******
+ * NULL on error
+ *************************************************************************/
 uvr_t *uvrSum(uvr_t *A, uvr_t *B)
 {
   uvr_t *tmp = duplicateUvr(B);
+  if (!tmp) return NULL;
   long d = innerUvrClean(tmp, A);
   long dimA = uvrDimension(A);
   long *dest, *src;
   uvr_t *sum = newUvr(uvrAmbientDimension(A));
+  if (!sum) return NULL;
   /* uvrAdd requires Udim = Vdim */
   if (dimA > 0)
   {
@@ -394,20 +425,26 @@ uvr_t *uvrSum(uvr_t *A, uvr_t *B)
   return sum;
 }
 
-/******************************************************************************/
-void uvrAdd(uvr_t *dest, uvr_t *src)
+/*****
+ * 1 on error
+ **************************************************************************/
+int uvrAdd(uvr_t *dest, uvr_t *src)
 {
   uvr_t *sum = uvrSum(dest, src);
-  uvrSwap(sum, dest);
+  if (!sum) return 1;
+  if (uvrSwap(sum, dest)) return 1;
   freeUvr(sum);
-  return;
+  return 0;
 }
 
-******************************************************************************/
+/*******
+ * NULL on error
+ ************************************************************************/
 uvr_t *uvrComplementOfIntersection(uvr_t *A, uvr_t *B)
 /* Returns C in A such that A = C \oplus (A \cap B) */
 {
   uvr_t *cap = uvrIntersection(A, B);
+  if (!cap) return NULL;
   uvr_t *C = uvrComplement(A, cap);
   freeUvr(cap);
   return C;

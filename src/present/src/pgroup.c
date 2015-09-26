@@ -109,11 +109,17 @@ group_t *newGroupRecord (void)
   return group;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 inline group_t *namedGroupRecord (char *stem)
 {
   group_t *group = newGroupRecord();
-  group->stem = djg_strdup(stem);
+  if (!group) return NULL;
+  if (group->stem = djg_strdup(stem) == NULL)
+  { freeGroupRecord(group);
+    return NULL;
+  }
   return group;
 }
 
@@ -535,6 +541,7 @@ int buildPathTree(group_t *group)
   path_t *this, *parent;
   char arrow;
   root = allocatePathTree(group);
+  if (!root) return 1;
   for (i = 1; i < group->nontips; i++)
   {
     this = root + i; parent = root;
@@ -568,6 +575,7 @@ int buildLeftPathTree(group_t *group)
   path_t *this, *parent;
   char arrow;
   lroot = allocatePathTree(group);
+  if (!lroot) return 1;
   for (i = 1; i < group->nontips; i++)
   {
     this = lroot + i; parent = lroot;
@@ -662,37 +670,46 @@ matrix_t **loadMatrixList(group_t *group, char *name, long num)
   return action;
 }
 
-/******************************************************************************/
-inline void loadActionMatrices(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+inline int loadActionMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".gens");
   gunzip(name);
   group->action = loadMatrixList(group, name, group->arrows);
+  if (!group->action) return 1;
   gzip(name);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-inline void loadLeftActionMatrices(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+inline int loadLeftActionMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".lgens");
   gunzip(name);
   group->laction = loadMatrixList(group, name, group->arrows);
+  if (!group->laction) return 1;
   gzip(name);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void loadBasisChangeMatrices(group_t *group)
+/***
+ * 1 on error
+ ****************************************************************************/
+int loadBasisChangeMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".bch");
   gunzip(name);
   group->bch = loadMatrixList(group, name, 2);
+  if (!group->bch) return 1;
   gzip(name);
-  return;
+  return 0;
 }
 
 /****
@@ -713,34 +730,40 @@ int saveMatrixList(group_t *group, matrix_t **action, long num, char *name)
   return 0;
 }
 
-/******************************************************************************/
-void saveActionMatrices(group_t *group)
+/***
+ * 1 on error
+ ****************************************************************************/
+int saveActionMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".gens");
-  saveMatrixList(group, group->action, group->arrows, name);
+  if (saveMatrixList(group, group->action, group->arrows, name)) return 1;
   gzip(name);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void saveLeftActionMatrices(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int saveLeftActionMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".lgens");
-  saveMatrixList(group, group->laction, group->arrows, name);
+  if (saveMatrixList(group, group->laction, group->arrows, name)) return 1;
   gzip(name);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void saveBasisChangeMatrices(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int saveBasisChangeMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".bch");
-  saveMatrixList(group, group->bch, 2, name);
+  if (saveMatrixList(group, group->bch, 2, name)) return 1;
   gzip(name);
-  return;
+  return 0;
 }
 
 /****
@@ -800,7 +823,9 @@ matrix_t **allocateMatrixList(group_t *group, long num)
   return action;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 inline matrix_t **allocateActionMatrices(group_t *group)
 {
   return allocateMatrixList(group, group->arrows);
@@ -1177,15 +1202,17 @@ int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
   return 0;
 }
 
-/******************************************************************************/
-void loadRegularActionMatrices(group_t *group)
+/***
+ * 1 on error
+ ****************************************************************************/
+int loadRegularActionMatrices(group_t *group)
 {
   char regname[MAXLINE];
   strext(regname, group->stem, ".reg");
   group->action = allocateActionMatrices(group);
-  loadGeneralRegularActionMatrices(group, group->action, regname,
+  if (!group->action) return 1;
+  return loadGeneralRegularActionMatrices(group, group->action, regname,
     group->arrows);
-  return;
 }
 
 /****
@@ -1196,6 +1223,7 @@ int makeBasisChangeMatrices(group_t *group)
 {
   register long i;
   matrix_t **bch = allocateMatrixList(group, 2);
+  if (!bch) return 1;
   matrix_t *bw = bch[0], *wb;
   matrix_t **action = group->action;
   long nontips = group->nontips;
@@ -1244,6 +1272,7 @@ int readRegFileHeader(group_t *group)
 int makeLeftActionMatrices(group_t *group)
 {
   matrix_t **laction = allocateActionMatrices(group);
+  if (!laction) return 1;
   long a;
   path_t *p;
   PTR vec = zalloc(1);
@@ -1290,13 +1319,16 @@ int innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
   return 0;
 }
 
+/**
+ * NULL on error
+ ******/
 static matrix_t *innerRightAction(matrix_t *dest, const matrix_t *src,
   PTR scratch)
 /* Guaranteed not to alter dest->d */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
-  innerRightProduct(dest,src,scratch);
+  if (innerRightProduct(dest,src,scratch)) return NULL;
   memcpy(dest->d, scratch, zsize(dest->nor));
   return dest;
 }
@@ -1329,8 +1361,10 @@ static matrix_t *innerLeftAction(const matrix_t *src, matrix_t *dest,
   return dest;
 }
 
-/******************************************************************************/
-void innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
+/****
+ * 1 on error
+ ***************************************************************************/
+int innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
   long num, PTR workspace)
   /* Alters matrices in matlist */
   /* workspace points to group->nontips rows scratch space */
@@ -1339,14 +1373,16 @@ void innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
   matrix_t *bw = group->bch[0], *wb = group->bch[1];
   for (i = 0; i < num; i++)
   {
-    innerLeftAction(wb, matlist[i], workspace);
-    innerRightAction(matlist[i], bw, workspace);
+    if (!innerLeftAction(wb, matlist[i], workspace)) return 1;
+    if (!innerRightAction(matlist[i], bw, workspace)) return 1;
   }
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
+/****
+ * 1 on error
+ ***************************************************************************/
+int innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
   long num, PTR workspace)
 /* Alters matrices in matlist */
 /* workspace points to group->nontips rows scratch space */
@@ -1355,10 +1391,10 @@ void innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
   matrix_t *bw = group->bch[0], *wb = group->bch[1];
   for (i = 0; i < num; i++)
   {
-    innerLeftAction(bw, matlist[i], workspace);
-    innerRightAction(matlist[i], wb, workspace);
+    if (!innerLeftAction(bw, matlist[i], workspace)) return 1;
+    if (!innerRightAction(matlist[i], wb, workspace)) return 1;
   }
-  return;
+  return 0;
 }
 
 /*****
@@ -1373,9 +1409,9 @@ int basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return 1;
   }
-  innerBasisChangeReg2Nontips(group, matlist, num, workspace);
+  int r = innerBasisChangeReg2Nontips(group, matlist, num, workspace);
   free(workspace);
-  return 0;
+  return r;
 }
 
 /******
@@ -1390,9 +1426,9 @@ int changeActionMatricesReg2Nontips(group_t *group)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return 1;
   }
-  innerBasisChangeReg2Nontips(group, group->action, group->arrows, workspace);
+  int r = innerBasisChangeReg2Nontips(group, group->action, group->arrows, workspace);
   free(workspace);
-  return 0;
+  return r;
 }
 
 /******************************************************************************/
@@ -1488,19 +1524,46 @@ int calculateDimSteps(group_t *group)
 group_t *fullyLoadedGroupRecord(char *stem)
 {
   group_t *G = namedGroupRecord(stem);
-  loadNonTips(G);
+  if (!G) return NULL;
+  if (loadNonTips(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
   if (G->ordering == 'L')
   {
       MTX_ERROR("can't cope with LL ordering");
       return NULL;
   }
-  if (G->ordering == 'J') loadDimensions(G);
-  buildPathTree(G);
-  buildLeftPathTree(G);
-  markPathDimensions(G);
-  loadActionMatrices(G);
-  loadLeftActionMatrices(G);
-  calculateDimSteps(G);
+  if (G->ordering == 'J')
+  { if (loadDimensions(G))
+    { freeGroupRecord(G);
+      return NULL;
+    }
+  }
+  if (buildPathTree(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
+  if (buildLeftPathTree(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
+  if (markPathDimensions(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
+  if (loadActionMatrices(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
+  if (loadLeftActionMatrices(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
+  if (calculateDimSteps(G))
+  { freeGroupRecord(G);
+    return NULL;
+  }
   return G;
 }
 
@@ -1521,13 +1584,15 @@ inline boolean mateq(matrix_t *mat1, matrix_t *mat2)
   return true;
 }
 
-/******************************************************************************/
+/****
+ * -1 on error
+ ***************************************************************************/
 static int matricesCommute(matrix_t *a, matrix_t *b, matrix_t *ab,
   matrix_t *ba)
 {
-  innerRightProduct(a, b, ab->d);
-  innerRightProduct(b, a, ba->d);
-  return (mateq(ab,ba)) ? true : false;
+  if (innerRightProduct(a, b, ab->d)) return -1;
+  if (innerRightProduct(b, a, ba->d)) return -1;
+  return (mateq(ab,ba)) ? 1 : 0;
 }
 
 /*****
@@ -1575,57 +1640,6 @@ long *newLongArray(long N)
       }
   for (i = 0; i < N; i++) l[i] = 0;
   return l;
-}
-
-/****
- * NULL on error
- ***************************************************************************/
-matrix_t *myMatalloc(long fl, long nor, long noc)
-/* Can handle nor==0 */
-{
-  long nor1;
-  matrix_t *mat;
-  nor1 = (nor == 0) ? 1 : nor;
-  mat = matalloc(fl, nor1, noc);
-  if (!mat)
-    {
-      MTX_ERROR1("%E", MTX_ERR_NOMEM);
-      return NULL;
-    }
-  if (nor == 0)
-  {
-    free(mat->d);
-    mat->d = NULL;
-    mat->nor = 0;
-  }
-  return mat;
-}
-
-/****
- * NULL on error
- ***************************************************************************/
-matrix_t *myMatmul(matrix_t *dest, matrix_t *src)
-/* Can handle dest->nor==0; znoc is src->noc at end */
-{
-  if (src->fl != dest->fl || src->nor != dest->noc)
-  {
-      MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
-      return NULL;
-  }
-  zsetfield(src->fl);
-  if (dest->nor == 0)
-  {
-    if (dest->d)
-    {
-      free (dest->d);
-      dest->d = NULL;
-    }
-    dest->noc = src->noc;
-  }
-  else
-    matmul(dest, src);
-  zsetlen(src->noc);
-  return dest;
 }
 
 /******************************************************************************/

@@ -41,7 +41,10 @@ inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem)
       }
   inclus->G = G;
   inclus->H = H;
-  inclus->stem = djg_strdup(stem);
+  if (inclus->stem = djg_strdup(stem) == NULL)
+  { free(inclus);
+    return NULL;
+  }
   inclus->ima = NULL;
   return inclus;
 }
@@ -85,8 +88,12 @@ int makeInclusionMatrix(inclus_t *inclus)
       return 1;
   }
   strext(name, inclus->stem, ".irg");
-  loadGeneralRegularActionMatrices(G, Hgens, name, Hnum);
-  basisChangeReg2Nontips(G, Hgens, Hnum);
+  if (loadGeneralRegularActionMatrices(G, Hgens, name, Hnum))
+  { freeMatrixList(Hgens);
+    MatFree(ima);
+    return 1;
+  }
+  if (basisChangeReg2Nontips(G, Hgens, Hnum)) return 1;
   zinsert(ima->d, 1, F_ONE);
   for (i = 1; i < Hsize; i++)
   {

@@ -22,10 +22,10 @@
 #if !defined(__AUFNAHME_DECLS_INCLUDED)	/* Include only once */
 #define __AUFNAHME_DECLS_INCLUDED
 
-void nFgsAufnahme(nFgs_t *nFgs, group_t *group);
-void nRgsAufnahme(nRgs_t *nRgs, group_t *group);
-void urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result);
-void nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group);
+int nFgsAufnahme(nFgs_t *nFgs, group_t *group);
+int nRgsAufnahme(nRgs_t *nRgs, group_t *group);
+int urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result);
+int nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group);
 void possiblyNewKernelGenerator(nRgs_t *nRgs, PTR pw, group_t *group);
 
 #endif

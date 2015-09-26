@@ -25,7 +25,9 @@ static proginfo_t pinfo =
   { "groupInfo", "Print group statistics",
     "$Revision: 19_April_1999", helptext };
 
-/******************************************************************************/
+/*****
+ * 1 on error
+ **************************************************************************/
 int InterpretCommandLine(int argc, char *argv[], group_t *group)
 {
   //register int i;
@@ -39,7 +41,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
     return 1;
   }
   this = argv[opt_ind++];
-  group->stem = djg_strdup(this);
+  if (group->stem = djg_strdup(this) == NULL) return 1;
   return 0;
 }
 
@@ -59,6 +61,7 @@ int main(int argc, char *argv[])
   group_t *group;
   MtxInitLibrary();
   group = newGroupRecord();
+  if (!group) exit(1);
   if (InterpretCommandLine(argc, argv, group)) exit(1);
   if (readHeader(group)) exit(1);
   if (group->ordering == 'J')

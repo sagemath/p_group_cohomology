@@ -13,7 +13,7 @@ MTX_DEFINE_FILE_INFO
 /**
  * NULL on error
  ****/
-void *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
+Matrix_t *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* Assembles dest * src at scratch. */
 /* src should be square, scratch should point to enough space. */
 {
@@ -32,26 +32,18 @@ void *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_dest);
   }
-  return;
+  return dest;
 }
 
-Matrix_t *RightProduct(const Matrix_t *dest, const Matrix_t *src)
-{
-  Matrix_t *result = matalloc(src->fl, dest->nor, src->noc);
-  if (!result)
-  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
-    return NULL;
-  }
-  InnerRightProduct(dest,src,result->d);
-  return result;
-}
-
+/**
+ * NULL on error
+ ****/
 Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* Guaranteed not to alter dest->d */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
-  InnerRightProduct(dest,src,scratch);
+  if (!InnerRightProduct(dest,src,scratch)) return NULL;
   memcpy(dest->d, scratch, zsize(dest->nor));
   return dest;
 }
@@ -83,26 +75,9 @@ Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
   return dest;
 }
 
-/**
- * NULL on error
- ***/
-Matrix_t *RightAction(Matrix_t *dest, const Matrix_t *src)
-/* Guaranteed not to alter dest->d */
-{
-  PTR scratch;
-  FfSetNoc(src->noc);
-  scratch = zalloc(dest->nor);
-  if (!scratch)
-  {
-    MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
-    return NULL;
-  }
-  dest = InnerRightAction(dest, src, scratch);
-  free(scratch);
-  return dest;
-}
-
-/******************************************************************************/
+/*****
+ * 1 on error
+ **************************************************************************/
 int innerBasisChangeNontips2Reg(group_t *group, Matrix_t **matlist,
   long num, PTR workspace)
   /* Alters matrices in matlist */

@@ -22,7 +22,7 @@
 #if !defined(__NBUCHBERGER_DECLS_INCLUDED)	/* Include only once */
 #define __NBUCHBERGER_DECLS_INCLUDED
 
-void nFgsBuchberger(nFgs_t *nFgs, group_t *group);
-void nRgsBuchberger(nRgs_t *nRgs, group_t *group);
+int nFgsBuchberger(nFgs_t *nFgs, group_t *group);
+int nRgsBuchberger(nRgs_t *nRgs, group_t *group);
 
 #endif

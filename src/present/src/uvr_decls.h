@@ -35,10 +35,10 @@ uvr_t *uvrComplement(uvr_t *big, uvr_t *small);
 uvr_t *uvrComplementOfIntersection(uvr_t *A, uvr_t *B);
 /* Returns C in A such that A = C \oplus (A \cap B) */
 uvr_t *uvrSum(uvr_t *A, uvr_t *B);
-void *uvrAdd(uvr_t *dest, uvr_t *src);
+int *uvrAdd(uvr_t *dest, uvr_t *src);
 uvr_t *uvrAmbientComplement(uvr_t *A);
 
-void pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
+int pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
   long nocB, PTR matC, PTR matA, long nocA);
 /* Cleans matD by matB, then does same operations on matC using matA */
 /* znoc immaterial at start, indeterminate at end */

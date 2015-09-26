@@ -59,19 +59,23 @@ static void submul(PTR ptr1, PTR ptr2, FEL f, long nor)
   return;
 }
 
-/******************************************************************************/
-static void demoteReducedVector(ngs_t *ngs, rV_t *rv)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int demoteReducedVector(ngs_t *ngs, rV_t *rv)
 /* rv used to be reduced, but we've just found something it reduces over */
 {
   unlinkReducedVector(ngs, rv);
-  insertNewUnreducedVector(ngs, rv->gv);
+  if (insertNewUnreducedVector(ngs, rv->gv)) return 1;
   rv->gv = NULL;
   freeReducedVector(rv, ngs);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void markNodeMultiples(ngs_t *ngs, rV_t *rv, modW_t *node,
+/*****
+ * 1 on error
+ *************************************************************************/
+static int markNodeMultiples(ngs_t *ngs, rV_t *rv, modW_t *node,
   boolean alreadyFound, path_t *ext, group_t *group)
 {
   /* node != NULL guaranteed */
@@ -82,7 +86,7 @@ static void markNodeMultiples(ngs_t *ngs, rV_t *rv, modW_t *node,
   if (!alreadyFound && v != NULL)
   {
     /* printf("markNodeMultiples: spurious generator expelled\n"); */
-    demoteReducedVector(ngs, v);
+    if (demoteReducedVector(ngs, v)) return 1;
     aF = true;
   }
   node->divisor = rv;
@@ -94,9 +98,9 @@ static void markNodeMultiples(ngs_t *ngs, rV_t *rv, modW_t *node,
   {
     if (!node->child[a]) continue;
     node->child[a]->parent = node;
-    markNodeMultiples(ngs, rv, node->child[a], aF, ext->child[a], group);
+    if (markNodeMultiples(ngs, rv, node->child[a], aF, ext->child[a], group)) return 1;
   }
-  return;
+  return 0;
 }
 
 /*****
@@ -114,13 +118,15 @@ int nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group)
   for (i = 0; i < num; i++)
   {
     gv = popGeneralVector(ngs);
+    if (!gv) return 1;
     memcpy(gv->w, ptrPlus(mat, i * nor), zsize(nor));
     findLeadingMonomial(gv, ngs->r, group);
     ptn = wordForestEntry(ngs, gv);
     rv = reducedVector(gv, group);
+    if (!rv) return 1;
     rv->node = ptn;
-    insertReducedVector(ngs, rv);
-    markNodeMultiples(ngs, rv, ptn, false, group->root, group);
+    if (insertReducedVector(ngs, rv)) return 1;
+    if (markNodeMultiples(ngs, rv, ptn, false, group->root, group)) return 1;
   }
   if (ngs->unreducedHeap)
   { MTX_ERROR("nRgsAssertRV: Theoretical error");
@@ -129,18 +135,20 @@ int nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group)
   return 0;
 }
 
-/******************************************************************************/
-static void promoteUnreducedVector(ngs_t *ngs, uV_t *uv, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int promoteUnreducedVector(ngs_t *ngs, uV_t *uv, group_t *group)
 {
   modW_t *ptn = wordForestEntry(ngs, uv->gv);
   rV_t *rv;
   rv = reducedVector(uv->gv, group);
+  if (!rv) return 1;
   rv->node = ptn;
   uv->gv = NULL;
   freeUnreducedVector(uv);
-  insertReducedVector(ngs, rv);
-  markNodeMultiples(ngs, rv, ptn, false, group->root, group);
-  return;
+  if (insertReducedVector(ngs, rv)) return 1;
+  return markNodeMultiples(ngs, rv, ptn, false, group->root, group);
 }
 
 /******************************************************************************/
@@ -152,8 +160,10 @@ void possiblyNewKernelGenerator(nRgs_t *nRgs, PTR pw, group_t *group)
   return;
 }
 
-/******************************************************************************/
-static void nFgsProcessModifiedUnreducedVector(nFgs_t *nFgs, uV_t *uv,
+/*****
+ * 1 on error
+ **************************************************************************/
+static int nFgsProcessModifiedUnreducedVector(nFgs_t *nFgs, uV_t *uv,
   group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
@@ -163,14 +173,16 @@ static void nFgsProcessModifiedUnreducedVector(nFgs_t *nFgs, uV_t *uv,
     freeUnreducedVector(uv);
   else
   {
-    makeVectorMonic(ngs, gv);
+    if (makeVectorMonic(ngs, gv)) return 1;
     insertUnreducedVector(ngs, uv);
   }
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void nRgsProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int nRgsProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv, group_t *group)
 {
   ngs_t *ngs = nRgs->ngs;
   register gV_t *gv = uv->gv;
@@ -182,14 +194,16 @@ static void nRgsProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv, group_t *
   }
   else
   {
-    makeVectorMonic(ngs, gv);
+    if (makeVectorMonic(ngs, gv)) return 1;
     insertUnreducedVector(ngs, uv);
   }
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void urbildProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv,
+/******
+ * 1 on error
+ *************************************************************************/
+static int urbildProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv,
   group_t *group, PTR result)
 {
   ngs_t *ngs = nRgs->ngs;
@@ -206,11 +220,13 @@ static void urbildProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv,
     freeUnreducedVector(uv);
   }
   else insertUnreducedVector(ngs, uv);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void nFgsPerformLinearReductions(nFgs_t *nFgs, gV_t *gv0, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int nFgsPerformLinearReductions(nFgs_t *nFgs, gV_t *gv0, group_t *group)
 {
   register ngs_t *ngs = nFgs->ngs;
   register long nor = ngs->r + ngs->s;
@@ -221,13 +237,15 @@ static void nFgsPerformLinearReductions(nFgs_t *nFgs, gV_t *gv0, group_t *group)
   {
     unlinkUnreducedVector(ngs, uv);
     subtract(gv->w, gv0->w,nor);
-    nFgsProcessModifiedUnreducedVector(nFgs, uv, group);
+    if (nFgsProcessModifiedUnreducedVector(nFgs, uv, group)) return 1;
   }
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void nRgsPerformLinearReductions(nRgs_t *nRgs, gV_t *gv0, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int nRgsPerformLinearReductions(nRgs_t *nRgs, gV_t *gv0, group_t *group)
 {
   register ngs_t *ngs = nRgs->ngs;
   register long nor = ngs->r + ngs->s;
@@ -238,9 +256,9 @@ static void nRgsPerformLinearReductions(nRgs_t *nRgs, gV_t *gv0, group_t *group)
   {
     unlinkUnreducedVector(ngs, uv);
     subtract(gv->w, gv0->w,nor);
-    nRgsProcessModifiedUnreducedVector(nRgs, uv, group);
+    if (nRgsProcessModifiedUnreducedVector(nRgs, uv, group)) return 1;
   }
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -256,8 +274,10 @@ static boolean shouldReduceTip(ngs_t *ngs, gV_t *gv)
   return true;
 }
 
-/******************************************************************************/
-static void reduceMonicTipOnce(ngs_t *ngs, gV_t *gv, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int reduceMonicTipOnce(ngs_t *ngs, gV_t *gv, group_t *group)
 {
   /* modW_t *node = wordForestEntry(ngs, gv); */
   /* PTR w = nodeVector(ngs, group, node); */
@@ -267,13 +287,16 @@ static void reduceMonicTipOnce(ngs_t *ngs, gV_t *gv, group_t *group)
   long nor;
   node = wordForestEntry(ngs, gv);
   w = nodeVector(ngs, group, node);
+  if (!w) return 1;
   nor = ngs->r + ngs->s;
   subtract(gv->w, w, nor);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void reduceTipOnce(ngs_t *ngs, gV_t *gv, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int reduceTipOnce(ngs_t *ngs, gV_t *gv, group_t *group)
 {
   /* modW_t *node = wordForestEntry(ngs, gv); */
   /* PTR w = nodeVector(ngs, group, node); */
@@ -283,20 +306,24 @@ static void reduceTipOnce(ngs_t *ngs, gV_t *gv, group_t *group)
   long nor;
   node = wordForestEntry(ngs, gv);
   w = nodeVector(ngs, group, node);
+  if (!w) return 1;
   nor = ngs->r + ngs->s;
   submul(gv->w, w, gv->coeff, nor);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-static void tidyUpAfterAufnahme(ngs_t *ngs)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int tidyUpAfterAufnahme(ngs_t *ngs)
 {
-  destroyCurrentDimensionIfAny(ngs);
-  return;
+  return destroyCurrentDimensionIfAny(ngs);
 }
 
-/******************************************************************************/
-void nFgsAufnahme(nFgs_t *nFgs, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+int nFgsAufnahme(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   register uV_t *uv;
@@ -308,29 +335,29 @@ void nFgsAufnahme(nFgs_t *nFgs, group_t *group)
     return;
   }
   sweepDim = ngs->unreducedHeap->gv->dim;
-  selectNewDimension(ngs, group, sweepDim);
+  if (selectNewDimension(ngs, group, sweepDim)) return 1;
   for (; sweepDim <= group->maxlength; sweepDim++)
   {
     while ((uv = unreducedSuccessor(ngs, NULL)) && uv->gv->dim == sweepDim)
     {
       unlinkUnreducedVector(ngs, uv);
       gv = uv->gv;
-      nFgsPerformLinearReductions(nFgs, gv, group);
+      if (nFgsPerformLinearReductions(nFgs, gv, group)) return 1;
       if (shouldReduceTip(ngs, gv))
       {
-        reduceMonicTipOnce(ngs, gv, group);
-        nFgsProcessModifiedUnreducedVector(nFgs, uv, group);
+        if (reduceMonicTipOnce(ngs, gv, group)) return 1;
+        if (nFgsProcessModifiedUnreducedVector(nFgs, uv, group)) return 1;
       }
       else
       {
-        promoteUnreducedVector(ngs, uv, group);
+        if (promoteUnreducedVector(ngs, uv, group)) return 1;
       }
     }
     if (!uv) break; /* All unreduced vectors processed */
-    else incrementSlice(ngs, group);
+    else if (incrementSlice(ngs, group)) return 1;
   }
   tidyUpAfterAufnahme(ngs);
-  return;
+  return 0;
 }
 
 /*****
@@ -348,7 +375,7 @@ int urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
     return 0;
   }
   sweepDim = ngs->unreducedHeap->gv->dim;
-  selectNewDimension(ngs, group, sweepDim);
+  if (selectNewDimension(ngs, group, sweepDim)) return 1;
   for (; sweepDim <= group->maxlength; sweepDim++)
   {
     while ((uv = unreducedSuccessor(ngs, NULL)) && uv->gv->dim == sweepDim)
@@ -357,8 +384,8 @@ int urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
       gv = uv->gv;
       if (shouldReduceTip(ngs, gv))
       {
-        reduceTipOnce(ngs, gv, group);
-        urbildProcessModifiedUnreducedVector(nRgs, uv, group, result);
+        if (reduceTipOnce(ngs, gv, group)) return 1;
+        if (urbildProcessModifiedUnreducedVector(nRgs, uv, group, result)) return 1;
       }
       else
       {
@@ -366,14 +393,16 @@ int urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
       }
     }
     if (!uv) break; /* All unreduced vectors processed */
-    else incrementSlice(ngs, group);
+    else if (incrementSlice(ngs, group)) return 1;
   }
   tidyUpAfterAufnahme(ngs);
   return 0;
 }
 
-/******************************************************************************/
-void nRgsAufnahme(nRgs_t *nRgs, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int nRgsAufnahme(nRgs_t *nRgs, group_t *group)
 {
   register ngs_t *ngs = nRgs->ngs;
   register uV_t *uv;
@@ -382,30 +411,30 @@ void nRgsAufnahme(nRgs_t *nRgs, group_t *group)
   if (!ngs->unreducedHeap)
   {
     tidyUpAfterAufnahme(ngs);
-    return;
+    return 0;
   }
   sweepDim = ngs->unreducedHeap->gv->dim;
-  selectNewDimension(ngs, group, sweepDim);
+  if (selectNewDimension(ngs, group, sweepDim)) return 1;
   for (; sweepDim <= group->maxlength; sweepDim++)
   {
     while ((uv = unreducedSuccessor(ngs, NULL)) && uv->gv->dim == sweepDim)
     {
       unlinkUnreducedVector(ngs, uv);
       gv = uv->gv;
-      nRgsPerformLinearReductions(nRgs, gv, group);
+      if (nRgsPerformLinearReductions(nRgs, gv, group)) return 1;
       if (shouldReduceTip(ngs, gv))
       {
-        reduceMonicTipOnce(ngs, gv, group);
-        nRgsProcessModifiedUnreducedVector(nRgs, uv, group);
+        if (reduceMonicTipOnce(ngs, gv, group)) return 1;
+        if (nRgsProcessModifiedUnreducedVector(nRgs, uv, group)) return 1;
       }
       else
       {
-        promoteUnreducedVector(ngs, uv, group);
+        if (promoteUnreducedVector(ngs, uv, group)) return 1;
       }
     }
     if (!uv) break; /* All unreduced vectors processed */
-    else incrementSlice(ngs, group);
+    else if (incrementSlice(ngs, group)) return 1;
   }
   tidyUpAfterAufnahme(ngs);
-  return;
+  return 0;
 }
