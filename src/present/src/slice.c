@@ -45,14 +45,25 @@ void freeGeneralVector(gV_t *gv)
   return;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 inline gV_t *generalVectorTemplate(long nor)
 {
   gV_t *gv;
   PTR w;
   gv = (gV_t *) malloc(sizeof(gV_t));
+  if (!gv)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   w = zalloc(nor);
-  if (!gv || !w) AllocationError("generalVectorTemplate");
+  if (!w)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   gv->w = w;
   gv->radical = true; /* "default" value */
   return gv;
@@ -85,8 +96,10 @@ void pushGeneralVector(ngs_t *ngs, gV_t *gv)
   return;
 }
 
-/******************************************************************************/
-inline void makeVectorMonic(ngs_t *ngs, gV_t *gv)
+/***
+ * 1 on error
+ ****************************************************************************/
+inline int makeVectorMonic(ngs_t *ngs, gV_t *gv)
 /* f is the leading coefficient */
 {
   register long nor = ngs->r + ngs->s;
@@ -95,10 +108,13 @@ inline void makeVectorMonic(ngs_t *ngs, gV_t *gv)
   PTR ptr;
   register long i;
   if (f == F_ONE) return;
-  if (f == F_ZERO) OtherError("makeVectorMonic: input is zero");
+  if (f == F_ZERO)
+  { MTX_ERROR1("%E", MTX_ERR_DIV0);
+    return 1;
+  }
   g = zdiv(F_ONE, f);
   for (i = 0, ptr = gv->w; i < nor; i++, zsteprow(&ptr)) zmulrow(ptr, g);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -113,13 +129,13 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
   gv->dim = group->nontips + 1;
   gv->coeff = F_ZERO;
   for (b = 1; b <= r; b++, zsteprow(&ptr))
-  {  
+  {
     register long col = zfindpiv(ptr, &coeff);
     if (col != 0)
     {
       register long d = group->root[col-1].dim;
       if (d < gv->dim)
-      {  
+      {
         gv->dim = d;
         gv->coeff = coeff;
         gv->len = group->root[col-1].depth;
@@ -127,10 +143,10 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
         gv->col = col;
       }
     }
-  }  
+  }
   if (gv->dim == group->nontips + 1) gv->dim = ZERO_BLOCK;
   return;
-}    
+}
 
 /******************************************************************************/
 inline void multiply(PTR row, matrix_t *mat, PTR result, long r)
@@ -147,8 +163,10 @@ inline void multiply(PTR row, matrix_t *mat, PTR result, long r)
   return;
 }
 
-/******************************************************************************/
-void createWordForest(ngs_t *ngs, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int createWordForest(ngs_t *ngs, group_t *group)
 /* There is a separate routine to initialize */
 /* Forest contains ngs->r trees */
 {
@@ -163,7 +181,9 @@ void createWordForest(ngs_t *ngs, group_t *group)
   modW_t **kinder = (modW_t **) malloc(r * arrows * nodes << PTRSH);
   modW_t *node;
   if (!proot || !proot0 || !kinder)
-    AllocationError("createWordForest");
+    { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+    }
   for (i = 0; i < r * arrows * nodes; i++)
     kinder[i] = NULL;
   for (i = 0; i < r; i++)
@@ -183,7 +203,7 @@ void createWordForest(ngs_t *ngs, group_t *group)
     }
   }
   ngs->proot = proot;
-  return;
+  return 0;
 }
 
 /******************************************************************************
@@ -198,7 +218,9 @@ void freeWordForest(ngs_t *ngs)
 }
 */
 
-/******************************************************************************/
+/*****
+ * -1 on error
+ **************************************************************************/
 long maxDim(group_t *group)
 {
   register long d = 0;
@@ -211,19 +233,25 @@ long maxDim(group_t *group)
     for (d = 0; group->dS[d+1] != group->nontips; d++);
     break;
   default :
-    OtherError("maxDim: not implemented for this ordering");
-    break;
+    MTX_ERROR("not implemented for this ordering");
+    return -1;
   }
   return d;
 }
 
-/******************************************************************************/
-static void updateWordStatusData(ngs_t *ngs, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int updateWordStatusData(ngs_t *ngs, group_t *group)
 {
   register long blo, pat, nops;
   register long dim = ngs->dimLoaded;
   register modW_t *node;
-  if (dim == NONE) OtherError("uWSD: no dimLoaded");
+  if (dim == NONE)
+  {
+      MTX_ERROR("no dimLoaded");
+      return 1;
+  }
   for (blo = 0, nops = 0; blo < ngs->r; blo++)
     for (pat = group->dS[dim]; pat < group->dS[dim+1]; pat++)
     {
@@ -231,7 +259,7 @@ static void updateWordStatusData(ngs_t *ngs, group_t *group)
       if (node->divisor && node->qi != 0) node->status = nops++;
     }
   ngs->nops = nops;
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -252,15 +280,20 @@ static void removeStoredProductFile(ngs_t *ngs, long d)
   return;
 }
 
-/******************************************************************************/
-void destroyCurrentDimension(ngs_t *ngs)
+/****
+ * 1 on error
+ ***************************************************************************/
+int destroyCurrentDimension(ngs_t *ngs)
 {
-  if (ngs->dimLoaded == NONE) OtherError("dCD: no current dimension");
+  if (ngs->dimLoaded == NONE)
+  { MTX_ERROR("no current dimension");
+    return 1;
+  }
   if (ngs->dimLoaded != ngs->expDim)
     removeStoredProductFile(ngs, ngs->dimLoaded);
   ngs->blockLoaded = NONE;
   ngs->dimLoaded = NONE;
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -285,8 +318,10 @@ static long smallestDimensionOfReduced(ngs_t *ngs)
   return ngs->firstReduced->gv->dim;
 }
 
-/******************************************************************************/
-static void loadBlock(ngs_t *ngs, long block)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int loadBlock(ngs_t *ngs, long block)
 {
   FILE *fp;
   long nor = ngs->r + ngs->s;
@@ -296,26 +331,36 @@ static void loadBlock(ngs_t *ngs, long block)
     blen = 1 + (ngs->nops-1) % ngs->blockSize;
   fp = readhdrplus(storedProductFile(ngs, ngs->dimLoaded), NULL, &totrows,
     NULL);
+  if (!fp) return 1;
   if (totrows != nor * ngs->nops)
   {
-    OtherError("loadBlock: incorrect number of rows");
+    MTX_ERROR1("incorrect number of rows: %E", MTX_ERR_INCOMPAT);
+    return 1;
   }
   zseek(fp, 1 + block * nor * ngs->blockSize);
   register long blennor = blen * nor;
   if (zreadvec(fp, ngs->thisBlock, blennor) != blennor)
-    OtherError("loadBlock: reading");
+  { close(fp);
+    MTX_ERROR("%E", MTX_ERR_FILEFMT);
+    return 1;
+  }
   fclose(fp);
   ngs->blockLoaded = block;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node)
 {
   PTR w;
   long i = node->status;
   if (i == NO_DIVISOR)
-    OtherError("nodeVector: no divisor");
+  {
+      MTX_ERROR("no divisor");
+      return NULL;
+  }
   if (i == SCALAR_MULTIPLE)
     w = node->divisor->gv->w;
   else
@@ -329,58 +374,16 @@ PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node)
   return w;
 }
 
-/*******************************************************************************
-* static void checkStoredProducts(ngs_t *ngs, group_t *group)
-{
-  long dim = ngs->dimLoaded;
-  long blo, i;
-  long nops = 0;
-  gV_t *gv = popGeneralVector(ngs);
-  PTR tmp=gv->w;
-  modW_t *node;
-  boolean discs = false;
-  for (blo = 0; blo < ngs->r; blo++)
-  {
-    for (i = group->dS[dim]; i < group->dS[dim+1]; i++)
-    {
-      node = ngs->proot[blo] + i;
-      if (node->status == NO_DIVISOR || node->status == SCALAR_MULTIPLE)
-        continue;
-      nops++;
-      gv->w = nodeVector(ngs, group, node);
-      findLeadingMonomial(gv, ngs->r, group);
-      if (gv->block != blo+1 || gv->col != i+1)
-      {
-        discs = true;
-      }
-    }
-  }
-  gv->w = tmp;
-  pushGeneralVector(ngs, gv);
-  if (discs)
-  {
-    OtherError("Discrepancies");
-  }
-  return;
-* }
-*/
+/*******************************************************************************/
 
-/******************************************************************************
-Simon King: This should be a macro
-static void commenceNewDimension(ngs_t *ngs, group_t *group, long dim)
-{
-  ngs->dimLoaded = dim;
-  updateWordStatusData(ngs, group);
-  ngs->blockLoaded = NONE;
-  return;
-}
-*/
 #if !defined(commenceNewDimension)
 #define commenceNewDimension(ngs,group,dim) ( {(ngs)->dimLoaded = dim; updateWordStatusData((ngs),(group)), (group); (ngs)->blockLoaded = NONE;})
 #endif
 
-/******************************************************************************/
-static void calculateNextProducts(ngs_t *ngs, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int calculateNextProducts(ngs_t *ngs, group_t *group)
 /* Assumes ngs->dimLoaded is set */
 {
   long d = ngs->dimLoaded;
@@ -410,7 +413,10 @@ static void calculateNextProducts(ngs_t *ngs, group_t *group)
           if (offset == ngs->blockSize)
           {
             if (zwritevec(fp, ngs->theseProds, nor * offset) != nor * offset)
-              OtherError("cNP: writing vectors");
+            { fclose(fp);
+              MTX_ERROR1("expected nor * offset: %E", MTX_ERR_INCOMPAT);
+              return 1;
+            }
             offset = 0;
           }
         }
@@ -419,11 +425,14 @@ static void calculateNextProducts(ngs_t *ngs, group_t *group)
   if (offset != 0)
   {
     if (zwritevec(fp, ngs->theseProds, nor * offset) != nor * offset)
-      OtherError("cNP: writing vectors");
+    { fclose(fp);
+      MTX_ERROR1("expected nor * offset: %E", MTX_ERR_INCOMPAT);
+      return 1;
+    }
   }
   alterhdrplus(fp, nops * nor);
   fclose(fp);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -451,29 +460,39 @@ static inline boolean shouldUseExpansionSlice(ngs_t *ngs, long dim)
   return true;
 }
 
-/******************************************************************************/
-void loadExpansionSlice(ngs_t *ngs, group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int loadExpansionSlice(ngs_t *ngs, group_t *group)
 {
   if (ngs->dimLoaded != NONE)
-    OtherError("loadExpSlice: something already loaded");
+  { MTX_ERROR1("something already loaded: %E", MTX_ERR_BADUSAGE);
+    return 1;
+  }
   commenceNewDimension(ngs, group, ngs->expDim);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void incrementSlice(ngs_t *ngs, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+int incrementSlice(ngs_t *ngs, group_t *group)
 {
   register long n = ngs->dimLoaded;
   if (n == NONE)
-    OtherError("incrementSlice: nothing loaded");
+  { MTX_ERROR1("nothing loaded: %E", MTX_ERR_BADUSAGE);
+    return 1;
+  }
   calculateNextProducts(ngs, group);
   destroyCurrentDimension(ngs);
   commenceNewDimension(ngs,group,n+1);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void selectNewDimension(ngs_t *ngs, group_t *group, long dim)
+/*****
+ * 1 on error
+ **************************************************************************/
+int selectNewDimension(ngs_t *ngs, group_t *group, long dim)
 {
   register long n;
   if (ngs->dimLoaded == dim) return;
@@ -493,9 +512,12 @@ void selectNewDimension(ngs_t *ngs, group_t *group, long dim)
     if (n == NONE || n > dim) n = dim;
     createEmptySliceFile(ngs, group, n);
     commenceNewDimension(ngs, group, n); /* uWSD should set nops = 0 */
-    if (ngs->nops != 0) OtherError("sND: theoretical error");
+    if (ngs->nops != 0)
+    { MTX_ERROR("theoretical error");
+      return 1;
+    }
   }
   for (n = ngs->dimLoaded; n < dim; n++)
     incrementSlice(ngs, group);
-  return;
+  return 0;
 }

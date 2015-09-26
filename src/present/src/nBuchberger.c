@@ -97,10 +97,10 @@ static void nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != F_ZERO)
-        {  
+        {
           makeVectorMonic(ngs, gv);
           insertNewUnreducedVector(ngs,gv); /* gv->radical true */
-        }  
+        }
         else pushGeneralVector(ngs, gv);
       }
     }
@@ -141,15 +141,15 @@ static void nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != F_ZERO)
-        {  
+        {
           makeVectorMonic(ngs, gv);
           insertNewUnreducedVector(ngs,gv);
-        }  
+        }
         else
-        {  
+        {
           possiblyNewKernelGenerator(nRgs, gv->w, group);
           pushGeneralVector(ngs, gv);
-        }  
+        }
       }
     }
   }
@@ -167,14 +167,17 @@ static boolean easyCorrectRank(ngs_t *ngs, group_t *group)
     true : false;
 }
 
-/******************************************************************************/
-static boolean allExpansionsDone(ngs_t *ngs, group_t *group)
+/****
+ * -1 on error
+ ***************************************************************************/
+static int allExpansionsDone(ngs_t *ngs, group_t *group)
 {
   if (ngs->expDim == NO_BUCHBERGER_REQUIRED)
-    OtherError("allExp: invalid expDim");
+  { MTX_ERROR1("invalid expDim: %E", MTX_ERR_INCOMPAT);
+    return -1
   if (ngs->expDim == NOTHING_TO_EXPAND)
-    return true;
-  return (ngs->expDim <= group->maxlength) ? false : true;
+    return 1;
+  return (ngs->expDim <= group->maxlength) ? 0 : 1;
 }
 
 /******************************************************************************/
@@ -206,17 +209,20 @@ static boolean appropriateToPerformHeadyBuchberger(nRgs_t *nRgs, group_t *group)
   return (ker->ngs->pnontips < nRgs->prev_ker_pnon) ? true : false;
 }
 
-/******************************************************************************/
-static void checkRanksCorrect(nRgs_t *nRgs)
+/****
+ * 0 on error
+ ***************************************************************************/
+static int checkRanksCorrect(nRgs_t *nRgs)
 {
   ngs_t *ngs = nRgs->ngs;
   ngs_t *ker_ngs = nRgs->ker->ngs;
   if (ngs->targetRank == RANK_UNKNOWN) return;
   if (ker_ngs->pnontips != ngs->targetRank)
   {
-    OtherError("Theoretical error: rank differs from expected value.");
+     MTX_ERROR("Theoretical error: rank differs from expected value.");
+     return 0;
   }
-  return;
+  return 1;
 }
 
 /******************************************************************************/

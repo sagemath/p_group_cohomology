@@ -10,16 +10,17 @@
 #include "pgroup.h"
 #include "pgroup_decls.h"
 #include "pmatrix_decls.h"
+MTX_DEFINE_FILE_INFO
 
 static char *helptext[] = {
 "SYNTAX",
-"	perm2Gap <infile> <outfile>",
+"   perm2Gap <infile> <outfile>",
 "",
-"	Reads <infile>: list of permutations in MeatAxe format",
-"	Translates to Gap code <outfile>",
+"   Reads <infile>: list of permutations in MeatAxe format",
+"   Translates to Gap code <outfile>",
 "",
 "DESCRIPTION",
-"	Convert MeatAxe permutations to Gap code.",
+"   Convert MeatAxe permutations to Gap code.",
 NULL};
 
 static proginfo_t pinfo =
@@ -27,29 +28,31 @@ static proginfo_t pinfo =
     "$Revision: 01_June_2000", helptext };
 
 /******************************************************************************/
-void InterpretCommandLine(int argc, char *argv[], char *infile, char*outfile)
+int InterpretCommandLine(int argc, char *argv[], char *infile, char*outfile)
 {
   //register int i;
-  char invalid[MAXLINE];
   char *this;
   initargs(argc,argv,&pinfo);
   sprintf(invalid,
     "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
   while (zgetopt("") != OPT_END);
-  if (opt_ind != argc - 2) OtherError(invalid);
+  if (opt_ind != argc - 2)
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return 1;
+  }
   this = argv[opt_ind++];
   strcpy(infile, this);
   this = argv[opt_ind++];
   strcpy(outfile, this);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
 int main(int argc, char *argv[])
 {
   char infile[MAXLINE], outfile[MAXLINE];
-  mtxinit();
-  InterpretCommandLine(argc, argv, infile, outfile);
+  MtxInitLibrary();
+  if (InterpretCommandLine(argc, argv, infile, outfile)) exit(1);
   convertPermutationsToAsci(infile, outfile);
   exit(0);
 }

@@ -23,8 +23,10 @@
 #include "slice_decls.h"
 #include "meataxe.h"
 
-/******************************************************************************/
-void saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
+/******
+ * 1 on error
+ *************************************************************************/
+int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
 /* corrupts nFgs (REALLY?? 13.03.00)*/
 {
   ngs_t *ngs = nFgs->ngs;
@@ -33,20 +35,22 @@ void saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
   gV_t *gv;
   rV_t *rv;
   fp = writehdrplus(outfile, zfl, 0, group->nontips);
-  if (!fp) OtherError("saveMinimalGenerators: opening outfile");
+  if (!fp) return 1;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
     gv = rv->gv;
     if (!gv->radical) /* i.e. this rv a min generator */
     {
       if (zwritevec(fp,gv->w,ngs->r) != ngs->r)
-        OtherError("saveMinimalGenerators: writing vectors");
+      { fclose(fp);
+        return 1;
+      }
       nor += ngs->r;
     }
   }
   alterhdrplus(fp,nor);
   fclose(fp);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -80,22 +84,21 @@ matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
     gv = rv->gv;
     if (!gv->radical) /* i.e. this rv a min generator */
     {
-      /* if (zwritevec(fp,gv->w,ngs->r) != ngs->r)
-        OtherError("saveMinimalGenerators: writing vectors");
-      */
       b = (char *)gv->w;
       for (i = 0; i < ngs->r; ++i)
-	{ memcpy(p,b,zrowsize);
-	  b += zrowsize;
-	  zsteprow(&(p));
-	}
+    { memcpy(p,b,zrowsize);
+      b += zrowsize;
+      zsteprow(&(p));
+    }
     }
   }
   return OUT;
 }
 
-/******************************************************************************/
-void saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
+/******
+ * 1 on error
+ *************************************************************************/
+int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
 {
   ngs_t *ngs = nRgs->ngs;
   FILE *fp;
@@ -104,17 +107,19 @@ void saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
   gV_t *gv;
   rV_t *rv;
   fp = writehdrplus(outfile, zfl, 0, group->nontips);
-  if (!fp) OtherError("saveUrbildGB: opening outfile");
+  if (!fp) return 1;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
     gv = rv->gv;
     if (zwritevec(fp, gv->w, t) != t)
-      OtherError("saveUrbildGB: writing vectors");
+    { fclose(fp);
+      return 1;
+    }
     nor += t;
   }
   alterhdrplus(fp,nor);
   fclose(fp);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -161,96 +166,80 @@ static inline long numberOfUnreducedVectors(ngs_t *ngs)
   return n;
 }
 
-/******************************************************************************
-static long targetPnontips(ngs_t *ngs, group_t *group)
-{
-  return (ngs->r * group->nontips - ngs->targetRank);
-}
-*/
 #if !defined(targetPnontips)
 #define targetPnontips(ngs,group) ((ngs)->r * (group)->nontips - (ngs)->targetRank)
 #endif
 
-/******************************************************************************
-Apparently this function is redundant and used only in one place - remove it!
-long countGenerators(nFgs_t *nFgs)
-{
-  return numberOfHeadyVectors(nFgs->ngs);
-}
-*/
-
-/******************************************************************************
-Apparently this function is redundant and used only in one place - remove it!
-long headyDim(nFgs_t *nFgs)
-{
-  return dimensionOfDeepestHeady(nFgs->ngs);
-}
-*/
-
-/*******************************************************************************
-* static long vectorPosition(rV_t *here)
-* {
-  long n;
-  rV_t *rv;
-  for (n = 0, rv = here; rv; n++, rv = rv->prev);
-  return n;
-* }
-*/
-
-/******************************************************************************/
-void saveNFgs(nFgs_t *nFgs, group_t *group, char *outfile, char *markfile)
+/*****
+ * 1 on error
+ **************************************************************************/
+int saveNFgs(nFgs_t *nFgs, group_t *group, char *outfile, char *markfile)
 {
   ngs_t *ngs = nFgs->ngs;
   FILE *fp;
   long nor;
   rV_t *rv;
   fp = writehdrplus(outfile, zfl, 0, group->nontips);
-  if (!fp) OtherError("saveNFgs: opening outfile");
+  if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->r)
     if (zwritevec(fp,rv->gv->w,ngs->r) != ngs->r)
-      OtherError("saveNFgs: writing vectors");
+    { fclose(fp);
+      return 1;
+    }
   alterhdrplus(fp,nor);
   fclose(fp);
   fp = fopen(markfile, "w");
-  if (!fp) OtherError("saveNFgs: opening markfile");
+  if (!fp) return 1;
   for (rv = ngs->firstReduced; rv ; rv = rv->next)
     fprintf(fp, "%c", rv->gv->radical ? 'R' : 'H');
   fprintf(fp,"\n");
   fclose(fp);
   /* printf("marks saved to %s\n", markfile); */
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void saveNRgs(nRgs_t *nRgs, group_t *group, char *outfile, char *markfile)
+/****
+ * 1 on error
+ **************************************************************************/
+int saveNRgs(nRgs_t *nRgs, group_t *group, char *outfile, char *markfile)
 {
   ngs_t *ngs = nRgs->ngs;
   FILE *fp;
   long nor;
   rV_t *rv;
   fp = writehdrplus(outfile, zfl, 0, group->nontips);
-  if (!fp) OtherError("saveNRgs: opening outfile");
+  if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->r)
     if (zwritevec(fp,rv->gv->w,ngs->r) != ngs->r)
-      OtherError("saveNRgs: writing vectors");
+    { fclose(fp);
+      return 1;
+    }
   alterhdrplus(fp,nor);
   fclose(fp);
   fp = writehdrplus(markfile, zfl, 0, group->nontips);
-  if (!fp) OtherError("saveNRgs: opening markfile");
+  if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->s)
     if (zwritevec(fp, ptrPlus(rv->gv->w, ngs->r), ngs->s) != ngs->s)
-      OtherError("saveNRgs: writing marks");
+    {
+        fclose(fp);
+        return 1;
+    }
   alterhdrplus(fp,nor);
   fclose(fp);
   /* printf("preimages saved to %s\n", markfile); */
-  return;
+  return 0;
 }
 
-/******************************************************************************/
+/****
+ * Null on error
+ ***************************************************************/
 static ngs_t *ngsAllocation(long r, long s, group_t *group, char *stem)
 {
   ngs_t *ngs = (ngs_t *) malloc(sizeof(ngs_t));
-  if (!ngs) AllocationError("ngsAllocation");
+  if (!ngs)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   ngs->r = r;
   ngs->s = s;
   ngs->firstReduced = NULL;
@@ -260,7 +249,10 @@ static ngs_t *ngsAllocation(long r, long s, group_t *group, char *stem)
   ngs->expDim = NOTHING_TO_EXPAND;
   ngs->targetRank = RANK_UNKNOWN;
   ngs->gVwaiting = NULL;
-  createWordForest(ngs, group);
+  if (createWordForest(ngs, group))
+  { free(ngs);
+    return NULL;
+  }
   ngs->dimLoaded = NONE;
   ngs->blockLoaded = NONE;
   ngs->blockSize = BLOCK_SIZE;
@@ -268,34 +260,62 @@ static ngs_t *ngsAllocation(long r, long s, group_t *group, char *stem)
   ngs->theseProds = zalloc(ngs->blockSize * (r + s));
   ngs->w = zalloc(r + s);
   if (!ngs->thisBlock || !ngs->theseProds || !ngs->w)
-    AllocationError("ngsAlloc: 2");
+  { free(ngs);
+    MTX_ERROR("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   strcpy(ngs->stem, stem);
   return ngs;
 }
 
-/******************************************************************************/
+/****
+ * Null on error
+ ***************************************************************************/
 nFgs_t *nFgsAllocation(group_t *group, long r, char *stem)
 {
   char thisStem[MAXLINE];
   nFgs_t *nFgs = (nFgs_t *) malloc(sizeof(nFgs_t));
-  if (!nFgs) AllocationError("nFgsAllocation");
+  if (!nFgs)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   sprintf(thisStem, "%sf", stem);
   nFgs->ngs = ngsAllocation(r, 0, group, thisStem);
+  if (!nFgs->ngs)
+  {
+      free(nFgs);
+      return NULL;
+  }
   nFgs->finished = false;
   nFgs->nRgsUnfinished = false;
   nFgs->max_unfruitful = MAX_UNFRUITFUL;
   return nFgs;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 nRgs_t *nRgsAllocation(group_t *group, long r, long s, char *stem)
 {
   char thisStem[MAXLINE];
   nRgs_t *nRgs = (nRgs_t *) malloc(sizeof(nRgs_t));
-  if (!nRgs) AllocationError("nRgsAllocation");
+  if (!nRgs)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   sprintf(thisStem, "%sr", stem);
   nRgs->ngs = ngsAllocation(r, s, group, thisStem);
+  if (!nRgs->ngs)
+  {
+      free(nRgs);
+      return NULL;
+  }
   nRgs->ker = nFgsAllocation(group, s, stem);
+  if (!nRgs->ker)
+  { freeNgs(nRgs->ngs);
+    free(nRgs);
+    return NULL;
+  }
   nRgs->overshoot = MAX_OVERSHOOT;
   return nRgs;
 }
@@ -315,7 +335,7 @@ static void freeReducedVectors(rV_t *first, ngs_t *ngs)
   if (first && first->prev) first->prev->next = NULL;
   for (rv = first; rv; rv = next)
   {
-    next = rv->next; 
+    next = rv->next;
     freeReducedVector(rv, ngs);
   }
   return;
@@ -337,7 +357,7 @@ static void freeUnreducedVectors(ngs_t *ngs)
   if (first && first->prev) first->prev->next = NULL;
   for (uv = first; uv; uv = next)
   {
-    next = uv->next; 
+    next = uv->next;
     freeUnreducedVector(uv);
   }
   return;
@@ -420,22 +440,27 @@ static void insertReducedVectorAfter(ngs_t *ngs, rV_t *base, rV_t *rv)
   return;
 }
 
-/******************************************************************************/
-static void lowerExpDimIfNecessary(ngs_t *ngs, long d)
+/*****
+ * 1 on error
+ **************************************************************************/
+static int lowerExpDimIfNecessary(ngs_t *ngs, long d)
 {
-  if (ngs->expDim == NO_BUCHBERGER_REQUIRED) return;
-  if (d != ngs->dimLoaded) OtherError("lEDIN: d not the current dimension\n");
+  if (ngs->expDim == NO_BUCHBERGER_REQUIRED) return 0;
+  if (d != ngs->dimLoaded)
+  { MTX_ERROR3("The current dimension should be %d, not %d: %E", ngs->dimLoaded, d, MTX_ERR_INCOMPAT);
+    return 1;
+  }
   if (ngs->expDim == NOTHING_TO_EXPAND)
   {
     ngs->expDim = d;
-    return;
+    return 0;
   }
   if (ngs->expDim > d)
   {
     destroyExpansionSliceFile(ngs);
     ngs->expDim = d;
   }
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -469,11 +494,17 @@ void unlinkReducedVector(ngs_t *ngs, rV_t *rv)
   return;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 uV_t *unreducedVector(ngs_t *ngs, gV_t *gv)
 {
   uV_t *uv = (uV_t *) malloc(sizeof(uV_t));
-  if (!uv) AllocationError("unreducedVector");
+  if (!uv)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   uv->gv = gv; uv->prev = NULL; uv->next = NULL;
   return uv;
 }
@@ -535,11 +566,17 @@ void unlinkUnreducedVector(ngs_t *ngs, uV_t *uv)
   return;
 }
 
-/******************************************************************************/
+/*****
+ * NULL on error
+ **************************************************************************/
 rV_t *reducedVector(gV_t *gv, group_t *group)
 {
   rV_t *rv = (rV_t *) malloc(sizeof(rV_t));
-  if (!rv) AllocationError("reducedVector");
+  if (!rv)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   rv->gv = gv;
   rv->node = NULL; rv->next = NULL; rv->prev = NULL;
   return rv;

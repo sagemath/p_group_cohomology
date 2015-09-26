@@ -20,11 +20,16 @@
 #include <unistd.h>
 #include "meataxe.h"
 
-/******************************************************************************/
+/***
+ * NULL on error
+ ****************************************************************************/
 char *djg_strdup(char *src)
 {
   char *dest = (char *) malloc((strlen(src)+1) * sizeof(char));
-  if (!dest) AllocationError("djg_strdup");
+  if (!dest)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   strcpy(dest,src);
   return dest;
 }
@@ -47,7 +52,7 @@ static inline void gzip(const char *name)
 }
 
 /*****************************************************************************/
-inline boolean fileExists(char *name)
+inline boolean fileExists(const char *name)
 {
   int stat = access(name, F_OK);
   return (stat == 0) ? true : false;
@@ -60,36 +65,6 @@ static inline void gunzip(const char *name)
   sprintf(buffer,"gunzip %s",name);
   if (!fileExists(name)) { system(buffer); }
 }
-
-
-/******************************************************************************
- S. King (2008-12): This and some of the following functions should be macros
-boolean certainThat(yesno yn)
-{
-  return (yn == yes) ? true : false;
-}
-*/
-
-/******************************************************************************
-yesno booleanYesno(boolean stat)
-{
-  return (stat) ? yes : no;
-}
-*/
-
-/******************************************************************************
-boolean longBoolean(long lbool)
-{
-  return (lbool) ? true : false;
-}
-*/
-
-/******************************************************************************
-long booleanLong(boolean bool)
-{
-  return (bool) ? 1 : 0;
-}
-*/
 
 /******************************************************************************/
 char *booleanString(boolean stat)
@@ -112,11 +87,16 @@ char *yesnoString(yesno yn)
   return buffer;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 group_t *newGroupRecord (void)
 {
   group_t *group = (group_t *) malloc(sizeof(group_t));
-  if (!group) AllocationError("newGroupRecord");
+  if (!group)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   group->stem = NULL;
   group->nontip = NULL;
   group->root = NULL;
@@ -176,48 +156,6 @@ static inline int IsDigit(char c)
   }
 }
 
-/*******************************************************************************
-* static long ctol(char c)
-* {
-  switch (c)
-  {
-    case '0':
-      return 0;
-      break;
-    case '1':
-      return 1;
-      break;
-    case '2':
-      return 2;
-      break;
-    case '3':
-      return 3;
-      break;
-    case '4':
-      return 4;
-      break;
-    case '5':
-      return 5;
-      break;
-    case '6':
-      return 6;
-      break;
-    case '7':
-      return 7;
-      break;
-    case '8':
-      return 8;
-      break;
-    case '9':
-      return 9;
-      break;
-    default:
-      return -1;
-      break;
-  }
-* }
-*/
-
 /******************************************************************************/
 static inline char NextSignificantCharacter(FILE *fp)
 {
@@ -226,20 +164,30 @@ static inline char NextSignificantCharacter(FILE *fp)
   return c;
 }
 
-/******************************************************************************/
-static long GetNextLong(FILE *fp, char *buffer)
+/****
+ * Change fp to NULL pointer on error, close the file, and return -1
+ ***************************************************************************/
+static long GetNextLong(FILE **fp, char *buffer)
 {
   char c, *this;
   long i;
   this = buffer; i = 0;
-  for (this = buffer, i = 0, c = NextSignificantCharacter(fp);
+  for (this = buffer, i = 0, c = NextSignificantCharacter(fp*);
        ;
        this++, i++, c = fgetc(fp))
   {
     if (c == EOF)
-      OtherError("Unexpected EOF in GetNextLong");
+    { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
+      fclose(*fp);
+      *fp = NULL;
+      return -1;
+    }
     else if (i == MAXLINE)
-      OtherError("Buffer Overflow in GetNextLong");
+    { MTX_ERROR1("Buffer Overflow: %E", MTX_ERR_RANGE);
+      fclose(*fp);
+      *fp = NULL
+      return -1;
+    }
     else if (IsDigit(c))
       *this = c;
     else
@@ -249,71 +197,86 @@ static long GetNextLong(FILE *fp, char *buffer)
   return atoi(buffer);
 }
 
-/******************************************************************************/
-static inline char GetNextChar(FILE *fp)
+/****
+ * Change fp to NULL pointer on error, close the file, and return " "
+ ***************************************************************************/
+static inline char GetNextChar(FILE **fp)
 {
-  char c = NextSignificantCharacter(fp);
+  char c = NextSignificantCharacter(fp*);
   if (c == EOF)
-    OtherError("Unexpected EOF in GetNextChar");
+    { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
+      fclose(*fp);
+      *fp = NULL;
+      return " ";
+    }
   return c;
 }
 
-/******************************************************************************
-static boolean IsArrow(char c, long arrows)
-{
-  return (c >= 'a' && c < 'a' + arrows);
-}
-Simon King (2008-12) make it a macro
-*/
+/******************************************************************************/
+
 #if !defined(IsArrow)
 #define IsArrow(c,arrows) ((c) >= 'a' && c < 'a' + (arrows))
 #endif
 
-/*******************************************************************************
-* static boolean IsPathStart(char c, long arrows)
-* {
-  return (IsArrow(c,arrows) || c == '(');
-* }
-*/
 
-/******************************************************************************/
-static char GetNextPath(FILE *fp, char *dest, long maxlength, long arrows)
+/****
+ * Change fp to NULL pointer on error, close the file, and return " "
+ ***************************************************************************/
+static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
 /* Returns character immediately following path */
 {
   char c, *this;
   long i;
   this = dest; i = 0;
-  for (this = dest, i = 0, c = NextSignificantCharacter(fp);
+  for (this = dest, i = 0, c = NextSignificantCharacter(fp*);
        ;
        this++, i++, c = fgetc(fp))
   {
     if (c == EOF)
-      OtherError("Unexpected EOF in GetNextPath");
+    { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
+      fclose(*fp);
+      *fp = NULL;
+      return " ";
+    }
     else if (IsArrow(c,arrows))
       *this = c;
     else if (c == '(')
     {
       *(this++) = c;
-      if (!IsDigit(c = NextSignificantCharacter(fp)))
-        OtherError("GetNextPath: invalid vertex");
+      if (!IsDigit(c = NextSignificantCharacter(fp*)))
+        { MTX_ERROR1("invalid vertex: %E", MTX_ERR_FILEFMT);
+          fclose(*fp);
+          *fp = NULL;
+          return " ";
+        }
       *(this++) = c;
-      if ((c = NextSignificantCharacter(fp)) != ')')
-        OtherError("GetNextPath: invalid vertex path format");
+      if ((c = NextSignificantCharacter(fp*)) != ')')
+        { MTX_ERROR1("invalid vertex path format: %E", MTX_ERR_FILEFMT);
+          fclose(*fp);
+          *fp = NULL;
+          return " ";
+        }
       *(this++) = c;
-      c = NextSignificantCharacter(fp);
+      c = NextSignificantCharacter(fp*);
       break;
     }
     else
       break;
     if (i == maxlength)
-      OtherError("Buffer Overflow in GetNextPath");
+    { MTX_ERROR1("buffer overflow: %E", MTX_ERR_NOMEM);
+      fclose(*fp);
+      *fp = NULL;
+      return " ";
+    }
   }
   *this = '\0';
   return c;
 }
 
-/******************************************************************************/
-void loadDimensions(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int loadDimensions(group_t *group)
 {
   long dims, *dim;
   long i;
@@ -321,20 +284,37 @@ void loadDimensions(group_t *group)
   FILE *fp;
   strext(dimfile, group->stem, ".dims");
   fp = fopen(dimfile, "r");
-  if (!fp) OtherError("loadDimensions: opening file");
-  dims = GetNextLong(fp, buffer);
+  if (!fp)
+  {
+      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      return 1;
+  }
+  dims = GetNextLong(&fp, buffer);
+  if (!fp) return 1;
   dim = (long *) malloc((dims+1) << LONGSH);
-  if (!dim) AllocationError("loadDimensions");
+  if (!dim)
+  { fclose(fp);
+    MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return 1;
+  }
   dim[0] = dims;
   for (i = 1; i <= dims; i++)
-    dim[i] = GetNextLong(fp, buffer);
+  {  dim[i] = GetNextLong(&fp, buffer);
+      if (!fp)
+      {
+          free(dim);
+          return 1;
+      }
+  }
   fclose(fp);
   group->dim = dim;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void readHeader(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int readHeader(group_t *group)
 {
   char nonTipsFile[MAXLINE];
   FILE *fp;
@@ -342,22 +322,61 @@ void readHeader(group_t *group)
   strext(nonTipsFile, group->stem, ".nontips");
   buffer = malloc((MAXLINE + 1) * sizeof(char));
   if (!buffer)
-    AllocationError("loadNonTips");
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
   fp = fopen(nonTipsFile,"r");
   if (!fp)
-    OtherError("Can't open input file in loadNonTips");
-  group->arrows = GetNextLong(fp,buffer);
-  group->nontips = GetNextLong(fp,buffer);
-  group->maxlength = GetNextLong(fp,buffer);
-  group->mintips = GetNextLong(fp,buffer);
-  group->p = GetNextLong(fp,buffer);
-  group->ordering = GetNextChar(fp);
+  {
+      free(buffer);
+      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      return 1;
+  }
+  group->arrows = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  group->nontips = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  group->maxlength = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  group->mintips = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  group->p = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  free(buffer);
+  group->ordering = GetNextChar(&fp);
+  if (!fp)
+  {
+      return 1;
+  }
   fclose(fp);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void loadNonTips(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int loadNonTips(group_t *group)
 {
   char nonTipsFile[MAXLINE];
   char **nontip;
@@ -368,43 +387,109 @@ void loadNonTips(group_t *group)
   strext(nonTipsFile, group->stem, ".nontips");
   buffer = malloc((MAXLINE + 1) * sizeof(char));
   if (!buffer)
-    AllocationError("loadNonTips");
+  {
+    MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return 1;
+  }
   fp = fopen(nonTipsFile,"r");
   if (!fp)
-    OtherError("Can't open input file in loadNonTips");
-  group->arrows = GetNextLong(fp,buffer);
-  nontips = GetNextLong(fp,buffer);
+  {
+      free(buffer);
+      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      return 1;
+  }
+  group->arrows = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  nontips = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
   group->nontips = nontips;
-  maxlength = GetNextLong(fp,buffer);
+  maxlength = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
   stringMaxlength = (maxlength >= 3) ? maxlength : 3;
   group->maxlength = maxlength;
-  group->mintips = GetNextLong(fp,buffer);
-  group->p = GetNextLong(fp,buffer);
-  group->ordering = GetNextChar(fp);
+  group->mintips = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  group->p = GetNextLong(&fp,buffer);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
+  group->ordering = GetNextChar(&fp);
+  if (!fp)
+  {
+      free(buffer);
+      return 1;
+  }
   zsetfield(group->p);
   zsetlen(nontips);
   //  nontip = (char **) malloc(nontips * sizeof(char *));
   nontip = (char **) malloc(nontips << PTRSH);
   if (!nontip)
-    AllocationError("loadNonTips: 2");
+  {
+      free(buffer);
+      close(fp);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
   *nontip = (char *) malloc((stringMaxlength+1) * nontips
                               * sizeof(char));
   if (!*nontip)
-    AllocationError("loadNonTips: 3");
+  {
+      fclose(fp);
+      free(buffer);
+      free(nontip);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
   for (i = 1; i < nontips; i++)
     nontip[i] = nontip[0] + i * (stringMaxlength + 1);
   for (i = 0; i < nontips; i++)
   {
-    c = GetNextPath(fp,nontip[i], stringMaxlength, group->arrows);
+    c = GetNextPath(&fp,nontip[i], stringMaxlength, group->arrows);
+    if (!fp)
+    {
+      free(buffer);
+      free(nontip);
+      free(*nontip);
+      return 1;
+    }
     /* c is the character immediately following the path; should be ';' */
-    if (c != ';') OtherError("Corrupt data in loadNonTips");
+    if (c != ';')
+    {
+      free(buffer);
+      free(nontip);
+      free(*nontip);
+      fclose(fp);
+      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      return 1;
+    }
   }
   fclose(fp);
+  free(buffer);
   group->nontip = nontip;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 path_t *allocatePathTree(group_t *group)
 {
   path_t *root;
@@ -413,10 +498,19 @@ path_t *allocatePathTree(group_t *group)
   register long i;
   path_t **kinder;
   root = (path_t *) malloc(nontips * sizeof(path_t));
-  if (!root) AllocationError("allocatePathTree: 1");
+  if (!root)
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
   //  kinder = (path_t **) malloc(nontips * arrows * sizeof(path_t *));
   kinder = (path_t **) malloc(nontips * arrows << PTRSH);
-  if (!kinder) AllocationError("allocatePathTree: 2");
+  if (!kinder)
+  {
+      free(root);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
   for (i = 0; i < nontips * arrows; i++)
     kinder[i] = NULL;
   for (i = 0; i < nontips; i++)
@@ -431,8 +525,10 @@ path_t *allocatePathTree(group_t *group)
   return root;
 }
 
-/******************************************************************************/
-void buildPathTree(group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+int buildPathTree(group_t *group)
 {
   path_t *root;
   register long i,j;
@@ -446,7 +542,11 @@ void buildPathTree(group_t *group)
     for (j = 0, arrow = this->path[0]; this->path[j+1] != '\0'; j++)
     {
       parent = parent->child[arrow - 'a'];
-      if (!parent) OtherError("buildPathTree: theoretical error");
+      if (!parent)
+      { freeRoot(root);
+        MTX_ERROR("theoretical error");
+        return 1;
+      }
       arrow = this->path[j+1];
     }
     parent->child[arrow - 'a'] = this;
@@ -455,11 +555,13 @@ void buildPathTree(group_t *group)
     this->lastArrow = arrow - 'a';
   }
   group->root = root;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void buildLeftPathTree(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int buildLeftPathTree(group_t *group)
 {
   path_t *lroot;
   register long i,j;
@@ -475,7 +577,11 @@ void buildLeftPathTree(group_t *group)
     {
       arrow = this->path[j];
       parent = parent->child[arrow - 'a'];
-      if (!parent) OtherError("buildLeftPathTree: theoretical error");
+      if (!parent)
+      { freeRoot(lroot);
+        MTX_ERROR("theoretical error");
+        return 1;
+      }
     }
     arrow = this->path[0];
     parent->child[arrow - 'a'] = this;
@@ -484,7 +590,7 @@ void buildLeftPathTree(group_t *group)
     this->lastArrow = arrow - 'a';
   }
   group->lroot = lroot;
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -503,7 +609,9 @@ inline void freeRoot(path_t *root)
   return;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 matrix_t **loadMatrixList(group_t *group, char *name, long num)
 {
   matrix_t *bigmat;
@@ -512,36 +620,41 @@ matrix_t **loadMatrixList(group_t *group, char *name, long num)
   //PTR base, ptr;
   long i;
   bigmat = matload(name); /* sets zfl, znoc to required values */
-  if (!bigmat)
-    OtherError("loadMatrixList: loading bigmat");
+  if (!bigmat) return NULL;
   if (bigmat->noc != nontips)
     { matfree(bigmat);
-      OtherError("loadMatrixList: noc != nontips");
+      MTX_ERROR1("noc != nontips: %E", MTX_ERR_INCOMPAT);
+      return NULL;
     }
   if (bigmat->nor != num * nontips)
     { matfree(bigmat);
-      OtherError("loadMatrixList: nor ! num * nontips");
+      MTX_ERROR1("nor ! num * nontips: %E", MTX_ERR_INCOMPAT);
+      return NULL;
     }
   if (group->p != zchar)
     { matfree(bigmat);
-      OtherError("loadMatrixList: matrices over wrong characteristic field");
+      MTX_ERROR1("matrices over wrong characteristic field: %E", MTX_ERR_INCOMPAT);
+      return NULL;
     }
   /* base = bigmat->d;
      mats = (matrix_t *) malloc(num * sizeof(matrix_t));
   */
   //  action = (matrix_t **) malloc (num * sizeof(matrix_t *));
   action = (matrix_t **) malloc (num << PTRSH);
-  /* if (!mats || !action) AllocationError("loadMatrixList"); 
-     ptr = base;
-  */
+  if (!action)
+  {
+      matfree(bigmat);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
   for (i = 0; i < num; i++)
   {
     /*    action[i] = mats + i;
-	  action[i]->fl = zfl;
-	  action[i]->noc = nontips;
-	  action[i]->nor = nontips;
-	  action[i]->d = ptr;
-	  zadvance(&ptr,nontips);
+      action[i]->fl = zfl;
+      action[i]->noc = nontips;
+      action[i]->nor = nontips;
+      action[i]->d = ptr;
+      zadvance(&ptr,nontips);
     */
     action[i] = _matextract(bigmat,i*nontips+1,nontips);
   }
@@ -582,8 +695,10 @@ void loadBasisChangeMatrices(group_t *group)
   return;
 }
 
-/******************************************************************************/
-void saveMatrixList(group_t *group, matrix_t **action, long num, char *name)
+/****
+ * 1 on error
+ ***************************************************************************/
+int saveMatrixList(group_t *group, matrix_t **action, long num, char *name)
 {
   matrix_t mat;
   mat.fl = group->p;
@@ -591,8 +706,11 @@ void saveMatrixList(group_t *group, matrix_t **action, long num, char *name)
   mat.nor = group->nontips * num;
   mat.d = action[0]->d;
   if (matsave(&mat,name) != 0)
-    OtherError("Saving in saveMatrixList");
-  return;
+  {
+      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      return 1;
+  }
+  return 0;
 }
 
 /******************************************************************************/
@@ -625,17 +743,24 @@ void saveBasisChangeMatrices(group_t *group)
   return;
 }
 
-/******************************************************************************/
-void saveBasisChangeMatrix(group_t *group, matrix_t *bw)
+/****
+ * 1 on error
+ ***************************************************************************/
+int saveBasisChangeMatrix(group_t *group, matrix_t *bw)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".bch");
   if (matsave(bw,name) != 0)
-    OtherError("Saving in saveBasisChangeMatrix");
-  return;
+  {
+      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      return 1;
+  }
+  return 0;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 matrix_t **allocateMatrixList(group_t *group, long num)
 {
   long nontips = group->nontips;
@@ -644,11 +769,26 @@ matrix_t **allocateMatrixList(group_t *group, long num)
   register long i;
   zsetlen(nontips);
   ptr = zalloc(num * nontips);
+  if (!ptr)
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
   mat = (matrix_t *) malloc(num * sizeof(matrix_t));
-  //  action = (matrix_t **) malloc(num * sizeof(matrix_t *));
-  action = (matrix_t **) malloc(num << PTRSH);
-  if (!ptr || !mat || !action)
-    AllocationError("allocateMatrixList");
+  if (!mat)
+  {
+      free(ptr);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
+  action = (matrix_t **) malloc(num * sizeof(matrix_t *));
+  if (!action)
+  {
+      free(mat);
+      free(ptr);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
   for (i = 0, tmp = ptr; i < num; i++, zadvance(&tmp,nontips))
   {
     action[i] = mat + i;
@@ -683,7 +823,7 @@ inline void freeActionMatrices(matrix_t **mat)
 }
 
 /******************************************************************************/
-/* returns PTR to base + offset 
+/* returns PTR to base + offset
    now a macro in meataxe.h, which is included by pgroup_decls.h
 PTR ptrPlus(PTR base, long offset)
 {
@@ -717,17 +857,6 @@ inline long modifiedMinlong(long n1, long n2)
 
 
 /******************************************************************************/
-long listFun(long *l, long len, long fun())
-{
-  long i, result;
-  if (len <= 0) OtherError("listFun: length must be at least 1");
-  result = l[0];
-  for (i = 1; i < len; i++)
-    result = fun(result, l[i]);
-  return result;
-}
-
-/******************************************************************************/
 void addmul(matrix_t *dest, matrix_t *src, FEL f)
 {
   register long i;
@@ -758,11 +887,17 @@ void freeGroupRecord (group_t *group)
   return;
 }
 
-/******************************************************************************/
+/****
+ * " " on error
+ ***************************************************************************/
 char arrowName(long a)
 {
   static char arrowname[] = ARROWNAMES;
-  if (a >= MAXARROW) OtherError("arrowName: more arrownames please");
+  if (a >= MAXARROW)
+  {
+      MTX_ERROR1("Need more arrow names: %E", MTX_ERR_RANGE);
+      return " ";
+  }
   return arrowname[a];
 }
 
@@ -775,8 +910,10 @@ long pathDimension(group_t *group, path_t *p)
     return pathDimension(group, p->parent) + group->dim[1+p->lastArrow];
 }
 
-/******************************************************************************/
-void markPathDimensions(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int markPathDimensions(group_t *group)
 {
   long i;
   switch (group->ordering)
@@ -796,10 +933,10 @@ void markPathDimensions(group_t *group)
         group->lroot[i].dim = pathDimension(group, group->lroot + i);
     break;
   default :
-    OtherError("markPathDimensions: not implemented for this ordering");
-    break;
+    MTX_ERROR("not implemented for this ordering");
+    return 1;
   }
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -943,79 +1080,62 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   return;
 }
 
-/*******************************************************************************
-* void convertPermutationsToGapCode(char *infile, char *outfile)
+/****
+ * 1 on error
+ ***************************************************************************/
+int convertPermutationsToAsci(char *infile, char *outfile)
 {
-  long this_line, max_per_line = 10;
-  char *tail;
   long header[3], *line;
   long nontips, num, i, j;
   FILE *fin, *fout;
   fin = SFOpen(infile, FM_READ);
+  if (!fin) return 1;
   fout = SFOpen(outfile, FM_CREATE);
-  if (!fin || !fout) OtherError("convertPTC: opening files");
-  if (zreadlong(fin, header, 3) != 3)
-    OtherError("convertPTGC: reading header");
-  ** val of header[0] always seems to be -1 : documented by Ringe? **
-  nontips = header[1];
-  num = header[2];
-  line = (long *) malloc(nontips << LONGSH);
-  if (!line) AllocationError("convertPTGC");
-  fprintf(fout, "pl := List([[");
-  for (i = 0; i < num; i++)
+  if (!fout)
   {
-    if (zreadlong(fin, line, nontips) != nontips)
-      OtherError("convertPTGC: reading body");
-    this_line = 0;
-    for (j = 0; j < nontips; j++)
-    {
-      if (++this_line >= max_per_line)
-      {
-        this_line = 0;
-        tail = ",\n";
-      }
-      else tail = ", ";
-      if (j >= nontips - 1) tail = "]";
-      fprintf(fout, "%d%s", line[j], tail);
-    }
-    fprintf(fout, (i < num - 1) ? ",\n [" : "],\n");
+      fclose(fin);
+      return 1;
   }
-  fprintf(fout, "PermList);\n");
-  fclose(fin); fclose(fout); free(line);
-  return;
-}
-*/
-
-/******************************************************************************/
-void convertPermutationsToAsci(char *infile, char *outfile)
-{
-  long header[3], *line;
-  long nontips, num, i, j;
-  FILE *fin, *fout;
-  fin = SFOpen(infile, FM_READ);
-  fout = SFOpen(outfile, FM_CREATE);
-  if (!fin || !fout) OtherError("convertPTC: opening files");
   if (zreadlong(fin, header, 3) != 3)
-    OtherError("convertPTGC: reading header");
+  {
+      fclose(fin);
+      fclose(fout);
+      MTX_ERROR1("reading header: %E", MTX_ERR_FILEFMT);
+      return 1;
+  }
   /* val of header[0] always seems to be -1 : documented by Ringe? */
   nontips = header[1];
   num = header[2];
   line = (long *) malloc(nontips << LONGSH);
-  if (!line) AllocationError("convertPTGC");
+  if (!line)
+  {
+      fclose(fin);
+      fclose(fout);
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
   fprintf(fout, "%ld\n%ld\n", num, nontips);
   for (i = 0; i < num; i++)
   {
     if (zreadlong(fin, line, nontips) != nontips)
-      OtherError("convertPTGC: reading body");
+    {
+        free(line);
+        fclose(fin);
+        fclose(fout);
+        MTX_ERROR1("reading body: %E", MTX_ERR_FILEFMT);
+        return 1;
+    }
     for (j = 0; j < nontips; j++)
       fprintf(fout, "%ld\n", line[j]);
   }
   fclose(fin); fclose(fout); free(line);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
+/****
+ * 1 on error
+ ***************************************************************************/
+int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
   char *name, long num)
 {
   long buffer[3], nontips = group->nontips;
@@ -1024,11 +1144,18 @@ void loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
   long i,j;
   FILE *fp;
   fp = SFOpen(name, FM_READ);
-  if (!fp) OtherError("loadGRAM: opening file");
+  if (!fp) return 1;
   if (zreadlong(fp, buffer, 3) != 3)
-    OtherError("loadGRAM: reading header");
+  {
+      fclose(fd);
+      MTX_ERROR1("reading header: %E", MTX_ERR_FILEFMT);
+      return 1;
+  }
   if (buffer[1] != nontips || buffer[2] != num)
-    OtherError("loadGRAM: incompatible file header");
+  { fclose(fp);
+    MTX_ERROR1("incompatible file header: %E", MTX_ERR_FILEFMT);
+    return 1;
+  }
   for (i = 0; i < num; i++)
   {
     ptr = action[i]->d;
@@ -1040,12 +1167,14 @@ void loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
     ptr = action[i]->d;
     for (j = 1; j <= nontips; j++, zsteprow(&ptr))
     {
-      if (zreadlong(fp,buffer,1) != 1) OtherError("loadGRAM: reading body");
+      if (zreadlong(fp,buffer,1) != 1)
+      { fclose(fp);
+        MTX_ERROR1("reading body: %E", MTX_ERR_FILEFMT);
       zinsert(ptr, buffer[0], (buffer[0] == j) ? F_ZERO : F_ONE);
     }
   }
   fclose(fp);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -1059,8 +1188,10 @@ void loadRegularActionMatrices(group_t *group)
   return;
 }
 
-/******************************************************************************/
-void makeBasisChangeMatrices(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int makeBasisChangeMatrices(group_t *group)
 /* Assumes group->action matrices currently wrt basis of group elements */
 {
   register long i;
@@ -1079,37 +1210,48 @@ void makeBasisChangeMatrices(group_t *group)
     zmaprow(src, action[p->lastArrow]->d, nontips, dest);
   }
   wb = matinv(bw);
-  if (!wb) OtherError("makeBasisChangeMatrix: inverting bw");
+  if (!wb)
+  { freeMatrixList(bch);
+    return 1;
+  }
   memcpy(bch[1]->d, wb->d, zsize(nontips));
   matfree(wb);
   group->bch = bch;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void readRegFileHeader(group_t *group)
+/***
+ * 1 on error
+ ****************************************************************************/
+int readRegFileHeader(group_t *group)
 {
   long buffer;
   char regname[MAXLINE];
   FILE *fp;
   strext(regname, group->stem, ".reg");
   fp = SFOpen(regname, FM_READ);
-  if (!fp) OtherError("readRegFileHeader: opening .reg file");
+  if (!fp) return 1;
   zreadlong(fp, &buffer, 1);
   zreadlong(fp, &buffer, 1); group->nontips = buffer;
   zreadlong(fp, &buffer, 1); group->arrows = buffer;
   fclose(fp);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void makeLeftActionMatrices(group_t *group)
+/***
+ * 1 on error
+ ****************************************************************************/
+int makeLeftActionMatrices(group_t *group)
 {
   matrix_t **laction = allocateActionMatrices(group);
   long a;
   path_t *p;
   PTR vec = zalloc(1);
-  if (!vec) AllocationError("makeLeftActionMatrices");
+  if (!vec)
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
   for (a = 0; a < group->arrows; a++)
   {
     zmulrow(vec, F_ZERO);
@@ -1118,12 +1260,15 @@ void makeLeftActionMatrices(group_t *group)
     innerLeftActionMatrix(group, vec, laction[a]->d);
   }
   group->laction = laction;
-  return;
+  return 0;
 }
 
 /*********** pmatrix.c partly merged in here **********************************/
 
-void innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
+/**
+ * 1 on error
+ *******************************/
+int innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
 /* Assembles dest * src at scratch. */
 /* src should be square, scratch should point to enough space. */
 {
@@ -1131,7 +1276,10 @@ void innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
   PTR this_dest = dest->d;
   PTR this_scratch = scratch;
   if (src->fl != dest->fl || src->nor != dest->noc || src->nor != src->noc)
-    OtherError("innerRightProduct: matrices incompatible");
+  {
+      MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+      return 1;
+  }
   zsetlen(src->noc);
   for (i = dest->nor; i != 0; --i)
   {
@@ -1139,7 +1287,7 @@ void innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
     zsteprow(&this_scratch);
     zsteprow(&this_dest);
   }
-  return;
+  return 0;
 }
 
 static matrix_t *innerRightAction(matrix_t *dest, const matrix_t *src,
@@ -1153,6 +1301,9 @@ static matrix_t *innerRightAction(matrix_t *dest, const matrix_t *src,
   return dest;
 }
 
+/**
+ * NULL on error
+ ****/
 static matrix_t *innerLeftAction(const matrix_t *src, matrix_t *dest,
   PTR scratch)
 /* Guaranteed not to alter dest->d */
@@ -1164,7 +1315,8 @@ static matrix_t *innerLeftAction(const matrix_t *src, matrix_t *dest,
   PTR this_scratch = scratch;
   if (src->fl != dest->fl || src->noc != dest->nor || src->nor != src->noc)
   {
-    MTXFAIL(ERR_INCOMPAT,NULL);
+    MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+    return NULL;
   }
   zsetlen(dest->noc);
   for (i = dest->nor; i != 0; --i)
@@ -1209,25 +1361,38 @@ void innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
   return;
 }
 
-/******************************************************************************/
-void basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
+/*****
+ * 1 on error
+ **************************************************************************/
+int basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
 /* Alters matrices in matlist */
 {
   PTR workspace = zalloc(group->nontips);
-  if (!workspace) AllocationError("basisChangeReg2Nontips");
+  if (!workspace)
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
   innerBasisChangeReg2Nontips(group, matlist, num, workspace);
   free(workspace);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void changeActionMatricesReg2Nontips(group_t *group)
+/******
+ * 1 on error
+ *************************************************************************/
+int changeActionMatricesReg2Nontips(group_t *group)
 {
   PTR workspace;
   workspace = zalloc(group->nontips);
-  if (!workspace) AllocationError("changeActionMatricesReg2Nontips: workspace");  innerBasisChangeReg2Nontips(group, group->action, group->arrows, workspace);
+  if (!workspace)
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return 1;
+  }
+  innerBasisChangeReg2Nontips(group, group->action, group->arrows, workspace);
   free(workspace);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -1240,18 +1405,24 @@ long pathTreeGirth(group_t *group)
   return girth;
 }
 
-/******************************************************************************/
-void calculateDimSteps(group_t *group)
+/****
+ * 1 on error
+ ***************************************************************************/
+int calculateDimSteps(group_t *group)
 /* Assumes we are working with RLL, but that the nontips
  * are arranged in ascending length-lex order. */
 {
   long depth, i;
-  long *dS; 
+  long *dS;
   switch(group->ordering)
   {
   case 'R' :
     dS = (long *) malloc((group->maxlength + 3) << LONGSH);
-    if (!dS) AllocationError("calculateDimSteps");
+    if (!dS)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return 1;
+      }
     dS[0] = 0;
     dS[1] = 1;
     i = 1;
@@ -1259,7 +1430,11 @@ void calculateDimSteps(group_t *group)
     {
       while (strlen(group->root[i].path) < depth) i++;
       if (strlen(group->root[i].path) != depth)
-        OtherError("Theoretical Error: calculateDimSteps");
+      {
+          free(dS);
+          MTX_ERROR("Theoretical Error: calculateDimSteps");
+          return 1;
+      }
       dS[depth] = i;
     }
     dS[group->maxlength+1] = group->nontips;
@@ -1268,40 +1443,57 @@ void calculateDimSteps(group_t *group)
     break;
   case 'J' :
     dS = (long *) malloc((group->nontips + 2) << LONGSH);
-    if (!dS) AllocationError("calculateDimSteps");
+    if (!dS)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return 1;
+      }
     dS[0] = 0;
     dS[1] = 1;
     for (i = 1, depth = 1; i < group->nontips; i++)
       if (depth < group->root[i].dim)
       {
         if (group->root[i].dim != ++depth)
-          OtherError("Theoretical Error: calculateDimSteps");
+        { free(dS);
+          MTX_ERROR("Theoretical Error");
+          return 1;
+        }
         dS[depth] = i;
       }
     dS[depth+1] = group->nontips;
     i = 1;
     group->dS = (long *) malloc((depth + 2) << LONGSH);
-    if (!group->dS) AllocationError("calculateDimSteps");
+    if (!group->dS)
+      {
+          free(dS);
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return 1;
+      }
     memcpy(group->dS, dS, (depth + 2) << LONGSH);
     free(dS);
     /* printf("Dim steps:\n"); */
     /* for (i=0; i <= depth+1; i++) printf("%d\n", group->dS[i]); */
     break;
   default:
-    OtherError("calculateDimSteps: not implemented for this ordering");
-    break;
+    MTX_ERROR("not implemented for this ordering");
+    return 1;
   }
   pathTreeGirth(group);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 group_t *fullyLoadedGroupRecord(char *stem)
 {
   group_t *G = namedGroupRecord(stem);
   loadNonTips(G);
   if (G->ordering == 'L')
-    OtherError("fullyLoadedGroupRecord: can't cope with LL ordering");
+  {
+      MTX_ERROR("can't cope with LL ordering");
+      return NULL;
+  }
   if (G->ordering == 'J') loadDimensions(G);
   buildPathTree(G);
   buildLeftPathTree(G);
@@ -1330,7 +1522,7 @@ inline boolean mateq(matrix_t *mat1, matrix_t *mat2)
 }
 
 /******************************************************************************/
-static boolean matricesCommute(matrix_t *a, matrix_t *b, matrix_t *ab,
+static int matricesCommute(matrix_t *a, matrix_t *b, matrix_t *ab,
   matrix_t *ba)
 {
   innerRightProduct(a, b, ab->d);
@@ -1338,46 +1530,56 @@ static boolean matricesCommute(matrix_t *a, matrix_t *b, matrix_t *ab,
   return (mateq(ab,ba)) ? true : false;
 }
 
-/******************************************************************************/
+/*****
+ * -1 on error
+ **************************************************************************/
 int verifyGroupIsAbelian(group_t *A)
 {
   long Asize = A->nontips;
   long ngens = A->arrows;
   long fl = A->action[0]->fl;
   long i, j;
-  boolean thisPairCommutes;
+  int thisPairCommutes;
   matrix_t *ab = matalloc(fl, Asize, Asize);
   matrix_t *ba = matalloc(fl, Asize, Asize);
-  if (!ab || !ba) AllocationError("verifyGroupIsAbelian");
+  if (!ab || !ba)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return -1;
+      }
   for (i = 0; i < ngens; i++)
     for (j = i+1; j < ngens; j++)
     {
       thisPairCommutes = matricesCommute(A->action[i], A->action[j], ab, ba);
-      if (!thisPairCommutes) return 0;
-	/*      {
-	 *char invalid[MAXLINE];
-         *sprintf(invalid,
-         * "verifyGroupIsAbelian for %s: gens %ld and %ld do not commute",
-         * A->stem, i, j);
-	 *OtherError(invalid);
-	}*/
+      if (thisPairCommutes==1) return 0;
     }
   return 1;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 long *newLongArray(long N)
 /* Array entries initialized to 0 */
 {
   long *l, i;
-  if (N <= 0) OtherError("newLongArray: invalid input");
+  if (N <= 0)
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return NULL;
+  }
   l = (long *) malloc(N << LONGSH);
-  if (!l) AllocationError("newLongArray");
+  if (!l)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   for (i = 0; i < N; i++) l[i] = 0;
   return l;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 matrix_t *myMatalloc(long fl, long nor, long noc)
 /* Can handle nor==0 */
 {
@@ -1385,7 +1587,11 @@ matrix_t *myMatalloc(long fl, long nor, long noc)
   matrix_t *mat;
   nor1 = (nor == 0) ? 1 : nor;
   mat = matalloc(fl, nor1, noc);
-  if (!mat) AllocationError("myMatalloc");
+  if (!mat)
+    {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+    }
   if (nor == 0)
   {
     free(mat->d);
@@ -1395,12 +1601,17 @@ matrix_t *myMatalloc(long fl, long nor, long noc)
   return mat;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 matrix_t *myMatmul(matrix_t *dest, matrix_t *src)
 /* Can handle dest->nor==0; znoc is src->noc at end */
 {
   if (src->fl != dest->fl || src->nor != dest->noc)
-    OtherError("myMatmul: incompatible matrices");
+  {
+      MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+      return NULL;
+  }
   zsetfield(src->fl);
   if (dest->nor == 0)
   {
@@ -1415,51 +1626,6 @@ matrix_t *myMatmul(matrix_t *dest, matrix_t *src)
     matmul(dest, src);
   zsetlen(src->noc);
   return dest;
-}
-
-/******************************************************************************/
-long *collected(long *l)
-/* l[0] is length */
-{
-  long len, *col, pos;
-  len = l[0];
-  col = (long *) malloc((len+1) << LONGSH);
-  if (!col) AllocationError("collected");
-  if (len == 0)
-  {
-    pos = 0;
-  }
-  else
-  {
-    boolean unfinished;
-    col[1] = listFun(l+1, len, minlong);
-    pos = 1;
-    unfinished = true;
-    while (unfinished)
-    {
-      long i, this = 0;
-      boolean found = false;
-      for (i = 1; i <= len; i++)
-      if (l[i] > col[pos])
-      {
-        if (found)
-        {
-          if (l[i] < this) this = l[i];
-        }
-        else
-        {
-          found = true;
-          this = l[i];
-        }
-      }
-      if (found)
-        col[++pos] = this;
-      else
-        unfinished = false;
-    }
-  }
-  col[0] = pos;
-  return col;
 }
 
 /******************************************************************************/

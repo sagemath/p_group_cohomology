@@ -23,6 +23,9 @@
 
 #include "fileplus.h"
 
+/**
+ *  NULL on error
+ *****/
 FILE *os_fopenplus(char *name, int mode)
 {
   char *canonical_name = os_mkfilename(name);
@@ -40,38 +43,52 @@ FILE *os_fopenplus(char *name, int mode)
       mode_str = "a+b";
       break;
     default:
-      OtherError("Illegal mode in os_fopenplus");
+      MTX_ERROR1("Illegal mode in os_fopenplus: %E", MTX_ERR_FILEFMT);
       mode_str = "";
-      break;
+      return NULL;
   }
   fp = fopen(canonical_name,mode_str);
+  if (!fp) MTX_ERROR("Cannot open file");
   return fp;
 }
 
+
+/**
+ * 1 on error
+ ********/
 int alterhdrplus(FILE *fp, long nor)
 {
   long header[3];
-  SFSeek(fp,(long)0);
+  if (SysFseek(fp,(long)0))
+  { MTX_ERROR("%E", MTX_ERR_FILEFMT);
+    return 1;
+  }
   if (zreadlong(fp,header,3) != 3)
   {
     fclose(fp);
-    mtxerror("alterhdrplus");
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return 1;
   }
-  /* if (header[1] > nor)
-  *  {
-    *  fclose(fp);
-    *  OtherError("Can't (yet) shorten files");
-  *  }
-  */
   header[1] = nor;
-  SFSeek(fp,(long)0);
+  if (SysFseek(fp,(long)0))
+  {
+    fclose(fp);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return 1;
+  }
+
   if (zwritelong(fp,header,3) != 3)
   {
     fclose(fp);
-    OtherError("Altering header");
+    MTX_ERROR("%E", MTX_ERR_FILEFMT);
+    return 1;
   }
-  SFSeek(fp,(long)12);
-  return 0;
+  if (SysFseek(fp,(long)12))
+  {
+    fclose(fp);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return 1;
+  }
 }
 
 FILE *writehdrplus(char *name, long fl, long nor, long noc)
@@ -82,15 +99,23 @@ FILE *writehdrplus(char *name, long fl, long nor, long noc)
   header[1] = (long)nor;
   header[2] = (long)noc;
   fp = os_fopenplus(name, FM_CREATE);
-  if (!fp) MTXFAIL(ERR_FILEOPEN,NULL);
+  if (!fp)
+  {
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return NULL;
+  }
   if (zwritelong(fp,header,3) != 3)
   {
     fclose(fp);
-    MTXFAIL(ERR_FILEWRITE,NULL);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return NULL;
   }
   return fp;
 }
 
+/**
+ * NULL on error
+ ****/
 FILE *readhdrplus(char *name, long *fl, long *nor, long *noc)
 /* Opens existing file for read/write */
 /* Assigns to fl, nor, noc, unless NULL */
@@ -98,11 +123,16 @@ FILE *readhdrplus(char *name, long *fl, long *nor, long *noc)
   FILE *fp;
   long header[3];
   fp = os_fopenplus(name, FM_READ);
-  if (!fp) MTXFAIL(ERR_FILEOPEN,NULL);
+  if (!fp)
+  {
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return NULL;
+  }
   if (zreadlong(fp,header,3) != 3)
   {
     fclose(fp);
-    MTXFAIL(ERR_FILEREAD,NULL);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return NULL;
   }
   if (fl != NULL)
     *fl = header[0];
@@ -110,7 +140,12 @@ FILE *readhdrplus(char *name, long *fl, long *nor, long *noc)
     *nor = header[1];
   if (noc != NULL)
     *noc = header[2];
-  SFSeek(fp,(long)12);
+  if (SysFseek(fp,(long)12))
+  {
+    fclose(fp);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+    return NULL;
+  }
   return fp;
 }
 
@@ -123,6 +158,9 @@ void PrintMatrixFile(char *matname)
   system(buffer);
 }
 
+/**
+ * -1 on error
+ ****/
 long numberOfRowsStored(char *name)
 {
   FILE *fp;
@@ -130,9 +168,8 @@ long numberOfRowsStored(char *name)
   fp = zreadhdr(name, &fl, &nor, &noc);
   if (!fp)
   {
-    char buffer[MAXLINE];
-    sprintf(buffer, "numberOfRowsStored: opening file %s", name);
-    OtherError(buffer);
+    MTX_ERROR2("opening file %s: %E", name, MTX_ERR_FILEFMT);
+    return -1;
   }
   fclose(fp);
   return nor;

@@ -20,20 +20,36 @@
 #include "pgroup.h"
 #include "uvr.h"
 #include "pgroup_decls.h"
-//#include "report_decls.h"
 
 /* Need: error routines, ptrPlus */
 
-/******************************************************************************/
+/******
+ * NULL on error
+ *************************************************************************/
 uvr_t *newBoundedUvr(long Vdim, long Udim)
 {
   uvr_t *U = (uvr_t *) malloc(sizeof(uvr_t));
+  if (!U)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   PTR basis = NULL;
   long *piv = (long *) malloc((Udim + 1) << LONGSH);
+  if (!piv)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   zsetlen(Vdim);
-  if (Udim > 0) basis = zalloc(Udim);
-  if (!U || !piv || ((Udim > 0) && !basis))
-    AllocationError("newBoundedUvr");
+  if (Udim > 0)
+  { basis = zalloc(Udim);
+    if (!basis)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
+  }
   piv[0] = 0;
   U->basis = basis;
   U->piv = piv;
@@ -99,18 +115,25 @@ boolean isAmbientSpace(uvr_t *uvr)
   return (uvr->piv[0] == uvr->Vdim) ? true : false;
 }
 
-/******************************************************************************/
-static void uvrCopy(uvr_t *dest, uvr_t *src)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int uvrCopy(uvr_t *dest, uvr_t *src)
 /* znoc = Vdim assumed */
 {
   long dim = uvrDimension(src);
   long Vdim = uvrAmbientDimension(src);
   if (uvrAmbientDimension(dest) != Vdim)
-    OtherError("uvrCopy: ambient spaces differ");
-  if (dim > uvrDimensionBound(dest)) OtherError("uvrCopy: dest too small");
+  { MTX_ERROR1("ambient spaces differ: %E", MTX_ERR_INCOMPAT);
+    return 1;
+  }
+  if (dim > uvrDimensionBound(dest))
+  { MTX_ERROR2("dest too small for dimension %d: %E", dim, MTX_ERR_RANGE);
+    return 1;
+  }
   memcpy(dest->piv, src->piv, (dim+1) << LONGSH);
   if (dim > 0) memcpy(dest->basis, src->basis, zsize(dim));
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -192,13 +215,34 @@ static long mkBiechelon(PTR mat1, PTR mat2, long nor, long *piv, PTR core,
   return crank;
 }
 
-/******************************************************************************/
+/****
+ * -1 on error
+ ***************************************************************************/
 static long innerIntersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest, long dimA,
   long dimB, long nor)
 {
-  PTR mat1 = zalloc(nor), mat2 = zalloc(nor);
-  long crank, *piv = (long *) malloc((nor+1) << LONGSH);
-  if (!mat1 || !mat2 || !piv) AllocationError("innerIntersectUvrs");
+  PTR mat1 = zalloc(nor);
+  if (!mat1)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return -1;
+      }
+  PTR mat2 = zalloc(nor);
+  if (!mat2)
+      {
+          SysFree(mat1);
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return -1;
+      }
+  long crank;
+  long *piv = (long *) malloc((nor+1) << LONGSH);
+  if (!piv)
+      {
+          SysFree(mat1);
+          SysFree(mat2);
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return -1;
+      }
   memcpy(mat1, A->basis, zsize(dimA));
   memcpy(mat2, A->basis, zsize(dimA));
   memcpy(ptrPlus(mat1, dimA), B->basis, zsize(dimB));
@@ -242,18 +286,23 @@ uvr_t *uvrIntersection(uvr_t *A, uvr_t *B)
   return C;
 }
 
-/******************************************************************************/
-static void uvrSwap(uvr_t *A, uvr_t *B)
+/***
+ * 1 on error
+ ****************************************************************************/
+static int uvrSwap(uvr_t *A, uvr_t *B)
 /* A, B must have same Vdim, and Udim=Vdim */
 {
   PTR basis = A->basis;
   long *piv = A->piv;
   long Vdim = A->Vdim;
   if (B->Vdim != Vdim || A->Udim != Vdim || B->Udim != Vdim)
-    OtherError("uvrSwap: unsuitable data");
+  {
+      MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+      return 1;
+  }
   A->basis = B->basis; B->basis = basis;
   A->piv = B->piv; B->piv = piv;
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -283,8 +332,10 @@ static long innerUvrClean(uvr_t *dest, uvr_t *src)
   return dimCom;
 }
 
-/******************************************************************************/
-static void innerUvrComplement(uvr_t *dest, uvr_t *src)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int innerUvrComplement(uvr_t *dest, uvr_t *src)
 /* src must be a subspace of dest */
 /* On return, dest is a complement of src in the original dest */
 {
@@ -293,8 +344,10 @@ static void innerUvrComplement(uvr_t *dest, uvr_t *src)
   long dimCom;
   dimCom = innerUvrClean(dest, src);
   if (dimBig != dimSmall + dimCom)
-    OtherError("innerUvrComplement: src not a subspace of dest");
-  return;
+  { MTX_ERROR1("src not a subspace of dest: %E", MTX_ERR_INCOMPAT);
+    return 1;
+  }
+  return 0;
 }
 
 /******************************************************************************/
@@ -350,16 +403,6 @@ void uvrAdd(uvr_t *dest, uvr_t *src)
   return;
 }
 
-/******************************************************************************
-// apparently not used -- S. King
-static uvr_t *uvrDirectSum(uvr_t *A, uvr_t *B)
-{
-  uvr_t *sum = uvrSum(A, B);
-  if (uvrDimension(sum) != uvrDimension(A) + uvrDimension(B))
-    OtherError("uvrDirectSum: sum not direct");
-  return sum;
-}
-
 ******************************************************************************/
 uvr_t *uvrComplementOfIntersection(uvr_t *A, uvr_t *B)
 /* Returns C in A such that A = C \oplus (A \cap B) */
@@ -398,8 +441,10 @@ static void pairCleanrow(PTR rowB, PTR matB, long nor, long *piv, long nocB,
   return;
 }
 
-/******************************************************************************/
-void pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
+/*****
+ * 1 on error
+ **************************************************************************/
+int pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
   long nocB, PTR matC, PTR matA, long nocA)
 /* Cleans matD by matB, then does same operations on matC using matA */
 /* znoc immaterial at start, indeterminate at end */
@@ -410,7 +455,11 @@ void pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
   if (norB == 0) return;
   zsetlen(norB);
   row2 = zalloc(1);
-  if (!row2) AllocationError("pairCleanMat");
+  if (!row2)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return 1;
+      }
   for (i = 0; i < norD; i++)
   {
     zsetlen(norB); zmulrow(row2, F_ZERO);
@@ -419,7 +468,7 @@ void pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
     pairCleanrow(rowD, matB, norB, pivB, nocB, rowC, matA, nocA, row2);
   }
   free(row2);
-  return;
+  return 0;
 }
 
 /******************************************************************************/

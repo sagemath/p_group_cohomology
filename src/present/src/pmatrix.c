@@ -8,8 +8,12 @@
    ================================================================ */
 
 #include "pgroup.h"
+MTX_DEFINE_FILE_INFO
 
-void *InnerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
+/**
+ * NULL on error
+ ****/
+void *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* Assembles dest * src at scratch. */
 /* src should be square, scratch should point to enough space. */
 {
@@ -18,27 +22,31 @@ void *InnerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
   PTR this_scratch = scratch;
   if (src->fl != dest->fl || src->nor != dest->noc || src->nor != src->noc)
   {
-    MTXFAIL(ERR_INCOMPAT,NULL);
+    MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+    return NULL;
   }
-  zsetlen(src->noc);
+  FfSetNoc(src->noc);
   for (i = dest->nor; i != 0; --i)
   {
     zmaprow(this_dest,src->d,src->nor,this_scratch);
-    zsteprow(&this_scratch);
-    zsteprow(&this_dest);
+    FfStepPtr(&this_scratch);
+    FfStepPtr(&this_dest);
   }
   return;
 }
 
-matrix_t *RightProduct(const matrix_t *dest, const matrix_t *src)
+Matrix_t *RightProduct(const Matrix_t *dest, const Matrix_t *src)
 {
-  matrix_t *result = matalloc(src->fl, dest->nor, src->noc);
-  if (!result) AllocationError("RightProduct");
+  Matrix_t *result = matalloc(src->fl, dest->nor, src->noc);
+  if (!result)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   InnerRightProduct(dest,src,result->d);
   return result;
 }
 
-matrix_t *InnerRightAction(matrix_t *dest, const matrix_t *src, PTR scratch)
+Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* Guaranteed not to alter dest->d */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
@@ -48,7 +56,10 @@ matrix_t *InnerRightAction(matrix_t *dest, const matrix_t *src, PTR scratch)
   return dest;
 }
 
-matrix_t *InnerLeftAction(const matrix_t *src, matrix_t *dest, PTR scratch)
+/**
+ * NULL on error
+ ****/
+Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
 /* Guaranteed not to alter dest->d */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
@@ -58,79 +69,95 @@ matrix_t *InnerLeftAction(const matrix_t *src, matrix_t *dest, PTR scratch)
   PTR this_scratch = scratch;
   if (src->fl != dest->fl || src->noc != dest->nor || src->nor != src->noc)
   {
-    MTXFAIL(ERR_INCOMPAT,NULL);
+    MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+    return NULL;
   }
-  zsetlen(dest->noc);
+  FfSetNoc(dest->noc);
   for (i = dest->nor; i != 0; --i)
   {
     zmaprow(this_src,dest->d,dest->nor,this_scratch);
-    zsteprow(&this_scratch);
-    zsteprow(&this_src);
+    FfStepPtr(&this_scratch);
+    FfStepPtr(&this_src);
   }
   memcpy(dest->d, scratch, zsize(dest->nor));
   return dest;
 }
 
-matrix_t *RightAction(matrix_t *dest, const matrix_t *src)
+/**
+ * NULL on error
+ ***/
+Matrix_t *RightAction(Matrix_t *dest, const Matrix_t *src)
 /* Guaranteed not to alter dest->d */
 {
   PTR scratch;
-  zsetlen(src->noc);
+  FfSetNoc(src->noc);
   scratch = zalloc(dest->nor);
   if (!scratch)
   {
-    MTXFAIL(ERR_NOMEM,NULL);
+    MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
+    return NULL;
   }
-  InnerRightAction(dest, src, scratch);
+  dest = InnerRightAction(dest, src, scratch);
   free(scratch);
   return dest;
 }
 
-/******************************************************************************/void innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
+/******************************************************************************/
+int innerBasisChangeNontips2Reg(group_t *group, Matrix_t **matlist,
   long num, PTR workspace)
   /* Alters matrices in matlist */
   /* workspace points to group->nontips rows scratch space */
 {
   register long i;
-  matrix_t *bw = group->bch[0], *wb = group->bch[1];
+  Matrix_t *bw = group->bch[0], *wb = group->bch[1];
   for (i = 0; i < num; i++)
   {
-    InnerLeftAction(wb, matlist[i], workspace);
-    InnerRightAction(matlist[i], bw, workspace);
+    if (!InnerLeftAction(wb, matlist[i], workspace)) return 1;
+    if (!InnerRightAction(matlist[i], bw, workspace)) return 1;
   }
-  return;
+  return 0;
 }
 
-/******************************************************************************/void innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
+/******************************************************************************/
+int innerBasisChangeReg2Nontips(group_t *group, Matrix_t **matlist,
   long num, PTR workspace)
 /* Alters matrices in matlist */
 /* workspace points to group->nontips rows scratch space */
 {
   register long i;
-  matrix_t *bw = group->bch[0], *wb = group->bch[1];
+  Matrix_t *bw = group->bch[0], *wb = group->bch[1];
   for (i = 0; i < num; i++)
   {
-    InnerLeftAction(bw, matlist[i], workspace);
-    InnerRightAction(matlist[i], wb, workspace);
+    if (!InnerLeftAction(bw, matlist[i], workspace)) return 1;
+    if (!InnerRightAction(matlist[i], wb, workspace)) return 1;
   }
   return;
 }
 
-/******************************************************************************/void basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
+/******************************************************************************/
+int basisChangeReg2Nontips(group_t *group, Matrix_t **matlist, long num)
 /* Alters matrices in matlist */
 {
   PTR workspace = zalloc(group->nontips);
-  if (!workspace) AllocationError("basisChangeReg2Nontips");
-  innerBasisChangeReg2Nontips(group, matlist, num, workspace);
+  if (!workspace)
+  { MTX_ERROR1("%E", MTX_ERROR_NOMEM);
+    return 1;
+  }
+  int r = innerBasisChangeReg2Nontips(group, matlist, num, workspace);
   free(workspace);
-  return;
+  return r;
 }
 
-/******************************************************************************/void changeActionMatricesReg2Nontips(group_t *group)
+/******************************************************************************/
+int changeActionMatricesReg2Nontips(group_t *group)
 {
   PTR workspace;
   workspace = zalloc(group->nontips);
-  if (!workspace) AllocationError("changeActionMatricesReg2Nontips: workspace");  innerBasisChangeReg2Nontips(group, group->action, group->arrows, workspace);
+  if (!workspace)
+  { MTX_ERROR1("%E", MTX_ERROR_NOMEM);
+    return 1;
+  }
+  int r = innerBasisChangeReg2Nontips(group, group->action, group->arrows, workspace);
   free(workspace);
-  return;
+  return r;
 }

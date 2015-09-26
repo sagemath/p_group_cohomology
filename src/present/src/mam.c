@@ -9,20 +9,21 @@
 
 #include "pgroup.h"
 #include "pgroup_decls.h"
+MTX_DEFINE_FILE_INFO
 
 static char *helptext[] = {
 "SYNTAX",
-"	makeActionMatrices [-q <q>] [-b] [-l] <stem>",
+"   makeActionMatrices [-q <q>] [-b] [-l] <stem>",
 "",
-"	Reads <stem>.nontips, <stem>.reg",
-"	Writes <stem>.gens, <stem>.lgens, <stem>.bch",
-"	With option -b, only writes <stem>.bch",
-"	With option -l, only writes <stem>.lgens",
-"	(-b -l writes .bch and .lgens)",
-"	Option -q: Work over F_q rather than over F_p",
+"   Reads <stem>.nontips, <stem>.reg",
+"   Writes <stem>.gens, <stem>.lgens, <stem>.bch",
+"   With option -b, only writes <stem>.bch",
+"   With option -l, only writes <stem>.lgens",
+"   (-b -l writes .bch and .lgens)",
+"   Option -q: Work over F_q rather than over F_p",
 "",
 "DESCRIPTION",
-"	Make matrices for actions of generators.",
+"   Make matrices for actions of generators.",
 NULL};
 
 static proginfo_t pinfo =
@@ -44,7 +45,10 @@ typedef struct controlVariables control_t;
 control_t *newController(void)
 {
   control_t *control = (control_t *) malloc(sizeof(control_t));
-  if (!control) AllocationError("newController");
+  if (!control)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   control->bchOnly = false;
   control->leftOnly = false;
   control->q = -1;
@@ -59,9 +63,8 @@ void freeController(control_t *control)
 }
 
 /******************************************************************************/
-void InterpretCommandLine(int argc, char *argv[], control_t *control)
+int InterpretCommandLine(int argc, char *argv[], control_t *control)
 {
-  char invalid[MAXLINE];
   char *this;
   initargs(argc,argv,&pinfo);
   sprintf(invalid,
@@ -82,10 +85,13 @@ void InterpretCommandLine(int argc, char *argv[], control_t *control)
       break;
     }
   }
-  if (opt_ind != argc - 1) OtherError(invalid);
+  if (opt_ind != argc - 1)
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return 1;
+  }
   this = argv[opt_ind++];
   strcpy(control->stem, this);
-  return;
+  return 0;
 }
 
 /******************************************************************************
@@ -95,10 +101,10 @@ static void printSupport(PTR vec)
   long i;
   FEL f;
   printf("support:");
-  for(i=0; i < znoc; i++)
+  for(i=0; i < FfNoc; i++)
   {
-    f = zextract(vec,i+1);
-    if (f != F_ZERO) printf(" %ld",i);
+    f = FfExtract(vec,i+1);
+    if (f != FF_ZERO) printf(" %ld",i);
   }
   printf("\n");
   return;
@@ -137,22 +143,24 @@ int main(int argc, char *argv[])
 {
   group_t *group;
   control_t *control;
-  mtxinit();
+  MtxInitLibrary();
   control = newController();
-  InterpretCommandLine(argc, argv, control);
+  if (InterpretCommandLine(argc, argv, control)) exit(1);
   group = namedGroupRecord(control->stem);
-  loadNonTips(group);
+  if (loadNonTips(group)) exit(1);
   if (control->q != -1)
   {
-    zsetfield(control->q);
-    if (zchar != group->p)
-      OtherError("makeActionMatrices: invalid ground field");
+    FfSetField(control->q);
+    if (FfChar != group->p)
+      { MTX_ERROR("invalid ground field");
+        exit(1);
+      }
   }
   buildPathTree(group);
   if (rightActionMatricesNotYetKnown(control))
-    loadRegularActionMatrices(group);
+    if (loadRegularActionMatrices(group)) exit(1);
   else
-    loadActionMatrices(group);
+    if (loadActionMatrices(group)) exit(1);
   if (basisChangeMatricesNotYetKnown(control))
   {
     makeBasisChangeMatrices(group);
@@ -162,7 +170,7 @@ int main(int argc, char *argv[])
     loadBasisChangeMatrices(group);
   if (rightActionMatricesRequired(control))
   {
-    changeActionMatricesReg2Nontips(group);
+    if (changeActionMatricesReg2Nontips(group)) exit(1);
     saveActionMatrices(group);
   }
   if (leftActionMatricesRequired(control))

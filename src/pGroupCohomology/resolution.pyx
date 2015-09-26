@@ -1,6 +1,6 @@
 #*****************************************************************************
 #
-#    Computing Minimal Free Resolutions of Finite p-Groups, 
+#    Computing Minimal Free Resolutions of Finite p-Groups,
 #    wrapping David J. Green's C-code
 #
 #    Copyright (C) 2009 Simon A. King  <simon.king@uni-jena.de> and
@@ -58,7 +58,7 @@ include "interrupt.pxi"
 
 ####################
 ## MTX related auxiliary functions
-cdef MTX makeMTX (matrix_t *Data):
+cdef MTX makeMTX (Matrix_t *Data):
     """
     Make an immutable MTX-matrix out of the genuine MeatAxe-type <matrix_t>
 
@@ -112,7 +112,7 @@ def baseMTX (f, m,n, i,j):
         sage: from pGroupCohomology.resolution import baseMTX
         sage: baseMTX(3, 4, 5, 1, 2)
         (4 x 5) MTX matrix over GF(3)
-        sage: print baseMTX(3, 4, 5, 1, 2)        
+        sage: print baseMTX(3, 4, 5, 1, 2)
         [0 0 0 0 0]
         [0 0 1 0 0]
         [0 0 0 0 0]
@@ -212,7 +212,7 @@ def makeGroupData(q,n, folder = None, ElAb=False,Forced=False):
         b;
         ba;
         sage: f.close()
-    
+
     Other files, contained in the sub-directory 'sgp' of the stem folder,
     describe the embedding of the elementary abelian subgroups. The first
     subgroup will always be the greatest central elementary abelian.
@@ -228,7 +228,7 @@ def makeGroupData(q,n, folder = None, ElAb=False,Forced=False):
         [0 0 0 1 1 1 1 1]
         [0 1 0 0 0 0 0 0]
         [0 0 0 0 0 1 0 1]
-        
+
     """
     import os
     _gap_init()
@@ -326,7 +326,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
     - ``folder`` (optional string) -- name of a directory in which
       the data files will be stored. Default: ``SAGE_DB+'/%dgp%d/'%(q,n)``
       The directory will be created, if necessary.
-    
+
     OUTPUT:
 
     See :func:`~pGroupCohomology.resolution.makeGroupData`
@@ -499,7 +499,7 @@ class RESL_sparse_unpickle_class:
 
     The examples produce files. For safety reasons, we choose
     files in a temporary directory; it will be removed as soon
-    as Sage is quit. 
+    as Sage is quit.
     ::
 
         sage: from pGroupCohomology import CohomologyRing
@@ -583,7 +583,7 @@ class RESL_sparse_unpickle_class:
             if oldroot is not None and (r!=oldroot) and (r!=newroot):
                 raise RuntimeError, "Unpickling failed since the parameter '@oldroot@' was incorrectly used"
             if r == newroot: # hence, no change is needed.
-                # By removing @newroot@, we declare that self doesn't need to be saved 
+                # By removing @newroot@, we declare that self doesn't need to be saved
                 if OPTION.opts.has_key('@newroot@'):
                     OPTION.opts.__delitem__('@newroot@')
             else:
@@ -641,26 +641,26 @@ cdef class RESL:
 
     INPUT:
 
-    - ``gstem`` -- a string, providing a short unique descriptor of a finite 
+    - ``gstem`` -- a string, providing a short unique descriptor of a finite
       `p`-group (see :func:`~pGroupCohomology.resolution.makeSpecialGroupData`)
-    - ``gps_folder`` (optional) -- a string, defining the folder in which data 
+    - ``gps_folder`` (optional) -- a string, defining the folder in which data
       for the group specified by ``gstem`` can be found. Default: ``gps_folder=''``
-    - ``res_folder`` (optional) -- a string, defining the folder in which the 
+    - ``res_folder`` (optional) -- a string, defining the folder in which the
       data for the resolution will be stored. Default: ``res_folder=''``
 
     NOTE:
 
-    - Usually, one wouldn't create an instance of RESL on its own. The normal 
+    - Usually, one wouldn't create an instance of RESL on its own. The normal
       usage is to create a cohomology ring by :func:`~pGroupCohomology.CohomologyRing`,
       which internally will produce an instance of RESL.
 
     OUTPUT:
 
-    A resolution, which is given by data files in ``res_folder``, where the 
+    A resolution, which is given by data files in ``res_folder``, where the
     file names start with ``'Res'+gstem``.
 
     EXAMPLES:
-    
+
     Usually, objects of type RESL will only play a role when computing
     a cohomology ring using our :mod:`pGroupCohomology` package. But
     as such, they are hardly visible, and will hardly ever be directly
@@ -668,7 +668,7 @@ cdef class RESL:
     insight on how the RESL class works.
 
     **Creating a RESL object**
-   
+
     The examples produce files. For safety reasons, we choose files in
     a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
@@ -683,7 +683,7 @@ cdef class RESL:
     folder. The function :func:`~pGroupCohomology.resolution.makeGroupData`
     also creates a subdirectory ``'dat'`` of the stem folder, which is
     intended to be used for storing the resolution.  ::
-    
+
         sage: gstem='8gp3'
         sage: gps_folder = os.path.join(tmp_root,gstem)
         sage: res_folder = os.path.join(gps_folder, 'dat')
@@ -713,7 +713,7 @@ cdef class RESL:
     be automatically reloaded. This can be switched off with
     ``OPTION('noreload')``.  We illustrate reloading here, by
     re-defining ``R``::
-    
+
         sage: R = RESL(gstem,gps_folder,res_folder)
                 > export action matrices
         sage: R.nextDiff()
@@ -736,7 +736,7 @@ cdef class RESL:
 
     There is a copy method for resolutions, and it is also possible to save
     and load RESL objects::
-    
+
         sage: S = copy(R)
                 > export action matrices
         sage: S
@@ -769,7 +769,7 @@ cdef class RESL:
     :class:`~pGroupCohomology.resolution.RESL` object is easy provided
     the option 'reload' is used, and moving the folders thus is
     possible::
-    
+
         sage: tmp_root2 = tmp_dir()
         sage: new_gps_folder = os.path.join(tmp_root2,gstem)
         sage: new_res_folder = os.path.join(new_gps_folder,'dat')
@@ -811,7 +811,7 @@ cdef class RESL:
 
     If sufficiently many terms of the resolution are computed (using
     :meth:`nextDiff`), the differentials can be easily requested::
-    
+
         sage: R
         Resolution:
         0 <- GF(2) <- GF(2)(8gp3) <- rank 2 <- rank 3 <- rank 4 <- rank 5
@@ -821,7 +821,7 @@ cdef class RESL:
     So, indeed the matrix has the right dimension: The group is of
     order 8, and the first and second term of the resolution are of
     rank 2 and 3, respectively::
-    
+
         sage: R.rank(1)
         2
         sage: R.rank(2)
@@ -829,7 +829,7 @@ cdef class RESL:
 
     Blocks of `s=2` rows of the matrix correspond to elements in the image of the
     differential::
-    
+
         sage: print R[2][0:2]
         [0 1 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
@@ -847,7 +847,7 @@ cdef class RESL:
 
     The salient feature of a resolution is that the composition of two
     differentials is zero. This can be verified as follows::
-    
+
         sage: print R.applyDiff(1,R[2][0:2])
         [0 0 0 0 0 0 0 0]
         sage: print R.applyDiff(1,R[2][2:4])
@@ -858,7 +858,7 @@ cdef class RESL:
     **Cochains and chain maps**
 
     A `d`-cochain `c` is a `\\mathbb F_pG`-module morphism from the `d`-th term
-    of the resolution to `\\mathbb F_p`. 
+    of the resolution to `\\mathbb F_p`.
 
     Embedding `\\mathbb F_p=\\mathbb F_p\\cdot 1 \\subset \mathbb
     F_pG`, we obtain a map to the 0-th term of the resolution. This
@@ -880,10 +880,10 @@ cdef class RESL:
     :class:`~pGroupCohomology.cochain.COCH` provides this
     functionality with high-level functions, hence, it is not needed
     to perform the following steps manually.
-    
+
     First, we define a `1\\times 3` matrix that represents a 2-cochain, and
     construct the lowest term of the corresponding chain map::
-    
+
         sage: from pGroupCohomology.mtx import MTX
         sage: C = MTX(2,[[1,0,1]])
         sage: c0 = R.CochainToChainmap(2,C)
@@ -896,7 +896,7 @@ cdef class RESL:
 
     In the next section, we discuss two differnt ways to lift the cochain. Here
     is the result::
-    
+
         sage: c1 = R.liftChainMap(c0)
         sage: c1
         (3, 1, (8 x 8) MTX matrix over GF(2))
@@ -912,17 +912,17 @@ cdef class RESL:
 
     We verify whether the result is correct. So, we first compose the third
     differential with ``c0``::
-    
+
         sage: d3c0 = R.composeChainMaps(R[3],c0[2],3,2,0)
         sage: print d3c0
         [0 1 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 1 0 0 0 0 1 0]
         [0 0 1 0 0 0 0 0]
-        
+
     The matrix defining c1 contains 4 blocks of 2 rows, and we verify that
     their images under the first differential coincide with the rows of ``d3c0``::
-    
+
         sage: d3c0[0] == R.applyDiff(1,c1[2][0:2])
         True
         sage: d3c0[1] == R.applyDiff(1,c1[2][2:4])
@@ -951,7 +951,7 @@ cdef class RESL:
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [1 0 0 0 0 0 0 0]
-    
+
     The basis of `\\mathbb F_pG` is chosen so that the kernel of the augmentation
     map is given by all columns after the first. Hence, the cup product of ``C`` with
     itself is given by [1,0,0,0,1].
@@ -960,7 +960,7 @@ cdef class RESL:
     course much more comfortable. For using this class, we need to create
     a cohomology ring, since we consider cochains as (representatives of)
     cohomology classes::
-    
+
         sage: from pGroupCohomology.cochain import COCH
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
@@ -974,11 +974,11 @@ cdef class RESL:
         [1 0 0 0 1]
 
     **Urbild Groebner bases and autolift**
-    
+
     We have seen in the previous section that for dealing with chain maps and
     for computing cup products one has to determine pre-images of differentials.
     In cohomology computations, these operations occur extremely often, so, it
-    is essential to make them fast. 
+    is essential to make them fast.
 
     When successively computing the terms of a resolutions, David Green's programs
     construct so-called Urbild Groebner bases and stores them in files in the
@@ -989,11 +989,11 @@ cdef class RESL:
         sage: c2U = R.liftChainMap(c1)
         Res8gp3: Compose with Differential
                 Lift with Urbild Groebner basis in degree 2
-        
+
     However, that method is rather slow. It is also possible to use some linear
     algebra to pick an element of the pre-image, but this requires to construct
     certain data first::
-    
+
         sage: R.makeAutolift(2)
                 Make degree 2 autolift data
                 import action matrices
@@ -1002,11 +1002,11 @@ cdef class RESL:
                 > Lift with the autolift method
 
     It takes some time to make the autolift data, but if they are present, the
-    lifting is *much* faster. Hence, if possible they are used. If one wants to 
-    use the Urbild Groebner bases, this can still be done with :meth:`ugb_liftChainMap`, 
-    although this has a slightly different syntax. Here, the autolift method is more 
+    lifting is *much* faster. Hence, if possible they are used. If one wants to
+    use the Urbild Groebner bases, this can still be done with :meth:`ugb_liftChainMap`,
+    although this has a slightly different syntax. Here, the autolift method is more
     than 250 times faster than the Urbild Groebner basis method::
-    
+
         sage: OPTION('noprot')
         sage: Ta = timeit.eval('cX = R.liftChainMap(c1)')
         sage: Tu = timeit.eval('cX = R.ugb_liftChainMap(c1[0]+1,c1[1]+1,c1[2])')
@@ -1017,7 +1017,7 @@ cdef class RESL:
     In general, the lifts obtained with both methods are not the same (they may
     vary up to elements in the radical, hence, in the kernel of the augmentation
     map), but here they are the same::
-    
+
         sage: R.liftChainMap(c1)[2]==R.ugb_liftChainMap(c1[0]+1,c1[1]+1,c1[2])
         True
 
@@ -1027,12 +1027,12 @@ cdef class RESL:
 
     But there is also another problem: The memory consumption. For some more
     complicated groups, the Urbild Groebner bases are huge in higher degrees,
-    and the autolift data would even be worse. Therefore, if the default 
-    ``OPTION('sparse')`` is used, certain other data will be temporarily saved 
-    on disk before loading the Urbild Groebner bases, and vice versa. This not 
+    and the autolift data would even be worse. Therefore, if the default
+    ``OPTION('sparse')`` is used, certain other data will be temporarily saved
+    on disk before loading the Urbild Groebner bases, and vice versa. This not
     only saves memory in huge examples, but is faster, on average.
     See :class:`~pGroupCohomology.cohomology.COHO` for examples.
-        
+
     """
 #####################
 ## init, dealloc etc
@@ -1090,7 +1090,7 @@ cdef class RESL:
         freeGroupRecord(self.G_Alg.Data)
         self.G_Alg.Data = self.Data.group
         self.G_Alg.gstem = self.gstem
-        self.Lifts = LIFTcontainer(self) 
+        self.Lifts = LIFTcontainer(self)
         self.ToBeLifted = [] # Lists (n,MTX), if the cochain of degree n defined by MTX ought to be lifted to next degree.
         #self.Autolift = [{}]
         self.Autolift = {}
@@ -1146,7 +1146,7 @@ cdef class RESL:
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1165,7 +1165,7 @@ cdef class RESL:
             True
             sage: S is R
             False
-            
+
         """
         cdef RESL OUT
         OUT = RESL(self.gstem,self.gps_folder,self.res_folder)
@@ -1185,18 +1185,18 @@ cdef class RESL:
         Return data used for pickling/unpickling self.
 
         NOTE:
-        
+
         In the documentation of  :func:`~pGroupCohomology.cohomology.COHO`, it is explained in
         more detail why saving a resolution in a file does not suffice to port it to a different
-        plattform. 
+        plattform.
 
         EXAMPLES:
-        
+
         The examples produce files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1212,7 +1212,7 @@ cdef class RESL:
             True
             sage: S is R
             False
-            
+
         """
         self.exportLifts()
         cdef list Lifts = []
@@ -1225,7 +1225,7 @@ cdef class RESL:
         if r == COHO.user_db:
             return resl_sparse_unpickle, (self.gstem,self.gps_folder,self.res_folder,self.deg(),Lifts,self.Autolift,self.Action, '@user_db@')
         return resl_sparse_unpickle, (self.gstem,self.gps_folder,self.res_folder,self.deg(),Lifts,self.Autolift,self.Action)
-    
+
     def __repr__(self):
         """
         Return a brief description of the resolution, providing the projective ranks
@@ -1236,7 +1236,7 @@ cdef class RESL:
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1289,7 +1289,7 @@ cdef class RESL:
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1304,23 +1304,23 @@ cdef class RESL:
         If the option 'sparse' is used (which is the default), then
         usually the matrices representing the differentials are not in memory
         but stored on disk::
-        
+
             sage: isinstance(R.__getitem_name__(3),basestring)
             True
 
         We verify that indeed the stored matrix coincides with the third
         differential::
-        
+
             sage: from pGroupCohomology.mtx import MTX
             sage: MTX(R.__getitem_name__(3))==R[3]
             True
 
         However, if the differential is kept in memory, then ``__getitem_name__`` will
         return it::
-        
+
             sage: R.__getitem_name__(1)
             (2 x 8) MTX matrix over GF(2)
-            
+
         """
         return self.Diff[key-1]
 
@@ -1329,12 +1329,12 @@ cdef class RESL:
         R.__getitem__(n) or R[n]: Return n-th differential (type mtx.MTX)
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1362,15 +1362,15 @@ cdef class RESL:
         Note that, if the option 'sparse' is used (which is the default), then
         most of the matrices representing the differentials are not in memory
         but stored on disk. The file name can be obtained with :meth:`__getitem_name__`::
-        
+
             sage: isinstance(R.__getitem_name__(3),basestring)
             True
             sage: from pGroupCohomology.mtx import MTX
             sage: MTX(R.__getitem_name__(3))==R[3]
             True
-    
+
         See  :class:`~pGroupCohomology.resolution.RESL` for further examples.
-        
+
         """
         if isinstance(key,int) or isinstance(key,Integer):
             if (key<1) or (key>len(self.Diff)):
@@ -1388,12 +1388,12 @@ cdef class RESL:
         Return the  :class:`~pGroupCohomology.resolution.G_ALG` object over which the resolution is defined
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1403,7 +1403,7 @@ cdef class RESL:
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.G_ALG()
             GF(2)(8gp3)
-        
+
         """
         return self.G_Alg
 
@@ -1412,12 +1412,12 @@ cdef class RESL:
         Return the list of computed differentials of a resolution, respectively the path to saved data
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1432,12 +1432,12 @@ cdef class RESL:
         Since the option 'sparse' is used by default, most of the differentials
         are not kept in memory but saved on disk, and R.difflist() points to
         their location::
-        
+
             sage: R.DiffList()
             [(2 x 8) MTX matrix over GF(2),
              '.../8gp3/dat/Res8gp3d02.bin',
              '.../8gp3/dat/Res8gp3d03.bin']
-             
+
         """
         return self.Diff
 
@@ -1446,12 +1446,12 @@ cdef class RESL:
         Return projective rank(s) of a term or all terms  of self.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1469,7 +1469,7 @@ cdef class RESL:
             (1, 2, 3, 4)
             sage: R.rank(2)
             3
-            
+
         """
         if n==-1:
             return tuple([self.Data.projrank[i] for i in range(len(self.Diff)+1)])
@@ -1484,7 +1484,7 @@ cdef class RESL:
         Return the number of terms of self that have been computed so far
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -1502,7 +1502,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.deg()
             3
-            
+
         """
         return self.Data.numproj
 
@@ -1511,7 +1511,7 @@ cdef class RESL:
         Return the characteristic of the field over which self is defined
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -1526,7 +1526,7 @@ cdef class RESL:
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.coef()
             2
-            
+
         """
         return self.G_Alg.Data.p
 
@@ -1535,12 +1535,12 @@ cdef class RESL:
         Return the order of the group over wich self is defined
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1550,7 +1550,7 @@ cdef class RESL:
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.grouporder()
             8
-            
+
         """
         return self.G_Alg.Data.nontips
 
@@ -1559,12 +1559,12 @@ cdef class RESL:
         Return the dictionary of cached lifts.
 
         NOTE:
-        
+
         That function was only created in order to provide a
         doc test for :meth:`setLift`.
 
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
@@ -1587,29 +1587,29 @@ cdef class RESL:
 
         Now, two lifts of ``C`` (considered as a chain map of degree one) are cached. In
         order to save memory, one of the lifts is exported to a file::
-        
+
             sage: sorted(R.getLifts().items())
             [((1, 1), {1: '.../8gp3/dat/L8gp3n1d1'}),
              ((2, 1), {(1 x 2) MTX matrix over GF(2): ((2, 1, (6 x 8) MTX matrix over GF(2)), 2)})]
-                                                       
+
         """
         return self.Lifts.out()
 
     def setLift(self, COCH C, n_max):
         """
-        Make a trivial entry in the list of known lifts for a given cochain 
+        Make a trivial entry in the list of known lifts for a given cochain
 
         INPUT:
-        
+
         - ``C``, a cochain defined over self
         - ``n``, maximal degree to which the cochain shall be lifted
 
         NOTE:
-        
+
         This function should only be of internal use
 
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
@@ -1625,7 +1625,7 @@ cdef class RESL:
             sage: R.nextDiff()
 
         Now we construct a cochain::
-        
+
             sage: from pGroupCohomology.cochain import COCH
             sage: C = COCH(H,2,'C',[1,0,1])
             sage: R.getLifts()
@@ -1637,15 +1637,15 @@ cdef class RESL:
         Hence, now there are cochains (i.e., chain maps) of degree 2 whose lifts are
         known in degree 2.
         ::
-    
+
             sage: R.getLifts().values()
             [{(1 x 3) MTX matrix over GF(2): ((2, 0, (3 x 8) MTX matrix over GF(2)), 4)}]
-    
+
         In fact, the known lift is the trivial one::
-    
+
             sage: R.getLifts()[(2,2)][C.MTX()][0] == R.CochainToChainmap(2,C.MTX())
             True
-        
+
         """
         if not (isinstance(n_max,int) or isinstance(n_max,Integer)):
             raise TypeError, "Second parameter must be an integer"
@@ -1658,12 +1658,12 @@ cdef class RESL:
         Internally used: Save list of G-action matrices in a file
 
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1685,7 +1685,7 @@ cdef class RESL:
         The G-action matrices are used to compute the autolift data, and *only* there.
         Hence, the action matrices will be imported if the autolift data are computed,
         and exported if this is finished::
-        
+
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: OPTION('prot')
@@ -1694,7 +1694,7 @@ cdef class RESL:
             Res8gp3: Make degree 2 autolift data
                     import action matrices
             sage: OPTION('noprot')
-            
+
         """
         if self.Action:
             if not self._Action_saved:
@@ -1717,12 +1717,12 @@ cdef class RESL:
         Reload list of `G`-action matrices that have been exported using :meth:`exportAction`
 
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1735,18 +1735,18 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: OPTION('prot')
             <BLANKLINE>
-    
+
         In the documentation of :meth:`exportAction`, it is shown that
         usually the action matrices are imported by :meth:`makeAutolift`.
         But it is alright to do it manually; it can be seen in the
         protocol that the matrices will not be imported twice::
-        
+
             sage: R.importAction()
             Res8gp3: import action matrices
             sage: R.makeAutolift(2)
                     Make degree 2 autolift data
             sage: OPTION('noprot')
-            
+
         """
         if not self.Action:
             print_protocol('import action matrices', self)
@@ -1762,7 +1762,7 @@ cdef class RESL:
         Save cached lifts into files.
 
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
@@ -1785,7 +1785,7 @@ cdef class RESL:
             sage: R.exportLifts()
 
         Now, both lifts are stored on disk::
-        
+
             sage: sorted(R.getLifts().items())
             [((1, 1), {1: '.../8gp3/dat/L8gp3n1d1'}),
              ((2, 1), {1: '.../8gp3/dat/L8gp3n2d1'})]
@@ -1796,9 +1796,9 @@ cdef class RESL:
     def free_ugb(self):
         """
         Deallocate the currently loaded Urbild Groebner basis.
-        
+
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
@@ -1828,10 +1828,10 @@ cdef class RESL:
                     We need more lifts!
                     Compose with Differential
                     Lift with Urbild Groebner basis in degree 1
-            
+
         Now we deallocate it manually. In the subsequent computation, it
         is reloaded again::
-        
+
             sage: R.free_ugb()
                     deallocate Urbild Groebner basis
             sage: C = COCH(H,1,'C',[1,1])
@@ -1841,7 +1841,7 @@ cdef class RESL:
                     Lift with Urbild Groebner basis in degree 1
                     load Urbild Groebner basis
             sage: H.option('noprot','sparse')
-        
+
         """
         if self.ugb_deg:
             print_protocol("deallocate Urbild Groebner basis", self)
@@ -1853,7 +1853,7 @@ cdef class RESL:
         Load Urbild Groebner basis for lifts from degree d-1 to d.
 
         EXAMPLE:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
@@ -1873,7 +1873,7 @@ cdef class RESL:
             Now, we load the Urbild Groebner basis for lifts to degree 1. Hence,
             it is not needed to load it again in the subsequent computation.
             ::
-            
+
                 sage: R.load_ugb(1)
                 Res8gp3: load Urbild Groebner basis
                 sage: D=C*C
@@ -1905,7 +1905,7 @@ cdef class RESL:
                 freeNRgs(self.nRgs)
             self.nRgs = loadUrbildGroebnerBasis(self.Data, d)
             self.ugb_deg = d
-    
+
 #########################
 # ==, <, >
     def __richcmp__(RESL self, RESL S, int x):
@@ -1913,12 +1913,12 @@ cdef class RESL:
         ``R <= S`` if and only if ``R`` coincides with the first terms of ``S``
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -1937,7 +1937,7 @@ cdef class RESL:
             True
             sage: S>=R
             True
-            
+
         """
         # < 0, <= 1, == 2, != 3, > 4, >= 5
         if x==0:
@@ -1958,11 +1958,11 @@ cdef class RESL:
     def firstDiff(self):
         """
         Make first differential for self
-        
+
         This function is usually called from nextDiff().
-        
+
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -1982,15 +1982,15 @@ cdef class RESL:
 
         An error is raised if it is attempted to compute the first term again.
         ::
-        
+
             sage: R.firstDiff()
             Traceback (most recent call last):
             ...
             IndexError: First differential is already computed
-            
+
         """
-        zsetlen(self.G_Alg.Data.nontips)
-        zsetfield(self.G_Alg.Data.p)
+        FfSetNoc(self.G_Alg.Data.nontips)
+        FfSetField(self.G_Alg.Data.p)
         cdef MTX M
         if len(self.Diff):
             raise IndexError, "First differential is already computed"
@@ -2047,14 +2047,14 @@ cdef class RESL:
         print_protocol("Computing next term of this resolution", self)
         ct=cputime()
         wt=walltime()
-        zsetlen(self.G_Alg.Data.nontips)
-        zsetfield(self.G_Alg.Data.p)
+        FfSetNoc(self.G_Alg.Data.nontips)
+        FfSetField(self.G_Alg.Data.p)
         cdef group_t *G
         G = self.Data.group
         # kind of "loadDifferential":
         cdef nRgs_t *nRgs
         cdef MTX M
-        cdef matrix_t *pres
+        cdef Matrix_t *pres
         n=len(self.Diff)+1 # n-th differential is to be computed
         if n==1:
             self.firstDiff()
@@ -2188,7 +2188,7 @@ cdef class RESL:
             M = M.full_echelon()
         else:
             M.echelonize()
-           
+
         # extract preimages
         cdef list Piv = list(M.pivots())
         cdef int lenPiv = len(Piv)
@@ -2196,7 +2196,7 @@ cdef class RESL:
             raise RuntimeError, "The echelon form must not contain vanishing rows"
         cdef long rknt = rk*nt
         cdef MTX M2
-        for i from 0 <= i < lenPiv: 
+        for i from 0 <= i < lenPiv:
             if Piv[i]<rknt: # otherwise we got something in the kernel
                 if OPTION.opts['useMTX']:
                     L = M._rowlist_(i)[rknt:]
@@ -2228,7 +2228,7 @@ cdef class RESL:
         a given Yoneda `n` cocycle. Compare :meth:`yoneda_coboundary` and :meth:`~pGroupCohomology.cochain.YCOCH.find_cobounding_yoneda_cochain`.
 
         This method should only be of internal use. The output is cached on disk.
-        
+
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
@@ -2283,12 +2283,12 @@ cdef class RESL:
         cdef int RK  = self.Data.projrank[n]
         cdef int Rk  = self.Data.projrank[n-1]
         cdef int rk  = self.Data.projrank[1]
-        
+
         cdef long fl  = self.G_Alg.Data.p
         cdef long nt  = self.G_Alg.Data.nontips
         cdef int maxK = RK*nt
         # We choose the signs according to Borge's PhD thesis:
-        cdef MTX Dn   = self.__getitem__(n)  
+        cdef MTX Dn   = self.__getitem__(n)
         cdef MTX D1
         if n%2:
             D1 = -self.__getitem__(1)
@@ -2301,7 +2301,7 @@ cdef class RESL:
         cdef list D1_G = [D1*self.Action[i] for i in range(nt)] # This is right action, since we have FIRST another map and then D1.
 
         # determine a triangular GF(fl) basis for the image of the n-th Yoneda differential
-        # 
+        #
         # keeping track of the pre-images of basis elements
         cdef list L
         if OPTION.opts['useMTX']:
@@ -2310,7 +2310,7 @@ cdef class RESL:
             M = Matrix(GF(fl), (RK+RK*rk)*nt, (RK+Rk+RK*rk)*nt, 0)  # we begin with zero.
         # Organization of the rows of M:
         #  Image  ||  Y:P_{n-1}->P_0             Z: P_n -> P_1      # Meaning: We consider bases of these guys.
-        #                              <               RK                    >                   
+        #                              <               RK                    >
         #    RK           Rk           { rk }         { rk }            { rk }
         # |nt|nt|..|  |nt|nt|..|nt|  |nt|nt|..|nt||nt|nt|..|nt|  ... |nt|nt|..|nt|
         for i from 0 <= i < Rk:  # "long rows" of M, part 1
@@ -2326,7 +2326,7 @@ cdef class RESL:
                         M[i*nt+j,k] = L[k]
                 M[i*nt+j, maxK+i*nt+j] = 1
         cdef int offset
-        # "long rows" of M, part 2, which are given by basis vectors for the set of maps Z:P_n->P_1 
+        # "long rows" of M, part 2, which are given by basis vectors for the set of maps Z:P_n->P_1
         for l from 0 <= l < rk: # i counts the long rows of Z, l counts the short rows within a long row of Z
             for j from 0 <= j < nt: # "short rows" within a long row of M
                 # most of the first nt*RK colums in this part of M will be zero,
@@ -2349,10 +2349,10 @@ cdef class RESL:
         # The kernel elements give rise to different choices of a defining system for the Massey
         # products, provided that these kernel elements are no coboundaries.
         # The return value is a pair (P,K,D), where P is a list of pivots, K is a basis (list of
-        # elements) of a complement of the coboundary in the kernel ("element" means a pair (Y,Z) 
+        # elements) of a complement of the coboundary in the kernel ("element" means a pair (Y,Z)
         # of matrices describing maps as above that are in the kernel of the Yoneda coboundary),
         # and D is a dictionary so that D[i] is an "element" whose Yoneda coboundary has i as pivot.
-        
+
         cdef list Piv = M.pivots()
         cdef int lenPiv = len(Piv)
         cdef list K = []
@@ -2419,12 +2419,12 @@ cdef class RESL:
           `R` is defined.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -2444,7 +2444,7 @@ cdef class RESL:
         differential vanishes. Since the rank of the second term of the resolution is
         3, the four blocks of 3 rows of the matrix R[3] correspond to generators of
         the image of the differntial::
-        
+
             sage: print R.applyDiff(2,R[3][0:3])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -2457,7 +2457,7 @@ cdef class RESL:
             sage: print R.applyDiff(2,R[3][9:12])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            
+
         """
         if (n<1) or (n>len(self.Diff)):
             raise IndexError, Ordinals(n)+" differential is not computed"
@@ -2482,7 +2482,7 @@ cdef class RESL:
         OUTPUT:
 
         A `n`-chain, represented by a `(s \\times |G|)`
-        :class:`~pGroupCohomology.mtx.MTX` matrix, where `s` 
+        :class:`~pGroupCohomology.mtx.MTX` matrix, where `s`
         is the projective rank of the `n`-th term of self.
 
         EXAMPLES:
@@ -2490,7 +2490,7 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose
         files in a temporary directory; it will be removed as soon
         as Sage is quit.
-        :: 
+        ::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.mtx import MTX
@@ -2533,7 +2533,7 @@ cdef class RESL:
             ValueError: The given chain is no cycle
 
         """
-        if (n<1): 
+        if (n<1):
             raise IndexError, 'positive integer expected'
         while (n>=len(self.Diff)):
             self.nextDiff()
@@ -2547,7 +2547,7 @@ cdef class RESL:
         cdef MTX  TMP, DUMMY
         cdef list Z
         cdef int k
-        zsetlen(nt)
+        FfSetNoc(nt)
         ##########################
         TMP = MTX(fl, rk, nt)
         Z = M._rowlist_(0, rk_1-1)
@@ -2578,33 +2578,33 @@ cdef class RESL:
         if check:
             if self.applyDiff(n,TMP)!=M:
                 raise ArithmeticError, "lifting failed"
-        return TMP 
+        return TMP
 
     #################################
     # compose Chain Maps
-    
+
     def composeChainMaps(self, MTX M1, MTX M2, long s, long r, long q):
         """
         Compose chain maps `M1: P_s \\to P_r` with `M2: P_r\\to P_q`, where `P` is self
 
         INPUT:
-        
+
         - ``M1``, ``M2``  -- :class:`~pGroupCohomology.mtx.MTX` matrices defining morphisms from
           the `s`-th to the `r`-th respectively from the `r`-th to the `q`-th term of self
         - ``s, r, q``  -- integers, refering to terms of self
 
         OUTPUT:
-        
+
         A :class:`~pGroupCohomology.mtx.MTX` matrix representing the composition of ``M1`` with ``M2``,
         a chain map from the s-th to the q-th term of self.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -2617,7 +2617,7 @@ cdef class RESL:
             sage: R.nextDiff()
 
         We verify that the composition of two differentials vanishes::
-        
+
             sage: print R.composeChainMaps(R[2],R[1],2,1,0)
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -2631,7 +2631,7 @@ cdef class RESL:
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            
+
         """
         if (s>len(self.Diff)) or (r>len(self.Diff)) or (q>len(self.Diff)) or (q<0) or (r<0) or (s<0):
             raise IndexError, "Index out of range"
@@ -2648,32 +2648,32 @@ cdef class RESL:
         OUT = MTX(self.G_Alg.Data.p, self.Data.projrank[s]*self.Data.projrank[q],self.G_Alg.Data.nontips,mutable=False)
         cdef MTX tmp
         tmp = MTX(self.G_Alg.Data.p, 1, self.G_Alg.Data.nontips,mutable=False)
-        cdef matrix_t *L
+        cdef Matrix_t *L
         cdef int i,j,k
         cdef int RK = self.Data.projrank[s]
         cdef int Rk = self.Data.projrank[r]
         cdef int rk = self.Data.projrank[q]
         cdef long nontips = self.G_Alg.Data.nontips
-        zsetlen(nontips)
+        FfSetNoc(nontips)
         # line ik of OUT is the sum of line ij of M1 times line jk of M2.
         for i from 0 <= i < rk:
             for j from 0 <= j < Rk:
-                L = leftActionMatrix(self.G_Alg.Data, ptrPlus(M2.Data.d,j*rk+i))
+                L = leftActionMatrix(self.G_Alg.Data, FfGetPtr(M2.Data.d,j*rk+i))
                 for k from 0 <= k < RK:
-                    if not (zmaprow(ptrPlus(M1.Data.d,k*Rk+j), L.d, nontips, tmp.Data.d)):
+                    if not (zmaprow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, nontips, tmp.Data.d)):
                         raise ArithmeticError, "multiplication failed"
-                    if not (zaddrow(ptrPlus(OUT.Data.d,k*rk+i), tmp.Data.d)):
+                    if not (zaddrow(FfGetPtr(OUT.Data.d,k*rk+i), tmp.Data.d)):
                         raise ArithmeticError, "addition of rows failed"
                 matfree(L)
         return OUT
-    
+
 
     def composeListOfMaps(self, MTX M1, long s, list L2):
         """
         Compose one chain map with a list of chain maps
-        
+
         INPUT:
-        
+
         - ``M1``  -- :class:`~pGroupCohomology.mtx.MTX` matrix defining a morphism from
           the `s`-th to the `r`-th term of self
         - ``s``   -- an integer, referring to a term of self
@@ -2682,18 +2682,18 @@ cdef class RESL:
           from the `r`-th to the `q_i`-th term of self
 
         OUTPUT:
-          
+
         A list of triples ``[s,q_i,N_i]``, where ``N_i`` is a :class:`~pGroupCohomology.mtx.MTX`
         matrix representing a morphism from the `s`-th to the `q_i`-th term of self, namely the
         composition of ``M`` with ``M_i``
 
         EXAMPLES:
-          
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: from pGroupCohomology.mtx import MTX
@@ -2727,7 +2727,7 @@ cdef class RESL:
             [0 0 0 0 0 0 0 0]
             [0 1 0 0 0 0 1 0]
             [0 0 1 0 0 0 0 0]
-              
+
         """
         # test input data
         #if not (isinstance(L2,list) or isinstance(L2,tuple)):
@@ -2758,12 +2758,12 @@ cdef class RESL:
                 raise TypeError, "Matrix representing a second chain map is of wrong size"
             #if (X[2].base()!=self.G_Alg.Data.p):
             #    raise TypeError, "Matrices representing chain maps must be defined over GF(%d)"%(self.G_Alg.Data.p)
-            
+
         cdef MTX IN1
         cdef MTX OUT1
         cdef MTX tmp
         tmp = MTX(self.G_Alg.Data.p, 1, self.G_Alg.Data.nontips,mutable=False)
-        cdef matrix_t *R
+        cdef Matrix_t *R
         cdef int i,j,k,a
         cdef int RK = self.Data.projrank[s]
         cdef int Rk = self.Data.projrank[r]
@@ -2772,28 +2772,28 @@ cdef class RESL:
         cdef list rk = [self.Data.projrank[L2[a][1]] for a in range(len(L2))]
         cdef long nontips = self.G_Alg.Data.nontips
         cdef PTR IN1d, OUT1d, M1d
-        zsetlen(nontips)
+        FfSetNoc(nontips)
         # line ik of OUT[a] is the sum over j of line ij of M1 times line jk of L2[a][2].
         OUT = [[s, L2[a][1], MTX(self.G_Alg.Data.p, self.Data.projrank[s]*rk[a],self.G_Alg.Data.nontips,mutable=False)] for a in range(len(L2))]
         M1d = M1.Data.d
         for k from 0 <= k < RK:
             for j from 0 <= j < Rk:
                 R = rightActionMatrix(self.G_Alg.Data, M1d)
-                zsteprow(&(M1d))
+                FfStepPtr(&(M1d))
                 #self.matis += 1
                 for a from 0 <= a < lenL2:
                     IN1 = L2[a][2]
                     OUT1 = OUT[a][2]
                     loc_rk = rk[a]
-                    IN1d = ptrPlus(IN1.Data.d,j*loc_rk)
-                    OUT1d = ptrPlus(OUT1.Data.d,k*loc_rk)
+                    IN1d = FfGetPtr(IN1.Data.d,j*loc_rk)
+                    OUT1d = FfGetPtr(OUT1.Data.d,k*loc_rk)
                     for i from 0 <= i < loc_rk:
                         if not (zmaprow(IN1d, R.d, nontips, tmp.Data.d)):
                             raise ArithmeticError, "multiplication failed"
-                        zsteprow(&(IN1d))
+                        FfStepPtr(&(IN1d))
                         if not (zaddrow(OUT1d, tmp.Data.d)):
                             raise ArithmeticError, "addition of rows failed"
-                        zsteprow(&(OUT1d))
+                        FfStepPtr(&(OUT1d))
                 matfree(R)
         return OUT
 
@@ -2815,12 +2815,12 @@ cdef class RESL:
         the `(n+1)`-th to the `(d_i+1)` term of self.
 
         NOTE:
-          
-        Uses the autolift method, if possible. See :class:`pGroupCohomology.resolution.RESL` 
+
+        Uses the autolift method, if possible. See :class:`pGroupCohomology.resolution.RESL`
         for an explanation of the notion 'lift' and of the autolift method.
-        
+
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -2865,7 +2865,7 @@ cdef class RESL:
             [0 0 0 1 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-              
+
         """
         print_protocol('Lift list of %d chain maps'%len(L), self)
         if L==[]:
@@ -2924,7 +2924,7 @@ cdef class RESL:
             Compos = COMPOS[a] # this is a list: low degree, high degree,matrix
             Compos1 = Compos[2] # this is the matrix
             Autolift = self.Autolift.get(Compos[1]+1,{})
-            if Autolift: 
+            if Autolift:
                 print_protocol('> Lift with the autolift method', self)
                 Piv = Autolift['Piv']
                 ##########################
@@ -2932,7 +2932,7 @@ cdef class RESL:
                 for i from 0 <= i < RK:
                     # Z is the list of coefficients of Compos1,
                     # hence, we look up the pivots and add up the Autolift matrices
-                    Z = Compos1._rowlist_(i*self.Data.projrank[Compos[1]], (i+1)*self.Data.projrank[Compos[1]]-1) 
+                    Z = Compos1._rowlist_(i*self.Data.projrank[Compos[1]], (i+1)*self.Data.projrank[Compos[1]]-1)
                     projrk = self.Data.projrank[Compos[1]+1]
                     TMP = MTX(fl, projrk, nt)
                     for j in Piv:
@@ -2963,27 +2963,27 @@ cdef class RESL:
         Lift Chain Map
 
         INPUT:
-        
+
         ``(n,d,M)`` -- a :class:`~pGroupCohomology.mtx.MTX` matrix ``M`` representing a morphism from
         the `n`-th to the `d`-th term of self, with `d<n`.
 
         OUTPUT:
-          
+
         ``(n+1,d+1,N)`` -- A :class:`~pGroupCohomology.mtx.MTX` matrix ``N`` representing the lift of
         ``M`` to a morphism from the `(n+1)`-th to the `(d+1)`-th term of self.
 
         NOTE:
-        
+
         Uses the autolift method, if possible. See :class:`~pGroupCohomology.resolution.RESL` for an
         explanation of the notion 'lift' and of the autolift method.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: from pGroupCohomology.mtx import MTX
@@ -3015,7 +3015,7 @@ cdef class RESL:
             [0 0 0 1 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-            
+
         """
         if not (isinstance(X,tuple) or isinstance(X,list)):
             raise TypeError, "Chain map must be presented by a tuple or list"
@@ -3049,7 +3049,7 @@ cdef class RESL:
         cdef MTX  TMP, DUMMY
         cdef list Z
         cdef int i,k
-        zsetlen(nt)
+        FfSetNoc(nt)
         cdef list Piv = Autolift['Piv']
         ##########################
         # Lift each "long row"
@@ -3064,7 +3064,7 @@ cdef class RESL:
             # Could the following be done better with memcpy - ???
             #for k from 0 <= k < rk:
             OUT[i*rk] = TMP #TMP._rowlist_(k)
-	##################
+    ##################
         return (n+1,d+1,OUT)
 
     def ugb_liftChainMap(self, long n, long d, MTX M):
@@ -3072,29 +3072,29 @@ cdef class RESL:
         Lift a chain map using Urbild Groebner bases
 
         INPUT:
-        
+
         - n, d -- integers, `d<n`
         - M    -- a :class:`~pGroupCohomology.mtx.MTX` matrix representing a morphism from
           the `(n-1)`-th to the `(d-1)`-th term of self.
 
         OUTPUT:
-          
+
         A :class:`~pGroupCohomology.mtx.MTX` matrix representing the lift to a morphism
         from the `n`-th to the `d`-th term of self.
-          
+
         NOTE:
-          
+
         See :class:`~pGroupCohomology.resolution.RESL` for an explanation of the notion
         'lift'. It certainly is odd that the syntax of this method differs from the syntax
         of :meth:`liftChainMap`. Sorry.
 
         EXAMPLES:
-          
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-          
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
             sage: from pGroupCohomology.mtx import MTX
@@ -3124,7 +3124,7 @@ cdef class RESL:
             [0 0 0 1 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-              
+
         """
         if (n>len(self.Diff)) or (d>=n) or (d<1):
             raise IndexError, "Index out of range"
@@ -3165,7 +3165,7 @@ cdef class RESL:
         - ``n, i``: integers, `i \\le n`.
 
         OUTPUT:
-        
+
         ``Z``: :class:`~pGroupCohomology.mtx.MTX` matrix representing the term `(\\partial \\phi^i)_{n+1}: P_{n+1}\\to P_{n-i}`
         representing the Yoneda coboundary of `\\phi^i`.
 
@@ -3189,7 +3189,7 @@ cdef class RESL:
             sage: YC = (H.2.yoneda_cocycle()*H.3.yoneda_cocycle()).find_cobounding_yoneda_cochains()
             sage: [H.resolution().yoneda_coboundary(Y[0],Y[1],Y.deg(),Y.deg())==Y.coboundary()[0] for Y in YC]
             [True, True, True, True]
-            
+
         """
         if i>n:
             raise ValueError, "The second integer argument must not exceed the first integer argument"
@@ -3209,17 +3209,17 @@ cdef class RESL:
         - C -- a :class:`~pGroupCohomology.mtx.MTX` matrix with only one row, representing a `n`-cochain
 
         OUTPUT:
-        
+
         ``(n,0,M)``, where the :class:`~pGroupCohomology.mtx.MTX` matrix ``M`` represents the lowest term
         of a chain map of degree `n`.
 
         NOTE:
-        
+
         By our choice of basis for modules over the group algebra, the matrix ``M`` is zero
         except in the first column, which is given by the transpose of ``C``.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -3244,7 +3244,7 @@ cdef class RESL:
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-            
+
         """
         if (n>len(self.Diff)) or (n<0):
             raise IndexError, "Index out of range"
@@ -3268,21 +3268,21 @@ cdef class RESL:
         Represent a chain map of degree `n` by a `n`-cochain
 
         INPUT:
-        
+
         ``(n,0,M)`` -- ``M`` is a `\\operatorname{rank}(P_n) \\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix,
         where `P_n` is the `n`-th term of self and `G` is the finite `p`-group under consideration.
 
         OUTPUT:
-        
+
         A `1 \\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix representing a `n`-cochain.
 
         NOTE:
-        
+
         By our choice of bases of modules over the group algebra, the result only
         depends on the first column of ``M``.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -3302,7 +3302,7 @@ cdef class RESL:
             sage: C = MTX(2,[[1,0,1]])
             sage: print R.ChainmapToCochain(R.CochainToChainmap(2,C))
             [1 0 1]
-            
+
         """
         if not (isinstance(X,tuple) or isinstance(X,list)):
             raise TypeError, "Chain map must be given by a list or tuple"
@@ -3326,14 +3326,14 @@ cdef class RESL:
             OUT[0,i] = CM[i,0]
         OUT.set_immutable()
         return OUT  # MTX(self.G_Alg.Data.p, [[CM[i,0] for i in range(CM.nrows())]],mutable=False)
-    
+
 
 #####################################################################
 #####################################################################
 ## Container for Lifts of cochains
 #####################################################################
 #####################################################################
-        
+
 cdef class LIFTcontainer:
     """
     An extension class whose purpose is to cache the lifts of chain maps of a resolution to itself.
@@ -3345,12 +3345,12 @@ cdef class LIFTcontainer:
     and the result is transformed into a `(m+n)`-cochain. For
     computing the composition, the `m`-th lift of the second chain
     map needs to be known.
-    
+
     Now, if many cup products have to be computed, it is reasonable
     to cache previously computed lifts.
 
     NOTE:
-    
+
     Internally, any :class:`~pGroupCohomology.resolution.RESL`
     instance has a member that is a
     :class:`~pGroupCohomology.resolution.LIFTcontainer` instance,
@@ -3422,9 +3422,9 @@ cdef class LIFTcontainer:
     def out(self):
         """
         Return the dictionary of cached lifts.
-    
+
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
@@ -3443,11 +3443,11 @@ cdef class LIFTcontainer:
 
         In principle, any data can be stored in a LIFTcontainer.
         ::
-        
+
             sage: L[1,2,3] = 4
             sage: L.out()
             {(1, 2): {3: 4}}
-            
+
         """
         return self.Data
 
@@ -3458,14 +3458,14 @@ cdef class LIFTcontainer:
         Return one cached object.
 
         INPUT:
-        
+
         - n -- integer
         - d -- integer
         - M -- A :class:`~pGroupCohomology.mtx.MTX` matrix with a
           single row, representing a `d`-cochain
 
         OUTPUT:
-        
+
         - A :class:`~pGroupCohomology.mtx.MTX` matrix representing a
           morphism from the `n`-th to the `(n-d)`-th term of a
           resolution, corresponding to the chain map defined by `M`
@@ -3473,18 +3473,18 @@ cdef class LIFTcontainer:
         - None, if the requested lift was not cached.
 
         NOTE:
-        
+
         The situation described in the INPUT and OUTPUT sections is
         the intended use case. In principle, *anything* can be stored
         in a LIFTcontainer.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: from pGroupCohomology.mtx import MTX
@@ -3513,7 +3513,7 @@ cdef class LIFTcontainer:
             [0 0 0 1 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-            
+
         """
         if len(key)!=3:
             raise KeyError, "key must be a list or tuple of three items"
@@ -3545,7 +3545,7 @@ cdef class LIFTcontainer:
         Cache some lift of a cochain
 
         INPUT:
-        
+
         - n,d -- integers
         - M   -- M is a :class:`~pGroupCohomology.mtx.MTX` matrix with
           a single row, representing a `d`-cochain.
@@ -3554,17 +3554,17 @@ cdef class LIFTcontainer:
           by `M` as a chain map of degree `d`.
 
         NOTE:
-          
+
         The situation described in the INPUT section is the intended use case.
         In principle, anything can be stored in a LIFTcontainer.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: from pGroupCohomology.mtx import MTX
@@ -3584,7 +3584,7 @@ cdef class LIFTcontainer:
             sage: L[3,2,C] = C3[2]   # indirect doctest
             sage: L.out()
             {(3, 2): {(1 x 3) MTX matrix over GF(2): (8 x 8) MTX matrix over GF(2)}}
-            
+
         """
         if len(key)!=3:
             raise KeyError, "key must be a list or tuple of three items"
@@ -3617,22 +3617,22 @@ cdef class LIFTcontainer:
         Delete the cache for one lift
 
         INPUT:
-        
+
         - n, d -- integers
         - M   -- M is a :class:`~pGroupCohomology.mtx.MTX` matrix with a single row, representing a `d`-cochain
 
         NOTE:
-        
+
         The situation described in the INPUT section is the intended use case.
         In principle, anything can be stored in a LIFTcontainer.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: from pGroupCohomology.mtx import MTX
@@ -3655,7 +3655,7 @@ cdef class LIFTcontainer:
             sage: L.__delitem__((3,2,C))
             sage: L.out()
             {(3, 2): {}}
-            
+
         """
         if len(key)!=3:
             raise KeyError, "key must be a list or tuple of three items"
@@ -3679,18 +3679,18 @@ cdef class LIFTcontainer:
             #D.update(load(s))
         D.pop(key[2],None)
         self.Data[(n,d)]=D
- 
+
     def parent(self):
         """
         Return the resolution for which the LIFTcontainer was defined.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: from pGroupCohomology.mtx import MTX
@@ -3702,23 +3702,23 @@ cdef class LIFTcontainer:
             sage: L = LIFTcontainer(R)
             sage: R is L.parent()
             True
-            
+
         """
         return self.Parent
-    
+
     ###################
-    ## exporting 
+    ## exporting
     def export(self):
         """
         Store cached lifts on disk. The file names are determined by the parent of self
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: from pGroupCohomology.mtx import MTX
@@ -3743,7 +3743,7 @@ cdef class LIFTcontainer:
             {(3, 2): {1: '.../8gp3/dat/L8gp3n3d2'}}
 
         Here are the saved contents::
-        
+
             sage: E = load(L.out()[(3,2)][1])
             sage: E
             [((1 x 3) MTX matrix over GF(2), (8 x 8) MTX matrix over GF(2))]
@@ -3751,7 +3751,7 @@ cdef class LIFTcontainer:
             True
             sage: E[0][1] == C3[2]
             True
-            
+
         """
         cdef dict D
         import os
@@ -3770,7 +3770,7 @@ cdef class LIFTcontainer:
                 safe_save(D.items(),os.path.join(self.Parent.res_folder,'L'+self.Parent.gstem+'n'+str(X[0])+'d'+str(X[1])))
                 self.Data[X] = {1:os.path.join(self.Parent.res_folder,'L'+self.Parent.gstem+'n'+str(X[0])+'d'+str(X[1]))}
 
-            
+
 
 #####################################################################
 #####################################################################
@@ -3783,11 +3783,11 @@ cdef class G_ALG:
     A wrapper for David Green's C-type for group algebras of finite p-groups.
 
     NOTE:
-    
+
     This extension class is internally used in :class:`~pGroupCohomology.resolution.RESL`.
     Its purpose is simply to provide a couple of very basic methods
     around the underlying C-type.
-    
+
     **The user is warned not to use this class independently!**
 
     When an instance of :class:`~pGroupCohomology.resolution.G_ALG` is attribute of an
@@ -3814,12 +3814,12 @@ cdef class G_ALG:
     :func:`~pGroupCohomology.resolution.makeSpecialGroupData`.
 
     EXAMPLES:
-    
+
     The example produces files. For safety reasons, we choose files
     in a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
     (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-    
+
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
         sage: from pGroupCohomology.mtx import MTX
@@ -3829,7 +3829,7 @@ cdef class G_ALG:
         sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
         sage: G
         GF(2)(8gp3)
-        
+
     """
     ####################
     # init, dealloc, repr
@@ -3872,7 +3872,7 @@ cdef class G_ALG:
             f = os.path.join(folder,gstem)
             self.Data = fullyLoadedGroupRecord(f)
         self.dependent=dependent
-        
+
     def __dealloc__(self):
         """
         Deallocate C-data for a :class:`~pGroupCohomology.resolution.G_ALG` instance
@@ -3905,12 +3905,12 @@ cdef class G_ALG:
         Return a brief description of the group algebra
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: from pGroupCohomology.mtx import MTX
@@ -3920,7 +3920,7 @@ cdef class G_ALG:
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
             sage: G   # indirect doctest
             GF(2)(8gp3)
-            
+
         """
         if self.Data.p:
             return "GF(%d)(%s)"%(self.Data.p,self.gstem)
@@ -3933,16 +3933,16 @@ cdef class G_ALG:
         Compare two instances of G_ALG.
 
         NOTE:
-        
+
         It is only tested whether the underlying finite prime field is
         the same and whether the given "gstem" (group stem name) coincides.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: from pGroupCohomology.mtx import MTX
@@ -3966,10 +3966,10 @@ cdef class G_ALG:
 
         Of course, ``<`` or ``>`` makes no sense. We decided to return ``None`` in
         these cases::
-        
+
             sage: print G > H
             None
-        
+
         """
         # < 0, <= 1, == 2, != 3, > 4, >= 5
         if x==2:
@@ -3991,11 +3991,11 @@ cdef class G_ALG:
         Return order of the group
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -4004,7 +4004,7 @@ cdef class G_ALG:
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
             sage: G.order()
             8
-            
+
         """
         return self.Data.nontips
 
@@ -4013,11 +4013,11 @@ cdef class G_ALG:
         Return the characteristic of the base field
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -4026,7 +4026,7 @@ cdef class G_ALG:
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
             sage: G.coef()
             2
-            
+
         """
         return self.Data.p
 
@@ -4034,25 +4034,25 @@ cdef class G_ALG:
     ## group actions
     def r_action(self, MTX M):
         """
-        Return matrix for right action on kG by the element represented by a vector 
+        Return matrix for right action on kG by the element represented by a vector
 
         INPUT:
-        
+
         M -- a :class:`~pGroupCohomology.mtx.MTX` matrix with a single row and `|G|` columns, representing
         an element of the group algebra of a finite `p`-group `G`
 
         OUTPUT:
-        
+
         A `|G|\\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix describing the right action of the
         given element on the group algebra. The result of the action is obtained by matrix multiplication
         from the right side.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: from pGroupCohomology.mtx import MTX
@@ -4071,9 +4071,9 @@ cdef class G_ALG:
             [0 0 0 0 0 0 0 1]
             sage: print MTX(2,[[0,1,1,0,0,0,0,0]])*G.r_action(MTX(2,[[0,1,1,0,1,0,0,0]]))
             [0 0 0 1 1 1 0 0]
-            sage: print G.kG_map(MTX(2,[[0,1,1,0,0,0,0,0]]),MTX(2,[[0,1,1,0,1,0,0,0]])) 
+            sage: print G.kG_map(MTX(2,[[0,1,1,0,0,0,0,0]]),MTX(2,[[0,1,1,0,1,0,0,0]]))
             [0 0 0 1 1 1 0 0]
-            
+
         """
         if not self.Data.p:
             raise TypeError, "Group algebra is not specified"
@@ -4082,33 +4082,33 @@ cdef class G_ALG:
         if (M.base()!=M.characteristic()) or (self.Data.p != M.characteristic()):
             raise TypeError, "Matrix must be defined over GF(%d)"%(self.Data.p)
         cdef MTX OUT
-        zsetlen(self.Data.nontips)
-        zsetfield(self.Data.p)
+        FfSetNoc(self.Data.nontips)
+        FfSetField(self.Data.p)
         OUT  = MTX(self.Data.p, self.Data.nontips,self.Data.nontips,mutable=False)
         innerRightActionMatrix(self.Data, M.Data.d, OUT.Data.d)
         return OUT
-    
+
     def l_action(self, MTX M):
         """
         Return matrix for left action on kG by the element represented by a vector
 
         INPUT:
-        
+
         M -- a :class:`~pGroupCohomology.mtx.MTX` matrix with a single row and `|G|` columns, representing
         an element of the group algebra of a finite `p`-group `G`
 
         OUTPUT:
-        
+
         A `|G|\\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix describing the left action of the
         given element on the group algebra. The result of the left action is obtained by matrix
         multiplication from the *right* side.
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: from pGroupCohomology.mtx import MTX
@@ -4129,7 +4129,7 @@ cdef class G_ALG:
             [0 0 0 1 1 0 1 0]
             sage: print G.kG_map(MTX(2,[[0,1,1,0,1,0,0,0]]),MTX(2,[[0,1,1,0,0,0,0,0]]))
             [0 0 0 1 1 0 1 0]
-            
+
         """
         if not self.Data.p:
             raise TypeError, "Group algebra is not specified"
@@ -4138,8 +4138,8 @@ cdef class G_ALG:
         if (M.base()!=M.characteristic()) or (self.Data.p != M.characteristic()):
             raise TypeError, "Matrix must be defined over GF(%d)"%(self.Data.p)
         cdef MTX OUT
-        zsetlen(self.Data.nontips)
-        zsetfield(self.Data.p)
+        FfSetNoc(self.Data.nontips)
+        FfSetField(self.Data.p)
         OUT  = MTX(self.Data.p, self.Data.nontips,self.Data.nontips,mutable=False)
         innerLeftActionMatrix(self.Data, M.Data.d, OUT.Data.d)
         return OUT
@@ -4149,7 +4149,7 @@ cdef class G_ALG:
         Image of an element of a right `\\mathbb F_pG`-module under a `\\mathbb F_pG`-module morphism
 
         INPUT:
-        
+
         - M -- `((s\\cdot r) \\times |G|)` :class:`~pGroupCohomology.mtx.MTX` matrix, representing a
           right-`\\mathbb F_pG`-module morphism from a free right `\\mathbb F_pG`-module of rank `r`
           to a free right `\mathbb F_pG`-module of rank `s`, where `G` is a finite `p`-group.
@@ -4158,16 +4158,16 @@ cdef class G_ALG:
           of a free right `\\mathbb F_pG`-module of rank `r`
 
         OUTPUT:
-          
+
         A `(s \\times |G|)` :class:`~pGroupCohomology.mtx.MTX` matrix representing the image of ``x``
         under the map represented by ``M``
 
         EXAMPLES:
-          
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-          
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: from pGroupCohomology.mtx import MTX
@@ -4182,9 +4182,9 @@ cdef class G_ALG:
             sage: print G.kG_map(M,MTX(2,[[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]))
             [1 1 1 1 1 1 1 1]
             [1 0 0 0 0 1 1 0]
-            
+
         The image of the sum is the sum of the images::
-          
+
             sage: print G.kG_map(M,MTX(2,[[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1]]))
             [0 0 0 0 0 0 0 0]
             [1 0 0 1 1 0 0 0]
@@ -4217,11 +4217,11 @@ cdef class G_ALG:
         Verify whether the underlying group is abelian
 
         EXAMPLES:
-        
+
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         ::
-        
+
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
             sage: makeGroupData(8,3,folder=tmp_root)
@@ -4232,25 +4232,25 @@ cdef class G_ALG:
             False
 
         Now we consider the elementary abelian group of order 4, whose data
-        are already created since it is a maximal elementary abelian subgroup 
+        are already created since it is a maximal elementary abelian subgroup
         of the dihedral group.
         ::
-        
+
             sage: gstem='4gp2'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
             sage: G.isAbelian()
             True
-            
+
         """
         return 1==verifyGroupIsAbelian(self.Data)
 
 
 #################################################################################
 #################################################################################
-####                                                                         ####    
+####                                                                         ####
 ####     A tool for computing Massey products                                ####
-####                                                                         ####    
+####                                                                         ####
 #################################################################################
 #################################################################################
 
@@ -4261,7 +4261,7 @@ class MasseyDefiningSystems:
     # Each state at level i eventually is a pair formed by
     #   - list [m_0,m_1,...,m_i], where m_k provides one choice for entry D[i-k,i+1], which is a list of lifts of chain maps, and
     #   - a pointer to one state at level i-1 (given by the index).
-    # 
+    #
     # When computing the last level, it is not tried to find a cobounding Yoneda cochain at position m_i. Then, m_i contains one possible value.
     """
     A tool for computing defining systems for Massey products.
@@ -4273,16 +4273,16 @@ class MasseyDefiningSystems:
     INPUT:
 
     ``Y_1,Y_2,...``: Yoneda cochains (:class:`~pGroupCohomology.cochain.YCOCH`) over a common resolution
-    
+
 
     The method :meth:`value` returns a list of all possible values (given by Yoneda cochains) for defining
     systems of the Massey products of ``Y_1,Y2,...``.
 
     EXAMPLES:
-        
+
     The example produces files. For safety reasons, we choose files
     in a temporary directory; it will be removed as soon as Sage is quit::
-       
+
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.resolution import MasseyDefiningSystems
         sage: tmp_root = tmp_dir()
@@ -4295,7 +4295,7 @@ class MasseyDefiningSystems:
     Since the product of the two degree one generators of ``H`` vanish, it makes sense to compute
     Massey products::
 
-    
+
         sage: Y1 = H.2.yoneda_cocycle()
         sage: Y2 = H.3.yoneda_cocycle()
         sage: M = MasseyDefiningSystems(Y1,Y2,Y1)
@@ -4374,7 +4374,7 @@ class MasseyDefiningSystems:
             [0 1 0 1 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            
+
         """
         if not L:
             raise ValueError, "At least one Yoneda cochain expected"
@@ -4404,7 +4404,7 @@ class MasseyDefiningSystems:
 
     def _make(self, int i):
         """
-        Make all states out to level i. 
+        Make all states out to level i.
 
         TESTS::
 
@@ -4434,14 +4434,14 @@ class MasseyDefiningSystems:
         if i<1 or i>self.len-1:
             raise IndexError, "Index must be an integer between 1 and %d"%(self.len-1)
         if len(self.States[i][0][0]) == i+1: # level i has at least one state, and it is checked whether all i+1 values are already available
-            return 
+            return
         if i>1:
             self._make(i-1)
         # Now we can assume that the states to the left of i are known.
-        # Plan: We start with a list of states at state i that refer to each of the 
+        # Plan: We start with a list of states at state i that refer to each of the
         # states out to degree i-1, but only has the given value. Then, we go "upwards"
         # and compute all possible choices for the next value; each choice gives rise
-        # to a new state. If the last value is computed, it is put on the list of 
+        # to a new state. If the last value is computed, it is put on the list of
         # "done" states, otherwise it is still "todo".
         cdef list done = []
         cdef list todo = [[self.States[i][0][0], j] for j in range(len(self.States[i-1]))]
@@ -4461,7 +4461,7 @@ class MasseyDefiningSystems:
                     Value = - S[0][0]*S_[0][j-1]
                 else:
                     Value = S[0][0]*S_[0][j-1]
-                for k from 0 < k < j: 
+                for k from 0 < k < j:
                     S_ = self.States[i-k-1][S_[1]]
                     if S[0][k].deg()%2:
                         Value = Value - S[0][k]*S_[0][j-k-1]
@@ -4479,18 +4479,18 @@ class MasseyDefiningSystems:
                     for CoValue in Value.find_cobounding_yoneda_cochains(all=self._all):
                         todo.append([S[0]+[ CoValue ],S[1]])
         self.States[i] = done
-        
+
     def values(self):
         """
         Return all possible values (Yoneda cochains) of defining systems of Massey products
 
         EXAMPLES:
-        
+
         We use an example with a non-commutative cohomology ring; this requires a recent
         Sage version with Singular 3-1-0 or later. The example produces files. For safety
         reasons, we choose files in a temporary directory; it will be removed as soon as
         Sage is quit::
-        
+
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
@@ -4521,4 +4521,4 @@ class MasseyDefiningSystems:
         """
         self._make(self.len-1)
         return [S[0][-1] for S in self.States[self.len-1]]
-            
+

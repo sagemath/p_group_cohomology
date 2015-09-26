@@ -1644,8 +1644,8 @@ cdef class COCH(RingElement):
             # OUT = R.composeChainMaps(CM2,CM1,self.deg()+C.deg(),self.deg(),0)
             # the following should be MUCH faster:
             OUT = MTX(self.Data.Data.fl, R.Data.projrank[self.deg()+Cdeg], nontips,mutable=False)
-            zsetfield(self.Data.Data.fl)
-            zsetlen(nontips)
+            FfSetField(self.Data.Data.fl)
+            FfSetNoc(nontips)
             L = self.Data._rowlist_(0)
             rk = R.Data.projrank[self.deg()]
             RK = R.Data.projrank[self.deg()+Cdeg]
@@ -1655,7 +1655,7 @@ cdef class COCH(RingElement):
                 if L[i]:
                     for j from 0 <= j < RK: # loop through the entries of the lift of C
                         # print CM2[i+rk*j],i
-                        if not (zaddmulrow(ptrPlus(OUT.Data.d,j),ptrPlus(CM2.Data.d,i+rk*j), zitof(L[i]))):
+                        if not (zaddmulrow(FfGetPtr(OUT.Data.d,j),FfGetPtr(CM2.Data.d,i+rk*j), FfFromInt(L[i]))):
                             raise ArithmeticError, "Something went wrong"
             return COCH(self._parent, self.Deg+Cdeg, '('+self.Name+')*('+C.name()+')', \
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
@@ -1831,8 +1831,8 @@ cdef class COCH(RingElement):
         f,i = self.Data.lead()
         if f:
             if f!=1:
-                zsetfield(self.Data.Data.fl)
-                matmulF(self.Data.Data,tmultinv[zitof(f)])
+                FfSetField(self.Data.Data.fl)
+                matmulF(self.Data.Data,mtx_tmultinv[FfFromInt(f)])
                 self.Name = '('+self.Name+')/%d'%(f)
             return None
         else:
@@ -6680,28 +6680,28 @@ cdef class ChMap(RingHomomorphism):
         cdef MTX Compos
         cdef long SrcNontips = self.Src.G_Alg.Data.nontips
         cdef long TgtNontips = self.Tgt.G_Alg.Data.nontips
-        zsetfield(self.Src.coef())
-        zsetlen(TgtNontips)
+        FfSetField(self.Src.coef())
+        FfSetNoc(TgtNontips)
         sig_on()
         Compos = MTX(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips,mutable=False)
         sig_off()
         cdef MTX tmp
         tmp = MTX(self.Src.G_Alg.Data.p, 1, TgtNontips,mutable=False)
-        cdef matrix_t *L
+        cdef Matrix_t *L
         cdef int RK = self.Src.Data.projrank[SrcDeg]
         cdef int Rk = self.Src.Data.projrank[SrcDeg-1]
         cdef int rk = self.Tgt.Data.projrank[TgtDeg-1]
         for i from 0 <= i < rk:
             for j from 0 <= j < Rk:
                 sig_on()
-                L = leftActionMatrix(self.Tgt.G_Alg.Data, ptrPlus(M2.Data.d,j*rk+i))
+                L = leftActionMatrix(self.Tgt.G_Alg.Data, FfGetPtr(M2.Data.d,j*rk+i))
                 sig_off()
                 for k from 0 <= k < RK:
                     sig_on()
-                    if not (zmaprow(ptrPlus(M1.Data.d,k*Rk+j), L.d, TgtNontips, tmp.Data.d)):
+                    if not (zmaprow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, TgtNontips, tmp.Data.d)):
                         sig_off()
                         raise ArithmeticError, "multiplication failed"
-                    if not (zaddrow(ptrPlus(Compos.Data.d,k*rk+i), tmp.Data.d)):
+                    if not (zaddrow(FfGetPtr(Compos.Data.d,k*rk+i), tmp.Data.d)):
                         sig_off()
                         raise ArithmeticError, "addition of rows failed"
                     sig_off()

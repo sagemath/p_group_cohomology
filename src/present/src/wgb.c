@@ -8,18 +8,19 @@
    ================================================================ */
 
 #include "wgb.h"
+MTX_DEFINE_FILE_INFO
 
 static boolean mintipsOnly;
 
 static char *helptext[] = {
 "SYNTAX",
-"	writeGroebnerBasis [-t] <Stem>",
+"   writeGroebnerBasis [-t] <Stem>",
 "",
-"	Reads <Stem>.gens, <Stem>.nontips; writes <Stem>.groebner",
-"	With option -t, writes mintips only, to file <Stem>.mintips",
+"   Reads <Stem>.gens, <Stem>.nontips; writes <Stem>.groebner",
+"   With option -t, writes mintips only, to file <Stem>.mintips",
 "",
 "DESCRIPTION",
-"	Write out the Groebner basis.",
+"   Write out the Groebner basis.",
 NULL};
 
 static proginfo_t pinfo =
@@ -27,10 +28,9 @@ static proginfo_t pinfo =
     "$Revision: 30_April_1998", helptext };
 
 /******************************************************************************/
-void InterpretCommandLine(int argc, char *argv[], group_t *group)
+int InterpretCommandLine(int argc, char *argv[], group_t *group)
 {
   //register int i;
-  char invalid[MAXLINE];
   char *this;
   initargs(argc,argv,&pinfo);
   sprintf(invalid,
@@ -38,10 +38,13 @@ void InterpretCommandLine(int argc, char *argv[], group_t *group)
   mintipsOnly = false;
   while (zgetopt("t") != OPT_END)
     mintipsOnly = true;
-  if (opt_ind != argc - 1) OtherError(invalid);
+  if (opt_ind != argc - 1)
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return 1;
+  }
   this = argv[opt_ind++];
   group->stem = djg_strdup(this);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -53,21 +56,30 @@ wgbFolder_t *newDmsFolder(group_t *group)
   char *mintip0;
   JenningsWord_t **jenny, *jenny0;
   folder = (wgbFolder_t *) malloc(sizeof(wgbFolder_t));
-  if (!folder) AllocationError("newDmsFolder");
-  folder->group = group;
+  if (!folder)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   folder->mintips = mintips;
   if (mintipsOnly)
     folder->ptr = NULL;
   else
   {
     folder->ptr = zalloc(mintips);
-    if (!folder->ptr) AllocationError("newDmsFolder: 2");
+    if (!folder->ptr)
+      { free(folder);
+        MTX_ERROR1("%E", MTX_ERR_NOMEM);
+        return NULL;
+      }
   }
   folder->index = (long *) malloc(mintips * sizeof(long));
   mintip0 = (char *) malloc((group->maxlength + 2) * mintips * sizeof(char));
   folder->mintip = (char **) malloc(mintips * sizeof(char *));
   if (!folder->index || !mintip0 || !folder->mintip)
-    AllocationError("newDmsFolder: 3");
+  { free(folder);
+    MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   for (i = 0; i < mintips; i++)
   {
     folder->index[i] = i;
@@ -77,7 +89,11 @@ wgbFolder_t *newDmsFolder(group_t *group)
   {
     jenny0 = (JenningsWord_t *) malloc(mintips * sizeof(JenningsWord_t));
     jenny = (JenningsWord_t **) malloc(mintips * sizeof(JenningsWord_t *));
-    if (!jenny0 || !jenny) AllocationError("newDmsFolder: 4");
+    if (!jenny0 || !jenny)
+      { free(folder);
+        MTX_ERROR1("%E", MTX_ERR_NOMEM);
+        return NULL;
+      }
     for (i = 0; i < mintips; i++) jenny[i] = jenny0 + i;
     folder->jenny = jenny;
   }
@@ -112,9 +128,9 @@ void freeDmsFolder(wgbFolder_t *folder)
   boolean isLL = (group->ordering == 'L');
   thisline = 1;
   for (i = 0; i < nontips; i++)
-  { 
+  {
     j = isLL ? nontips - i - 1 : i;
-    coeff = zftoi(zextract(minusValue, j+1));
+    coeff = FfToInt(FfExtract(minusValue, j+1));
     if (coeff == 0) continue;
     coeff = (2 * coeff > p) ? coeff - p : coeff;
     if (thisline++ == TERMS_PER_LINE)
@@ -147,9 +163,9 @@ static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
   boolean isLL = (group->ordering == 'L');
   thisline = 1;
   for (i = 0; i < nontips; i++)
-  { 
+  {
     j = isLL ? nontips - i - 1 : i;
-    coeff = zftoi(zextract(minusValue, j+1));
+    coeff = FfToInt(FfExtract(minusValue, j+1));
     if (coeff == 0) continue;
     if (thisline++ == TERMS_PER_LINE)
     {
@@ -165,19 +181,21 @@ static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
 }
 
 /******************************************************************************/
-void recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
+int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
 {
   group_t *group = folder->group;
-  FEL m_one = zsub(F_ZERO, F_ONE);
+  FEL m_one = zsub(FF_ZERO, FF_ONE);
   long this = folder->so_far++;
+  char newname
   char *mintip = folder->mintip[this];
   strcpy(mintip, p->path);         /* N.B. Even if p has length zero, these  */
-  mintip[p->depth] = arrowName(a); /* three lines ensure path p.a written to */
+  newname = arrowName(a);          /* lines ensure path p.a written to */
   mintip[p->depth + 1] = '\0';     /* mintip. No corruption problems either. */
+  if (newname==" ") return 1;
   if (!mintipsOnly)
   {
-    PTR src = ptrPlus(group->action[a]->d, p->index);
-    PTR dest = ptrPlus(folder->ptr, this);
+    PTR src = FfGetPtr(group->action[a]->d, p->index);
+    PTR dest = FfGetPtr(folder->ptr, this);
     zmoverow(dest, src);
     zmulrow(dest, m_one);
   }
@@ -188,11 +206,11 @@ void recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
     jenny->length = p->depth + 1;
     jenny->dimension = pathDimension(group, p) + group->dim[a+1];
   }
-  return;
+  return 0;
 }
 
 /******************************************************************************/
-void writeGB(wgbFolder_t *folder)
+int writeGB(wgbFolder_t *folder)
 {
   FILE *fp;
   char mshfile[MAXLINE];
@@ -202,7 +220,10 @@ void writeGB(wgbFolder_t *folder)
   PTR minusValue;
   strext(mshfile, group->stem, mintipsOnly ? ".mintips" : ".groebner");
   fp = fopen(mshfile,"w");
-  if (!fp) OtherError("Opening file in writeGB");
+  if (!fp)
+  { MTX_ERROR("Cannot open file");
+    return 1;
+  }
   fprintf(fp, "%s for stem %s\n",
     mintipsOnly ? "Mintips" : "Groebner basis", group->stem);
   for (i = 0; i < folder->mintips; i++)
@@ -212,17 +233,17 @@ void writeGB(wgbFolder_t *folder)
     fprintf(fp, "%s", mintip);
     if (!mintipsOnly)
     {
-      minusValue = ptrPlus(folder->ptr, this);
+      minusValue = FfGetPtr(folder->ptr, this);
       writeMinusValue(group, fp, minusValue);
     }
     fprintf(fp, ";\n");
   }
   fclose(fp);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
-void findGB(wgbFolder_t *folder)
+int findGB(wgbFolder_t *folder)
 {
   group_t *group = folder->group;
   path_t *root = group->root;
@@ -249,10 +270,10 @@ void findGB(wgbFolder_t *folder)
         if (!q->child[a]) continue; /* q.a a tip, so p.a not minimal */
       }
       /* p.a a mintip */
-      recordThisMintip(folder, p, a);
+      if (recordThisMintip(folder, p, a)) return 1;
     }
   }
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -285,18 +306,18 @@ int main(int argc, char *argv[])
 {
   wgbFolder_t *folder;
   group_t *group;
-  mtxinit();
+  MtxInitLibrary();
   group = newGroupRecord();
-  InterpretCommandLine(argc, argv, group);
-  loadNonTips(group);
+  if (InterpretCommandLine(argc, argv, group)) exit(1);
+  if (loadNonTips(group)) exit(1);
   if (group->ordering == 'J') loadDimensions(group);
   buildPathTree(group);
   buildLeftPathTree(group);
   if (!mintipsOnly) loadActionMatrices(group);
   folder = newDmsFolder(group);
-  findGB(folder);
+  if (findGB(folder)) exit(1);
   if (group->ordering == 'J') sortGBJennings(folder);
-  writeGB(folder);
+  if (writeGB(folder)) exit(1);
   freeDmsFolder(folder);
   freeGroupRecord(group);
   exit(0);

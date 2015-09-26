@@ -76,14 +76,6 @@ except KeyError:
 shutil.copy(os.path.join('pGroupCohomology','dickson.lib'),SingularLib)
 shutil.copy(os.path.join('pGroupCohomology','filterregular.lib'),SingularLib)
 
-PrimePowers = [n for n in srange(2,256) if Integer(n).is_prime_power()]
-os.chdir('lib')
-for n in PrimePowers:
-    subprocess.call([os.path.join('..','bin','maketab'),'%d'%n])
-os.chdir('..')
-
-mtx_tables = [os.path.join('lib',s) for s in os.listdir('lib') if s.endswith('zzz')]
-
 setup(
   name = "pGroupCohomology",
   version = "2.1.5",
@@ -100,8 +92,8 @@ setup(
                os.path.join("pGroupCohomology","GapMaxels"),
                os.path.join("pGroupCohomology","GapMB"),
                os.path.join("pGroupCohomology","GapSgs")]),
-              ("pGroupCohomology", [os.path.join('db',X) for X in os.listdir('db')]+[os.path.join("db","LICENCE")]),
-              (os.path.join("pGroupCohomology","mtx_tables"), mtx_tables)],
+              ("pGroupCohomology", [os.path.join('db',X) for X in
+                                    os.listdir('db')]+[os.path.join("db","LICENCE")])],
   ext_modules=[ 
     Extension("pGroupCohomology.resolution",
               sources = [os.path.join("pGroupCohomology","resolution.pyx"),

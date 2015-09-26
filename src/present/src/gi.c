@@ -9,15 +9,16 @@
 
 #include "pgroup.h"
 #include "pgroup_decls.h"
+MTX_DEFINE_FILE_INFO
 
 static char *helptext[] = {
 "SYNTAX",
-"	groupInfo <Stem>",
+"   groupInfo <Stem>",
 "",
-"	Reads <Stem>.nontips (<Stem>.dims too if Jennings ordering used)",
+"   Reads <Stem>.nontips (<Stem>.dims too if Jennings ordering used)",
 "",
 "DESCRIPTION",
-"	Deciphers .nontips file header and prints group statistics.",
+"   Deciphers .nontips file header and prints group statistics.",
 NULL};
 
 static proginfo_t pinfo =
@@ -25,19 +26,21 @@ static proginfo_t pinfo =
     "$Revision: 19_April_1999", helptext };
 
 /******************************************************************************/
-void InterpretCommandLine(int argc, char *argv[], group_t *group)
+int InterpretCommandLine(int argc, char *argv[], group_t *group)
 {
   //register int i;
-  char invalid[MAXLINE];
   char *this;
   initargs(argc,argv,&pinfo);
   sprintf(invalid,
     "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
   while(zgetopt("") != OPT_END);
-  if (opt_ind != argc - 1) OtherError(invalid);
+  if (opt_ind != argc - 1)
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return 1;
+  }
   this = argv[opt_ind++];
   group->stem = djg_strdup(this);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -54,11 +57,14 @@ int main(int argc, char *argv[])
 {
   int n;
   group_t *group;
-  mtxinit();
+  MtxInitLibrary();
   group = newGroupRecord();
-  InterpretCommandLine(argc, argv, group);
-  readHeader(group);
-  if (group->ordering == 'J') loadDimensions(group);
+  if (InterpretCommandLine(argc, argv, group)) exit(1);
+  if (readHeader(group)) exit(1);
+  if (group->ordering == 'J')
+  {
+      if (loadDimensions(group)) exit(1);
+  }
   printf("Group name : %s\n", group->stem);
   printf("Group order: %ld^%ld\n", group->p, valuation(group->p, group->nontips));
   printf("Chosen ordering: %s\n", (group->ordering == 'R') ?

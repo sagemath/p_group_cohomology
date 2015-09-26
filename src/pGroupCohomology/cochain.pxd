@@ -26,7 +26,7 @@ cdef class COCH
 cdef class ChMap
 cdef class YCOCH
 
-from pGroupCohomology.mtx cimport FEL, PTR, matrix_t, size_t, matmulF, tmultinv, zitof, zadvance, zsteprow, ptrPlus, matfree, matdup, MTX
+from pGroupCohomology.mtx cimport FEL, PTR, matrix_t, size_t, matmulF, mtx_tmultinv, FfFromInt, FfGetPtr, FfStepPtr, FfGetPtr, matfree, matdup, MTX
 from pGroupCohomology.resolution cimport RESL
 from sage.structure.element import RingElement, ModuleElement
 from sage.structure.element cimport RingElement, ModuleElement
@@ -34,15 +34,15 @@ from sage.rings.morphism cimport RingHomomorphism
 
 cdef extern from "meataxe.h":
     size_t zsize(long nrows)
-    int zsetlen(long ncols)
-    int zsetfield(long field)
+    int FfSetNoc(long ncols)
+    int FfSetField(long field)
     PTR zalloc(long nrows)
     void zfree(PTR p)
     PTR zaddmulrow(PTR dest, PTR src, FEL f)
     PTR zaddrow(PTR dest, PTR src)
     PTR zmaprow(PTR row, PTR matrix, long nor, PTR result)
-    matrix_t *matadd(matrix_t *dest, matrix_t *src)
-        
+    Matrix_t *matadd(Matrix_t *dest, Matrix_t *src)
+
 ###########################################################
 ## p-Gruppen
 ###########################################################
@@ -72,36 +72,36 @@ cdef extern from "pgroup.h":
         char **nontip
         path_t *root
         path_t *lroot
-        matrix_t **action
-        matrix_t **laction
-        matrix_t **bch
+        Matrix_t **action
+        Matrix_t **laction
+        Matrix_t **bch
         long *dim
         long *dS          # /* depth Steps: for resolution only */
 
 ###############################################################
 ## Funktionsprototypen fuer Gruppen
 cdef extern from "pgroup_decls.h":
-    #PTR ptrPlus(PTR base, long offset)
-    group_t *fullyLoadedGroupRecord(char *stem)
-    group_t *newGroupRecord ()
-    group_t *namedGroupRecord(char *stem)
+    #PTR FfGetPtr(PTR base, long offset)
+    group_t *fullyLoadedGroupRecord(char *stem) except NULL
+    group_t *newGroupRecord () except NULL
+    group_t *namedGroupRecord(char *stem) except NULL
     void freeGroupRecord (group_t *group)
-    void readHeader(group_t *group)
-    void loadNonTips(group_t *group)
+    int readHeader(group_t *group)
+    int loadNonTips(group_t *group)
     void loadActionMatrices(group_t *group)
     void loadLeftActionMatrices(group_t *group)
     path_t *allocatePathTree(group_t *group)
     void buildPathTree(group_t *group)
     void buildLeftPathTree(group_t *group)
 
-    matrix_t *rightActionMatrix(group_t *group, PTR vec)
-    matrix_t *leftActionMatrix(group_t *group, PTR vec)
+    Matrix_t *rightActionMatrix(group_t *group, PTR vec)
+    Matrix_t *leftActionMatrix(group_t *group, PTR vec)
     void innerRightActionMatrix(group_t *group, PTR vec, PTR dest)
     void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
     void innerRightCompose(group_t *group, PTR alpha, PTR beta, \
                                 long s, long r, long q, PTR scratch, PTR gamma)
 
-    int verifyGroupIsAbelian(group_t *A)
+    int verifyGroupIsAbelian(group_t *A) except -1
 
 
 ###############################################################
@@ -221,18 +221,18 @@ cdef extern from "aufloesung_decls.h":
     # /* String returned must be used at once, never reused, never freed. */
     # /* extension WITHOUT dot */
 
-    cdef matrix_t *makeFirstDifferential(resol_t *resol)
+    cdef Matrix_t *makeFirstDifferential(resol_t *resol)
     cdef void makeThisDifferential(resol_t *resol, long n)
     # /* n must be at least two */
     cdef nRgs_t *loadDifferential(resol_t *resol, long n)
     cdef nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n)
 
-    cdef void readKnownResolution(resol_t *resol, long N)
+    cdef int readKnownResolution(resol_t *resol, long N)
 
     cdef void innerPreimages(nRgs_t *nRgs, PTR images, long noi, group_t *group, PTR preimages)
     # /* PTR preimages(nRgs_t *nRgs, PTR images, long noi, group_t *group); */
 
-    cdef void readOrConstructThisProjective(resol_t *resol, long n)
+    cdef int readOrConstructThisProjective(resol_t *resol, long n)
     cdef void ensureThisProjectiveKnown(resol_t *resol, long n)
     cdef void ensureThisUrbildGBKnown(resol_t *resol, long n)
 
@@ -245,7 +245,7 @@ cdef extern from "urbild_decls.h":
     #long countGenerators(nFgs_t *nFgs)
     long numberOfHeadyVectors(ngs_t *ngs)
     void saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
-    matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
+    Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
 
 cdef extern from "nBuchberger_decls.h":
     void nRgsBuchberger(nRgs_t *nRgs, group_t *group)
@@ -283,7 +283,7 @@ cdef class ChMap(RingHomomorphism):
     cdef object HTgt  # cohomology ring of group G
     cdef RESL Src     # is HSrc.Resl
     cdef RESL Tgt     # is HTgt.Resl
-    cdef long Deg     # maps from Src[n] to Tgt[n+Deg] 
+    cdef long Deg     # maps from Src[n] to Tgt[n+Deg]
     cdef MTX GMap     # defines homomorphism kH -> kG
     cdef list Data    # List of MTX matrices describing chain map in each degree
                       # resp. a string pointing to a stored MTX matrix

@@ -99,8 +99,10 @@ static void markNodeMultiples(ngs_t *ngs, rV_t *rv, modW_t *node,
   return;
 }
 
-/******************************************************************************/
-void nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group)
+/*****
+ * 1 on error
+ **************************************************************************/
+int nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group)
 /* mat should be a block of length num * nor */
 {
   ngs_t *ngs = nRgs->ngs;
@@ -120,8 +122,11 @@ void nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group)
     insertReducedVector(ngs, rv);
     markNodeMultiples(ngs, rv, ptn, false, group->root, group);
   }
-  if (ngs->unreducedHeap) OtherError("nRgsAssertRV: Theoretical error");
-  return;
+  if (ngs->unreducedHeap)
+  { MTX_ERROR("nRgsAssertRV: Theoretical error");
+    return 1;
+  }
+  return 0;
 }
 
 /******************************************************************************/
@@ -328,8 +333,10 @@ void nFgsAufnahme(nFgs_t *nFgs, group_t *group)
   return;
 }
 
-/******************************************************************************/
-void urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
+/*****
+ * 1 on error
+ **************************************************************************/
+int urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
 {
   register ngs_t *ngs = nRgs->ngs;
   register uV_t *uv;
@@ -338,7 +345,7 @@ void urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
   if (!ngs->unreducedHeap)
   {
     tidyUpAfterAufnahme(ngs);
-    return;
+    return 0;
   }
   sweepDim = ngs->unreducedHeap->gv->dim;
   selectNewDimension(ngs, group, sweepDim);
@@ -355,14 +362,14 @@ void urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
       }
       else
       {
-        OtherError("urbildAufnahme: vector doesn't lie in image");
+        MTX_ERROR1("vector doesn't lie in image : %E", MTX_ERR_INCOMPAT);
       }
     }
     if (!uv) break; /* All unreduced vectors processed */
     else incrementSlice(ngs, group);
   }
   tidyUpAfterAufnahme(ngs);
-  return;
+  return 0;
 }
 
 /******************************************************************************/

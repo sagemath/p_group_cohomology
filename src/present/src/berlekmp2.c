@@ -20,13 +20,13 @@
  * Neue Random...-Funktionen, ANSI C
  *
  * Revision 1.8  1994/07/28  06:04:43  mringe
- * zsetfield() und zsetlen() als getrennte Funktionen.
+ * FfSetField() und FfSetNoc() als getrennte Funktionen.
  *
  * Revision 1.7  1994/07/23  16:47:29  mringe
  * Neue null-space Funktionen
  *
  * Revision 1.6  1994/04/07  21:12:26  mringe
- * Benutzt fpoly_t.
+ * Benutzt FPoly_t.
  *
  * Revision 1.5  1994/03/14  12:59:28  mringe
  * Fehler beim Sortieren beseitigt.
@@ -44,81 +44,81 @@
 #include <stdlib.h>
 #include "meataxe.h"
 
-typedef struct { poly_t *p; long n; } factor_t;
+typedef struct { Poly_t *p; long n; } factor_t;
 
 /* ------------------------------------------------------------------
    factorsquarefree() - Squarefree factorization.
    ------------------------------------------------------------------ */
 
-static factor_t *factorsquarefree(poly_t *pol)
+static factor_t *factorsquarefree(Poly_t *pol)
 
 {
     long int e,j,k,ltmp,tdeg,exp,lexp;
 
-    poly_t *t0, *t, *w, *v;
+    Poly_t *t0, *t, *w, *v;
     FEL  *tbuf, *t0buf;
     factor_t  *list;
     int nfactors = 0;
 
     list = (factor_t *) malloc((pol->deg+1)*sizeof(factor_t));
-    zsetfield(pol->fl);
-    zsetlen(znoc);
-    for (exp = 0, ltmp = zfl; ltmp % zchar == 0; ++exp, ltmp /= zchar);
+    FfSetField(pol->fl);
+    FfSetNoc(FfNoc);
+    for (exp = 0, ltmp = FfOrder; ltmp % FfChar == 0; ++exp, ltmp /= FfChar);
     t0 = poldup(pol);
     e = 1;
 
     while ( t0->deg > 0 )
     {
-	poly_t *der = polderive(poldup(t0));
+    Poly_t *der = polderive(poldup(t0));
         t = polgcd(t0,der);
-	polfree(der);
+    polfree(der);
         v = poldivmod(t0,t);
-        polfree(t0); 
+        polfree(t0);
         for (k = 0; v->deg > 0; )
-	{
-	    poly_t *tmp;
-	    if ( ++k % zchar == 0 )
-	    {
-		tmp = poldivmod(t,v);
-              	polfree(t);
-              	t = tmp;
-	      	k++;
-	    }
-	    w = polgcd(t,v);
-	    list[nfactors].p = poldivmod(v,w);
-	    list[nfactors].n = e * k;
-	    if (list[nfactors].p->deg > 0)
-	       	++nfactors;			/* add to output */
-	    else
-	    	polfree(list[nfactors].p);	/* discard const. */
+    {
+        Poly_t *tmp;
+        if ( ++k % FfChar == 0 )
+        {
+        tmp = poldivmod(t,v);
+                polfree(t);
+                t = tmp;
+            k++;
+        }
+        w = polgcd(t,v);
+        list[nfactors].p = poldivmod(v,w);
+        list[nfactors].n = e * k;
+        if (list[nfactors].p->deg > 0)
+            ++nfactors;         /* add to output */
+        else
+            polfree(list[nfactors].p);  /* discard const. */
             polfree(v);
-	    v = w;
-	    tmp = poldivmod(t,v);
-            polfree(t); 
-            t = tmp; 
-	} 
-	polfree(v);
+        v = w;
+        tmp = poldivmod(t,v);
+            polfree(t);
+            t = tmp;
+    }
+    polfree(v);
 
-	/* shrink the polynomial */
-      	tdeg = t->deg;
-      	e *= zchar;
-      	if ( tdeg % zchar != 0 )
-	    printf("error in t, degree not div. by prime \n");
-      	t0 = polalloc(zfl,tdeg/zchar);
-      	t0buf = t0->buf;
-      	tbuf = t->buf;
-      	for (j = t0->deg; j >= 0; --j)
-	{
-	    FEL el, el1;
-	    el = *tbuf;
-	    tbuf += zchar;
-	    el1 = el;
-	    for (lexp = 0; lexp < exp-1; lexp++)
-	      	el1 = zmul(el,el1);
-	    *t0buf = el1;
-	    ++t0buf;
-	}
-        polfree(t); 
+    /* shrink the polynomial */
+        tdeg = t->deg;
+        e *= FfChar;
+        if ( tdeg % FfChar != 0 )
+        printf("error in t, degree not div. by prime \n");
+        t0 = polalloc(FfOrder,tdeg/FfChar);
+        t0buf = t0->buf;
+        tbuf = t->buf;
+        for (j = t0->deg; j >= 0; --j)
+    {
+        FEL el, el1;
+        el = *tbuf;
+        tbuf += FfChar;
+        el1 = el;
+        for (lexp = 0; lexp < exp-1; lexp++)
+            el1 = FfMul(el,el1);
+        *t0buf = el1;
+        ++t0buf;
+    }
+        polfree(t);
     }
     polfree(t0);
 
@@ -128,7 +128,7 @@ static factor_t *factorsquarefree(poly_t *pol)
     list[nfactors].n = 0;
     return list;
 }
-		      
+
 
 
 /* ------------------------------------------------------------------
@@ -136,11 +136,11 @@ static factor_t *factorsquarefree(poly_t *pol)
    its nullspace.
    ------------------------------------------------------------------ */
 
-static matrix_t *makekernel(poly_t *pol)
+static Matrix_t *makekernel(Poly_t *pol)
 
 {
-    matrix_t *materg;
-    PTR rowptr,byteptr;
+    Matrix_t *materg;
+    PTR rowptr;
     FEL *xbuf, *pbuf = pol->buf;
     long pdeg = pol->deg;
     int k, xshift,idx;
@@ -150,42 +150,41 @@ static matrix_t *makekernel(poly_t *pol)
     rowptr = materg->d;
 
     xbuf = (FEL *) malloc((size_t) (pdeg+1) * sizeof(FEL));
-    for (k = 0; k <= pdeg; ++k) xbuf[k] = F_ZERO;
-    xbuf[0] = F_ONE;
+    for (k = 0; k <= pdeg; ++k) xbuf[k] = FF_ZERO;
+    xbuf[0] = FF_ONE;
 
     for (k = 0; k < pdeg; ++k)
     {
-	int l;
-        byteptr = rowptr;
-        idx = 0;
-	for (l = 0; l < pdeg; ++l) zinsert_step(&byteptr,&idx,xbuf[l]);
-	zinsert(rowptr,k+1,zsub(xbuf[k],F_ONE));
-	zsteprow(&rowptr);
+    int l;
+    idx = 0;
+    for (; idx < pdeg; ++idx) FfInsert(rowptr,idx,xbuf[l]);
+    FfInsert(rowptr,k+1,zsub(xbuf[k],FF_ONE));
+    FfStepPtr(&rowptr);
         for (xshift = (int) fl; xshift > 0; )
-	{
-	    FEL f;
-	    int d;
+    {
+        FEL f;
+        int d;
 
-	    /* Find leading pos */
-	    for (l = pdeg-1; xbuf[l] == F_ZERO && l >= 0; --l);
+        /* Find leading pos */
+        for (l = pdeg-1; xbuf[l] == FF_ZERO && l >= 0; --l);
 
-	    /* Shift left as much as possible */
-	    if ((d = pdeg - l) > xshift) d = xshift;
-	    for (; l >= 0; l--) xbuf[l+d] = xbuf[l];
-	    for (l = d-1; l >= 0; --l) xbuf[l] = F_ZERO;
-	    xshift -= d;
-	    if (xbuf[pdeg] == F_ZERO) continue;
+        /* Shift left as much as possible */
+        if ((d = pdeg - l) > xshift) d = xshift;
+        for (; l >= 0; l--) xbuf[l+d] = xbuf[l];
+        for (l = d-1; l >= 0; --l) xbuf[l] = FF_ZERO;
+        xshift -= d;
+        if (xbuf[pdeg] == FF_ZERO) continue;
 
-	    /* Reduce with pol */
-	    f = zneg(zdiv(xbuf[pdeg],pbuf[pdeg]));
-	    for (l = pdeg-1; l >= 0; --l)
-		xbuf[l] = zadd(xbuf[l],zmul(pbuf[l],f));
-	    xbuf[pdeg] = F_ZERO;
-	}
+        /* Reduce with pol */
+        f = FfNeg(FfDiv(xbuf[pdeg],pbuf[pdeg]));
+        for (l = pdeg-1; l >= 0; --l)
+        xbuf[l] = FfAdd(xbuf[l],FfMul(pbuf[l],f));
+        xbuf[pdeg] = FF_ZERO;
+    }
     }
     free(xbuf);
     return nullspace__(materg);
- } 
+ }
 
 
 /* ------------------------------------------------------------------
@@ -193,72 +192,72 @@ static matrix_t *makekernel(poly_t *pol)
    polynomial.
    ------------------------------------------------------------------ */
 
-static poly_t **berlekamp(poly_t *pol, matrix_t  *kernel)
+static Poly_t **berlekamp(Poly_t *pol, matrix_t  *kernel)
 
 {
-    poly_t **list, **list2;
+    Poly_t **list, **list2;
     int nfactors;
     PTR vec = kernel->d;
     int i, j;
-    poly_t *t;
+    Poly_t *t;
 
-    //    list = (poly_t **) malloc((size_t)(kernel->nor+1)*sizeof(poly_t*));
-    //    list2 = (poly_t **) malloc((size_t)(kernel->nor+1)*sizeof(poly_t*));
-    list = (poly_t **) malloc((size_t)(kernel->nor+1) << PTRSH);
-    list2 = (poly_t **) malloc((size_t)(kernel->nor+1) << PTRSH);
+    //    list = (Poly_t **) malloc((size_t)(kernel->nor+1)*sizeof(Poly_t*));
+    //    list2 = (Poly_t **) malloc((size_t)(kernel->nor+1)*sizeof(Poly_t*));
+    list = (Poly_t **) malloc((size_t)(kernel->nor+1) * sizeof(void*));
+    list2 = (Poly_t **) malloc((size_t)(kernel->nor+1) * sizeof(void*));
     list[0] = poldup(pol);
     nfactors = 1;
     t = polalloc(kernel->fl,kernel->noc-1);
-    zsetlen(kernel->noc);
+    FfSetNoc(kernel->noc);
 
     /* Loop through all kernel vectors */
     for (j = 2; j <= kernel->nor; ++j)
     {
-	int ngcd = 0;
-	zsteprow(&vec);			/* Next vector */
-	if (nfactors == kernel->nor) break;	/* Done? */
-	for (i = 1; i <= kernel->noc; ++i)
-	    t->buf[i-1] = zextract(vec,i);
-	for (i = kernel->noc-1; t->buf[i] == F_ZERO; --i);
-	t->deg = i;
-	for (i = 0; i < nfactors; )
-	{
-	    long s;
-	    if (list[i]->deg <= 1) {++i; continue;}
-	    for (s = 0; s < zfl; ++s)
-	    {
-		poly_t *gcd;
+    int ngcd = 0;
+    FfStepPtr(&vec);         /* Next vector */
+    if (nfactors == kernel->nor) break; /* Done? */
+    for (i = 1; i <= kernel->noc; ++i)
+        t->buf[i-1] = FfExtract(vec,i);
+    for (i = kernel->noc-1; t->buf[i] == FF_ZERO; --i);
+    t->deg = i;
+    for (i = 0; i < nfactors; )
+    {
+        long s;
+        if (list[i]->deg <= 1) {++i; continue;}
+        for (s = 0; s < FfOrder; ++s)
+        {
+        Poly_t *gcd;
 
-		t->buf[0] = zitof(s);
-		gcd = polgcd(list[i],t);
-		if (gcd->deg >= 1)
-		    list2[ngcd++] = gcd;
-		else
-		    polfree(gcd);
-		if (nfactors == kernel->nor) break;	/* Done? */
-	    }
-	    if (ngcd > 0)
-	    {
-		int p;
-		polfree(list[i]);
-		for (p = i; p < nfactors -1; ++p)
-		    list[p] = list[p+1];
-		--nfactors;
-	    }
-	    else
-		++i;
-	    if (nfactors == kernel->nor) break;		/* Done? */
-	}
-	if (ngcd > 0)
-	{
-	    int p;
-	    for (p = 0; p < ngcd; ++p)
-	        list[nfactors++] = list2[p];
-	}
+        t->buf[0] = FfFromInt(s);
+        gcd = polgcd(list[i],t);
+        if (gcd->deg >= 1)
+            list2[ngcd++] = gcd;
+        else
+            polfree(gcd);
+        if (nfactors == kernel->nor) break; /* Done? */
+        }
+        if (ngcd > 0)
+        {
+        int p;
+        polfree(list[i]);
+        for (p = i; p < nfactors -1; ++p)
+            list[p] = list[p+1];
+        --nfactors;
+        }
+        else
+        ++i;
+        if (nfactors == kernel->nor) break;     /* Done? */
+    }
+    if (ngcd > 0)
+    {
+        int p;
+        for (p = 0; p < ngcd; ++p)
+            list[nfactors++] = list2[p];
+    }
     }
     polfree(t);
     free(list2);
-    list[kernel->nor] = NULL;	/* Terminate the list */
+    list[kernel->nor] = NULL;   /* Terminate the list */
     return list;
 }
 
@@ -269,11 +268,11 @@ static poly_t **berlekamp(poly_t *pol, matrix_t  *kernel)
    factorization() - Factorize a polynomial
    ------------------------------------------------------------------ */
 
-fpoly_t *factorization(poly_t *pol)
+FPoly_t *factorization(Poly_t *pol)
 
 {
     factor_t *list, *l;
-    fpoly_t *factors;    
+    FPoly_t *factors;
     PROFILE_BEGIN(t);
 
     factors = fpolalloc();
@@ -281,17 +280,17 @@ fpoly_t *factorization(poly_t *pol)
 
     for (l = list; l->p != NULL; ++l)
     {
-	matrix_t *kernel = makekernel(l->p);
-	poly_t **irr = berlekamp(l->p,kernel), **i;
+    Matrix_t *kernel = makekernel(l->p);
+    Poly_t **irr = berlekamp(l->p,kernel), **i;
 
-	matfree(kernel);
-	for (i = irr; *i != NULL; ++i)
-	{
-	    fpolmulp(factors,*i,l->n);
-	    polfree(*i);
-	}
-	free(irr);
-	polfree(l->p);
+    matfree(kernel);
+    for (i = irr; *i != NULL; ++i)
+    {
+        fpolmulp(factors,*i,l->n);
+        polfree(*i);
+    }
+    free(irr);
+    polfree(l->p);
     }
     free(list);
     PROFILE_END(t,PolFactor);

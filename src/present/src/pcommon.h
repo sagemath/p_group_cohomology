@@ -1,12 +1,20 @@
-/* ======================== Coho progs ============================
+/*****************************************************************************
    pcommon.h : header file common to most programs
-               parameters I may often want to tweak
 
-   (C) Copyright 1999-2006 David J. Green <green@minet.uni-jena.de>
-   Department of Mathematics, University of Jena,
-   D-07737 Jena, Germany
-   This program is free software; see the file COPYING for details.
-   ================================================================ */
+       Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+
+  Distributed under the terms of the GNU General Public License (GPL),
+  version 2 or later (at your choice)
+
+    This code is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
+
+  The full text of the GPL is available at:
+
+                  http://www.gnu.org/licenses/
+*****************************************************************************/
 
 #if !defined(__PCOMMON_INCLUDED)	/* Include only once */
 #define __PCOMMON_INCLUDED

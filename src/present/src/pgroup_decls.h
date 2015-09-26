@@ -1,11 +1,20 @@
-/* ========================== Present =============================
+/*****************************************************************************
    pgroup_decls.h : Header files listing declarations in pgroup.c
 
-   (C) Copyright 1999-2000 David J. Green <green@math.uni-wuppertal.de>
-   Department of Mathematics, University of Wuppertal,
-   D-42097 Wuppertal, Germany
-   This program is free software; see the file COPYING for details.
-   ================================================================ */
+       Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+
+  Distributed under the terms of the GNU General Public License (GPL),
+  version 2 or later (at your choice)
+
+    This code is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
+
+  The full text of the GPL is available at:
+
+                  http://www.gnu.org/licenses/
+*****************************************************************************/
 
 #include "meataxe.h"
 #include "pgroup.h"
@@ -37,9 +46,6 @@
 inline long maxlong(long n1, long n2);
 inline long minlong(long n1, long n2);
 inline long modifiedMinlong(long n1, long n2);
-
-/* Idea: -1 represents plus infinity */
-long listFun(long *l, long len, long fun());
 
 // boolean certainThat(yesno yn);
 #if !defined(certainThat)
@@ -155,9 +161,9 @@ long pathTreeGirth(group_t *group);
 void calculateDimSteps(group_t *group);
 group_t *fullyLoadedGroupRecord(char *stem);
 
-inline boolean fileExists(char *name);
+inline boolean fileExists(const char *name);
 
-boolean mateq(matrix_t *mat1, matrix_t *mat2);
+inline boolean mateq(matrix_t *mat1, matrix_t *mat2);
 int verifyGroupIsAbelian(group_t *A);
 
 long *newLongArray(long N);
@@ -166,7 +172,6 @@ matrix_t *myMatalloc(long fl, long nor, long noc);
 matrix_t *myMatmul(matrix_t *dest, matrix_t *src);
 /* Can handle dest->nor==0; znoc is src->noc at end */
 
-long *collected(long *l);
 /* l[0] is length of l */
 long listPos(long *l, long n);
 

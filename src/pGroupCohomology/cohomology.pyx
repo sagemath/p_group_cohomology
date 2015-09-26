@@ -826,7 +826,7 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         for j from 0<=j<lenL:
             S[j+1] = L[j]
     counter = 0
-    poly_tmp = singular.poly(0)
+    Poly_tmp = singular.poly(0)
     gb_command = "groebner" # todo: allow to choose between slimgb, std, groebner
 
     try:
@@ -840,11 +840,11 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         # works if the singular version is good.
         if good_singular_version:
             for j from 1 <=j <=lenL:
-                singular.eval('%s=%s[%d]'%(poly_tmp.name(),S.name(),j))
+                singular.eval('%s=%s[%d]'%(Poly_tmp.name(),S.name(),j))
                 singular.eval('%s[%d]=0'%(S.name(),j))
                 # std(...,...) is buggy
                 if int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim', gb_command, Id.name(),S.name()))) >= d0:
-                    singular.eval('%s[%d]=%s'%(S.name(),j,poly_tmp.name()))
+                    singular.eval('%s[%d]=%s'%(S.name(),j,Poly_tmp.name()))
                 else:
                     Kicked.append(j-1)
         singular.eval('%s=simplify(%s,2)'%(S.name(),S.name()))
@@ -9244,7 +9244,7 @@ Minimal list of algebraic relations:
 #                        L.append(p_s)
 
                 L = obvious  # They are pre-processed linear combinations of standard monomials
-                poly_tmp = singular.poly(0)
+                Poly_tmp = singular.poly(0)
 
                 lenL = len(L)
                 if lenL==0:
@@ -9270,14 +9270,14 @@ Minimal list of algebraic relations:
                 # S might be by far too long. So, try to eliminate
                 # some of its elements.
                 for j from 1 <=j <=lenL:
-                    singular.eval('%s=%s[%d]'%(poly_tmp.name(),S.name(),j))
+                    singular.eval('%s=%s[%d]'%(Poly_tmp.name(),S.name(),j))
                     singular.eval('%s[%d]=0'%(S.name(),j))
                     if not test_dim0(S):
                         # restore the old value
-                        singular.eval('%s[%d]=%s'%(S.name(),j,poly_tmp.name()))
+                        singular.eval('%s[%d]=%s'%(S.name(),j,Poly_tmp.name()))
                     else:
                         # the old value may be helpful, but likely we can do without it
-                        singular.eval('%s[%d]=%s'%(Help.name(),j,poly_tmp.name()))
+                        singular.eval('%s[%d]=%s'%(Help.name(),j,Poly_tmp.name()))
 
                 # Perhaps S is shorter now
                 singular.eval('%s=simplify(%s,2)'%(S.name(),S.name()))
@@ -9304,10 +9304,10 @@ Minimal list of algebraic relations:
                         else:
                             wp = singular.matrix(1,1)
                         counter +=1
-                        singular.eval('%s=%s[1][1]+%s[1][1]'%(poly_tmp.name(),vp.name(),wp.name()))
-                        if test_dim0_std(poly_tmp):
+                        singular.eval('%s=%s[1][1]+%s[1][1]'%(Poly_tmp.name(),vp.name(),wp.name()))
+                        if test_dim0_std(Poly_tmp):
                             print_protocol("--> Last parameter found in degree %d"%curr_deg, self)
-                            cache[ParamSet,curr_deg] = singular.eval(poly_tmp.name())
+                            cache[ParamSet,curr_deg] = singular.eval(Poly_tmp.name())
                             return cache[ParamSet,curr_deg]
 
             print_protocol('The given last parameter could not be improved', self)

@@ -1,19 +1,44 @@
-/* ========================== Present =============================
-   pincl.c : routines for group inclusions
+/*****************************************************************************
+  pincl.c : routines for group inclusions
 
-   (C) Copyright 2000 David J. Green <green@math.uni-wuppertal.de>
-   Department of Mathematics, University of Wuppertal,
-   D-42097 Wuppertal, Germany
-   This program is free software; see the file COPYING for details.
-   ================================================================ */
+       Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+
+  Distributed under the terms of the GNU General Public License (GPL),
+  version 2 or later (at your choice)
+
+    This code is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    General Public License for more details.
+
+  The full text of the GPL is available at:
+
+                  http://www.gnu.org/licenses/
+*****************************************************************************/
 
 #include "pincl.h"
+#include "meataxe.h"
 
 /******************************************************************************/
+static char *inclusionMatrixFile(inclus_t *inclus)
+/* String returned must be used at once, never reused, never freed. */
+{
+  static char buffer[MAXLINE];
+  sprintf(buffer, "%s.ima", inclus->stem);
+  return buffer;
+}
+
+/****
+ * NULL on error
+ ***************************************************************************/
 inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem)
 {
   inclus_t *inclus = (inclus_t *) malloc(sizeof(inclus_t));
-  if (!inclus) AllocationError("newInclusionRecord");
+  if (!inclus)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return NULL;
+      }
   inclus->G = G;
   inclus->H = H;
   inclus->stem = djg_strdup(stem);
@@ -30,8 +55,10 @@ void freeInclusionRecord(inclus_t *inclus)
   return;
 }
 
-/******************************************************************************/
-void makeInclusionMatrix(inclus_t *inclus)
+/*****
+ * 1 on error
+ **************************************************************************/
+int makeInclusionMatrix(inclus_t *inclus)
 /* Sets znoc = G->nontips */
 {
   group_t *G = inclus->G, *H = inclus->H;
@@ -42,9 +69,21 @@ void makeInclusionMatrix(inclus_t *inclus)
   PTR prev, this;
   path_t *p;
   matrix_t **Hgens = allocateMatrixList(G, Hnum);
+  if (!Hgens) return 1;
   matrix_t *ima = matalloc(zfl, Hsize, Gsize);
-  if (!ima) AllocationError("makeInclusionMatrix");
-  if (!G->bch) OtherError("makeInclusionMatrix: G->bch not loaded");
+  if (!ima)
+      {
+          freeMatrixList(Hgens);
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return 1;
+      }
+  if (!G->bch)
+  {
+      MatFree(ima);
+      freeMatrixList(Hgens);
+      MTX_ERROR("G->bch not loaded");
+      return 1;
+  }
   strext(name, inclus->stem, ".irg");
   loadGeneralRegularActionMatrices(G, Hgens, name, Hnum);
   basisChangeReg2Nontips(G, Hgens, Hnum);
@@ -59,32 +98,38 @@ void makeInclusionMatrix(inclus_t *inclus)
   }
   freeMatrixList(Hgens);
   inclus->ima = ima;
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void saveInclusionMatrix(inclus_t *inclus)
+/****
+ * 1 on error
+ ***************************************************************************/
+int saveInclusionMatrix(inclus_t *inclus)
 {
-  char name[MAXLINE];
-  strext(name, inclus->stem, ".ima");
-  if (matsave(inclus->ima,name) != 0)
-    OtherError("Saving in saveInclusionMatrix");
-  return;
+  if (matsave(inclus->ima, inclusionMatrixFile(inclus))) return 1;
+  return 0;
 }
 
-/******************************************************************************/
-void loadInclusionMatrix(inclus_t *inclus)
+/***
+ * 1 on error
+ ****************************************************************************/
+int loadInclusionMatrix(inclus_t *inclus)
 {
   matrix_t *ima;
-  char name[MAXLINE];
-  strext(name, inclus->stem, ".ima");
-  ima = matload(name);
-  if (!ima)
-    OtherError("Loading in loadInclusionMatrix");
+  ima = matload(inclusionMatrixFile(inclus));
+  if (!ima) return 1;
   if (ima->nor != inclus->H->nontips)
-    OtherError("loadInclusionMatrix: wrong number of rows");
+  {
+      MatFree(ima);
+      MTX_ERROR1("wrong number of rows: %E", MTX_ERR_INCOMPAT);
+      return 1;
+  }
   if (ima->noc != inclus->G->nontips)
-    OtherError("loadInclusionMatrix: wrong number of cols");
+  {
+      MatFree(ima);
+      MTX_ERROR1("wrong number of cols: %E", MTX_ERR_INCOMPAT);
+      return 1;
+  }
   inclus->ima = ima;
-  return;
+  return 0;
 }

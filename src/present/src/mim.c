@@ -9,17 +9,18 @@
 
 #include "pincl.h"
 #include "pincl_decls.h"
+MTX_DEFINE_FILE_INFO
 
 static char *helptext[] = {
 "SYNTAX",
-"	makeInclusionMatrix <Gstem> <Hstem> <incStem>",
+"   makeInclusionMatrix <Gstem> <Hstem> <incStem>",
 "",
-"	Reads <Gstem>.nontips, <Gstem>.gens, <Gstem>.bch,",
-"	<Hstem>.nontips, <incStem>.irg",
-"	Writes <incStem>.ima",
+"   Reads <Gstem>.nontips, <Gstem>.gens, <Gstem>.bch,",
+"   <Hstem>.nontips, <incStem>.irg",
+"   Writes <incStem>.ima",
 "",
 "DESCRIPTION",
-"	Make matrix for inclusion of H in G.",
+"   Make matrix for inclusion of H in G.",
 NULL};
 
 static proginfo_t pinfo =
@@ -40,7 +41,10 @@ typedef struct controlVariables control_t;
 control_t *newController(void)
 {
   control_t *control = (control_t *) malloc(sizeof(control_t));
-  if (!control) AllocationError("newController");
+  if (!control)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   return control;
 }
 
@@ -52,23 +56,25 @@ void freeController(control_t *control)
 }
 
 /******************************************************************************/
-void InterpretCommandLine(int argc, char *argv[], control_t *control)
+int InterpretCommandLine(int argc, char *argv[], control_t *control)
 {
   //register int i;
-  char invalid[MAXLINE];
   char *this;
   initargs(argc,argv,&pinfo);
   sprintf(invalid,
     "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
   while (zgetopt("") != OPT_END);
-  if (opt_ind != argc - 3) OtherError(invalid);
+  if (opt_ind != argc - 3)
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return 1;
+  }
   this = argv[opt_ind++];
   strcpy(control->Gstem, this);
   this = argv[opt_ind++];
   strcpy(control->Hstem, this);
   this = argv[opt_ind++];
   strcpy(control->incStem, this);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -77,20 +83,21 @@ int main(int argc, char *argv[])
   group_t *G, *H;
   inclus_t *inclus;
   control_t *control;
-  mtxinit();
+  MtxInitLibrary();
   control = newController();
-  InterpretCommandLine(argc, argv, control);
+  if (InterpretCommandLine(argc, argv, control)) exit(1);
   G = namedGroupRecord(control->Gstem);
   H = namedGroupRecord(control->Hstem);
   inclus = newInclusionRecord(G, H, control->incStem);
-  loadNonTips(G);
+  if (!inclus) exit(1);
+  if (loadNonTips(G)) exit(1);
   buildPathTree(G);
   loadActionMatrices(G);
   loadBasisChangeMatrices(G);
-  loadNonTips(H);
+  if (loadNonTips(H)) exit(1);
   buildPathTree(H);
-  makeInclusionMatrix(inclus);
-  saveInclusionMatrix(inclus);
+  if (makeInclusionMatrix(inclus)) exit(1);
+  if (saveInclusionMatrix(inclus)) exit(1);
   freeInclusionRecord(inclus);
   freeGroupRecord(G);
   freeGroupRecord(H);

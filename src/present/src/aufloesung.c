@@ -61,11 +61,16 @@ char *resolStem(long Gsize, char *Gname)
   return buffer;
 }
 
-/******************************************************************************/
+/***
+ * NULL on error
+ ****************************************************************************/
 static resol_t *innerNewResolutionRecord (void)
 {
   resol_t *resol = (resol_t *) malloc(sizeof(resol_t));
-  if (!resol) AllocationError("innerNewResolutionRecord");
+  if (!resol)
+  { MTX_ERROR1("%E",MTX_ERR_NOMEM);
+    return NULL;
+  }
   resol->group = NULL;
   resol->stem = NULL;
   resol->moduleStem = NULL;
@@ -152,50 +157,70 @@ void freeResolutionRecord (resol_t *resol)
   return;
 }
 
-/******************************************************************************/
+/***
+ * -1 on error
+ ****************************************************************************/
 long rankProj(resol_t *resol, long n)
 {
   if (n < 0)
-  { OtherError("rankProj: non-negative degree expected");}
+  { MTX_ERROR("non-negative degree expected"); return -1;}
   if (n > resol->numproj)
   {
-    OtherError("rankProj: not yet known in that degree");
+    MTX_ERROR1("not yet known in that degree: %E", MTX_ERR_INCOMPAT);
+    return -1;
   }
   return resol->projrank[n];
 }
 
-/******************************************************************************/
+/*** -1 on error
+ ****************************************************************************/
 long dimIm(resol_t *resol, long n)
 {
   if (n < 0 || n > resol->numproj + 1)
-    OtherError("dimIm: degree out of range");
+  {
+      MTX_ERROR1("%E", MTX_ERR_RANGE);
+      return -1;
+  }
   return resol->Imdim[n];
 }
 
-/******************************************************************************/
-void setRankProj(resol_t *resol, long n, long r)
+/**** 1 on error
+ ***************************************************************************/
+int setRankProj(resol_t *resol, long n, long r)
 {
-  if (n != resol->numproj + 1) OtherError("setRankProj: unexpected degree");
-  if (r < 0) OtherError("setRankProj: negative rank impossible");
+  if (n != resol->numproj + 1)
+  { MTX_ERROR1("unexpected degree: %E", MTX_ERR_BADARG);
+    return 1;
+  }
+  if (r < 0)
+  { MTX_ERROR1("negative rank impossible: %E", MTX_ERR_INCOMPAT);
+    return 1;
+  }
   ensureResolSizeArraysLargeEnough(resol, n);
   resol->projrank[n] = r;
   resol->numproj = n;
   setDimIm(resol, n+1);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
-void setRankProjCoverForModule(resol_t *resol, long rkP0, long dimM)
+/****
+ * 1 in error
+ ***************************************************************************/
+int setRankProjCoverForModule(resol_t *resol, long rkP0, long dimM)
 {
   if (resol->numproj != 0)
-    OtherError("setRankProjCoverForModule: numproj not zero");
+  { MTX_ERROR1("numproj not zero: %E", MTX_ERR_INCOMPAT);
+    return 1;
+  }
   resol->Imdim[0] = dimM;
   resol->numproj = -1;
   setRankProj(resol, 0, rkP0);
-  return;
+  return 0;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 nRgs_t *urbildSetup(resol_t *resol, long n, PTR mat, long numnor)
 /* mat should be a block of length numnor = num * nor */
 {
@@ -207,9 +232,14 @@ nRgs_t *urbildSetup(resol_t *resol, long n, PTR mat, long numnor)
   long s = rankProj(resol, n);
   long nor = r+s;
   long num = numnor / nor;
-  if (numnor != num * nor) OtherError("urbildSetup: Theoretical Error");
+  if (numnor != num * nor)
+  {
+      MTX_ERROR("Theoretical Error");
+      return NULL;
+  }
   sprintf(thisStem, "%sd%ldu", resol->stem, n);
   nRgs = nRgsAllocation(group, r, s, thisStem);
+  if (!nRgs) return NULL;
   ngs = nRgs->ngs;
   ngs->expDim = NO_BUCHBERGER_REQUIRED;
   ngs->targetRank = dimIm(resol, n);
@@ -218,7 +248,9 @@ nRgs_t *urbildSetup(resol_t *resol, long n, PTR mat, long numnor)
   return nRgs;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
 /* mat should be a block of length r * s */
 {
@@ -232,7 +264,10 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   nRgs_t *nRgs;
   ngs_t *ngs;
   register PTR pre = zalloc(s * s); /* Initialization guaranteed */
-  if (!pre) AllocationError("nRgsStandardSetup");
+  if (!pre)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   sprintf(thisStem, "%sd%ld", resol->stem, n);
   nRgs = nRgsAllocation(group, r, s, thisStem);
   ngs = nRgs->ngs;
@@ -266,7 +301,9 @@ char *numberedFile(long n, char *stem, char *extension)
   return buffer;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 matrix_t *makeFirstDifferential(resol_t *resol)
 {
   long i;
@@ -283,11 +320,15 @@ matrix_t *makeFirstDifferential(resol_t *resol)
     dimP1 = group->dS[2] - 1;
     break;
   default :
-    OtherError("makeFirstDifferential: not implemented for this ordering");
-    break;
+    MTX_ERROR("not implemented for this ordering");
+    return NULL;
   }
   pres = matalloc(zfl, dimP1, group->nontips);
-  if (!pres) AllocationError("makeFirstDifferential");
+  if (!pres)
+  {
+      MTX_ERROR1("%E", MTX_ERR_NOMEM);
+      return NULL;
+  }
   for (i = 2, ptr = pres->d; i <= dimP1 + 1; i++, zsteprow(&ptr))
     zinsert(ptr, i, F_ONE);
   /*matsave(pres, differentialFile(resol, 1));
@@ -297,37 +338,52 @@ matrix_t *makeFirstDifferential(resol_t *resol)
   return pres;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 nRgs_t *loadDifferential(resol_t *resol, long n)
 {
   nRgs_t *nRgs;
   matrix_t *pres = matload(differentialFile(resol, n));
-  if (!pres) AllocationError("loadDifferential");
+  if (!pres)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   nRgs = nRgsStandardSetup(resol, n, pres->d);
   matfree(pres);
   return nRgs;
 }
 
-/******************************************************************************/
+/****
+ * NULL on error
+ ***************************************************************************/
 nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n)
 {
   nRgs_t *nRgs;
   matrix_t *pres = matload(urbildGBFile(resol, n));
-  if (!pres) AllocationError("loadUrbildGroebnerBasis");
+  if (!pres)
+  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
+    return NULL;
+  }
   nRgs = urbildSetup(resol, n, pres->d, pres->nor);
   matfree(pres);
   return nRgs;
 }
 
-/******************************************************************************/
-static void readThisProjective(resol_t *resol, long n)
+/****
+ * 1 on error
+ ***************************************************************************/
+static int readThisProjective(resol_t *resol, long n)
 {
   long rs, r;
   r = rankProj(resol, n-1);
   rs = numberOfRowsStored(differentialFile(resol, n));
-  if (rs % r != 0) OtherError("readThisProjective: theoretical error");
+  if (rs % r != 0)
+  { MTX_ERROR("theoretical error");
+    return 1;
+  }
   setRankProj(resol, n, rs/r);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -352,7 +408,7 @@ static void initializeRows(PTR base, long nor)
 /******************************************************************************/
 void innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
   PTR preimages)
-/* Assumes urbildGB already loaded */ 
+/* Assumes urbildGB already loaded */
 /* images should be a block of length num * ngs->r */
 /* preimages should be a block of length num * ngs->s, INITIALIZED TO ZERO */
 /* Places result in preimages */
@@ -388,21 +444,6 @@ void innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
   return;
 }
 
-/*******************************************************************************
-* PTR preimages(nRgs_t *nRgs, PTR images, long num, group_t *group)
-* ** Assumes urbildGB already loaded ** 
-* ** images should be a block of length num * ngs->r **
-* ** returns a block of length num * ngs->s **
-* {
-  * ngs_t *ngs = nRgs->ngs;
-  * PTR preimages = zalloc(num * ngs->s);
-  * ** Remember: zalloc initializes to zero **
-  * if (!preimages) AllocationError("preimages"); 
-  * innerPreimages(nRgs, images, num, group, preimages);
-  * return preimages;
-* }
-*/
-
 /******************************************************************************/
 void makeThisDifferential(resol_t *resol, long n)
 /* n must be at least two */
@@ -430,17 +471,22 @@ static void makeThisCohringDifferential(resol_t *resol, long n)
   return;
 }
 
-/******************************************************************************/
-void readOrConstructThisProjective(resol_t *resol, long n)
+/*****
+ * 1 on error
+ **************************************************************************/
+int readOrConstructThisProjective(resol_t *resol, long n)
 {
   if (n != resol->numproj + 1)
-    OtherError("readOrConstructThisProjective: invalid data");
+  {
+      MTX_ERROR1("%E", MTX_ERR_BADARG);
+      return 1;
+  }
   if (fileExists(differentialFile(resol, n)))
   {
     readThisProjective(resol, n);
   }
   else makeThisCohringDifferential(resol, n);
-  return;
+  return 0;
 }
 
 /******************************************************************************/
@@ -452,13 +498,17 @@ void ensureThisProjectiveKnown(resol_t *resol, long n)
   return;
 }
 
-/******************************************************************************/
-void ensureThisUrbildGBKnown(resol_t *resol, long n)
+/****
+ * 1 on error
+ ***************************************************************************/
+int ensureThisUrbildGBKnown(resol_t *resol, long n)
 {
   if (n < 1 || n > resol->numproj)
-    OtherError("ensureThisUrbildGBKnown: invalid data");
+  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+    return 1;
+  }
   if (fileExists(urbildGBFile(resol, n))) return;
   makeThisDifferential(resol, n+1);
-  return;
+  return 0;
 }
 

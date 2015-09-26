@@ -7,21 +7,21 @@
    This program is free software; see the file COPYING for details.
    ================================================================ */
 
-matrix_t *InnerRightAction(matrix_t *dest, const matrix_t *src, PTR scratch);
+Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch);
 /* Guaranteed not to alter pointer dest->d */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
-matrix_t *InnerLeftAction(const matrix_t *src, matrix_t *dest, PTR scratch);
-matrix_t *RightAction(matrix_t *dest, const matrix_t *src);
+Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch);
+Matrix_t *RightAction(Matrix_t *dest, const Matrix_t *src);
 /* Guaranteed not to alter pointer dest->d */
-void *InnerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch);
+void *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch);
 /* Assembles dest * src at scratch. */
 /* src should be square, scratch should point to enough space. */
-matrix_t *RightProduct(const matrix_t *dest, const matrix_t *src);
+Matrix_t *RightProduct(const Matrix_t *dest, const Matrix_t *src);
 
-void innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
+void innerBasisChangeReg2Nontips(group_t *group, Matrix_t **matlist,
   long num, PTR workspace);
-void innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
+void innerBasisChangeNontips2Reg(group_t *group, Matrix_t **matlist,
   long num, PTR workspace);
-void basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num);
-void changeActionMatricesReg2Nontips(group_t *group);
+int basisChangeReg2Nontips(group_t *group, Matrix_t **matlist, long num);
+int changeActionMatricesReg2Nontips(group_t *group);

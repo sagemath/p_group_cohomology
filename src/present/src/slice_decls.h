@@ -19,7 +19,7 @@
 *  First version: 16 March 2000
 */
 
-#if !defined(__SLICE_DECLS_INCLUDED)	/* Include only once */
+#if !defined(__SLICE_DECLS_INCLUDED)    /* Include only once */
 #define __SLICE_DECLS_INCLUDED
 
 PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node);
@@ -28,7 +28,7 @@ void freeGeneralVector(gV_t *gv);
 void pushGeneralVector(ngs_t *ngs, gV_t *gv);
 inline void makeVectorMonic(ngs_t *ngs, gV_t *gv);
 inline void multiply(PTR row, matrix_t *mat, PTR result, long r);
-void createWordForest(ngs_t *ngs, group_t *group);
+int createWordForest(ngs_t *ngs, group_t *group);
 // void freeWordForest(ngs_t *ngs);
 long maxDim(group_t *group);
 void destroyCurrentDimension(ngs_t *ngs);
