@@ -52,7 +52,7 @@ char *numberedFile(long n, char *stem, char *ext);
 /* String returned must be used at once, never reused, never freed. */
 /* extension WITHOUT dot */
 
-matrix_t *makeFirstDifferential(resol_t *resol);
+Matrix_t *makeFirstDifferential(resol_t *resol);
 nRgs_t *loadDifferential(resol_t *resol, long n);
 nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n);
 

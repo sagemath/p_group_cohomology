@@ -94,22 +94,6 @@ int InterpretCommandLine(int argc, char *argv[], control_t *control)
   return 0;
 }
 
-/******************************************************************************
-// apparently not used -- S. King
-static void printSupport(PTR vec)
-{
-  long i;
-  FEL f;
-  printf("support:");
-  for(i=0; i < FfNoc; i++)
-  {
-    f = FfExtract(vec,i+1);
-    if (f != FF_ZERO) printf(" %ld",i);
-  }
-  printf("\n");
-  return;
-}
-
 ******************************************************************************/
 boolean leftActionMatricesRequired(control_t *control)
 {

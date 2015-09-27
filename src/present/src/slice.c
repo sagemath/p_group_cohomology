@@ -135,7 +135,7 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
 }
 
 /******************************************************************************/
-inline void multiply(PTR row, matrix_t *mat, PTR result, long r)
+inline void multiply(PTR row, Matrix_t *mat, PTR result, long r)
 {
   register long i;
   PTR p1 = row;

@@ -54,7 +54,7 @@ int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
 }
 
 /******************************************************************************/
-matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
+Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   long nor = 0;
@@ -62,7 +62,7 @@ matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
   long i;
   gV_t *gv;
   rV_t *rv;
-  matrix_t *OUT;
+  Matrix_t *OUT;
   PTR p;
   register char *b;
   /* fp = writehdrplus(outfile, FfOrder, 0, group->nontips);
@@ -77,7 +77,7 @@ matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
     }
   }
   /* alterhdrplus(fp,nor);*/
-  OUT = matalloc(FfOrder, nor, noc);
+  OUT = MatAlloc(FfOrder, nor, noc);
   p = (PTR)OUT->d;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {

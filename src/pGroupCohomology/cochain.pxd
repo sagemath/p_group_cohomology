@@ -26,7 +26,7 @@ cdef class COCH
 cdef class ChMap
 cdef class YCOCH
 
-from pGroupCohomology.mtx cimport FEL, PTR, matrix_t, size_t, matmulF, mtx_tmultinv, FfFromInt, FfGetPtr, FfStepPtr, FfGetPtr, matfree, matdup, MTX
+from pGroupCohomology.mtx cimport FEL, PTR, Matrix_t, size_t, MatMulScalar, mtx_tmultinv, FfFromInt, FfGetPtr, FfStepPtr, FfGetPtr, MatFree, MatDup, MTX
 from pGroupCohomology.resolution cimport RESL
 from sage.structure.element import RingElement, ModuleElement
 from sage.structure.element cimport RingElement, ModuleElement
@@ -41,7 +41,7 @@ cdef extern from "meataxe.h":
     PTR FfAddMulRow(PTR dest, PTR src, FEL f)
     PTR FfAddRow(PTR dest, PTR src)
     PTR FfMapRow(PTR row, PTR matrix, long nor, PTR result)
-    Matrix_t *matadd(Matrix_t *dest, Matrix_t *src)
+    Matrix_t *MatAdd(Matrix_t *dest, Matrix_t *src) except NULL
 
 ###########################################################
 ## p-Gruppen

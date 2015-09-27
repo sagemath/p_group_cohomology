@@ -119,41 +119,6 @@ void freeDmsFolder(wgbFolder_t *folder)
   return;
 }
 
-/*******************************************************************************
-* static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
-* {
-  register long j, i;
-  int thisline;
-  long coeff;
-  long p = group->p;
-  long nontips = group->nontips;
-  boolean isLL = (group->ordering == 'L');
-  thisline = 1;
-  for (i = 0; i < nontips; i++)
-  {
-    j = isLL ? nontips - i - 1 : i;
-    coeff = FfToInt(FfExtract(minusValue, j+1));
-    if (coeff == 0) continue;
-    coeff = (2 * coeff > p) ? coeff - p : coeff;
-    if (thisline++ == TERMS_PER_LINE)
-    {
-      fprintf(fp,"\n");
-      thisline = 1;
-    }
-    fprintf(fp," ");
-    if (coeff < 0)
-    {
-      fprintf(fp,"- ");
-      coeff *= -1;
-    }
-    else fprintf(fp,"+ ");
-    if (coeff != 1) fprintf(fp, "%d ", coeff);
-    fprintf(fp,"%s", group->root[j].path);
-  }
-  return;
-}
-*/
-
 /******************************************************************************/
 static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
 {
@@ -167,7 +132,7 @@ static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
   for (i = 0; i < nontips; i++)
   {
     j = isLL ? nontips - i - 1 : i;
-    coeff = FfToInt(FfExtract(minusValue, j+1));
+    coeff = FfToInt(FfExtract(minusValue, j));
     if (coeff == 0) continue;
     if (thisline++ == TERMS_PER_LINE)
     {

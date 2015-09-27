@@ -1832,7 +1832,7 @@ cdef class COCH(RingElement):
         if f:
             if f!=1:
                 FfSetField(self.Data.Data.fl)
-                matmulF(self.Data.Data,mtx_tmultinv[FfFromInt(f)])
+                MatMulScalar(self.Data.Data,mtx_tmultinv[FfFromInt(f)])
                 self.Name = '('+self.Name+')/%d'%(f)
             return None
         else:
@@ -6705,7 +6705,7 @@ cdef class ChMap(RingHomomorphism):
                         sig_off()
                         raise ArithmeticError, "addition of rows failed"
                     sig_off()
-                matfree(L)
+                MatFree(L)
 
         print_protocol('lift in the target resolution to degree %d'%(TgtDeg), self)
         rk   = self.Tgt.Data.projrank[TgtDeg]
@@ -6730,8 +6730,7 @@ cdef class ChMap(RingHomomorphism):
                 for J in Piv:
                     if Z[J]:
                         DUMMY = Autolift[J][Z[J]]
-                        if not(matadd(TMP.Data, DUMMY.Data)):
-                            raise ArithmeticError, "Matrix addition failed"
+                        MatAdd(TMP.Data, DUMMY.Data)
                 #for j from 0 <= j < rk:
                     #OUT[i*rk+j] = TMP._rowlist_(j)
                 OUT[i*rk] = TMP

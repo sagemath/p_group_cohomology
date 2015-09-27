@@ -32,7 +32,7 @@ void freeNRgs(nRgs_t *nRgs);
 int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group);
 int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group);
 
-matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group);
+Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group);
 
 /* The following function just returns numberOfHeadVectors. 
    Remove it! (Simon King 2008-12) 

@@ -53,7 +53,7 @@ inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem)
 void freeInclusionRecord(inclus_t *inclus)
 {
   if (inclus->stem) free(inclus->stem);
-  if (inclus->ima) matfree(inclus->ima);
+  if (inclus->ima) MatFree(inclus->ima);
   free(inclus);
   return;
 }
@@ -71,9 +71,9 @@ int makeInclusionMatrix(inclus_t *inclus)
   long a, i;
   PTR prev, this;
   path_t *p;
-  matrix_t **Hgens = allocateMatrixList(G, Hnum);
+  Matrix_t **Hgens = allocateMatrixList(G, Hnum);
   if (!Hgens) return 1;
-  matrix_t *ima = matalloc(FfOrder, Hsize, Gsize);
+  Matrix_t *ima = MatAlloc(FfOrder, Hsize, Gsize);
   if (!ima)
       {
           freeMatrixList(Hgens);
@@ -94,7 +94,7 @@ int makeInclusionMatrix(inclus_t *inclus)
     return 1;
   }
   if (basisChangeReg2Nontips(G, Hgens, Hnum)) return 1;
-  FfInsert(ima->d, 1, FF_ONE);
+  FfInsert(ima->d, 0, FF_ONE);
   for (i = 1; i < Hsize; i++)
   {
     p = H->root + i;
@@ -113,7 +113,7 @@ int makeInclusionMatrix(inclus_t *inclus)
  ***************************************************************************/
 int saveInclusionMatrix(inclus_t *inclus)
 {
-  if (matsave(inclus->ima, inclusionMatrixFile(inclus))) return 1;
+  if (MatSave(inclus->ima, inclusionMatrixFile(inclus))) return 1;
   return 0;
 }
 
@@ -122,8 +122,8 @@ int saveInclusionMatrix(inclus_t *inclus)
  ****************************************************************************/
 int loadInclusionMatrix(inclus_t *inclus)
 {
-  matrix_t *ima;
-  ima = matload(inclusionMatrixFile(inclus));
+  Matrix_t *ima;
+  ima = MatLoad(inclusionMatrixFile(inclus));
   if (!ima) return 1;
   if (ima->nor != inclus->H->nontips)
   {

@@ -114,10 +114,10 @@ static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
   fprintf(fp, "KMatSpace := KMatrixSpace(GF(%ld), %ld, %ld);\n", mat->fl,
     mat->nor, mat->noc);
   fprintf(fp, "%s := KMatSpace ! [\n", Magname);
-  for (i = 1; i <= mat->nor; i++)
+  for (i = 0; i < mat->nor; i++)
   {
-    row = FfGetPtr(mat->d, i-1);
-    for (j = 1; j <= mat->noc; j++)
+    row = FfGetPtr(mat->d, i);
+    for (j = 0; j < mat->noc; j++)
     {
       if (thisrow == mpl)
       {
@@ -126,7 +126,7 @@ static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
         thisrow = 0;
       }
       sprintf(tmp, " %ld", FfToInt(FfExtract(row, j)));
-      if (i < mat->nor || j < mat->noc) strcat(tmp, ",");
+      if (i < mat->nor-1 || j < mat->noc-1) strcat(tmp, ",");
       strcat(buffer, tmp);
       thisrow++;
     }
@@ -153,7 +153,7 @@ static int convertMatrixToMagma(char *Matname, char *Magfile, char *Magname)
   Matrix_t *mat = MatLoad(Matname);
   if (!mat) return 1;
   int r = dumpMagmaMatrix(mat, Magfile, Magname);
-  matfree(mat);
+  MatFree(mat);
   return r;
 }
 

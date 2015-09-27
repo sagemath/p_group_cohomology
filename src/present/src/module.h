@@ -27,7 +27,7 @@ struct moduleRecord
 {
   char *stem;
   long dim;
-  matrix_t **action;
+  Matrix_t **action;
 };
 
 typedef struct moduleRecord module_t;

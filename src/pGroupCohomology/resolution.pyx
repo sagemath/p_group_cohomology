@@ -60,7 +60,7 @@ include "interrupt.pxi"
 ## MTX related auxiliary functions
 cdef MTX makeMTX (Matrix_t *Data):
     """
-    Make an immutable MTX-matrix out of the genuine MeatAxe-type <matrix_t>
+    Make an immutable MTX-matrix out of the genuine MeatAxe-type <Matrix_t>
 
     We can hardly test this method, since this cdef'd function and
     the MeatAxe-types can not be imported in Python. So, we only device
@@ -2572,8 +2572,7 @@ cdef class RESL:
         for j in Piv:
             if Z[j]:
                 DUMMY = Autolift[j][Z[j]]
-                if not(matadd(TMP.Data, DUMMY.Data)):
-                    raise ArithmeticError, "Matrix addition failed"
+                matadd(TMP.Data, DUMMY.Data)
         if check:
             if self.applyDiff(n,TMP)!=M:
                 raise ArithmeticError, "lifting failed"
@@ -2663,7 +2662,7 @@ cdef class RESL:
                         raise ArithmeticError, "multiplication failed"
                     if not (FfAddRow(FfGetPtr(OUT.Data.d,k*rk+i), tmp.Data.d)):
                         raise ArithmeticError, "addition of rows failed"
-                matfree(L)
+                MatFree(L)
         return OUT
 
 
@@ -2793,7 +2792,7 @@ cdef class RESL:
                         if not (FfAddRow(OUT1d, tmp.Data.d)):
                             raise ArithmeticError, "addition of rows failed"
                         FfStepPtr(&(OUT1d))
-                matfree(R)
+                MatFree(R)
         return OUT
 
     ################################################################
@@ -2937,9 +2936,7 @@ cdef class RESL:
                     for j in Piv:
                         if Z[j]:
                             DUMMY = Autolift[j][Z[j]]
-                            if not(matadd(TMP.Data, DUMMY.Data)):
-                                sig_off()
-                                raise ArithmeticError, "Matrix addition failed"
+                            matadd(TMP.Data, DUMMY.Data)
                     # Could the following could be done better with memcpy ?
                     #for j from 0 <= j < projrk:
                     #    #Out1[i*self.Data.projrank[Compos[1]+1]+j] = TMP._rowlist_(j)
@@ -3058,8 +3055,7 @@ cdef class RESL:
             for j in Piv:
                 if Z[j]:
                     DUMMY = Autolift[j][Z[j]]
-                    if not(matadd(TMP.Data, DUMMY.Data)):
-                        raise ArithmeticError, "Matrix addition failed"
+                    matadd(TMP.Data, DUMMY.Data)
             # Could the following be done better with memcpy - ???
             #for k from 0 <= k < rk:
             OUT[i*rk] = TMP #TMP._rowlist_(k)

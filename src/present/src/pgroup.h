@@ -59,9 +59,9 @@ struct groupRecord
   char **nontip;
   path_t *root;
   path_t *lroot;
-  matrix_t **action;
-  matrix_t **laction;
-  matrix_t **bch;
+  Matrix_t **action;
+  Matrix_t **laction;
+  Matrix_t **bch;
   long *dim;
   long *dS;           /* depth Steps: for resolution only */
 };

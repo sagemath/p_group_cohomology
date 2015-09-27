@@ -620,53 +620,51 @@ inline void freeRoot(path_t *root)
 /****
  * NULL on error
  ***************************************************************************/
-matrix_t **loadMatrixList(group_t *group, char *name, long num)
+Matrix_t **loadMatrixList(group_t *group, char *name, long num)
 {
-  matrix_t *bigmat;
-  matrix_t **action; //, *mats;
+  Matrix_t *bigmat;
+  Matrix_t **action;
   long nontips = group->nontips;
   //PTR base, ptr;
   long i;
-  bigmat = matload(name); /* sets FfOrder, FfNoc to required values */
+  bigmat = MatLoad(name); /* sets FfOrder, FfNoc to required values */
   if (!bigmat) return NULL;
   if (bigmat->noc != nontips)
-    { matfree(bigmat);
+    { MatFree(bigmat);
       MTX_ERROR1("noc != nontips: %E", MTX_ERR_INCOMPAT);
       return NULL;
     }
   if (bigmat->nor != num * nontips)
-    { matfree(bigmat);
+    { MatFree(bigmat);
       MTX_ERROR1("nor ! num * nontips: %E", MTX_ERR_INCOMPAT);
       return NULL;
     }
   if (group->p != FfChar)
-    { matfree(bigmat);
+    { MatFree(bigmat);
       MTX_ERROR1("matrices over wrong characteristic field: %E", MTX_ERR_INCOMPAT);
       return NULL;
     }
-  /* base = bigmat->d;
-     mats = (matrix_t *) malloc(num * sizeof(matrix_t));
-  */
-  //  action = (matrix_t **) malloc (num * sizeof(matrix_t *));
-  action = (matrix_t **) malloc (num * sizeof(void*));
+  action = (Matrix_t **) malloc (num * sizeof(void*));
   if (!action)
   {
-      matfree(bigmat);
+      MatFree(bigmat);
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
+  Matrix_t *tmp
+  size_t chunksize = FfCurrentRowSize*nontips;
   for (i = 0; i < num; i++)
   {
-    /*    action[i] = mats + i;
-      action[i]->fl = FfOrder;
-      action[i]->noc = nontips;
-      action[i]->nor = nontips;
-      action[i]->d = ptr;
-      zadvance(&ptr,nontips);
-    */
-    action[i] = _matextract(bigmat,i*nontips+1,nontips);
+      tmp = MatAlloc(bigmat->Field, nontips, bigmat->Noc);
+      if (!tmp)
+      { MatFree(bigmat);
+        MTX_ERROR1("%E", MTX_ERR_NOMEM);
+        return NULL;
+      }
+      memcpy(tmp->Data, MatGetPtr(bigmat, i*nontips), chunksize);
+      action[i] = tmp;
   }
-  matfree(bigmat);
+  MatFree(bigmat);
   return action;
 }
 
@@ -715,14 +713,14 @@ int loadBasisChangeMatrices(group_t *group)
 /****
  * 1 on error
  ***************************************************************************/
-int saveMatrixList(group_t *group, matrix_t **action, long num, char *name)
+int saveMatrixList(group_t *group, Matrix_t **action, long num, char *name)
 {
-  matrix_t mat;
+  Matrix_t mat;
   mat.fl = group->p;
   mat.noc = group->nontips;
   mat.nor = group->nontips * num;
   mat.d = action[0]->d;
-  if (matsave(&mat,name) != 0)
+  if (MatSave(&mat,name) != 0)
   {
       MTX_ERROR1("%E", MTX_ERR_FILEFMT);
       return 1;
@@ -769,11 +767,11 @@ int saveBasisChangeMatrices(group_t *group)
 /****
  * 1 on error
  ***************************************************************************/
-int saveBasisChangeMatrix(group_t *group, matrix_t *bw)
+int saveBasisChangeMatrix(group_t *group, Matrix_t *bw)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".bch");
-  if (matsave(bw,name) != 0)
+  if (MatSave(bw,name) != 0)
   {
       MTX_ERROR1("%E", MTX_ERR_FILEFMT);
       return 1;
@@ -784,11 +782,11 @@ int saveBasisChangeMatrix(group_t *group, matrix_t *bw)
 /****
  * NULL on error
  ***************************************************************************/
-matrix_t **allocateMatrixList(group_t *group, long num)
+Matrix_t **allocateMatrixList(group_t *group, long num)
 {
   long nontips = group->nontips;
   PTR ptr, tmp;
-  matrix_t *mat, **action;
+  Matrix_t *mat, **action;
   register long i;
   FfSetNoc(nontips);
   ptr = FfAlloc(num * nontips);
@@ -797,14 +795,14 @@ matrix_t **allocateMatrixList(group_t *group, long num)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  mat = (matrix_t *) malloc(num * sizeof(matrix_t));
+  mat = (Matrix_t *) malloc(num * sizeof(Matrix_t));
   if (!mat)
   {
       free(ptr);
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  action = (matrix_t **) malloc(num * sizeof(matrix_t *));
+  action = (Matrix_t **) malloc(num * sizeof(Matrix_t *));
   if (!action)
   {
       free(mat);
@@ -826,13 +824,13 @@ matrix_t **allocateMatrixList(group_t *group, long num)
 /****
  * NULL on error
  ***************************************************************************/
-inline matrix_t **allocateActionMatrices(group_t *group)
+inline Matrix_t **allocateActionMatrices(group_t *group)
 {
   return allocateMatrixList(group, group->arrows);
 }
 
 /******************************************************************************/
-inline void freeMatrixList(matrix_t **mat)
+inline void freeMatrixList(Matrix_t **mat)
 {
   free(mat[0]->d);
   free(mat[0]);
@@ -840,7 +838,7 @@ inline void freeMatrixList(matrix_t **mat)
 }
 
 /******************************************************************************/
-inline void freeActionMatrices(matrix_t **mat)
+inline void freeActionMatrices(Matrix_t **mat)
 {
   free(mat[0]->d);
   free(mat[0]);
@@ -872,7 +870,7 @@ inline long modifiedMinlong(long n1, long n2)
 
 
 /******************************************************************************/
-void addmul(matrix_t *dest, matrix_t *src, FEL f)
+void addmul(Matrix_t *dest, Matrix_t *src, FEL f)
 {
   register long i;
   PTR pdest = dest->d;
@@ -1008,17 +1006,17 @@ void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
 }
 
 /******************************************************************************/
-inline matrix_t *rightActionMatrix(group_t *group, PTR vec)
+inline Matrix_t *rightActionMatrix(group_t *group, PTR vec)
 {
-  matrix_t *mat = matalloc(FfOrder, group->nontips, group->nontips);
+  Matrix_t *mat = MatAlloc(FfOrder, group->nontips, group->nontips);
   innerRightActionMatrix(group, vec, mat->d);
   return mat;
 }
 
 /******************************************************************************/
-inline matrix_t *leftActionMatrix(group_t *group, PTR vec)
+inline Matrix_t *leftActionMatrix(group_t *group, PTR vec)
 {
-  matrix_t *mat = matalloc(FfOrder, group->nontips, group->nontips);
+  Matrix_t *mat = MatAlloc(FfOrder, group->nontips, group->nontips);
   innerLeftActionMatrix(group, vec, mat->d);
   return mat;
 }
@@ -1150,7 +1148,7 @@ int convertPermutationsToAsci(char *infile, char *outfile)
 /****
  * 1 on error
  ***************************************************************************/
-int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
+int loadGeneralRegularActionMatrices(group_t *group, Matrix_t **action,
   char *name, long num)
 {
   long buffer[3], nontips = group->nontips;
@@ -1174,14 +1172,14 @@ int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
   for (i = 0; i < num; i++)
   {
     ptr = action[i]->d;
-    for (j = 1; j <= nontips; j++, FfStepPtr(&ptr))
+    for (j = 0; j < nontips; j++, FfStepPtr(&ptr))
       FfInsert(ptr, j, F_MINUS);
   }
   for (i = 0; i < num; i++)
   {
     ptr = action[i]->d;
-    for (j = 1; j <= nontips; j++, FfStepPtr(&ptr))
-    {
+    for (j = 0; j < nontips; j++, FfStepPtr(&ptr))
+    { printf("WARNING: Is the coefficient range right?\n");
       if (SysReadLong(fp,buffer,1) != 1)
       { fclose(fp);
         MTX_ERROR1("reading body: %E", MTX_ERR_FILEFMT);
@@ -1212,14 +1210,14 @@ int makeBasisChangeMatrices(group_t *group)
 /* Assumes group->action matrices currently wrt basis of group elements */
 {
   register long i;
-  matrix_t **bch = allocateMatrixList(group, 2);
+  Matrix_t **bch = allocateMatrixList(group, 2);
   if (!bch) return 1;
-  matrix_t *bw = bch[0], *wb;
-  matrix_t **action = group->action;
+  Matrix_t *bw = bch[0], *wb;
+  Matrix_t **action = group->action;
   long nontips = group->nontips;
   PTR src, dest;
   path_t *p;
-  FfInsert(bw->d, 1, FF_ONE);
+  FfInsert(bw->d, 0, FF_ONE);
   for (i = 1; i < nontips; i++)
   {
     p = group->root + i;
@@ -1227,13 +1225,13 @@ int makeBasisChangeMatrices(group_t *group)
     src = FfGetPtr(bw->d, p->parent->index);
     FfMapRow(src, action[p->lastArrow]->d, nontips, dest);
   }
-  wb = matinv(bw);
+  wb = MatInv(bw);
   if (!wb)
   { freeMatrixList(bch);
     return 1;
   }
   memcpy(bch[1]->d, wb->d, (FfCurrentRowSize*nontips));
-  matfree(wb);
+  MatFree(wb);
   group->bch = bch;
   return 0;
 }
@@ -1261,7 +1259,7 @@ int readRegFileHeader(group_t *group)
  ****************************************************************************/
 int makeLeftActionMatrices(group_t *group)
 {
-  matrix_t **laction = allocateActionMatrices(group);
+  Matrix_t **laction = allocateActionMatrices(group);
   if (!laction) return 1;
   long a;
   path_t *p;
@@ -1275,7 +1273,7 @@ int makeLeftActionMatrices(group_t *group)
   {
     FfMulRow(vec, FF_ZERO);
     p = group->root->child[a];
-    FfInsert(vec, 1 + p->index, FF_ONE); /* Should work with Jennings order too */
+    FfInsert(vec, p->index, FF_ONE); /* Should work with Jennings order too */
     innerLeftActionMatrix(group, vec, laction[a]->d);
   }
   group->laction = laction;
@@ -1287,7 +1285,7 @@ int makeLeftActionMatrices(group_t *group)
 /**
  * 1 on error
  *******************************/
-int innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
+int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* Assembles dest * src at scratch. */
 /* src should be square, scratch should point to enough space. */
 {
@@ -1312,7 +1310,7 @@ int innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
 /**
  * NULL on error
  ******/
-static matrix_t *innerRightAction(matrix_t *dest, const matrix_t *src,
+static Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src,
   PTR scratch)
 /* Guaranteed not to alter dest->d */
 /* Result will be assembled at scratch, then copied to dest */
@@ -1326,7 +1324,7 @@ static matrix_t *innerRightAction(matrix_t *dest, const matrix_t *src,
 /**
  * NULL on error
  ****/
-static matrix_t *innerLeftAction(const matrix_t *src, matrix_t *dest,
+static Matrix_t *innerLeftAction(const Matrix_t *src, Matrix_t *dest,
   PTR scratch)
 /* Guaranteed not to alter dest->d */
 /* Result will be assembled at scratch, then copied to dest */
@@ -1354,13 +1352,13 @@ static matrix_t *innerLeftAction(const matrix_t *src, matrix_t *dest,
 /****
  * 1 on error
  ***************************************************************************/
-int innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
+int innerBasisChangeNontips2Reg(group_t *group, Matrix_t **matlist,
   long num, PTR workspace)
   /* Alters matrices in matlist */
   /* workspace points to group->nontips rows scratch space */
 {
   register long i;
-  matrix_t *bw = group->bch[0], *wb = group->bch[1];
+  Matrix_t *bw = group->bch[0], *wb = group->bch[1];
   for (i = 0; i < num; i++)
   {
     if (!innerLeftAction(wb, matlist[i], workspace)) return 1;
@@ -1372,13 +1370,13 @@ int innerBasisChangeNontips2Reg(group_t *group, matrix_t **matlist,
 /****
  * 1 on error
  ***************************************************************************/
-int innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
+int innerBasisChangeReg2Nontips(group_t *group, Matrix_t **matlist,
   long num, PTR workspace)
 /* Alters matrices in matlist */
 /* workspace points to group->nontips rows scratch space */
 {
   register long i;
-  matrix_t *bw = group->bch[0], *wb = group->bch[1];
+  Matrix_t *bw = group->bch[0], *wb = group->bch[1];
   for (i = 0; i < num; i++)
   {
     if (!innerLeftAction(bw, matlist[i], workspace)) return 1;
@@ -1390,7 +1388,7 @@ int innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
 /*****
  * 1 on error
  **************************************************************************/
-int basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
+int basisChangeReg2Nontips(group_t *group, Matrix_t **matlist, long num)
 /* Alters matrices in matlist */
 {
   PTR workspace = FfAlloc(group->nontips);
@@ -1558,7 +1556,7 @@ group_t *fullyLoadedGroupRecord(char *stem)
 }
 
 /******************************************************************************/
-inline boolean mateq(matrix_t *mat1, matrix_t *mat2)
+inline boolean mateq(Matrix_t *mat1, Matrix_t *mat2)
 {
   register long i;
   PTR row1, row2;
@@ -1577,8 +1575,8 @@ inline boolean mateq(matrix_t *mat1, matrix_t *mat2)
 /****
  * -1 on error
  ***************************************************************************/
-static int matricesCommute(matrix_t *a, matrix_t *b, matrix_t *ab,
-  matrix_t *ba)
+static int matricesCommute(Matrix_t *a, Matrix_t *b, Matrix_t *ab,
+  Matrix_t *ba)
 {
   if (innerRightProduct(a, b, ab->d)) return -1;
   if (innerRightProduct(b, a, ba->d)) return -1;
@@ -1595,8 +1593,8 @@ int verifyGroupIsAbelian(group_t *A)
   long fl = A->action[0]->fl;
   long i, j;
   int thisPairCommutes;
-  matrix_t *ab = matalloc(fl, Asize, Asize);
-  matrix_t *ba = matalloc(fl, Asize, Asize);
+  Matrix_t *ab = MatAlloc(fl, Asize, Asize);
+  Matrix_t *ba = MatAlloc(fl, Asize, Asize);
   if (!ab || !ba)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);

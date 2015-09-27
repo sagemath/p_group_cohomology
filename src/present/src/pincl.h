@@ -28,7 +28,7 @@ struct subgroupInclusion
 {
   group_t *H, *G; /* G the group, H the subgroup */
   char *stem;
-  matrix_t *ima; /* Inclusion matrix */
+  Matrix_t *ima; /* Inclusion matrix */
 };
 
 typedef struct subgroupInclusion inclus_t;

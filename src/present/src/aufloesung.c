@@ -315,7 +315,7 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   if (!nRgs) return NULL;
   ngs = nRgs->ngs;
   for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s+1))
-    FfInsert(ptr, 1, minus_one);
+    FfInsert(ptr, 0, minus_one);
   if (nRgsInitializeVectors(nRgs, mat, pre, s, group)) return NULL;
   free(pre);
   ngs->targetRank = dimIm(resol, n);
@@ -355,13 +355,13 @@ char *numberedFile(long n, char *stem, char *extension)
 /****
  * NULL on error
  ***************************************************************************/
-matrix_t *makeFirstDifferential(resol_t *resol)
+Matrix_t *makeFirstDifferential(resol_t *resol)
 {
   long i;
   PTR ptr;
   group_t *group = resol->group;
   long dimP1 = 0;
-  matrix_t *pres;
+  Matrix_t *pres;
   switch(group->ordering)
   {
   case 'R' :
@@ -374,13 +374,13 @@ matrix_t *makeFirstDifferential(resol_t *resol)
     MTX_ERROR("not implemented for this ordering");
     return NULL;
   }
-  pres = matalloc(FfOrder, dimP1, group->nontips);
+  pres = MatAlloc(FfOrder, dimP1, group->nontips);
   if (!pres)
   {
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  for (i = 2, ptr = pres->d; i <= dimP1 + 1; i++, FfStepPtr(&ptr))
+  for (i = 0, ptr = pres->d; i < dimP1; i++, FfStepPtr(&ptr))
     FfInsert(ptr, i, FF_ONE);
   if (setRankProj(resol, 1, dimP1))
   { MatFree(pres);
@@ -395,13 +395,13 @@ matrix_t *makeFirstDifferential(resol_t *resol)
 nRgs_t *loadDifferential(resol_t *resol, long n)
 {
   nRgs_t *nRgs;
-  matrix_t *pres = matload(differentialFile(resol, n));
+  Matrix_t *pres = MatLoad(differentialFile(resol, n));
   if (!pres)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
   }
   nRgs = nRgsStandardSetup(resol, n, pres->d);
-  matfree(pres);
+  MatFree(pres);
   return nRgs;
 }
 
@@ -411,13 +411,13 @@ nRgs_t *loadDifferential(resol_t *resol, long n)
 nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n)
 {
   nRgs_t *nRgs;
-  matrix_t *pres = matload(urbildGBFile(resol, n));
+  Matrix_t *pres = MatLoad(urbildGBFile(resol, n));
   if (!pres)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
   }
   nRgs = urbildSetup(resol, n, pres->d, pres->nor);
-  matfree(pres);
+  MatFree(pres);
   return nRgs;
 }
 
