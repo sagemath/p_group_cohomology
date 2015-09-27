@@ -297,7 +297,7 @@ int loadDimensions(group_t *group)
   }
   dims = GetNextLong(&fp, buffer);
   if (!fp) return 1;
-  dim = (long *) malloc((dims+1) << LONGSH);
+  dim = (long *) malloc((dims+1) * sizeof(long));
   if (!dim)
   { fclose(fp);
     MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -443,10 +443,10 @@ int loadNonTips(group_t *group)
       free(buffer);
       return 1;
   }
-  zsetfield(group->p);
-  zsetlen(nontips);
+  FfSetField(group->p);
+  FfSetNoc(nontips);
   //  nontip = (char **) malloc(nontips * sizeof(char *));
-  nontip = (char **) malloc(nontips << PTRSH);
+  nontip = (char **) malloc(nontips * sizeof(void*));
   if (!nontip)
   {
       free(buffer);
@@ -510,7 +510,7 @@ path_t *allocatePathTree(group_t *group)
       return NULL;
   }
   //  kinder = (path_t **) malloc(nontips * arrows * sizeof(path_t *));
-  kinder = (path_t **) malloc(nontips * arrows << PTRSH);
+  kinder = (path_t **) malloc(nontips * arrows * sizeof(void*));
   if (!kinder)
   {
       free(root);
@@ -627,7 +627,7 @@ matrix_t **loadMatrixList(group_t *group, char *name, long num)
   long nontips = group->nontips;
   //PTR base, ptr;
   long i;
-  bigmat = matload(name); /* sets zfl, znoc to required values */
+  bigmat = matload(name); /* sets FfOrder, FfNoc to required values */
   if (!bigmat) return NULL;
   if (bigmat->noc != nontips)
     { matfree(bigmat);
@@ -639,7 +639,7 @@ matrix_t **loadMatrixList(group_t *group, char *name, long num)
       MTX_ERROR1("nor ! num * nontips: %E", MTX_ERR_INCOMPAT);
       return NULL;
     }
-  if (group->p != zchar)
+  if (group->p != FfChar)
     { matfree(bigmat);
       MTX_ERROR1("matrices over wrong characteristic field: %E", MTX_ERR_INCOMPAT);
       return NULL;
@@ -648,7 +648,7 @@ matrix_t **loadMatrixList(group_t *group, char *name, long num)
      mats = (matrix_t *) malloc(num * sizeof(matrix_t));
   */
   //  action = (matrix_t **) malloc (num * sizeof(matrix_t *));
-  action = (matrix_t **) malloc (num << PTRSH);
+  action = (matrix_t **) malloc (num * sizeof(void*));
   if (!action)
   {
       matfree(bigmat);
@@ -658,7 +658,7 @@ matrix_t **loadMatrixList(group_t *group, char *name, long num)
   for (i = 0; i < num; i++)
   {
     /*    action[i] = mats + i;
-      action[i]->fl = zfl;
+      action[i]->fl = FfOrder;
       action[i]->noc = nontips;
       action[i]->nor = nontips;
       action[i]->d = ptr;
@@ -790,8 +790,8 @@ matrix_t **allocateMatrixList(group_t *group, long num)
   PTR ptr, tmp;
   matrix_t *mat, **action;
   register long i;
-  zsetlen(nontips);
-  ptr = zalloc(num * nontips);
+  FfSetNoc(nontips);
+  ptr = FfAlloc(num * nontips);
   if (!ptr)
   {
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -812,10 +812,10 @@ matrix_t **allocateMatrixList(group_t *group, long num)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  for (i = 0, tmp = ptr; i < num; i++, zadvance(&tmp,nontips))
+  for (i = 0, tmp = ptr; i < num; i++, tmp=FfGetPtr(tmp,nontips))
   {
     action[i] = mat + i;
-    action[i]->fl = zfl;
+    action[i]->fl = FfOrder;
     action[i]->nor = nontips;
     action[i]->noc = nontips;
     action[i]->d = tmp;
@@ -847,17 +847,7 @@ inline void freeActionMatrices(matrix_t **mat)
   free(mat);
 }
 
-/******************************************************************************/
-/* returns PTR to base + offset
-   now a macro in meataxe.h, which is included by pgroup_decls.h
-PTR ptrPlus(PTR base, long offset)
-{
-  PTR result = base;
-  zadvance(&result, offset);
-  return result;
-}
-*/
-  /***************************************************************************/
+/***************************************************************************/
   /* Simon King (2008-12): Make these macros*/
 inline long maxlong(long n1, long n2)
 {
@@ -889,9 +879,9 @@ void addmul(matrix_t *dest, matrix_t *src, FEL f)
   PTR psrc = src->d;
   for (i = dest->nor; i > 0; i--)
   {
-    zaddmulrow(pdest,psrc,f);
-    zsteprow(&pdest);
-    zsteprow(&psrc);
+    FfAddMulRow(pdest,psrc,f);
+    FfStepPtr(&pdest);
+    FfStepPtr(&psrc);
   }
   return;
 }
@@ -990,13 +980,13 @@ void innerRightActionMatrix(group_t *group, PTR vec, PTR dest)
 {
   long a, i;
   PTR prev, this;
-  memcpy(dest, vec, zsize(1));
+  memcpy(dest, vec, (FfCurrentRowSize*1));
   for (i = 1; i < group->nontips; i++)
   {
-    prev = ptrPlus(dest, group->lroot[i].parent->index);
-    this = ptrPlus(dest, i);
+    prev = FfGetPtr(dest, group->lroot[i].parent->index);
+    this = FfGetPtr(dest, i);
     a = group->lroot[i].lastArrow;
-    zmaprow(prev, group->laction[a]->d, group->nontips, this);
+    FfMapRow(prev, group->laction[a]->d, group->nontips, this);
   }
   return;
 }
@@ -1006,13 +996,13 @@ void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
 {
   long a, i;
   PTR prev, this;
-  memcpy(dest, vec, zrowsize_io); //zsize(1));
+  memcpy(dest, vec, FfCurrentRowSizeIo); //(FfCurrentRowSize*1));
   for (i = 1; i < group->nontips; i++)
   {
-    prev = ptrPlus(dest, group->root[i].parent->index);
-    this = ptrPlus(dest, i);
+    prev = FfGetPtr(dest, group->root[i].parent->index);
+    this = FfGetPtr(dest, i);
     a = group->root[i].lastArrow;
-    zmaprow(prev, group->action[a]->d, group->nontips, this);
+    FfMapRow(prev, group->action[a]->d, group->nontips, this);
   }
   return;
 }
@@ -1020,7 +1010,7 @@ void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
 /******************************************************************************/
 inline matrix_t *rightActionMatrix(group_t *group, PTR vec)
 {
-  matrix_t *mat = matalloc(zfl, group->nontips, group->nontips);
+  matrix_t *mat = matalloc(FfOrder, group->nontips, group->nontips);
   innerRightActionMatrix(group, vec, mat->d);
   return mat;
 }
@@ -1028,7 +1018,7 @@ inline matrix_t *rightActionMatrix(group_t *group, PTR vec)
 /******************************************************************************/
 inline matrix_t *leftActionMatrix(group_t *group, PTR vec)
 {
-  matrix_t *mat = matalloc(zfl, group->nontips, group->nontips);
+  matrix_t *mat = matalloc(FfOrder, group->nontips, group->nontips);
   innerLeftActionMatrix(group, vec, mat->d);
   return mat;
 }
@@ -1050,19 +1040,19 @@ void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   long nontips = group->nontips;
   long i,j,k;
   PTR alpha_ji, beta_kj, gamma_ki;
-  PTR mat = scratch, tmp = ptrPlus(scratch, nontips);
+  PTR mat = scratch, tmp = FfGetPtr(scratch, nontips);
   for (i = 0; i < s; i++)
   {
     for (j = 0; j < r; j++)
     {
-      alpha_ji = ptrPlus(alpha, j + i * r);
+      alpha_ji = FfGetPtr(alpha, j + i * r);
       innerRightActionMatrix(group, alpha_ji, mat);
       for (k = 0; k < q; k++)
       {
-        beta_kj = ptrPlus(beta, k + j * q);
-        gamma_ki = ptrPlus(gamma, k + i * q);
-        zmaprow(beta_kj, mat, nontips, tmp);
-        zaddrow(gamma_ki, tmp);
+        beta_kj = FfGetPtr(beta, k + j * q);
+        gamma_ki = FfGetPtr(gamma, k + i * q);
+        FfMapRow(beta_kj, mat, nontips, tmp);
+        FfAddRow(gamma_ki, tmp);
       }
     }
   }
@@ -1086,19 +1076,19 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   long nontips = group->nontips;
   long i,j,k;
   PTR alpha_ji, beta_kj, gamma_ki;
-  PTR mat = scratch, tmp = ptrPlus(scratch, nontips);
+  PTR mat = scratch, tmp = FfGetPtr(scratch, nontips);
   for (k = 0; k < q; k++)
   {
     for (j = 0; j < r; j++)
     {
-      beta_kj = ptrPlus(beta, k + j * q);
+      beta_kj = FfGetPtr(beta, k + j * q);
       innerLeftActionMatrix(group, beta_kj, mat);
       for (i = 0; i < s; i++)
       {
-        alpha_ji = ptrPlus(alpha, j + i * r);
-        gamma_ki = ptrPlus(gamma, k + i * q);
-        zmaprow(alpha_ji, mat, nontips, tmp);
-        zaddrow(gamma_ki, tmp);
+        alpha_ji = FfGetPtr(alpha, j + i * r);
+        gamma_ki = FfGetPtr(gamma, k + i * q);
+        FfMapRow(alpha_ji, mat, nontips, tmp);
+        FfAddRow(gamma_ki, tmp);
       }
     }
   }
@@ -1113,15 +1103,15 @@ int convertPermutationsToAsci(char *infile, char *outfile)
   long header[3], *line;
   long nontips, num, i, j;
   FILE *fin, *fout;
-  fin = SFOpen(infile, FM_READ);
+  fin = SysFopen(infile, FM_READ);
   if (!fin) return 1;
-  fout = SFOpen(outfile, FM_CREATE);
+  fout = SysFopen(outfile, FM_CREATE);
   if (!fout)
   {
       fclose(fin);
       return 1;
   }
-  if (zreadlong(fin, header, 3) != 3)
+  if (SysReadLong(fin, header, 3) != 3)
   {
       fclose(fin);
       fclose(fout);
@@ -1131,7 +1121,7 @@ int convertPermutationsToAsci(char *infile, char *outfile)
   /* val of header[0] always seems to be -1 : documented by Ringe? */
   nontips = header[1];
   num = header[2];
-  line = (long *) malloc(nontips << LONGSH);
+  line = (long *) malloc(nontips * sizeof(long));
   if (!line)
   {
       fclose(fin);
@@ -1142,7 +1132,7 @@ int convertPermutationsToAsci(char *infile, char *outfile)
   fprintf(fout, "%ld\n%ld\n", num, nontips);
   for (i = 0; i < num; i++)
   {
-    if (zreadlong(fin, line, nontips) != nontips)
+    if (SysReadLong(fin, line, nontips) != nontips)
     {
         free(line);
         fclose(fin);
@@ -1165,12 +1155,12 @@ int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
 {
   long buffer[3], nontips = group->nontips;
   PTR ptr;
-  FEL F_MINUS = zsub(F_ZERO, F_ONE);
+  FEL F_MINUS = FfSub(FF_ZERO, FF_ONE);
   long i,j;
   FILE *fp;
-  fp = SFOpen(name, FM_READ);
+  fp = SysFopen(name, FM_READ);
   if (!fp) return 1;
-  if (zreadlong(fp, buffer, 3) != 3)
+  if (SysReadLong(fp, buffer, 3) != 3)
   {
       fclose(fd);
       MTX_ERROR1("reading header: %E", MTX_ERR_FILEFMT);
@@ -1184,18 +1174,18 @@ int loadGeneralRegularActionMatrices(group_t *group, matrix_t **action,
   for (i = 0; i < num; i++)
   {
     ptr = action[i]->d;
-    for (j = 1; j <= nontips; j++, zsteprow(&ptr))
-      zinsert(ptr, j, F_MINUS);
+    for (j = 1; j <= nontips; j++, FfStepPtr(&ptr))
+      FfInsert(ptr, j, F_MINUS);
   }
   for (i = 0; i < num; i++)
   {
     ptr = action[i]->d;
-    for (j = 1; j <= nontips; j++, zsteprow(&ptr))
+    for (j = 1; j <= nontips; j++, FfStepPtr(&ptr))
     {
-      if (zreadlong(fp,buffer,1) != 1)
+      if (SysReadLong(fp,buffer,1) != 1)
       { fclose(fp);
         MTX_ERROR1("reading body: %E", MTX_ERR_FILEFMT);
-      zinsert(ptr, buffer[0], (buffer[0] == j) ? F_ZERO : F_ONE);
+      FfInsert(ptr, buffer[0], (buffer[0] == j) ? FF_ZERO : FF_ONE);
     }
   }
   fclose(fp);
@@ -1229,20 +1219,20 @@ int makeBasisChangeMatrices(group_t *group)
   long nontips = group->nontips;
   PTR src, dest;
   path_t *p;
-  zinsert(bw->d, 1, F_ONE);
+  FfInsert(bw->d, 1, FF_ONE);
   for (i = 1; i < nontips; i++)
   {
     p = group->root + i;
-    dest = ptrPlus(bw->d, i);
-    src = ptrPlus(bw->d, p->parent->index);
-    zmaprow(src, action[p->lastArrow]->d, nontips, dest);
+    dest = FfGetPtr(bw->d, i);
+    src = FfGetPtr(bw->d, p->parent->index);
+    FfMapRow(src, action[p->lastArrow]->d, nontips, dest);
   }
   wb = matinv(bw);
   if (!wb)
   { freeMatrixList(bch);
     return 1;
   }
-  memcpy(bch[1]->d, wb->d, zsize(nontips));
+  memcpy(bch[1]->d, wb->d, (FfCurrentRowSize*nontips));
   matfree(wb);
   group->bch = bch;
   return 0;
@@ -1257,11 +1247,11 @@ int readRegFileHeader(group_t *group)
   char regname[MAXLINE];
   FILE *fp;
   strext(regname, group->stem, ".reg");
-  fp = SFOpen(regname, FM_READ);
+  fp = SysFopen(regname, FM_READ);
   if (!fp) return 1;
-  zreadlong(fp, &buffer, 1);
-  zreadlong(fp, &buffer, 1); group->nontips = buffer;
-  zreadlong(fp, &buffer, 1); group->arrows = buffer;
+  SysReadLong(fp, &buffer, 1);
+  SysReadLong(fp, &buffer, 1); group->nontips = buffer;
+  SysReadLong(fp, &buffer, 1); group->arrows = buffer;
   fclose(fp);
   return 0;
 }
@@ -1275,7 +1265,7 @@ int makeLeftActionMatrices(group_t *group)
   if (!laction) return 1;
   long a;
   path_t *p;
-  PTR vec = zalloc(1);
+  PTR vec = FfAlloc(1);
   if (!vec)
   {
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -1283,9 +1273,9 @@ int makeLeftActionMatrices(group_t *group)
   }
   for (a = 0; a < group->arrows; a++)
   {
-    zmulrow(vec, F_ZERO);
+    FfMulRow(vec, FF_ZERO);
     p = group->root->child[a];
-    zinsert(vec, 1 + p->index, F_ONE); /* Should work with Jennings order too */
+    FfInsert(vec, 1 + p->index, FF_ONE); /* Should work with Jennings order too */
     innerLeftActionMatrix(group, vec, laction[a]->d);
   }
   group->laction = laction;
@@ -1309,12 +1299,12 @@ int innerRightProduct(const matrix_t *dest, const matrix_t *src, PTR scratch)
       MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
       return 1;
   }
-  zsetlen(src->noc);
+  FfSetNoc(src->noc);
   for (i = dest->nor; i != 0; --i)
   {
-    zmaprow(this_dest,src->d,src->nor,this_scratch);
-    zsteprow(&this_scratch);
-    zsteprow(&this_dest);
+    FfMapRow(this_dest,src->d,src->nor,this_scratch);
+    FfStepPtr(&this_scratch);
+    FfStepPtr(&this_dest);
   }
   return 0;
 }
@@ -1329,7 +1319,7 @@ static matrix_t *innerRightAction(matrix_t *dest, const matrix_t *src,
 /* This routine allocates NO memory */
 {
   if (innerRightProduct(dest,src,scratch)) return NULL;
-  memcpy(dest->d, scratch, zsize(dest->nor));
+  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
   return dest;
 }
 
@@ -1350,14 +1340,14 @@ static matrix_t *innerLeftAction(const matrix_t *src, matrix_t *dest,
     MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
     return NULL;
   }
-  zsetlen(dest->noc);
+  FfSetNoc(dest->noc);
   for (i = dest->nor; i != 0; --i)
   {
-    zmaprow(this_src,dest->d,dest->nor,this_scratch);
-    zsteprow(&this_scratch);
-    zsteprow(&this_src);
+    FfMapRow(this_src,dest->d,dest->nor,this_scratch);
+    FfStepPtr(&this_scratch);
+    FfStepPtr(&this_src);
   }
-  memcpy(dest->d, scratch, zsize(dest->nor));
+  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
   return dest;
 }
 
@@ -1403,7 +1393,7 @@ int innerBasisChangeReg2Nontips(group_t *group, matrix_t **matlist,
 int basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
 /* Alters matrices in matlist */
 {
-  PTR workspace = zalloc(group->nontips);
+  PTR workspace = FfAlloc(group->nontips);
   if (!workspace)
   {
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -1420,7 +1410,7 @@ int basisChangeReg2Nontips(group_t *group, matrix_t **matlist, long num)
 int changeActionMatricesReg2Nontips(group_t *group)
 {
   PTR workspace;
-  workspace = zalloc(group->nontips);
+  workspace = FfAlloc(group->nontips);
   if (!workspace)
   {
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -1453,7 +1443,7 @@ int calculateDimSteps(group_t *group)
   switch(group->ordering)
   {
   case 'R' :
-    dS = (long *) malloc((group->maxlength + 3) << LONGSH);
+    dS = (long *) malloc((group->maxlength + 3) * sizeof(long));
     if (!dS)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -1478,7 +1468,7 @@ int calculateDimSteps(group_t *group)
     group->dS = dS;
     break;
   case 'J' :
-    dS = (long *) malloc((group->nontips + 2) << LONGSH);
+    dS = (long *) malloc((group->nontips + 2) * sizeof(long));
     if (!dS)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -1498,14 +1488,14 @@ int calculateDimSteps(group_t *group)
       }
     dS[depth+1] = group->nontips;
     i = 1;
-    group->dS = (long *) malloc((depth + 2) << LONGSH);
+    group->dS = (long *) malloc((depth + 2) * sizeof(long));
     if (!group->dS)
       {
           free(dS);
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
           return 1;
       }
-    memcpy(group->dS, dS, (depth + 2) << LONGSH);
+    memcpy(group->dS, dS, (depth + 2) * sizeof(long));
     free(dS);
     /* printf("Dim steps:\n"); */
     /* for (i=0; i <= depth+1; i++) printf("%d\n", group->dS[i]); */
@@ -1575,12 +1565,12 @@ inline boolean mateq(matrix_t *mat1, matrix_t *mat2)
   if (mat1->fl != mat2->fl) return false;
   if (mat1->nor != mat2->nor) return false;
   if (mat1->noc != mat2->noc) return false;
-  zsetfield(mat1->fl);
-  zsetlen(mat1->noc);
+  FfSetField(mat1->fl);
+  FfSetNoc(mat1->noc);
   row1 = mat1->d;
   row2 = mat2->d;
-  for (i = mat1->nor; i > 0; --i, zsteprow(&row1), zsteprow(&row2))
-    if (zcmprow(row1,row2)) return false;
+  for (i = mat1->nor; i > 0; --i, FfStepPtr(&row1), FfStepPtr(&row2))
+    if (FfCmpRows(row1,row2)) return false;
   return true;
 }
 
@@ -1632,7 +1622,7 @@ long *newLongArray(long N)
   { MTX_ERROR1("%E", MTX_ERR_BADARG);
     return NULL;
   }
-  l = (long *) malloc(N << LONGSH);
+  l = (long *) malloc(N * sizeof(long));
   if (!l)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);

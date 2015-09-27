@@ -58,7 +58,7 @@ inline gV_t *generalVectorTemplate(long nor)
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
           return NULL;
       }
-  w = zalloc(nor);
+  w = FfAlloc(nor);
   if (!w)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -93,13 +93,13 @@ inline int makeVectorMonic(ngs_t *ngs, gV_t *gv)
   register FEL g;
   PTR ptr;
   register long i;
-  if (f == F_ONE) return;
-  if (f == F_ZERO)
+  if (f == FF_ONE) return;
+  if (f == FF_ZERO)
   { MTX_ERROR1("%E", MTX_ERR_DIV0);
     return 1;
   }
-  g = zdiv(F_ONE, f);
-  for (i = 0, ptr = gv->w; i < nor; i++, zsteprow(&ptr)) zmulrow(ptr, g);
+  g = FfDiv(FF_ONE, f);
+  for (i = 0, ptr = gv->w; i < nor; i++, FfStepPtr(&ptr)) FfMulRow(ptr, g);
   return 0;
 }
 
@@ -113,10 +113,10 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
   //  register long col;
   PTR ptr = gv->w;
   gv->dim = group->nontips + 1;
-  gv->coeff = F_ZERO;
-  for (b = 1; b <= r; b++, zsteprow(&ptr))
+  gv->coeff = FF_ZERO;
+  for (b = 1; b <= r; b++, FfStepPtr(&ptr))
   {
-    register long col = zfindpiv(ptr, &coeff);
+    register long col = FfFindPivot(ptr, &coeff);
     if (col != 0)
     {
       register long d = group->root[col-1].dim;
@@ -140,11 +140,11 @@ inline void multiply(PTR row, matrix_t *mat, PTR result, long r)
   register long i;
   PTR p1 = row;
   PTR p2 = result;
-  register long noc = znoc;
+  register long noc = FfNoc;
   for (i = 0; i < r; i++)
   {
-    zmaprow(p1, mat->d, noc, p2);
-    zsteprow(&p1); zsteprow(&p2);
+    FfMapRow(p1, mat->d, noc, p2);
+    FfStepPtr(&p1); FfStepPtr(&p2);
   }
   return;
 }
@@ -161,10 +161,10 @@ int createWordForest(ngs_t *ngs, group_t *group)
   long arrows = group->arrows;
   long r = ngs->r;
   //  modW_t **proot = (modW_t **) malloc(r * sizeof(modW_t *));
-  modW_t **proot = (modW_t **) malloc(r << PTRSH);
+  modW_t **proot = (modW_t **) malloc(r * sizeof(void*));
   modW_t *proot0 = (modW_t *) malloc(r * nodes * sizeof(modW_t));
   //  modW_t **kinder = (modW_t **) malloc(r * arrows * nodes * sizeof(modW_t *));
-  modW_t **kinder = (modW_t **) malloc(r * arrows * nodes << PTRSH);
+  modW_t **kinder = (modW_t **) malloc(r * arrows * nodes * sizeof(void*));
   modW_t *node;
   if (!proot || !proot0 || !kinder)
     { MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -303,9 +303,9 @@ static int loadBlock(ngs_t *ngs, long block)
     MTX_ERROR1("incorrect number of rows: %E", MTX_ERR_INCOMPAT);
     return 1;
   }
-  zseek(fp, 1 + block * nor * ngs->blockSize);
+  FfSeekRow(fp, 1 + block * nor * ngs->blockSize);
   register long blennor = blen * nor;
-  if (zreadvec(fp, ngs->thisBlock, blennor) != blennor)
+  if (FfReadRows(fp, ngs->thisBlock, blennor) != blennor)
   { close(fp);
     MTX_ERROR("%E", MTX_ERR_FILEFMT);
     return 1;
@@ -337,7 +337,7 @@ PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node)
     if (ngs->blockLoaded != block)
     { if (loadBlock(ngs, block)) return NULL;
     }
-    w = ptrPlus(ngs->thisBlock, pos * nor);
+    w = FfGetPtr(ngs->thisBlock, pos * nor);
   }
   return w;
 }
@@ -364,7 +364,7 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
   register long offset = 0;
   modW_t *node;
   PTR w, dest;
-  FILE *fp = writehdrplus(storedProductFile(ngs, d+1), zfl, 0, group->nontips);
+  FILE *fp = writehdrplus(storedProductFile(ngs, d+1), FfOrder, 0, group->nontips);
   if (!fp) return 1;
   for (blo = 0; blo < ngs->r; blo++)
     for (pat = group->dS[d]; pat < group->dS[d+1]; pat++)
@@ -377,12 +377,12 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
       {
         if (node->child[a])
         {
-          dest = ptrPlus(ngs->theseProds, nor * offset++);
+          dest = FfGetPtr(ngs->theseProds, nor * offset++);
           multiply(w, group->action[a], dest, nor);
           nops++;
           if (offset == ngs->blockSize)
           {
-            if (zwritevec(fp, ngs->theseProds, nor * offset) != nor * offset)
+            if (FfWriteRows(fp, ngs->theseProds, nor * offset) != nor * offset)
             { fclose(fp);
               MTX_ERROR1("expected nor * offset: %E", MTX_ERR_INCOMPAT);
               return 1;
@@ -394,7 +394,7 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
     }
   if (offset != 0)
   {
-    if (zwritevec(fp, ngs->theseProds, nor * offset) != nor * offset)
+    if (FfWriteRows(fp, ngs->theseProds, nor * offset) != nor * offset)
     { fclose(fp);
       MTX_ERROR1("expected nor * offset: %E", MTX_ERR_INCOMPAT);
       return 1;
@@ -410,7 +410,7 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
  ***************************************************************************/
 static int createEmptySliceFile(ngs_t *ngs, group_t *group, long d)
 {
-  FILE *fp = writehdrplus(storedProductFile(ngs, d), zfl, 0, group->nontips);
+  FILE *fp = writehdrplus(storedProductFile(ngs, d), FfOrder, 0, group->nontips);
   if (!fp) return 1;
   fclose(fp);
   return 0;

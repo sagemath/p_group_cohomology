@@ -63,7 +63,7 @@ int alterhdrplus(FILE *fp, long nor)
   { MTX_ERROR("%E", MTX_ERR_FILEFMT);
     return 1;
   }
-  if (zreadlong(fp,header,3) != 3)
+  if (SysReadLong(fp,header,3) != 3)
   {
     fclose(fp);
     MTX_ERROR1("%E", MTX_ERR_FILEFMT);
@@ -77,7 +77,7 @@ int alterhdrplus(FILE *fp, long nor)
     return 1;
   }
 
-  if (zwritelong(fp,header,3) != 3)
+  if (SysWriteLong(fp,header,3) != 3)
   {
     fclose(fp);
     MTX_ERROR("%E", MTX_ERR_FILEFMT);
@@ -107,7 +107,7 @@ FILE *writehdrplus(char *name, long fl, long nor, long noc)
     MTX_ERROR1("%E", MTX_ERR_FILEFMT);
     return NULL;
   }
-  if (zwritelong(fp,header,3) != 3)
+  if (SysWriteLong(fp,header,3) != 3)
   {
     fclose(fp);
     MTX_ERROR1("%E", MTX_ERR_FILEFMT);
@@ -131,7 +131,7 @@ FILE *readhdrplus(char *name, long *fl, long *nor, long *noc)
     MTX_ERROR1("%E", MTX_ERR_FILEFMT);
     return NULL;
   }
-  if (zreadlong(fp,header,3) != 3)
+  if (SysReadLong(fp,header,3) != 3)
   {
     fclose(fp);
     MTX_ERROR1("%E", MTX_ERR_FILEFMT);
@@ -168,7 +168,7 @@ long numberOfRowsStored(char *name)
 {
   FILE *fp;
   long fl, nor, noc;
-  fp = zreadhdr(name, &fl, &nor, &noc);
+  fp = FfReadHeader(name, &fl, &nor, &noc);
   if (!fp)
   {
     MTX_ERROR2("opening file %s: %E", name, MTX_ERR_FILEFMT);

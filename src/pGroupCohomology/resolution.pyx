@@ -2659,9 +2659,9 @@ cdef class RESL:
             for j from 0 <= j < Rk:
                 L = leftActionMatrix(self.G_Alg.Data, FfGetPtr(M2.Data.d,j*rk+i))
                 for k from 0 <= k < RK:
-                    if not (zmaprow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, nontips, tmp.Data.d)):
+                    if not (FfMapRow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, nontips, tmp.Data.d)):
                         raise ArithmeticError, "multiplication failed"
-                    if not (zaddrow(FfGetPtr(OUT.Data.d,k*rk+i), tmp.Data.d)):
+                    if not (FfAddRow(FfGetPtr(OUT.Data.d,k*rk+i), tmp.Data.d)):
                         raise ArithmeticError, "addition of rows failed"
                 matfree(L)
         return OUT
@@ -2787,10 +2787,10 @@ cdef class RESL:
                     IN1d = FfGetPtr(IN1.Data.d,j*loc_rk)
                     OUT1d = FfGetPtr(OUT1.Data.d,k*loc_rk)
                     for i from 0 <= i < loc_rk:
-                        if not (zmaprow(IN1d, R.d, nontips, tmp.Data.d)):
+                        if not (FfMapRow(IN1d, R.d, nontips, tmp.Data.d)):
                             raise ArithmeticError, "multiplication failed"
                         FfStepPtr(&(IN1d))
-                        if not (zaddrow(OUT1d, tmp.Data.d)):
+                        if not (FfAddRow(OUT1d, tmp.Data.d)):
                             raise ArithmeticError, "addition of rows failed"
                         FfStepPtr(&(OUT1d))
                 matfree(R)
@@ -4204,9 +4204,9 @@ cdef class G_ALG:
         cdef MTX OUT
         OUT = MTX(self.Data.p, s,self.Data.nontips,mutable=False)
         cdef PTR scratch
-        scratch = zalloc(self.Data.nontips+1)
+        scratch = FfAlloc(self.Data.nontips+1)
         innerRightCompose(self.Data, x.Data.d, M.Data.d, 1,r,s, scratch, OUT.Data.d)
-        zfree(scratch)
+        FfFree(scratch)
         return OUT
 
     ######################

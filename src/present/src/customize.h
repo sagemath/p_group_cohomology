@@ -15,5 +15,5 @@
 *****************************************************************************/
 #include "meataxe.h"
 
-void *copyrows(PTR dest, PTR src, size_t nor) { return memcpy((void *)dest, (void *)src, zsize(nor)); };
+void *copyrows(PTR dest, PTR src, size_t nor) { return memcpy((void *)dest, (void *)src, (FfCurrentRowSize*nor)); };
 

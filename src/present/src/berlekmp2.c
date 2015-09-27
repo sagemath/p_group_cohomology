@@ -158,7 +158,7 @@ static Matrix_t *makekernel(Poly_t *pol)
     int l;
     idx = 0;
     for (; idx < pdeg; ++idx) FfInsert(rowptr,idx,xbuf[l]);
-    FfInsert(rowptr,k+1,zsub(xbuf[k],FF_ONE));
+    FfInsert(rowptr,k+1,FfSub(xbuf[k],FF_ONE));
     FfStepPtr(&rowptr);
         for (xshift = (int) fl; xshift > 0; )
     {

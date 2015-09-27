@@ -41,11 +41,11 @@ uvr_t *uvrAmbientComplement(uvr_t *A);
 int pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
   long nocB, PTR matC, PTR matA, long nocA);
 /* Cleans matD by matB, then does same operations on matC using matA */
-/* znoc immaterial at start, indeterminate at end */
+/* FfNoc immaterial at start, indeterminate at end */
 long pairMkechelon(PTR matB, long nor, long *piv, long nocB,
   PTR matA, long nocA);
 /* Return value is rank of matB */
-/* znoc immaterial at beginning, indeterminate at end */
+/* FfNoc immaterial at beginning, indeterminate at end */
 long orderedMkechelon(PTR mat, long nor, long *piv);
 
 #endif

@@ -67,7 +67,7 @@ wgbFolder_t *newDmsFolder(group_t *group)
     folder->ptr = NULL;
   else
   {
-    folder->ptr = zalloc(mintips);
+    folder->ptr = FfAlloc(mintips);
     if (!folder->ptr)
       { free(folder);
         MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -188,7 +188,7 @@ static void writeMinusValue(group_t *group, FILE *fp, PTR minusValue)
 int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
 {
   group_t *group = folder->group;
-  FEL m_one = zsub(FF_ZERO, FF_ONE);
+  FEL m_one = FfSub(FF_ZERO, FF_ONE);
   long this = folder->so_far++;
   char newname
   char *mintip = folder->mintip[this];
@@ -200,8 +200,8 @@ int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
   {
     PTR src = FfGetPtr(group->action[a]->d, p->index);
     PTR dest = FfGetPtr(folder->ptr, this);
-    zmoverow(dest, src);
-    zmulrow(dest, m_one);
+    memcpy(dest, src, FfCurrentRowSize);
+    FfMulRow(dest, m_one);
   }
   if (group->ordering == 'J')
   {

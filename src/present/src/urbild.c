@@ -34,14 +34,14 @@ int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group)
   long nor = 0;
   gV_t *gv;
   rV_t *rv;
-  fp = writehdrplus(outfile, zfl, 0, group->nontips);
+  fp = writehdrplus(outfile, FfOrder, 0, group->nontips);
   if (!fp) return 1;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
     gv = rv->gv;
     if (!gv->radical) /* i.e. this rv a min generator */
     {
-      if (zwritevec(fp,gv->w,ngs->r) != ngs->r)
+      if (FfWriteRows(fp,gv->w,ngs->r) != ngs->r)
       { fclose(fp);
         return 1;
       }
@@ -65,8 +65,8 @@ matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
   matrix_t *OUT;
   PTR p;
   register char *b;
-  /* fp = writehdrplus(outfile, zfl, 0, group->nontips);
-   i.e. zfl is the fl, group->nontips is noc, and nor will be determined now:
+  /* fp = writehdrplus(outfile, FfOrder, 0, group->nontips);
+   i.e. FfOrder is the fl, group->nontips is noc, and nor will be determined now:
   */
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
@@ -77,7 +77,7 @@ matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
     }
   }
   /* alterhdrplus(fp,nor);*/
-  OUT = matalloc(zfl, nor, noc);
+  OUT = matalloc(FfOrder, nor, noc);
   p = (PTR)OUT->d;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
@@ -86,9 +86,9 @@ matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
     {
       b = (char *)gv->w;
       for (i = 0; i < ngs->r; ++i)
-    { memcpy(p,b,zrowsize);
-      b += zrowsize;
-      zsteprow(&(p));
+    { memcpy(p,b,FfCurrentRowSize);
+      b += FfCurrentRowSize;
+      FfStepPtr(&(p));
     }
     }
   }
@@ -106,12 +106,12 @@ int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
   long t = ngs->r + ngs->s;
   gV_t *gv;
   rV_t *rv;
-  fp = writehdrplus(outfile, zfl, 0, group->nontips);
+  fp = writehdrplus(outfile, FfOrder, 0, group->nontips);
   if (!fp) return 1;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
     gv = rv->gv;
-    if (zwritevec(fp, gv->w, t) != t)
+    if (FfWriteRows(fp, gv->w, t) != t)
     { fclose(fp);
       return 1;
     }
@@ -179,10 +179,10 @@ int saveNFgs(nFgs_t *nFgs, group_t *group, char *outfile, char *markfile)
   FILE *fp;
   long nor;
   rV_t *rv;
-  fp = writehdrplus(outfile, zfl, 0, group->nontips);
+  fp = writehdrplus(outfile, FfOrder, 0, group->nontips);
   if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->r)
-    if (zwritevec(fp,rv->gv->w,ngs->r) != ngs->r)
+    if (FfWriteRows(fp,rv->gv->w,ngs->r) != ngs->r)
     { fclose(fp);
       return 1;
     }
@@ -208,20 +208,20 @@ int saveNRgs(nRgs_t *nRgs, group_t *group, char *outfile, char *markfile)
   FILE *fp;
   long nor;
   rV_t *rv;
-  fp = writehdrplus(outfile, zfl, 0, group->nontips);
+  fp = writehdrplus(outfile, FfOrder, 0, group->nontips);
   if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->r)
-    if (zwritevec(fp,rv->gv->w,ngs->r) != ngs->r)
+    if (FfWriteRows(fp,rv->gv->w,ngs->r) != ngs->r)
     { fclose(fp);
       return 1;
     }
   int r = alterhdrplus(fp,nor);
   fclose(fp);
   if (r) return 1;
-  fp = writehdrplus(markfile, zfl, 0, group->nontips);
+  fp = writehdrplus(markfile, FfOrder, 0, group->nontips);
   if (!fp) return 1;
   for (rv = ngs->firstReduced, nor = 0; rv ; rv = rv->next, nor += ngs->s)
-    if (zwritevec(fp, ptrPlus(rv->gv->w, ngs->r), ngs->s) != ngs->s)
+    if (FfWriteRows(fp, FfGetPtr(rv->gv->w, ngs->r), ngs->s) != ngs->s)
     {
         fclose(fp);
         return 1;
@@ -258,9 +258,9 @@ static ngs_t *ngsAllocation(long r, long s, group_t *group, char *stem)
   ngs->dimLoaded = NONE;
   ngs->blockLoaded = NONE;
   ngs->blockSize = BLOCK_SIZE;
-  ngs->thisBlock = zalloc(ngs->blockSize * (r + s));
-  ngs->theseProds = zalloc(ngs->blockSize * (r + s));
-  ngs->w = zalloc(r + s);
+  ngs->thisBlock = FfAlloc(ngs->blockSize * (r + s));
+  ngs->theseProds = FfAlloc(ngs->blockSize * (r + s));
+  ngs->w = FfAlloc(r + s);
   if (!ngs->thisBlock || !ngs->theseProds || !ngs->w)
   { free(ngs);
     MTX_ERROR("%E", MTX_ERR_NOMEM);
@@ -603,7 +603,7 @@ int processNewFlaggedGenerator(nFgs_t *nFgs, PTR w, group_t *group)
   gv->w = w_tmp;
   if (gv->dim != ZERO_BLOCK)
   {
-    memcpy(gv->w, w, zsize(ngs->r));
+    memcpy(gv->w, w, (FfCurrentRowSize*ngs->r));
     gv->radical = false;
     /* false means: not known to be in radical of kernel */
     if (makeVectorMonic(ngs, gv)) return 1;
@@ -621,7 +621,7 @@ int nFgsInitializeVectors(nFgs_t *nFgs, PTR mat, long n, group_t *group)
   ngs_t *ngs = nFgs->ngs;
   PTR w;
   register long i;
-  for (w = mat, i = 0; i < n; i++, zadvance(&w, ngs->r))
+  for (w = mat, i = 0; i < n; i++, w = FfGetPtr(w, ngs->r))
     if (processNewFlaggedGenerator(nFgs, w, group)) return 1;
   return 0;
 }
@@ -637,7 +637,7 @@ int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
   gV_t *gv;
   register long i;
   for (w = im, m = pre, i = 0; i < n;
-    i++, zadvance(&w, ngs->r), zadvance(&m, ngs->s))
+    i++, w = FfGetPtr(w, ngs->r), m = FfGetPtr(m, ngs->s))
   {
     gv = popGeneralVector(ngs);
     if (!gv) return 1;
@@ -653,8 +653,8 @@ int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
     }
     else
     {
-      memcpy(gv->w, w, zsize(ngs->r));
-      memcpy(ptrPlus(gv->w, ngs->r), m, zsize(ngs->s));
+      memcpy(gv->w, w, (FfCurrentRowSize*ngs->r));
+      memcpy(FfGetPtr(gv->w, ngs->r), m, (FfCurrentRowSize*ngs->s));
       if (makeVectorMonic(ngs, gv)) return 1;
       if (insertNewUnreducedVector(ngs, gv)) return 1;
     }

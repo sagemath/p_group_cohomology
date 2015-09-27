@@ -33,14 +33,14 @@ from sage.structure.element cimport RingElement, ModuleElement
 from sage.rings.morphism cimport RingHomomorphism
 
 cdef extern from "meataxe.h":
-    size_t zsize(long nrows)
+    size_t (FfCurrentRowSize*long nrows)
     int FfSetNoc(long ncols)
     int FfSetField(long field)
-    PTR zalloc(long nrows)
-    void zfree(PTR p)
-    PTR zaddmulrow(PTR dest, PTR src, FEL f)
-    PTR zaddrow(PTR dest, PTR src)
-    PTR zmaprow(PTR row, PTR matrix, long nor, PTR result)
+    PTR FfAlloc(long nrows)
+    void FfFree(PTR p)
+    PTR FfAddMulRow(PTR dest, PTR src, FEL f)
+    PTR FfAddRow(PTR dest, PTR src)
+    PTR FfMapRow(PTR row, PTR matrix, long nor, PTR result)
     Matrix_t *matadd(Matrix_t *dest, Matrix_t *src)
 
 ###########################################################

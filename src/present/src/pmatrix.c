@@ -28,7 +28,7 @@ Matrix_t *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scrat
   FfSetNoc(src->noc);
   for (i = dest->nor; i != 0; --i)
   {
-    zmaprow(this_dest,src->d,src->nor,this_scratch);
+    FfMapRow(this_dest,src->d,src->nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_dest);
   }
@@ -44,7 +44,7 @@ Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* This routine allocates NO memory */
 {
   if (!InnerRightProduct(dest,src,scratch)) return NULL;
-  memcpy(dest->d, scratch, zsize(dest->nor));
+  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
   return dest;
 }
 
@@ -67,11 +67,11 @@ Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
   FfSetNoc(dest->noc);
   for (i = dest->nor; i != 0; --i)
   {
-    zmaprow(this_src,dest->d,dest->nor,this_scratch);
+    FfMapRow(this_src,dest->d,dest->nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_src);
   }
-  memcpy(dest->d, scratch, zsize(dest->nor));
+  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
   return dest;
 }
 
@@ -113,7 +113,7 @@ int innerBasisChangeReg2Nontips(group_t *group, Matrix_t **matlist,
 int basisChangeReg2Nontips(group_t *group, Matrix_t **matlist, long num)
 /* Alters matrices in matlist */
 {
-  PTR workspace = zalloc(group->nontips);
+  PTR workspace = FfAlloc(group->nontips);
   if (!workspace)
   { MTX_ERROR1("%E", MTX_ERROR_NOMEM);
     return 1;
@@ -127,7 +127,7 @@ int basisChangeReg2Nontips(group_t *group, Matrix_t **matlist, long num)
 int changeActionMatricesReg2Nontips(group_t *group)
 {
   PTR workspace;
-  workspace = zalloc(group->nontips);
+  workspace = FfAlloc(group->nontips);
   if (!workspace)
   { MTX_ERROR1("%E", MTX_ERROR_NOMEM);
     return 1;

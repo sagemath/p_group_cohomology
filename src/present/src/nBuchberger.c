@@ -100,7 +100,7 @@ static int nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
-        if (gv->coeff != F_ZERO)
+        if (gv->coeff != FF_ZERO)
         {
           if (makeVectorMonic(ngs, gv)) return 1;
           if (insertNewUnreducedVector(ngs,gv)) return 1; /* gv->radical true */
@@ -148,7 +148,7 @@ static int nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
-        if (gv->coeff != F_ZERO)
+        if (gv->coeff != FF_ZERO)
         {
           if (makeVectorMonic(ngs, gv)) return 1;
           if (insertNewUnreducedVector(ngs,gv)) return 1;

@@ -62,7 +62,7 @@ void freeInclusionRecord(inclus_t *inclus)
  * 1 on error
  **************************************************************************/
 int makeInclusionMatrix(inclus_t *inclus)
-/* Sets znoc = G->nontips */
+/* Sets FfNoc = G->nontips */
 {
   group_t *G = inclus->G, *H = inclus->H;
   long Hnum = H->arrows;
@@ -73,7 +73,7 @@ int makeInclusionMatrix(inclus_t *inclus)
   path_t *p;
   matrix_t **Hgens = allocateMatrixList(G, Hnum);
   if (!Hgens) return 1;
-  matrix_t *ima = matalloc(zfl, Hsize, Gsize);
+  matrix_t *ima = matalloc(FfOrder, Hsize, Gsize);
   if (!ima)
       {
           freeMatrixList(Hgens);
@@ -94,14 +94,14 @@ int makeInclusionMatrix(inclus_t *inclus)
     return 1;
   }
   if (basisChangeReg2Nontips(G, Hgens, Hnum)) return 1;
-  zinsert(ima->d, 1, F_ONE);
+  FfInsert(ima->d, 1, FF_ONE);
   for (i = 1; i < Hsize; i++)
   {
     p = H->root + i;
-    prev = ptrPlus(ima->d, p->parent->index);
-    this = ptrPlus(ima->d, i);
+    prev = FfGetPtr(ima->d, p->parent->index);
+    this = FfGetPtr(ima->d, i);
     a = p->lastArrow;
-    zmaprow(prev, Hgens[a]->d, Gsize, this);
+    FfMapRow(prev, Hgens[a]->d, Gsize, this);
   }
   freeMatrixList(Hgens);
   inclus->ima = ima;

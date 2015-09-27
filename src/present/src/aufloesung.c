@@ -144,8 +144,8 @@ static int ensureResolSizeArraysLargeEnough(resol_t *resol, long N)
   { free(projrank);
     return 1;
   }
-  memcpy(projrank, projrank_old, (alloc + 1) << LONGSH);
-  memcpy(Imdim, Imdim_old, (alloc + 2) << LONGSH);
+  memcpy(projrank, projrank_old, (alloc + 1) * sizeof(long));
+  memcpy(Imdim, Imdim_old, (alloc + 2) * sizeof(long));
   resol->projrank = projrank;
   resol->Imdim = Imdim;
   resol->numproj_alloc = alloc;
@@ -297,7 +297,7 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   register long i;
   PTR ptr;
   char thisStem[MAXLINE];
-  FEL minus_one = zsub(F_ZERO, F_ONE);
+  FEL minus_one = FfSub(FF_ZERO, FF_ONE);
   group_t *group = resol->group;
   long r = rankProj(resol, n-1);
   if (r==-1) return NULL;
@@ -305,7 +305,7 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   if (s==-1) return NULL;
   nRgs_t *nRgs;
   ngs_t *ngs;
-  register PTR pre = zalloc(s * s); /* Initialization guaranteed */
+  register PTR pre = FfAlloc(s * s); /* Initialization guaranteed */
   if (!pre)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
@@ -314,8 +314,8 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   nRgs = nRgsAllocation(group, r, s, thisStem);
   if (!nRgs) return NULL;
   ngs = nRgs->ngs;
-  for (i = 1, ptr = pre; i <= s; i++, zadvance(&ptr, s+1))
-    zinsert(ptr, 1, minus_one);
+  for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s+1))
+    FfInsert(ptr, 1, minus_one);
   if (nRgsInitializeVectors(nRgs, mat, pre, s, group)) return NULL;
   free(pre);
   ngs->targetRank = dimIm(resol, n);
@@ -374,14 +374,14 @@ matrix_t *makeFirstDifferential(resol_t *resol)
     MTX_ERROR("not implemented for this ordering");
     return NULL;
   }
-  pres = matalloc(zfl, dimP1, group->nontips);
+  pres = matalloc(FfOrder, dimP1, group->nontips);
   if (!pres)
   {
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  for (i = 2, ptr = pres->d; i <= dimP1 + 1; i++, zsteprow(&ptr))
-    zinsert(ptr, i, F_ONE);
+  for (i = 2, ptr = pres->d; i <= dimP1 + 1; i++, FfStepPtr(&ptr))
+    FfInsert(ptr, i, FF_ONE);
   if (setRankProj(resol, 1, dimP1))
   { MatFree(pres);
     return NULL;
@@ -452,8 +452,8 @@ static void initializeRows(PTR base, long nor)
 {
   PTR p;
   register long i;
-  for (p = base, i = 0; i < nor; i++, zsteprow(&p))
-    zmulrow(p, F_ZERO);
+  for (p = base, i = 0; i < nor; i++, FfStepPtr(&p))
+    FfMulRow(p, FF_ZERO);
   return;
 }
 
@@ -477,7 +477,7 @@ int innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
     gv = popGeneralVector(ngs);
     if (!gv) return 1;
     tmp = gv->w;
-    gv->w = ptrPlus(images, i * ngs->r);
+    gv->w = FfGetPtr(images, i * ngs->r);
     findLeadingMonomial(gv, ngs->r, group);
     gv->w = tmp;
     if (gv->dim == ZERO_BLOCK)
@@ -487,8 +487,8 @@ int innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
     }
     else
     {
-      memcpy(gv->w, ptrPlus(images, i * ngs->r), zsize(ngs->r));
-      initializeRows(ptrPlus(gv->w, ngs->r), ngs->s);
+      memcpy(gv->w, FfGetPtr(images, i * ngs->r), (FfCurrentRowSize*ngs->r));
+      initializeRows(FfGetPtr(gv->w, ngs->r), ngs->s);
       /* That gv->w is initialized is very likely, but not absolutely certain */
       uv = unreducedVector(ngs, gv);
       if (!uv) return 1;

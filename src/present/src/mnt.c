@@ -149,8 +149,8 @@ int constructNontips_LengthLex(group_t *group)
   char newname;
   long aa[MAXLENGTH];
   long *piv, *index;
-  PTR ptr = zalloc(nontips + 1); /* Initializes */
-  PTR rec = zalloc(nontips + 1); /* Initializes */
+  PTR ptr = FfAlloc(nontips + 1); /* Initializes */
+  PTR rec = FfAlloc(nontips + 1); /* Initializes */
   PTR rec_parent, rec_child, ptr_child;
   long pl, prev_starts, this_starts, so_far, mintips;
   long i, a;
@@ -186,10 +186,10 @@ int constructNontips_LengthLex(group_t *group)
         if (pl > 1 && q->child[a] == NULL) continue;
         rec_child = FfGetPtr(rec, so_far);
         ptr_child = FfGetPtr(ptr, so_far);
-        zmaprow(rec_parent, action[a]->d, nontips, rec_child);
-        zmoverow(ptr_child, rec_child);
+        FfMapRow(rec_parent, action[a]->d, nontips, rec_child);
+        memcpy(ptr_child, rec_child, FfCurrentRowSize);
         zcleanrow(ptr_child, ptr, so_far, piv);
-        piv[so_far+1] = zfindpiv(ptr_child, &f);
+        piv[so_far+1] = FfFindPivot(ptr_child, &f);
         if (piv[so_far+1] == 0)
         {
           /* New mintip found */
@@ -240,7 +240,7 @@ int constructNontips_ReverseLengthLex(group_t *group)
   long aa[MAXLENGTH];
   long *piv, *index;
   char newname;
-  PTR ptr = zalloc(nontips + 1); /* Initializes */
+  PTR ptr = FfAlloc(nontips + 1); /* Initializes */
   PTR rec_parent, rec_child, ptr_child;
   PTR rad, dest, rec;
   matrix_t mat;
@@ -250,16 +250,16 @@ int constructNontips_ReverseLengthLex(group_t *group)
   FEL f;
   piv = (long *) malloc((arrows * nontips + 2) * sizeof(long));
   index = (long *) malloc(nontips * sizeof(long));
-  rad = zalloc(nontips * arrows);
-  rec = zalloc(nontips + 1);
+  rad = FfAlloc(nontips * arrows);
+  rec = FfAlloc(nontips + 1);
   if (!ptr || !piv || !index || !rad || !rec)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return 1;
   }
   mat.fl = FfOrder; mat.noc = nontips; mat.d = ptr;
-  memcpy(rad, action[0]->d, zsize(arrows * nontips));
+  memcpy(rad, action[0]->d, (FfCurrentRowSize*arrows * nontips));
   raddim = zmkechelon(rad, arrows * nontips, piv);
-  if (raddim > 0) memcpy(ptr, rad, zsize(raddim));
+  if (raddim > 0) memcpy(ptr, rad, (FfCurrentRowSize*raddim));
   index[0] = 0;
   FfInsert(rec,1,FF_ONE);
   this_starts = 0; so_far = 1; mintips = 0;
@@ -273,7 +273,7 @@ int constructNontips_ReverseLengthLex(group_t *group)
       for (a = 0, dest = rad; a < arrows; a++, dest = FfGetPtr(dest, raddim))
       { if (innerRightProduct(&mat, action[a], dest)) return 1; }
       raddim = zmkechelon(rad, raddim * arrows, piv);
-      if (raddim > 0) memcpy(ptr, rad, zsize(raddim));
+      if (raddim > 0) memcpy(ptr, rad, (FfCurrentRowSize*raddim));
     }
     for (i = prev_starts; i < this_starts; i++)
     {
@@ -292,10 +292,10 @@ int constructNontips_ReverseLengthLex(group_t *group)
         offset = raddim + so_far - this_starts;
         rec_child = FfGetPtr(rec, so_far);
         ptr_child = FfGetPtr(ptr, offset);
-        zmaprow(rec_parent, action[a]->d, nontips, rec_child);
-        zmoverow(ptr_child, rec_child);
+        FfMapRow(rec_parent, action[a]->d, nontips, rec_child);
+        memcpy(ptr_child, rec_child, FfCurrentRowSize);
         zcleanrow(ptr_child, ptr, offset, piv);
-        piv[offset+1] = zfindpiv(ptr_child, &f);
+        piv[offset+1] = FfFindPivot(ptr_child, &f);
         if (piv[offset+1] == 0)
         {
           /* New mintip found */

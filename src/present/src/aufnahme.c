@@ -38,8 +38,8 @@ static void subtract(PTR ptr1, PTR ptr2, long nor)
   PTR p1 = ptr1, p2 = ptr2;
   for (i = 0; i < nor; i++)
   {
-    zsubrow(p1,p2);
-    zsteprow(&p1); zsteprow(&p2);
+    FfSubRow(p1,p2);
+    FfStepPtr(&p1); FfStepPtr(&p2);
   }
   return;
 }
@@ -49,12 +49,12 @@ static void submul(PTR ptr1, PTR ptr2, FEL f, long nor)
 /* writes ptr1 - f.ptr2 to ptr1 */
 {
   register long i;
-  register FEL g = zsub(F_ZERO, f);
+  register FEL g = FfSub(FF_ZERO, f);
   PTR p1 = ptr1, p2 = ptr2;
   for (i = 0; i < nor; i++)
   {
-    zaddmulrow(p1,p2, g);
-    zsteprow(&p1); zsteprow(&p2);
+    FfAddMulRow(p1,p2, g);
+    FfStepPtr(&p1); FfStepPtr(&p2);
   }
   return;
 }
@@ -119,7 +119,7 @@ int nRgsAssertReducedVectors(nRgs_t *nRgs, PTR mat, long num, group_t *group)
   {
     gv = popGeneralVector(ngs);
     if (!gv) return 1;
-    memcpy(gv->w, ptrPlus(mat, i * nor), zsize(nor));
+    memcpy(gv->w, FfGetPtr(mat, i * nor), (FfCurrentRowSize*nor));
     findLeadingMonomial(gv, ngs->r, group);
     ptn = wordForestEntry(ngs, gv);
     rv = reducedVector(gv, group);
@@ -155,7 +155,7 @@ static int promoteUnreducedVector(ngs_t *ngs, uV_t *uv, group_t *group)
 void possiblyNewKernelGenerator(nRgs_t *nRgs, PTR pw, group_t *group)
 {
   PTR pm = pw;
-  zadvance(&pm, nRgs->ngs->r);
+  pm = FfGetPtr(pm, nRgs->ngs->r);
   processNewFlaggedGenerator (nRgs->ker, pm, group);
   return;
 }
@@ -214,9 +214,9 @@ static int urbildProcessModifiedUnreducedVector(nRgs_t *nRgs, uV_t *uv,
   findLeadingMonomial(gv, r, group);
   if (gv->dim == ZERO_BLOCK)
   {
-    src = ptrPlus(gv->w, r);
-    dest = ptrPlus(result, uv->index * s);
-    memcpy(dest, src, zsize(s));
+    src = FfGetPtr(gv->w, r);
+    dest = FfGetPtr(result, uv->index * s);
+    memcpy(dest, src, (FfCurrentRowSize*s));
     freeUnreducedVector(uv);
   }
   else insertUnreducedVector(ngs, uv);

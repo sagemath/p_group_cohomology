@@ -21,7 +21,7 @@
 #include "uvr.h"
 #include "pgroup_decls.h"
 
-/* Need: error routines, ptrPlus */
+/* Need: error routines, FfGetPtr */
 
 /******
  * NULL on error
@@ -35,15 +35,15 @@ uvr_t *newBoundedUvr(long Vdim, long Udim)
           return NULL;
       }
   PTR basis = NULL;
-  long *piv = (long *) malloc((Udim + 1) << LONGSH);
+  long *piv = (long *) malloc((Udim + 1) * sizeof(long));
   if (!piv)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
           return NULL;
       }
-  zsetlen(Vdim);
+  FfSetNoc(Vdim);
   if (Udim > 0)
-  { basis = zalloc(Udim);
+  { basis = FfAlloc(Udim);
     if (!basis)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -78,10 +78,10 @@ uvr_t *ambientVr(long Vdim)
   row = V->basis;
   for (i = 1; i <= Vdim; i++)
   {
-    /* row = ptrPlus(V->basis, i-1);*/
-    zinsert(row, i, F_ONE);
+    /* row = FfGetPtr(V->basis, i-1);*/
+    FfInsert(row, i, FF_ONE);
     V->piv[i] = i;
-    zsteprow(&row);
+    FfStepPtr(&row);
   }
   V->piv[0] = Vdim;
   return V;
@@ -124,7 +124,7 @@ boolean isAmbientSpace(uvr_t *uvr)
  * 1 on error
  ***************************************************************************/
 static int uvrCopy(uvr_t *dest, uvr_t *src)
-/* znoc = Vdim assumed */
+/* FfNoc = Vdim assumed */
 {
   long dim = uvrDimension(src);
   long Vdim = uvrAmbientDimension(src);
@@ -136,8 +136,8 @@ static int uvrCopy(uvr_t *dest, uvr_t *src)
   { MTX_ERROR2("dest too small for dimension %d: %E", dim, MTX_ERR_RANGE);
     return 1;
   }
-  memcpy(dest->piv, src->piv, (dim+1) << LONGSH);
-  if (dim > 0) memcpy(dest->basis, src->basis, zsize(dim));
+  memcpy(dest->piv, src->piv, (dim+1) * sizeof(long));
+  if (dim > 0) memcpy(dest->basis, src->basis, (FfCurrentRowSize*dim));
   return 0;
 }
 
@@ -175,13 +175,13 @@ static void cleanBirow(PTR row1, PTR row2, PTR mat1, PTR mat2, long nor,
   long i;
   PTR x1, x2;
   for (i=1, x1 = mat1, x2 = mat2; i<=nor;
-  ++i, zsteprow(&x1), zsteprow(&x2))
+  ++i, FfStepPtr(&x1), FfStepPtr(&x2))
   {
-    FEL f = zextract(row1,piv[i]);
-    if (f == F_ZERO) continue;
-    f = zdiv(f,zextract(x1,piv[i]));
-    zaddmulrow(row1,x1,zneg(f));
-    zaddmulrow(row2,x2,zneg(f));
+    FEL f = FfExtract(row1,piv[i]);
+    if (f == FF_ZERO) continue;
+    f = FfDiv(f,FfExtract(x1,piv[i]));
+    FfAddMulRow(row1,x1,FfNeg(f));
+    FfAddMulRow(row2,x2,FfNeg(f));
   }
   return;
 }
@@ -197,31 +197,31 @@ static long mkBiechelon(PTR mat1, PTR mat2, long nor, long *piv, PTR core,
   {
     long newpiv;
     FEL f;
-    x1 = ptrPlus(mat1, i);
-    x2 = ptrPlus(mat2, i);
+    x1 = FfGetPtr(mat1, i);
+    x2 = FfGetPtr(mat2, i);
     if (rank < i)
     {
-      zmoverow(new1, x1);
-      zmoverow(new2, x2);
+      memcpy(new1, x1, FfCurrentRowSize);
+      memcpy(new2, x2, FfCurrentRowSize);
     }
     cleanBirow(new1, new2, mat1, mat2, rank, piv);
-    newpiv = zfindpiv(new1,&f);
+    newpiv = FfFindPivot(new1,&f);
     if (newpiv == 0)
     {
-      zmoverow(cnew, new2);
+      memcpy(cnew, new2, FfCurrentRowSize);
       zcleanrow(cnew, core, crank, cpiv);
-      newpiv = zfindpiv(cnew, &f);
+      newpiv = FfFindPivot(cnew, &f);
       if (newpiv != 0)
       {
         cpiv[++crank] = newpiv;
-        zsteprow(&cnew);
+        FfStepPtr(&cnew);
       }
     }
     {
       ++rank;
       piv[rank] = newpiv;
-      zsteprow(&new1);
-      zsteprow(&new2);
+      FfStepPtr(&new1);
+      FfStepPtr(&new2);
     }
   }
   piv[0] = rank;
@@ -235,13 +235,13 @@ static long mkBiechelon(PTR mat1, PTR mat2, long nor, long *piv, PTR core,
 static long innerIntersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest, long dimA,
   long dimB, long nor)
 {
-  PTR mat1 = zalloc(nor);
+  PTR mat1 = FfAlloc(nor);
   if (!mat1)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
           return -1;
       }
-  PTR mat2 = zalloc(nor);
+  PTR mat2 = FfAlloc(nor);
   if (!mat2)
       {
           SysFree(mat1);
@@ -249,7 +249,7 @@ static long innerIntersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest, long dimA,
           return -1;
       }
   long crank;
-  long *piv = (long *) malloc((nor+1) << LONGSH);
+  long *piv = (long *) malloc((nor+1) * sizeof(long));
   if (!piv)
       {
           SysFree(mat1);
@@ -257,9 +257,9 @@ static long innerIntersectUvrs(uvr_t *A, uvr_t *B, uvr_t *dest, long dimA,
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
           return -1;
       }
-  memcpy(mat1, A->basis, zsize(dimA));
-  memcpy(mat2, A->basis, zsize(dimA));
-  memcpy(ptrPlus(mat1, dimA), B->basis, zsize(dimB));
+  memcpy(mat1, A->basis, (FfCurrentRowSize*dimA));
+  memcpy(mat2, A->basis, (FfCurrentRowSize*dimA));
+  memcpy(FfGetPtr(mat1, dimA), B->basis, (FfCurrentRowSize*dimB));
   crank = mkBiechelon(mat1, mat2, nor, piv, dest->basis, dest->piv);
   free(mat1); free(mat2); free(piv);
   return crank;
@@ -346,7 +346,7 @@ static long innerUvrClean(uvr_t *dest, uvr_t *src)
   if (dimSmall == 0) return dimBig;
   for (i = 0; i < dimBig; i++)
   {
-    row = ptrPlus(dest->basis, i);
+    row = FfGetPtr(dest->basis, i);
     zcleanrow(row, src->basis, dimSmall, src->piv);
   }
   dimCom = zmkechelon(dest->basis, dimBig, dest->piv);
@@ -410,15 +410,15 @@ uvr_t *uvrSum(uvr_t *A, uvr_t *B)
   /* uvrAdd requires Udim = Vdim */
   if (dimA > 0)
   {
-    memcpy(sum->basis, A->basis, zsize(dimA));
+    memcpy(sum->basis, A->basis, (FfCurrentRowSize*dimA));
     dest = sum->piv + 1; src = A->piv + 1;
-    memcpy(dest, src, dimA << LONGSH);
+    memcpy(dest, src, dimA * sizeof(long));
   }
   if (d > 0)
   {
-    memcpy(ptrPlus(sum->basis, dimA), tmp->basis, zsize(d));
+    memcpy(FfGetPtr(sum->basis, dimA), tmp->basis, (FfCurrentRowSize*d));
     dest = sum->piv + dimA + 1; src = tmp->piv + 1;
-    memcpy(dest, src, d << LONGSH);
+    memcpy(dest, src, d * sizeof(long));
   }
   freeUvr(tmp);
   sum->piv[0] = dimA + d;
@@ -455,25 +455,24 @@ static void pairCleanrow(PTR rowB, PTR matB, long nor, long *piv, long nocB,
   PTR rowA, PTR matA, long nocA, PTR row2)
 /* Cleans rowB by matB, then does same operations on rowA using matA */
 /* Uses zcleanrow2, whence row2 : which caller responsible for initialising */
-/* znoc immaterial at start, nocA at end */
+/* FfNoc immaterial at start, nocA at end */
 {
   long i;
   int idx;
   FEL f;
-  PTR this, byteptr;
-  zsetlen(nocB);
+  PTR this;
+  FfSetNoc(nocB);
   zcleanrow2(rowB, matB, nor, piv, row2);
-  zsetlen(nocA);
+  FfSetNoc(nocA);
   this = matA;
-  byteptr = row2;
   idx = 0;
   for (i = 1; i <= nor; i++)
   {
-    f = zextract_step(&byteptr,&idx); /*row2, i);*/
-    if (f == F_ZERO) continue;
-    /* this = ptrPlus(matA, i-1); */
-    zaddmulrow(rowA, this, zneg(f));
-    zsteprow(&this);
+    f = FfExtract(row2,i);
+    if (f == FF_ZERO) continue;
+    /* this = FfGetPtr(matA, i-1); */
+    FfAddMulRow(rowA, this, FfNeg(f));
+    FfStepPtr(&this);
   }
   return;
 }
@@ -484,14 +483,14 @@ static void pairCleanrow(PTR rowB, PTR matB, long nor, long *piv, long nocB,
 int pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
   long nocB, PTR matC, PTR matA, long nocA)
 /* Cleans matD by matB, then does same operations on matC using matA */
-/* znoc immaterial at start, indeterminate at end */
+/* FfNoc immaterial at start, indeterminate at end */
 {
   PTR rowD, rowC;
   long i;
   PTR row2;
   if (norB == 0) return;
-  zsetlen(norB);
-  row2 = zalloc(1);
+  FfSetNoc(norB);
+  row2 = FfAlloc(1);
   if (!row2)
       {
           MTX_ERROR1("%E", MTX_ERR_NOMEM);
@@ -499,9 +498,9 @@ int pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
       }
   for (i = 0; i < norD; i++)
   {
-    zsetlen(norB); zmulrow(row2, F_ZERO);
-    zsetlen(nocB); rowD = ptrPlus(matD, i);
-    zsetlen(nocA); rowC = ptrPlus(matC, i);
+    FfSetNoc(norB); FfMulRow(row2, FF_ZERO);
+    FfSetNoc(nocB); rowD = FfGetPtr(matD, i);
+    FfSetNoc(nocA); rowC = FfGetPtr(matC, i);
     pairCleanrow(rowD, matB, norB, pivB, nocB, rowC, matA, nocA, row2);
   }
   free(row2);
@@ -512,7 +511,7 @@ int pairCleanmat(PTR matD, long norD, PTR matB, long norB, long *pivB,
 long pairMkechelon(PTR matB, long nor, long *piv, long nocB,
   PTR matA, long nocA)
 /* Return value is rank of matB */
-/* znoc immaterial at beginning, indeterminate at end */
+/* FfNoc immaterial at beginning, indeterminate at end */
 {
   PTR rowA, rowB, row2;
   long rankB = 0, nullityB = 0, newpiv;
@@ -523,28 +522,28 @@ long pairMkechelon(PTR matB, long nor, long *piv, long nocB,
     return 0;
   }
   rowA = matA; rowB = matB;
-  zsetlen(nor);
-  row2 = zalloc(1);
+  FfSetNoc(nor);
+  row2 = FfAlloc(1);
   while (rankB + nullityB < nor)
   {
-    zsetlen(nocB); rowB = ptrPlus(matB, rankB);
-    zsetlen(nocA); rowA = ptrPlus(matA, rankB);
-    zsetlen(nor); zmulrow(row2, F_ZERO);
+    FfSetNoc(nocB); rowB = FfGetPtr(matB, rankB);
+    FfSetNoc(nocA); rowA = FfGetPtr(matA, rankB);
+    FfSetNoc(nor); FfMulRow(row2, FF_ZERO);
     pairCleanrow(rowB, matB, rankB, piv, nocB, rowA, matA, nocA, row2);
-    zsetlen(nocB);
-    newpiv = zfindpiv(rowB, &f);
+    FfSetNoc(nocB);
+    newpiv = FfFindPivot(rowB, &f);
     if (newpiv == 0)
     {
       nullityB++;
       if (rankB + nullityB < nor)
       {
         PTR swapA, swapB;
-        zsetlen(nocB);
-        swapB = ptrPlus(matB, nor - nullityB);
-        zswaprow(rowB, swapB);
-        zsetlen(nocA);
-        swapA = ptrPlus(matA, nor - nullityB);
-        zswaprow(rowA, swapA);
+        FfSetNoc(nocB);
+        swapB = FfGetPtr(matB, nor - nullityB);
+        FfSwapRows(rowB, swapB);
+        FfSetNoc(nocA);
+        swapA = FfGetPtr(matA, nor - nullityB);
+        FfSwapRows(rowA, swapA);
       }
     }
     else
@@ -561,7 +560,7 @@ long pairMkechelon(PTR matB, long nor, long *piv, long nocB,
 /******************************************************************************/
 long orderedMkechelon(PTR mat, long nor, long *piv)
 /* Return value is rank of mat */
-/* get noc from znoc */
+/* get noc from FfNoc */
 {
   PTR x, dest, src;
   long l[2], i, rank = 0;
@@ -569,20 +568,20 @@ long orderedMkechelon(PTR mat, long nor, long *piv)
   for (i = 1; i <= n; i++)
   {
     FEL f;
-    long a = 0, b, newpiv = 0, oldpiv = znoc + 1;
+    long a = 0, b, newpiv = 0, oldpiv = FfNoc + 1;
     for (b = i; b <= n;)
     {
-      x = ptrPlus(mat, b-1);
-      newpiv = zfindpiv(x, &f);
+      x = FfGetPtr(mat, b-1);
+      newpiv = FfFindPivot(x, &f);
       if (newpiv == 0)
       {
         long c;
         n--;
         for (c = b; c <= n; c++)
         {
-          dest = ptrPlus(mat, c-1);
-          src = ptrPlus(mat, c);
-          zmoverow(dest, src);
+          dest = FfGetPtr(mat, c-1);
+          src = FfGetPtr(mat, c);
+          memcpy(dest, src, FfCurrentRowSize);
         }
         continue;
       }
@@ -596,16 +595,16 @@ long orderedMkechelon(PTR mat, long nor, long *piv)
     if (a == 0) break;
     if (a > i)
     {
-      dest = ptrPlus(mat, i-1);
-      src = ptrPlus(mat, a-1);
-      zswaprow(dest, src);
+      dest = FfGetPtr(mat, i-1);
+      src = FfGetPtr(mat, a-1);
+      FfSwapRows(dest, src);
     }
     piv[++rank] = oldpiv;
-    x = ptrPlus(mat, i-1);
+    x = FfGetPtr(mat, i-1);
     l[0]=1, l[1] = oldpiv;
     for (b = i+1; b <= n; b++)
     {
-      PTR y = ptrPlus(mat, b-1);
+      PTR y = FfGetPtr(mat, b-1);
       zcleanrow(y, x, 1, l);
     }
   }

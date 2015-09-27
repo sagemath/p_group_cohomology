@@ -1655,7 +1655,7 @@ cdef class COCH(RingElement):
                 if L[i]:
                     for j from 0 <= j < RK: # loop through the entries of the lift of C
                         # print CM2[i+rk*j],i
-                        if not (zaddmulrow(FfGetPtr(OUT.Data.d,j),FfGetPtr(CM2.Data.d,i+rk*j), FfFromInt(L[i]))):
+                        if not (FfAddMulRow(FfGetPtr(OUT.Data.d,j),FfGetPtr(CM2.Data.d,i+rk*j), FfFromInt(L[i]))):
                             raise ArithmeticError, "Something went wrong"
             return COCH(self._parent, self.Deg+Cdeg, '('+self.Name+')*('+C.name()+')', \
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
@@ -6698,10 +6698,10 @@ cdef class ChMap(RingHomomorphism):
                 sig_off()
                 for k from 0 <= k < RK:
                     sig_on()
-                    if not (zmaprow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, TgtNontips, tmp.Data.d)):
+                    if not (FfMapRow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, TgtNontips, tmp.Data.d)):
                         sig_off()
                         raise ArithmeticError, "multiplication failed"
-                    if not (zaddrow(FfGetPtr(Compos.Data.d,k*rk+i), tmp.Data.d)):
+                    if not (FfAddRow(FfGetPtr(Compos.Data.d,k*rk+i), tmp.Data.d)):
                         sig_off()
                         raise ArithmeticError, "addition of rows failed"
                     sig_off()

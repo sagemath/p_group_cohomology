@@ -39,7 +39,7 @@
 #define __PGROUP_DECLS_INCLUDED
 
 /* Simon King: define the following in meataxe.h (where it belongs) as macro
- PTR ptrPlus(PTR base, long offset);
+ PTR FfGetPtr(PTR base, long offset);
 */
 /* returns PTR to base + offset */
 
