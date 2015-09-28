@@ -135,22 +135,22 @@ int main(int argc, const char *argv[])
        exit(1);
   }
 
-
   if (rightActionMatricesNotYetKnown())
-  {  if (loadRegularActionMatrices(group))
+  {
+    if (loadRegularActionMatrices(group))
       {
            printf("Error loading regular action matrices\n");
            exit(1);
       }
   }
   else
-  {  if (loadActionMatrices(group))
+  {
+    if (loadActionMatrices(group))
       {
            printf("Error loading action matrices\n");
            exit(1);
       }
   }
-
 
   if (basisChangeMatricesNotYetKnown())
   {
@@ -166,12 +166,13 @@ int main(int argc, const char *argv[])
       }
   }
   else
+  {
     if (loadBasisChangeMatrices(group))
       {
            printf("Error loading base change matrices\n");
            exit(1);
       }
-
+  }
 
   if (rightActionMatricesRequired())
   {
@@ -186,7 +187,6 @@ int main(int argc, const char *argv[])
            exit(1);
       }
   }
-
 
   if (leftActionMatricesRequired())
   {

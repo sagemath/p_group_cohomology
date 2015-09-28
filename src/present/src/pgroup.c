@@ -23,6 +23,13 @@
 MTX_DEFINE_FILE_INFO
 
 /***
+ * The following value has to be put into the ...->Magic field of a matrix
+ * in order to be recognised as a matrix by MatIsValid
+ ***/
+
+#define MAT_MAGIC 0x6233af91
+
+/***
  * NULL on error
  *
  * In contrast to strdup, it calls MtxError
@@ -724,6 +731,7 @@ int saveMatrixList(group_t *group, Matrix_t **action, long num, char *name)
   mat.Noc = group->nontips;
   mat.Nor = group->nontips * num;
   mat.Data = action[0]->Data;
+  mat.Magic = MAT_MAGIC;
   if (MatSave(&mat,name) != 0)
   {
       MTX_ERROR1("%E", MTX_ERR_FILEFMT);
@@ -821,6 +829,9 @@ Matrix_t **allocateMatrixList(group_t *group, long num)
     action[i]->Nor = nontips;
     action[i]->Noc = nontips;
     action[i]->Data = tmp;
+    action[i]->PivotTable = NULL;
+    action[i]->RowSize = FfCurrentRowSize;
+    action[i]->Magic = MAT_MAGIC;
   }
   return action;
 }
@@ -1183,13 +1194,16 @@ int loadGeneralRegularActionMatrices(group_t *group, Matrix_t **action,
   {
     ptr = action[i]->Data;
     for (j = 0; j < nontips; j++, FfStepPtr(&ptr))
-    { printf("WARNING: Is the coefficient range right?\n");
+    {
       if (SysReadLong(fp,buffer,1) != 1)
       { fclose(fp);
         MTX_ERROR1("reading body: %E", MTX_ERR_FILEFMT);
         return 1;
       }
-      FfInsert(ptr, buffer[0], (buffer[0] == j) ? FF_ZERO : FF_ONE);
+      /* For backwards compatibility, we have a shift by one when reading
+       * or saving the action matrices
+       */
+      FfInsert(ptr, buffer[0]-1, (buffer[0]-1 == j) ? FF_ZERO : FF_ONE);
     }
   }
   fclose(fp);
