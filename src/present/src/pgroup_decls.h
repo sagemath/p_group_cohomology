@@ -100,7 +100,7 @@ inline void freeActionMatrices(Matrix_t **mat);
 
 void addmul(Matrix_t *dest, Matrix_t *src, FEL f);
 
-char *djg_strdup(char *src);
+char *mtx_strdup(const char *src);
 void strext(char *dest, char *stem, char *ext);
 
 char arrowName(long a);

@@ -63,7 +63,7 @@ static int Init(int argc, const char *argv[])
   if (AppGetArguments(App,1,1) < 0)
 	return 1;
 
-  stem = strdup(App->ArgV[0]);
+  stem = mtx_strdup(App->ArgV[0]);
   group = namedGroupRecord(stem);
   if (!group)
   { printf("Cannot create a group described by %s\n", stem);

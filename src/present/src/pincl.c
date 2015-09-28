@@ -41,7 +41,7 @@ inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem)
       }
   inclus->G = G;
   inclus->H = H;
-  if ((inclus->stem = djg_strdup(stem)) == NULL)
+  if ((inclus->stem = mtx_strdup(stem)) == NULL)
   { free(inclus);
     return NULL;
   }

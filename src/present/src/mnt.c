@@ -61,7 +61,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
   group->p = atoi(this);
   FfSetField(group->p);
   this = argv[opt_ind++];
-  if ((group->stem = djg_strdup(this)) == NULL) return 1;
+  if ((group->stem = mtx_strdup(this)) == NULL) return 1;
   /* printf("%s: chosen order is %c\n", pinfo.name, group->ordering); */
   return 0;
 }

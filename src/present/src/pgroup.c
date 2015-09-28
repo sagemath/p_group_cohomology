@@ -24,8 +24,10 @@ MTX_DEFINE_FILE_INFO
 
 /***
  * NULL on error
+ *
+ * In contrast to strdup, it calls MtxError
  ****************************************************************************/
-char *djg_strdup(char *src)
+char *mtx_strdup(const char *src)
 {
   char *dest = (char *) malloc((strlen(src)+1) * sizeof(char));
   if (!dest)
@@ -118,7 +120,7 @@ inline group_t *namedGroupRecord (char *stem)
 {
   group_t *group = newGroupRecord();
   if (!group) return NULL;
-  if ((group->stem = djg_strdup(stem)) == NULL)
+  if ((group->stem = mtx_strdup(stem)) == NULL)
   { freeGroupRecord(group);
     return NULL;
   }

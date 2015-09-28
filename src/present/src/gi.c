@@ -9,40 +9,65 @@
 
 #include "pgroup.h"
 #include "pgroup_decls.h"
-MTX_DEFINE_FILE_INFO
 
-static char *helptext[] = {
-"SYNTAX",
-"   groupInfo <Stem>",
-"",
-"   Reads <Stem>.nontips (<Stem>.dims too if Jennings ordering used)",
-"",
-"DESCRIPTION",
-"   Deciphers .nontips file header and prints group statistics.",
-NULL};
+static MtxApplicationInfo_t AppInfo = {
+    "groupInfo",
 
-static proginfo_t pinfo =
-  { "groupInfo", "Print group statistics",
-    "$Revision: 19_April_1999", helptext };
+    "Print group statistics",
+
+    "   Deciphers .nontips file header and prints group statistics.\n"
+    "\n"
+    "   Reads <stem>.nontips (<stem>.dims too if Jennings ordering used)\n"
+    "\n"
+    "SYNTAX\n"
+    "   groupInfo <stem>\n"
+    "\n"
+    "ARGUMENTS\n"
+    "   <stem> ................. label of a prime power group\n"
+    "\n"
+    "OPTIONS\n"
+    MTX_COMMON_OPTIONS_DESCRIPTION
+    "\n"
+    };
+
+static MtxApplication_t *App = NULL;
+
+/**
+ * Control variables
+ **/
+
+ group_t *group = NULL;
+
 
 /*****
  * 1 on error
  **************************************************************************/
-int InterpretCommandLine(int argc, char *argv[], group_t *group)
+static int Init(int argc, const char *argv[])
 {
-  //register int i;
-  char *this;
-  initargs(argc,argv,&pinfo);
-  sprintf(invalid,
-    "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
-  while(zgetopt("") != OPT_END);
-  if (opt_ind != argc - 1)
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
-    return 1;
+  App = AppAlloc(&AppInfo,argc,argv);
+  if (App == NULL)
+	return 1;
+
+  group = newGroupRecord();
+  if (!group)
+  {
+      printf("Error creating group record\n");
+      return 1;
   }
-  this = argv[opt_ind++];
-  if ((group->stem = djg_strdup(this)) == NULL) return 1;
+
+  if (AppGetArguments(App,1,1) < 0)
+	return 1;
+
+  if ((group->stem = mtx_strdup(App->ArgV[0])) == NULL) return 1;
   return 0;
+}
+
+static void Cleanup()
+
+{
+    if (App != NULL)
+        AppFree(App);
+    freeGroupRecord(group);
 }
 
 /******************************************************************************/
@@ -55,14 +80,13 @@ static long valuation(long p, long n)
 }
 
 /******************************************************************************/
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   int n;
-  group_t *group;
-  MtxInitLibrary();
-  group = newGroupRecord();
-  if (!group) exit(1);
-  if (InterpretCommandLine(argc, argv, group)) exit(1);
+  if (Init(argc, argv))
+  { printf("Error parsing command line\n");
+    exit(1);
+  }
   if (readHeader(group)) exit(1);
   if (group->ordering == 'J')
   {
@@ -83,6 +107,7 @@ int main(int argc, char *argv[])
     for (n = 1; n <= group->arrows; n++)
       printf((n < group->arrows) ? "%ld, " : "%ld\n", group->dim[n]);
   }
-  freeGroupRecord(group);
+
+  Cleanup();
   exit(0);
 }

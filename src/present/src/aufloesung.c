@@ -164,7 +164,7 @@ resol_t *newResolWithGroupLoaded (char *RStem, char *GStem, long N)
   if (!resol) return NULL;
   resol->group = fullyLoadedGroupRecord(GStem);
   if (!resol->group) return NULL;
-  if ((resol->stem = djg_strdup(RStem)) == NULL) return NULL;
+  if ((resol->stem = mtx_strdup(RStem)) == NULL) return NULL;
   if (initializeResolSizeArrays(resol)) return NULL;
   ensureResolSizeArraysLargeEnough(resol, N);
   return resol;
