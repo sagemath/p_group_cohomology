@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include "meataxe.h"
 
+MTX_DEFINE_FILE_INFO
+
 /***
  * NULL on error
  ****************************************************************************/
@@ -116,7 +118,7 @@ inline group_t *namedGroupRecord (char *stem)
 {
   group_t *group = newGroupRecord();
   if (!group) return NULL;
-  if (group->stem = djg_strdup(stem) == NULL)
+  if ((group->stem = djg_strdup(stem)) == NULL)
   { freeGroupRecord(group);
     return NULL;
   }
@@ -178,9 +180,9 @@ static long GetNextLong(FILE **fp, char *buffer)
   char c, *this;
   long i;
   this = buffer; i = 0;
-  for (this = buffer, i = 0, c = NextSignificantCharacter(fp*);
+  for (this = buffer, i = 0, c = NextSignificantCharacter(*fp);
        ;
-       this++, i++, c = fgetc(fp))
+       this++, i++, c = fgetc(*fp))
   {
     if (c == EOF)
     { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
@@ -191,7 +193,7 @@ static long GetNextLong(FILE **fp, char *buffer)
     else if (i == MAXLINE)
     { MTX_ERROR1("Buffer Overflow: %E", MTX_ERR_RANGE);
       fclose(*fp);
-      *fp = NULL
+      *fp = NULL;
       return -1;
     }
     else if (IsDigit(c))
@@ -208,7 +210,7 @@ static long GetNextLong(FILE **fp, char *buffer)
  ***************************************************************************/
 static inline char GetNextChar(FILE **fp)
 {
-  char c = NextSignificantCharacter(fp*);
+  char c = NextSignificantCharacter(*fp);
   if (c == EOF)
     { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
       fclose(*fp);
@@ -234,9 +236,9 @@ static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
   char c, *this;
   long i;
   this = dest; i = 0;
-  for (this = dest, i = 0, c = NextSignificantCharacter(fp*);
+  for (this = dest, i = 0, c = NextSignificantCharacter(*fp);
        ;
-       this++, i++, c = fgetc(fp))
+       this++, i++, c = fgetc(*fp))
   {
     if (c == EOF)
     { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
@@ -249,21 +251,21 @@ static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
     else if (c == '(')
     {
       *(this++) = c;
-      if (!IsDigit(c = NextSignificantCharacter(fp*)))
+      if (!IsDigit(c = NextSignificantCharacter(*fp)))
         { MTX_ERROR1("invalid vertex: %E", MTX_ERR_FILEFMT);
           fclose(*fp);
           *fp = NULL;
           return " ";
         }
       *(this++) = c;
-      if ((c = NextSignificantCharacter(fp*)) != ')')
+      if ((c = NextSignificantCharacter(*fp)) != ')')
         { MTX_ERROR1("invalid vertex path format: %E", MTX_ERR_FILEFMT);
           fclose(*fp);
           *fp = NULL;
           return " ";
         }
       *(this++) = c;
-      c = NextSignificantCharacter(fp*);
+      c = NextSignificantCharacter(*fp);
       break;
     }
     else
@@ -450,7 +452,7 @@ int loadNonTips(group_t *group)
   if (!nontip)
   {
       free(buffer);
-      close(fp);
+      fclose(fp);
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return 1;
   }
@@ -629,12 +631,12 @@ Matrix_t **loadMatrixList(group_t *group, char *name, long num)
   long i;
   bigmat = MatLoad(name); /* sets FfOrder, FfNoc to required values */
   if (!bigmat) return NULL;
-  if (bigmat->noc != nontips)
+  if (bigmat->Noc != nontips)
     { MatFree(bigmat);
       MTX_ERROR1("noc != nontips: %E", MTX_ERR_INCOMPAT);
       return NULL;
     }
-  if (bigmat->nor != num * nontips)
+  if (bigmat->Nor != num * nontips)
     { MatFree(bigmat);
       MTX_ERROR1("nor ! num * nontips: %E", MTX_ERR_INCOMPAT);
       return NULL;
@@ -651,7 +653,7 @@ Matrix_t **loadMatrixList(group_t *group, char *name, long num)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  Matrix_t *tmp
+  Matrix_t *tmp;
   size_t chunksize = FfCurrentRowSize*nontips;
   for (i = 0; i < num; i++)
   {
@@ -716,10 +718,10 @@ int loadBasisChangeMatrices(group_t *group)
 int saveMatrixList(group_t *group, Matrix_t **action, long num, char *name)
 {
   Matrix_t mat;
-  mat.fl = group->p;
-  mat.noc = group->nontips;
-  mat.nor = group->nontips * num;
-  mat.d = action[0]->d;
+  mat.Field = group->p;
+  mat.Noc = group->nontips;
+  mat.Nor = group->nontips * num;
+  mat.Data = action[0]->Data;
   if (MatSave(&mat,name) != 0)
   {
       MTX_ERROR1("%E", MTX_ERR_FILEFMT);
@@ -813,10 +815,10 @@ Matrix_t **allocateMatrixList(group_t *group, long num)
   for (i = 0, tmp = ptr; i < num; i++, tmp=FfGetPtr(tmp,nontips))
   {
     action[i] = mat + i;
-    action[i]->fl = FfOrder;
-    action[i]->nor = nontips;
-    action[i]->noc = nontips;
-    action[i]->d = tmp;
+    action[i]->Field = FfOrder;
+    action[i]->Nor = nontips;
+    action[i]->Noc = nontips;
+    action[i]->Data = tmp;
   }
   return action;
 }
@@ -832,7 +834,7 @@ inline Matrix_t **allocateActionMatrices(group_t *group)
 /******************************************************************************/
 inline void freeMatrixList(Matrix_t **mat)
 {
-  free(mat[0]->d);
+  free(mat[0]->Data);
   free(mat[0]);
   free(mat);
 }
@@ -840,7 +842,7 @@ inline void freeMatrixList(Matrix_t **mat)
 /******************************************************************************/
 inline void freeActionMatrices(Matrix_t **mat)
 {
-  free(mat[0]->d);
+  free(mat[0]->Data);
   free(mat[0]);
   free(mat);
 }
@@ -873,9 +875,9 @@ inline long modifiedMinlong(long n1, long n2)
 void addmul(Matrix_t *dest, Matrix_t *src, FEL f)
 {
   register long i;
-  PTR pdest = dest->d;
-  PTR psrc = src->d;
-  for (i = dest->nor; i > 0; i--)
+  PTR pdest = dest->Data;
+  PTR psrc = src->Data;
+  for (i = dest->Nor; i > 0; i--)
   {
     FfAddMulRow(pdest,psrc,f);
     FfStepPtr(&pdest);
@@ -984,7 +986,7 @@ void innerRightActionMatrix(group_t *group, PTR vec, PTR dest)
     prev = FfGetPtr(dest, group->lroot[i].parent->index);
     this = FfGetPtr(dest, i);
     a = group->lroot[i].lastArrow;
-    FfMapRow(prev, group->laction[a]->d, group->nontips, this);
+    FfMapRow(prev, group->laction[a]->Data, group->nontips, this);
   }
   return;
 }
@@ -1000,7 +1002,7 @@ void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
     prev = FfGetPtr(dest, group->root[i].parent->index);
     this = FfGetPtr(dest, i);
     a = group->root[i].lastArrow;
-    FfMapRow(prev, group->action[a]->d, group->nontips, this);
+    FfMapRow(prev, group->action[a]->Data, group->nontips, this);
   }
   return;
 }
@@ -1009,7 +1011,7 @@ void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
 inline Matrix_t *rightActionMatrix(group_t *group, PTR vec)
 {
   Matrix_t *mat = MatAlloc(FfOrder, group->nontips, group->nontips);
-  innerRightActionMatrix(group, vec, mat->d);
+  innerRightActionMatrix(group, vec, mat->Data);
   return mat;
 }
 
@@ -1017,7 +1019,7 @@ inline Matrix_t *rightActionMatrix(group_t *group, PTR vec)
 inline Matrix_t *leftActionMatrix(group_t *group, PTR vec)
 {
   Matrix_t *mat = MatAlloc(FfOrder, group->nontips, group->nontips);
-  innerLeftActionMatrix(group, vec, mat->d);
+  innerLeftActionMatrix(group, vec, mat->Data);
   return mat;
 }
 
@@ -1160,7 +1162,7 @@ int loadGeneralRegularActionMatrices(group_t *group, Matrix_t **action,
   if (!fp) return 1;
   if (SysReadLong(fp, buffer, 3) != 3)
   {
-      fclose(fd);
+      fclose(fp);
       MTX_ERROR1("reading header: %E", MTX_ERR_FILEFMT);
       return 1;
   }
@@ -1171,18 +1173,20 @@ int loadGeneralRegularActionMatrices(group_t *group, Matrix_t **action,
   }
   for (i = 0; i < num; i++)
   {
-    ptr = action[i]->d;
+    ptr = action[i]->Data;
     for (j = 0; j < nontips; j++, FfStepPtr(&ptr))
       FfInsert(ptr, j, F_MINUS);
   }
   for (i = 0; i < num; i++)
   {
-    ptr = action[i]->d;
+    ptr = action[i]->Data;
     for (j = 0; j < nontips; j++, FfStepPtr(&ptr))
     { printf("WARNING: Is the coefficient range right?\n");
       if (SysReadLong(fp,buffer,1) != 1)
       { fclose(fp);
         MTX_ERROR1("reading body: %E", MTX_ERR_FILEFMT);
+        return 1;
+      }
       FfInsert(ptr, buffer[0], (buffer[0] == j) ? FF_ZERO : FF_ONE);
     }
   }
@@ -1217,20 +1221,20 @@ int makeBasisChangeMatrices(group_t *group)
   long nontips = group->nontips;
   PTR src, dest;
   path_t *p;
-  FfInsert(bw->d, 0, FF_ONE);
+  FfInsert(bw->Data, 0, FF_ONE);
   for (i = 1; i < nontips; i++)
   {
     p = group->root + i;
-    dest = FfGetPtr(bw->d, i);
-    src = FfGetPtr(bw->d, p->parent->index);
-    FfMapRow(src, action[p->lastArrow]->d, nontips, dest);
+    dest = FfGetPtr(bw->Data, i);
+    src = FfGetPtr(bw->Data, p->parent->index);
+    FfMapRow(src, action[p->lastArrow]->Data, nontips, dest);
   }
-  wb = MatInv(bw);
+  wb = MatInverse(bw);
   if (!wb)
   { freeMatrixList(bch);
     return 1;
   }
-  memcpy(bch[1]->d, wb->d, (FfCurrentRowSize*nontips));
+  memcpy(bch[1]->Data, wb->Data, (FfCurrentRowSize*nontips));
   MatFree(wb);
   group->bch = bch;
   return 0;
@@ -1274,7 +1278,7 @@ int makeLeftActionMatrices(group_t *group)
     FfMulRow(vec, FF_ZERO);
     p = group->root->child[a];
     FfInsert(vec, p->index, FF_ONE); /* Should work with Jennings order too */
-    innerLeftActionMatrix(group, vec, laction[a]->d);
+    innerLeftActionMatrix(group, vec, laction[a]->Data);
   }
   group->laction = laction;
   return 0;
@@ -1290,17 +1294,17 @@ int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* src should be square, scratch should point to enough space. */
 {
   register long i;
-  PTR this_dest = dest->d;
+  PTR this_dest = dest->Data;
   PTR this_scratch = scratch;
-  if (src->fl != dest->fl || src->nor != dest->noc || src->nor != src->noc)
+  if (src->Field != dest->Field || src->Nor != dest->Noc || src->Nor != src->Noc)
   {
       MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
       return 1;
   }
-  FfSetNoc(src->noc);
-  for (i = dest->nor; i != 0; --i)
+  FfSetNoc(src->Noc);
+  for (i = dest->Nor; i != 0; --i)
   {
-    FfMapRow(this_dest,src->d,src->nor,this_scratch);
+    FfMapRow(this_dest,src->Data,src->Nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_dest);
   }
@@ -1312,12 +1316,12 @@ int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
  ******/
 static Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src,
   PTR scratch)
-/* Guaranteed not to alter dest->d */
+/* Guaranteed not to alter dest->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
   if (innerRightProduct(dest,src,scratch)) return NULL;
-  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
+  memcpy(dest->Data, scratch, (FfCurrentRowSize*dest->Nor));
   return dest;
 }
 
@@ -1326,26 +1330,26 @@ static Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src,
  ****/
 static Matrix_t *innerLeftAction(const Matrix_t *src, Matrix_t *dest,
   PTR scratch)
-/* Guaranteed not to alter dest->d */
+/* Guaranteed not to alter dest->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
   register long i;
-  PTR this_src = src->d;
+  PTR this_src = src->Data;
   PTR this_scratch = scratch;
-  if (src->fl != dest->fl || src->noc != dest->nor || src->nor != src->noc)
+  if (src->Field != dest->Field || src->Noc != dest->Nor || src->Nor != src->Noc)
   {
     MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
     return NULL;
   }
-  FfSetNoc(dest->noc);
-  for (i = dest->nor; i != 0; --i)
+  FfSetNoc(dest->Noc);
+  for (i = dest->Nor; i != 0; --i)
   {
-    FfMapRow(this_src,dest->d,dest->nor,this_scratch);
+    FfMapRow(this_src,dest->Data,dest->Nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_src);
   }
-  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
+  memcpy(dest->Data, scratch, (FfCurrentRowSize*dest->Nor));
   return dest;
 }
 
@@ -1560,14 +1564,14 @@ inline boolean mateq(Matrix_t *mat1, Matrix_t *mat2)
 {
   register long i;
   PTR row1, row2;
-  if (mat1->fl != mat2->fl) return false;
-  if (mat1->nor != mat2->nor) return false;
-  if (mat1->noc != mat2->noc) return false;
-  FfSetField(mat1->fl);
-  FfSetNoc(mat1->noc);
-  row1 = mat1->d;
-  row2 = mat2->d;
-  for (i = mat1->nor; i > 0; --i, FfStepPtr(&row1), FfStepPtr(&row2))
+  if (mat1->Field != mat2->Field) return false;
+  if (mat1->Nor != mat2->Nor) return false;
+  if (mat1->Noc != mat2->Noc) return false;
+  FfSetField(mat1->Field);
+  FfSetNoc(mat1->Noc);
+  row1 = mat1->Data;
+  row2 = mat2->Data;
+  for (i = mat1->Nor; i > 0; --i, FfStepPtr(&row1), FfStepPtr(&row2))
     if (FfCmpRows(row1,row2)) return false;
   return true;
 }
@@ -1578,8 +1582,8 @@ inline boolean mateq(Matrix_t *mat1, Matrix_t *mat2)
 static int matricesCommute(Matrix_t *a, Matrix_t *b, Matrix_t *ab,
   Matrix_t *ba)
 {
-  if (innerRightProduct(a, b, ab->d)) return -1;
-  if (innerRightProduct(b, a, ba->d)) return -1;
+  if (innerRightProduct(a, b, ab->Data)) return -1;
+  if (innerRightProduct(b, a, ba->Data)) return -1;
   return (mateq(ab,ba)) ? 1 : 0;
 }
 
@@ -1590,7 +1594,7 @@ int verifyGroupIsAbelian(group_t *A)
 {
   long Asize = A->nontips;
   long ngens = A->arrows;
-  long fl = A->action[0]->fl;
+  long fl = A->action[0]->Field;
   long i, j;
   int thisPairCommutes;
   Matrix_t *ab = MatAlloc(fl, Asize, Asize);

@@ -41,7 +41,7 @@ inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem)
       }
   inclus->G = G;
   inclus->H = H;
-  if (inclus->stem = djg_strdup(stem) == NULL)
+  if ((inclus->stem = djg_strdup(stem)) == NULL)
   { free(inclus);
     return NULL;
   }
@@ -94,14 +94,14 @@ int makeInclusionMatrix(inclus_t *inclus)
     return 1;
   }
   if (basisChangeReg2Nontips(G, Hgens, Hnum)) return 1;
-  FfInsert(ima->d, 0, FF_ONE);
+  FfInsert(ima->Data, 0, FF_ONE);
   for (i = 1; i < Hsize; i++)
   {
     p = H->root + i;
-    prev = FfGetPtr(ima->d, p->parent->index);
-    this = FfGetPtr(ima->d, i);
+    prev = FfGetPtr(ima->Data, p->parent->index);
+    this = FfGetPtr(ima->Data, i);
     a = p->lastArrow;
-    FfMapRow(prev, Hgens[a]->d, Gsize, this);
+    FfMapRow(prev, Hgens[a]->Data, Gsize, this);
   }
   freeMatrixList(Hgens);
   inclus->ima = ima;
@@ -125,13 +125,13 @@ int loadInclusionMatrix(inclus_t *inclus)
   Matrix_t *ima;
   ima = MatLoad(inclusionMatrixFile(inclus));
   if (!ima) return 1;
-  if (ima->nor != inclus->H->nontips)
+  if (ima->Nor != inclus->H->nontips)
   {
       MatFree(ima);
       MTX_ERROR1("wrong number of rows: %E", MTX_ERR_INCOMPAT);
       return 1;
   }
-  if (ima->noc != inclus->G->nontips)
+  if (ima->Noc != inclus->G->nontips)
   {
       MatFree(ima);
       MTX_ERROR1("wrong number of cols: %E", MTX_ERR_INCOMPAT);

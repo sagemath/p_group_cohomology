@@ -26,7 +26,6 @@
 
 #include "pcommon.h"
 #include "meataxe.h"
-#include "perror_decls.h"
 
 #endif
 

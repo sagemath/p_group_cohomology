@@ -21,7 +21,6 @@
 
 #include "pcommon.h"
 #include "meataxe.h"
-#include "perror_decls.h"
 
 typedef int boolean;
 static const boolean true = 1;

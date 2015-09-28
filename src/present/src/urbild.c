@@ -78,7 +78,7 @@ Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
   }
   /* alterhdrplus(fp,nor);*/
   OUT = MatAlloc(FfOrder, nor, noc);
-  p = (PTR)OUT->d;
+  p = (PTR)OUT->Data;
   for (rv = ngs->firstReduced; rv; rv = rv->next)
   {
     gv = rv->gv;

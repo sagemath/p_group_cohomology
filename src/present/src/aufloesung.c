@@ -164,7 +164,7 @@ resol_t *newResolWithGroupLoaded (char *RStem, char *GStem, long N)
   if (!resol) return NULL;
   resol->group = fullyLoadedGroupRecord(GStem);
   if (!resol->group) return NULL;
-  if (resol->stem = djg_strdup(RStem) == NULL) return NULL;
+  if ((resol->stem = djg_strdup(RStem)) == NULL) return NULL;
   if (initializeResolSizeArrays(resol)) return NULL;
   ensureResolSizeArraysLargeEnough(resol, N);
   return resol;
@@ -380,7 +380,7 @@ Matrix_t *makeFirstDifferential(resol_t *resol)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  for (i = 0, ptr = pres->d; i < dimP1; i++, FfStepPtr(&ptr))
+  for (i = 0, ptr = pres->Data; i < dimP1; i++, FfStepPtr(&ptr))
     FfInsert(ptr, i, FF_ONE);
   if (setRankProj(resol, 1, dimP1))
   { MatFree(pres);
@@ -400,7 +400,7 @@ nRgs_t *loadDifferential(resol_t *resol, long n)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
   }
-  nRgs = nRgsStandardSetup(resol, n, pres->d);
+  nRgs = nRgsStandardSetup(resol, n, pres->Data);
   MatFree(pres);
   return nRgs;
 }
@@ -416,7 +416,7 @@ nRgs_t *loadUrbildGroebnerBasis(resol_t *resol, long n)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
   }
-  nRgs = urbildSetup(resol, n, pres->d, pres->nor);
+  nRgs = urbildSetup(resol, n, pres->Data, pres->Nor);
   MatFree(pres);
   return nRgs;
 }

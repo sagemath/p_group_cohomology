@@ -18,17 +18,17 @@ Matrix_t *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scrat
 /* src should be square, scratch should point to enough space. */
 {
   register long i;
-  PTR this_dest = dest->d;
+  PTR this_dest = dest->Data;
   PTR this_scratch = scratch;
-  if (src->fl != dest->fl || src->nor != dest->noc || src->nor != src->noc)
+  if (src->Field != dest->Field || src->Nor != dest->Noc || src->Nor != src->Noc)
   {
     MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
     return NULL;
   }
-  FfSetNoc(src->noc);
-  for (i = dest->nor; i != 0; --i)
+  FfSetNoc(src->Noc);
+  for (i = dest->Nor; i != 0; --i)
   {
-    FfMapRow(this_dest,src->d,src->nor,this_scratch);
+    FfMapRow(this_dest,src->Data,src->Nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_dest);
   }
@@ -39,12 +39,12 @@ Matrix_t *InnerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scrat
  * NULL on error
  ****/
 Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
-/* Guaranteed not to alter dest->d */
+/* Guaranteed not to alter dest->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
   if (!InnerRightProduct(dest,src,scratch)) return NULL;
-  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
+  memcpy(dest->Data, scratch, (FfCurrentRowSize*dest->Nor));
   return dest;
 }
 
@@ -52,26 +52,26 @@ Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
  * NULL on error
  ****/
 Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
-/* Guaranteed not to alter dest->d */
+/* Guaranteed not to alter dest->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
   register long i;
-  PTR this_src = src->d;
+  PTR this_src = src->Data;
   PTR this_scratch = scratch;
-  if (src->fl != dest->fl || src->noc != dest->nor || src->nor != src->noc)
+  if (src->Field != dest->Field || src->Noc != dest->Nor || src->Nor != src->Noc)
   {
     MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
     return NULL;
   }
-  FfSetNoc(dest->noc);
-  for (i = dest->nor; i != 0; --i)
+  FfSetNoc(dest->Noc);
+  for (i = dest->Nor; i != 0; --i)
   {
-    FfMapRow(this_src,dest->d,dest->nor,this_scratch);
+    FfMapRow(this_src,dest->Data,dest->Nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_src);
   }
-  memcpy(dest->d, scratch, (FfCurrentRowSize*dest->nor));
+  memcpy(dest->Data, scratch, (FfCurrentRowSize*dest->Nor));
   return dest;
 }
 

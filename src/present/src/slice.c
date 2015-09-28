@@ -143,7 +143,7 @@ inline void multiply(PTR row, Matrix_t *mat, PTR result, long r)
   register long noc = FfNoc;
   for (i = 0; i < r; i++)
   {
-    FfMapRow(p1, mat->d, noc, p2);
+    FfMapRow(p1, mat->Data, noc, p2);
     FfStepPtr(&p1); FfStepPtr(&p2);
   }
   return;
@@ -306,7 +306,7 @@ static int loadBlock(ngs_t *ngs, long block)
   FfSeekRow(fp, 1 + block * nor * ngs->blockSize);
   register long blennor = blen * nor;
   if (FfReadRows(fp, ngs->thisBlock, blennor) != blennor)
-  { close(fp);
+  { fclose(fp);
     MTX_ERROR("%E", MTX_ERR_FILEFMT);
     return 1;
   }

@@ -24,8 +24,6 @@
 
 #include "pcommon.h"
 #include "meataxe.h"
-#include "perror_decls.h"
-//#include "report_decls.h"
 #include "pgroup.h"
 #include "pgroup_decls.h"
 #include "fp_decls.h"

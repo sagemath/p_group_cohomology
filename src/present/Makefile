@@ -41,11 +41,11 @@ TDIR=$(PWD)
 # The directory in which source files will be found
 VPATH=$(ODIR)/src
 
-# MeatAxe source directory
-MTXSRC=$(ROOTDIR)/mtx2.2.4/src/
+# Location of the MeatAxe header
+MTXINC=$(SAGE_LOCAL)/include
 
 # MeatAxe library directory
-MTXLIBDIR=$(ROOTDIR)/lib
+MTXLIBDIR=$(SAGE_LOCAL)/lib
 
 MTXLIBNAME=mtx
 # Name of MeatAxe library to use.  Usually just "mtx", meaning that the
@@ -53,7 +53,7 @@ MTXLIBNAME=mtx
 
 # In order to deal with build problems on Intel Mac, we defined
 # the variable DARWIN64 in spkg-install
-CFLAGS=-I$(MTXSRC) -Wall $(OO) -g -fPIC $(DARWIN64)
+CFLAGS=-I$(MTXINC) -Wall $(OO) -g -fPIC $(DARWIN64)
 #original: CFLAGS=-I$(MTXSRC) -Wall
 LFLAGS=-L$(MTXLIBDIR) $(DARWIN64)
 LFLAGS2=-l$(MTXLIBNAME) $(DARWIN64)
@@ -63,7 +63,7 @@ LFLAGS2=-l$(MTXLIBNAME) $(DARWIN64)
 # Comment out if you don't have gcc
 ############## End of configuration options ###########################
 
-common=pgroup.o perror.o
+common=pgroup.o
 top_level=mam.o wgb.o mnt.o gi.o perm2Gap.o mim.o matmag.o
 objects=$(common) $(top_level) pincl.o
 executables=makeActionMatrices writeGroebnerBasis makeNontips groupInfo perm2Gap makeInclusionMatrix matmag
@@ -99,7 +99,7 @@ mim.o: pincl_decls.h
 mim.o pincl.o: pincl.h
 pgroup.o: pgroup.h
 
-$(objects): pcommon.h perror_decls.h
+$(objects): pcommon.h
 
 delete:
 	-$(RM) $(objects) $(executables)

@@ -45,7 +45,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
     return 1;
   }
   this = argv[opt_ind++];
-  if (group->stem = djg_strdup(this) == NULL) return 1;
+  if ((group->stem = djg_strdup(this)) == NULL) return 1;
   return 0;
 }
 
@@ -163,7 +163,7 @@ int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
   mintip[p->depth + 1] = '\0';     /* mintip. No corruption problems either. */
   if (!mintipsOnly)
   {
-    PTR src = FfGetPtr(group->action[a]->d, p->index);
+    PTR src = FfGetPtr(group->action[a]->Data, p->index);
     PTR dest = FfGetPtr(folder->ptr, this);
     memcpy(dest, src, FfCurrentRowSize);
     FfMulRow(dest, m_one);

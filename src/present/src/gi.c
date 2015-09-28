@@ -41,7 +41,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
     return 1;
   }
   this = argv[opt_ind++];
-  if (group->stem = djg_strdup(this) == NULL) return 1;
+  if ((group->stem = djg_strdup(this)) == NULL) return 1;
   return 0;
 }
 

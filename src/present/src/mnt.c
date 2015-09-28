@@ -61,7 +61,7 @@ int InterpretCommandLine(int argc, char *argv[], group_t *group)
   group->p = atoi(this);
   FfSetField(group->p);
   this = argv[opt_ind++];
-  if (group->stem = djg_strdup(this) == NULL) return 1;
+  if ((group->stem = djg_strdup(this)) == NULL) return 1;
   /* printf("%s: chosen order is %c\n", pinfo.name, group->ordering); */
   return 0;
 }
@@ -192,7 +192,7 @@ int constructNontips_LengthLex(group_t *group)
         if (pl > 1 && q->child[a] == NULL) continue;
         rec_child = MatGetPtr(rec, so_far);
         ptr_child = MatGetPtr(ptr, so_far);
-        FfMapRow(rec_parent, action[a]->d, nontips, rec_child);
+        FfMapRow(rec_parent, action[a]->Data, nontips, rec_child);
         memcpy(ptr_child, rec_child, FfCurrentRowSize);
         FfCleanRow(ptr_child, ptr->Data, so_far, ptr->PivotTable);
         ptr->PivotTable[so_far] = FfFindPivot(ptr_child, &f);
@@ -264,7 +264,7 @@ int constructNontips_ReverseLengthLex(group_t *group)
     return 1;
   }
   /*mat.Field = FfOrder; mat.Noc = nontips; mat.Data = ptr;*/
-  memcpy(rad->Data, action[0]->d, (FfCurrentRowSize*arrows * nontips));
+  memcpy(rad->Data, action[0]->Data, (FfCurrentRowSize*arrows * nontips));
   raddim = MatEchelonize(rad);
   index[0] = 0;
   FfInsert(rec->Data,0,FF_ONE);
@@ -296,7 +296,7 @@ int constructNontips_ReverseLengthLex(group_t *group)
         offset = raddim + so_far - this_starts;
         rec_child = MatGetPtr(rec, so_far);
         ptr_child = MatGetPtr(rad, offset);
-        FfMapRow(rec_parent, action[a]->d, nontips, rec_child);
+        FfMapRow(rec_parent, action[a]->Data, nontips, rec_child);
         memcpy(ptr_child, rec_child, FfCurrentRowSize);
         FfCleanRow(ptr_child, rad->Data, offset, rad->PivotTable);
         rad->PivotTable[offset] = FfFindPivot(ptr_child, &f);

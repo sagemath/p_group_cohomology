@@ -11,158 +11,196 @@
 #include "pgroup_decls.h"
 MTX_DEFINE_FILE_INFO
 
-static char *helptext[] = {
-"SYNTAX",
-"   makeActionMatrices [-q <q>] [-b] [-l] <stem>",
-"",
-"   Reads <stem>.nontips, <stem>.reg",
-"   Writes <stem>.gens, <stem>.lgens, <stem>.bch",
-"   With option -b, only writes <stem>.bch",
-"   With option -l, only writes <stem>.lgens",
-"   (-b -l writes .bch and .lgens)",
-"   Option -q: Work over F_q rather than over F_p",
-"",
-"DESCRIPTION",
-"   Make matrices for actions of generators.",
-NULL};
+static MtxApplicationInfo_t AppInfo = {
+    "makeActionMatrices",
 
-static proginfo_t pinfo =
-  { "makeActionMatrices", "Make matrices for actions of generators",
-    "$Revision: 31_May_2001", helptext };
+    "Make matrices for actions of generators",
 
-/******************************************************************************/
-struct controlVariables
-{
-  char stem[MAXLINE];
-  boolean bchOnly;
-  boolean leftOnly;
-  long q;
-};
+    "Reads <stem>.nontips, <stem>.reg\n"
+    "Writes <stem>.gens, <stem>.lgens, <stem>.bch\n"
+    "\n"
+    "SYNTAX\n"
+    "    makeActionMatrices [-q <q>] [-b] [-l] <stem>\n"
+    "\n"
+    "ARGUMENTS\n"
+    "   <stem> ................. label of a prime power group\n"
+    "\n"
+    "OPTIONS\n"
+    MTX_COMMON_OPTIONS_DESCRIPTION
+    "\n"
+    "   -b ..................... only write <stem>.bch\n"
+    "   -l ..................... only write <stem>.lgens\n"
+    "   -b -l .................. write both .bch and .lgens\n"
+    "   -q <q>: Work over GF(q) rather than over GF(p)\n"
+    };
 
-typedef struct controlVariables control_t;
+static MtxApplication_t *App = NULL;
 
-/******************************************************************************/
-control_t *newController(void)
-{
-  control_t *control = (control_t *) malloc(sizeof(control_t));
-  if (!control)
-  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
-    return NULL;
-  }
-  control->bchOnly = false;
-  control->leftOnly = false;
-  control->q = -1;
-  return control;
-}
+
+/******************************************************************************
+ * control variables
+ ********************/
+
+static char *stem = NULL;
+static group_t *group;
+static int bchOnly = 0;
+static int leftOnly = 0;
+static int Field = -1;
+
 
 /******************************************************************************/
-void freeController(control_t *control)
+static int Init(int argc, const char *argv[])
 {
-  free(control);
-  return;
-}
+  App = AppAlloc(&AppInfo,argc,argv);
+  if (App == NULL)
+	return 1;
+  /*makeActionMatrices [-q <q>] [-b] [-l] <stem> */
 
-/******************************************************************************/
-int InterpretCommandLine(int argc, char *argv[], control_t *control)
-{
-  char *this;
-  initargs(argc,argv,&pinfo);
-  sprintf(invalid,
-    "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
-  while (zgetopt("blq:") != OPT_END)
-  {
-    switch(opt_char)
-    {
-    case 'b':
-      control->bchOnly = true;
-      break;
-    case 'l':
-      control->leftOnly = true;
-      break;
-    case 'q':
-      control->q = atoi(opt_text);
-    default:
-      break;
-    }
-  }
-  if (opt_ind != argc - 1)
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+  /* What field? */
+  Field = AppGetIntOption(App, "-a", -1, -1, 255);
+  bchOnly = AppGetOption(App, "-b");
+  leftOnly = AppGetOption(App, "-l");
+  if (AppGetArguments(App,1,1) < 0)
+	return 1;
+
+  stem = strdup(App->ArgV[0]);
+  group = namedGroupRecord(stem);
+  if (!group)
+  { printf("Cannot create a group described by %s\n", stem);
     return 1;
   }
-  this = argv[opt_ind++];
-  strcpy(control->stem, this);
+  if (loadNonTips(group))
+  {
+    printf("Cannot determine nontips for %s\n", stem);
+    return 1;
+  }
+  if (Field != -1)
+  {
+    FfSetField(Field);
+    if (FfChar != group->p)
+      { printf("Expected a field of characteristic %d\n", FfChar);
+        return 1;
+      }
+  }
   return 0;
 }
 
-******************************************************************************/
-boolean leftActionMatricesRequired(control_t *control)
+static void Cleanup()
+
 {
-  if (control->leftOnly) return true;
-  return (control->bchOnly) ? false : true;
+    if (App != NULL)
+        AppFree(App);
+    freeGroupRecord(group);
 }
 
 /******************************************************************************/
-boolean rightActionMatricesRequired(control_t *control)
+boolean leftActionMatricesRequired()
 {
-  if (control->bchOnly) return false;
-  return (control->leftOnly) ? false : true;
+  if (leftOnly) return true;
+  return (bchOnly) ? false : true;
 }
 
 /******************************************************************************/
-boolean rightActionMatricesNotYetKnown(control_t *control)
+boolean rightActionMatricesRequired()
 {
-  if (control->bchOnly) return true;
-  return (control->leftOnly) ? false : true;
+  if (bchOnly) return false;
+  return (leftOnly) ? false : true;
 }
 
 /******************************************************************************/
-boolean basisChangeMatricesNotYetKnown(control_t *control)
+boolean rightActionMatricesNotYetKnown()
 {
-  if (control->bchOnly) return true;
-  return (control->leftOnly) ? false : true;
+  if (bchOnly) return true;
+  return (leftOnly) ? false : true;
 }
 
 /******************************************************************************/
-int main(int argc, char *argv[])
+boolean basisChangeMatricesNotYetKnown()
 {
-  group_t *group;
-  control_t *control;
-  MtxInitLibrary();
-  control = newController();
-  if (InterpretCommandLine(argc, argv, control)) exit(1);
-  group = namedGroupRecord(control->stem);
-  if (!group) exit(1);
-  if (loadNonTips(group)) exit(1);
-  if (control->q != -1)
+  if (bchOnly) return true;
+  return (leftOnly) ? false : true;
+}
+
+/******************************************************************************/
+int main(int argc, const char *argv[])
+{
+  if (Init(argc, argv))
+  { MTX_ERROR("Error parsing command line. Try --help");
+    exit(1);
+  }
+
+  if (buildPathTree(group))
   {
-    FfSetField(control->q);
-    if (FfChar != group->p)
-      { MTX_ERROR("invalid ground field");
-        exit(1);
+       printf("Error building path tree\n");
+       exit(1);
+  }
+
+
+  if (rightActionMatricesNotYetKnown())
+  {  if (loadRegularActionMatrices(group))
+      {
+           printf("Error loading regular action matrices\n");
+           exit(1);
       }
   }
-  if (buildPathTree(group)) exit(1);
-  if (rightActionMatricesNotYetKnown(control))
-    if (loadRegularActionMatrices(group)) exit(1);
   else
-    if (loadActionMatrices(group)) exit(1);
-  if (basisChangeMatricesNotYetKnown(control))
+  {  if (loadActionMatrices(group))
+      {
+           printf("Error loading action matrices\n");
+           exit(1);
+      }
+  }
+
+
+  if (basisChangeMatricesNotYetKnown())
   {
-    if (makeBasisChangeMatrices(group)) exit(1);
-    if (saveBasisChangeMatrices(group)) exit(1);
+    if (makeBasisChangeMatrices(group))
+      {
+           printf("Error determining base change matrices\n");
+           exit(1);
+      }
+    if (saveBasisChangeMatrices(group))
+      {
+           printf("Error saving base change matrices\n");
+           exit(1);
+      }
   }
   else
-    if (loadBasisChangeMatrices(group)) exit(1);
-  if (rightActionMatricesRequired(control))
+    if (loadBasisChangeMatrices(group))
+      {
+           printf("Error loading base change matrices\n");
+           exit(1);
+      }
+
+
+  if (rightActionMatricesRequired())
   {
-    if (changeActionMatricesReg2Nontips(group)) exit(1);
-    if (saveActionMatrices(group)) exit(1);
+    if (changeActionMatricesReg2Nontips(group))
+      {
+           printf("Error changing action from regular basis to preferred basis\n");
+           exit(1);
+      }
+    if (saveActionMatrices(group))
+      {
+           printf("Error saving action matrices\n");
+           exit(1);
+      }
   }
-  if (leftActionMatricesRequired(control))
+
+
+  if (leftActionMatricesRequired())
   {
-    if (makeLeftActionMatrices(group)) exit(1);
-    if (saveLeftActionMatrices(group)) exit(1);
+    if (makeLeftActionMatrices(group))
+      {
+           printf("Error determining left action matrices\n");
+           exit(1);
+      }
+    if (saveLeftActionMatrices(group))
+      {
+           printf("Error saving left action matrices\n");
+           exit(1);
+      }
   }
-  freeGroupRecord(group);
+  Cleanup();
   exit(0);
 }

@@ -101,7 +101,7 @@ static long marksPerLine(long p, long noc)
 static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
 {
   char buffer[MAXLINE], tmp[MAXLINE];
-  long mpl = marksPerLine(mat->fl, mat->noc);
+  long mpl = marksPerLine(mat->Field, mat->Noc);
   PTR row;
   long i, j, thisrow = 0;
   buffer[0] = '\0';
@@ -109,15 +109,15 @@ static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
   { MTX_ERROR("writeMagmaMatrix: currently only prime fields catered for");
     return 1;
   }
-  /* fprintf(fp, "%s := Matrix(GF(%ld), %ld, %ld, [\n", Magname, mat->fl,
-    mat->nor, mat->noc); */
-  fprintf(fp, "KMatSpace := KMatrixSpace(GF(%ld), %ld, %ld);\n", mat->fl,
-    mat->nor, mat->noc);
+  /* fprintf(fp, "%s := Matrix(GF(%ld), %ld, %ld, [\n", Magname, mat->Field,
+    mat->Nor, mat->Noc); */
+  fprintf(fp, "KMatSpace := KMatrixSpace(GF(%ld), %ld, %ld);\n", mat->Field,
+    mat->Nor, mat->Noc);
   fprintf(fp, "%s := KMatSpace ! [\n", Magname);
-  for (i = 0; i < mat->nor; i++)
+  for (i = 0; i < mat->Nor; i++)
   {
-    row = FfGetPtr(mat->d, i);
-    for (j = 0; j < mat->noc; j++)
+    row = FfGetPtr(mat->Data, i);
+    for (j = 0; j < mat->Noc; j++)
     {
       if (thisrow == mpl)
       {
@@ -126,7 +126,7 @@ static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
         thisrow = 0;
       }
       sprintf(tmp, " %ld", FfToInt(FfExtract(row, j)));
-      if (i < mat->nor-1 || j < mat->noc-1) strcat(tmp, ",");
+      if (i < mat->Nor-1 || j < mat->Noc-1) strcat(tmp, ",");
       strcat(buffer, tmp);
       thisrow++;
     }
