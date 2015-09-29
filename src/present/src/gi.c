@@ -55,7 +55,7 @@ static int Init(int argc, const char *argv[])
       return 1;
   }
 
-  if (AppGetArguments(App,1,1) < 0)
+  if (AppGetArguments(App, 1, 1) < 0)
 	return 1;
 
   if ((group->stem = mtx_strdup(App->ArgV[0])) == NULL) return 1;
@@ -63,7 +63,6 @@ static int Init(int argc, const char *argv[])
 }
 
 static void Cleanup()
-
 {
     if (App != NULL)
         AppFree(App);

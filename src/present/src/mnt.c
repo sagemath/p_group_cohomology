@@ -11,60 +11,88 @@
 #include "pgroup_decls.h"
 MTX_DEFINE_FILE_INFO
 
-static char *helptext[] = {
-"SYNTAX",
-"   makeNontips -O <Ordering> <p> <stem>",
-"",
-"   Reads <stem>.reg, writes <stem>.nontips",
-"   <p> is the underlying prime",
-"   Option -O is obligatory; <Ordering> should be one of",
-"       LL  for LengthLex",
-"       RLL for ReverseLengthLex",
-"       J   for Jennings (also reads file <stem>.dims)",
-"",
-"DESCRIPTION",
-"   Makes .nontips file from regular representation.",
-NULL};
+static MtxApplicationInfo_t AppInfo = {
+    "makeNontips",
 
-static proginfo_t pinfo =
-  { "makeNontips", "Makes .nontips file using regular representation",
-    "$Revision: 30_April_1998", helptext };
+    "Makes .nontips file using regular representation",
+
+    "Reads <stem>.reg\n"
+    "Writes <stem>.nontips\n"
+    "\n"
+    "SYNTAX\n"
+    "   makeNontips -O <Ordering> <p> <stem>\n"
+    "\n"
+    "ARGUMENTS\n"
+    "   <p> .................... the underlying prime\n"
+    "   <stem> ................. label of a prime power group\n"
+    "\n"
+    "OPTIONS\n"
+    "   -O is obligatory; <Ordering> should be one of\n"
+    "       LL  for LengthLex\n"
+    "       RLL for ReverseLengthLex\n"
+    "       J   for Jennings (also reads file <stem>.dims)\n"
+    MTX_COMMON_OPTIONS_DESCRIPTION
+    "\n"
+};
+
+static MtxApplication_t *App = NULL;
+
+/***
+ * control variables
+ ****/
+
+static group_t *group = NULL;
+
 
 /****
  * 1 on error
  ***************************************************************************/
-int InterpretCommandLine(int argc, char *argv[], group_t *group)
+int Init(int argc, const char *argv[])
 {
-  //register int i;
-  char *this;
-  initargs(argc,argv,&pinfo);
-  if (zgetopt("O:") != 'O')
-    { MTX_ERROR1("%E", MTX_ERR_BADARG);
+  App = AppAlloc(&AppInfo,argc,argv);
+  if (App == NULL)
+	return 1;
+
+  group = newGroupRecord();
+  if (!group)
+  { MTX_ERROR1("Cannot allocate group: %E", MTX_ERR_NOMEM);
+    return 1;
+  }
+
+  const char * ord_text = AppGetTextOption(App, "-O", "");
+  if (!ord_text)
+    { MTX_ERROR1("An order has to be defined: %E", MTX_ERR_BADARG);
       return 1;
     }
-  if (strcmp(opt_text,"LL") == 0)
+  if (strcmp(ord_text,"LL") == 0)
     group->ordering = 'L';
-  else if (strcmp(opt_text,"RLL") == 0)
+  else if (strcmp(ord_text,"RLL") == 0)
     group->ordering = 'R';
-  else if (strcmp(opt_text, "J") == 0)
+  else if (strcmp(ord_text, "J") == 0)
     group->ordering = 'J';
   else
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+  { MTX_ERROR2("Unkown order %s: %E", ord_text, MTX_ERR_BADARG);
     return 1;
   }
-  zgetopt("");
-  if (opt_ind != argc - 2)
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
-    return 1;
-  }
-  this = argv[opt_ind++];
-  group->p = atoi(this);
-  FfSetField(group->p);
-  this = argv[opt_ind++];
-  if ((group->stem = mtx_strdup(this)) == NULL) return 1;
+
+  if (AppGetArguments(App, 2, 2) < 0)
+	return 1;
+
+  group->p = atoi(App->ArgV[0]);
+  if (FfSetField(group->p)<0) return 1;
+
+  if ((group->stem = mtx_strdup(App->ArgV[1])) == NULL) return 1;
   /* printf("%s: chosen order is %c\n", pinfo.name, group->ordering); */
   return 0;
 }
+
+static void Cleanup()
+{
+    if (App != NULL)
+        AppFree(App);
+    freeGroupRecord(group);
+}
+
 
 /******************************************************************************/
 static path_t *rightFactor(path_t *root, path_t *parent, long *aa)
@@ -148,11 +176,7 @@ int constructNontips_LengthLex(group_t *group)
   Matrix_t **action = group->action;
   char newname;
   long aa[MAXLENGTH];
-  long *piv, *index;
-  /*
-  PTR ptr = FfAlloc(nontips + 1);
-  PTR rec = FfAlloc(nontips + 1);
-  */
+  long *index;
   Matrix_t *ptr = MatAlloc(FfOrder, nontips+1, FfNoc);
   Matrix_t *rec = MatAlloc(FfOrder, nontips+1, FfNoc);
   
@@ -161,16 +185,19 @@ int constructNontips_LengthLex(group_t *group)
   long i, a;
   path_t *p, *parent, *q;
   FEL f;
-  /*piv = (long *) malloc((nontips + 2) * sizeof(long));*/
   index = (long *) malloc(nontips * sizeof(long));
-  /*if (!ptr || !piv || !index || !rec)*/
   if (!ptr || !index || !rec)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return 1;
   }
   FfInsert(ptr->Data,0,FF_ONE);
   FfInsert(rec->Data,0,FF_ONE);
-  MatPivotize(ptr);
+  if (!(ptr->PivotTable = NREALLOC(ptr->PivotTable, int, ptr->Noc)))
+    {
+        MTX_ERROR1("Cannot allocate pivot table (size %d)",ptr->Noc);
+        return -1;
+    }
+  ptr->PivotTable[0] = 0;
   this_starts = 0; so_far = 1; mintips = 0;
   for (pl = 1; so_far > this_starts; pl++)
   {
@@ -216,7 +243,7 @@ int constructNontips_LengthLex(group_t *group)
           }
           if (pl > 1) strcpy(p->path, parent->path);
           newname = arrowName(a);
-          if (newname==" ") return 1;
+          if (newname == ' ') return 1;
           p->path[pl-1] = newname;
           p->path[pl] = '\0';
           so_far++;
@@ -246,12 +273,10 @@ int constructNontips_ReverseLengthLex(group_t *group)
   long aa[MAXLENGTH];
   long *index;
   char newname;
-  /*Matrix_t *ptr = MatAlloc(FfOrder, nontips + 1, FfNoc); /* Initializes */
   PTR rec_parent, rec_child, ptr_child;
   Matrix_t *rad;
   PTR dest;
   Matrix_t *rec;
-  /*Matrix_t mat;  /* NOT just a pointer to a matrix! */
   long pl, prev_starts, this_starts, so_far, mintips;
   long i, a, raddim, offset;
   path_t *p, *parent, *q;
@@ -263,9 +288,18 @@ int constructNontips_ReverseLengthLex(group_t *group)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return 1;
   }
-  /*mat.Field = FfOrder; mat.Noc = nontips; mat.Data = ptr;*/
-  memcpy(rad->Data, action[0]->Data, (FfCurrentRowSize*arrows * nontips));
-  raddim = MatEchelonize(rad);
+  memcpy(rad->Data, action[0]->Data, (rad->RowSize*arrows * nontips));
+  if ((raddim = MatEchelonize(rad))<0) return 1;
+
+  /* Below, we will stack the images of rad under action of arrows.
+   * For that purpose, we need some scratch space.
+   */
+  PTR scratch = FfAlloc(arrows * nontips);
+  if (!scratch)
+  { MTX_ERROR1("%E",MTX_ERR_NOMEM);
+    return 1;
+  }
+
   index[0] = 0;
   FfInsert(rec->Data,0,FF_ONE);
   this_starts = 0; so_far = 1; mintips = 0;
@@ -275,14 +309,30 @@ int constructNontips_ReverseLengthLex(group_t *group)
     this_starts = so_far;
     if (raddim > 0)
     {
-      for (a = 0, dest = rad->Data; a < arrows; a++, dest = FfGetPtr(dest, raddim))
+      for (a = 0, dest = scratch; a < arrows; a++, dest = FfGetPtr(dest, raddim))
       { if (innerRightProduct(rad, action[a], dest)) return 1; }
+      /* now, for the next round, transfer the scratch space to rad->Data,
+       * so that we can newly echelonise.
+       */
+      rad->Nor = arrows*raddim;
+      rad->Data = SysRealloc(rad->Data, rad->RowSize*rad->Nor);
+      if (!rad->Data)
+      {
+          MTX_ERROR1("%E", MTX_ERR_NOMEM);
+          return 1;
+      }
+      memcpy(rad->Data, scratch, rad->RowSize*rad->Nor);
       raddim = MatEchelonize(rad);
     }
+    /* In the following loop, we will append up to
+     * (this_starts-prev_starts)*arrows rows. Hence,
+     * we need to reallocate.
+     */
+    rad->Data = SysRealloc(rad->Data, rad->RowSize*(raddim + (this_starts-prev_starts)*arrows));
     for (i = prev_starts; i < this_starts; i++)
     {
       parent = root + i;
-      rec_parent = FfGetPtr(rec, parent->index);
+      rec_parent = MatGetPtr(rec, parent->index);
       if (pl > 1)
       {
         /* parent has length >= 1, so factors as b.q, b arrow, q path
@@ -300,6 +350,7 @@ int constructNontips_ReverseLengthLex(group_t *group)
         memcpy(ptr_child, rec_child, FfCurrentRowSize);
         FfCleanRow(ptr_child, rad->Data, offset, rad->PivotTable);
         rad->PivotTable[offset] = FfFindPivot(ptr_child, &f);
+        rad->Nor = offset+1;
         if (rad->PivotTable[offset] == -1)
         {
           /* New mintip found */
@@ -320,7 +371,7 @@ int constructNontips_ReverseLengthLex(group_t *group)
           }
           if (pl > 1) strcpy(p->path, parent->path);
           newname = arrowName(a);
-          if (newname==" ") return 1;
+          if (newname==' ') return 1;
           p->path[pl-1] = newname;
           p->path[pl] = '\0';
           so_far++;
@@ -374,7 +425,7 @@ static char *newPath(long a, char *prev)
     return NULL;
   }
   this[0] = arrowName(a);
-  if (this[0]==" ") return NULL;
+  if (this[0]==' ') return NULL;
   this[1] = '\0';
   if (l > 2) strcat(this,prev);
   return this;
@@ -429,19 +480,19 @@ int constructNontips_Jennings(group_t *group)
     }
   }
   sortJenningsWords(group, word);
-  return (writeOutJenningsNontips(group, word);
+  return writeOutJenningsNontips(group, word);
 }
 
 /******************************************************************************/
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
-  group_t *group;
-  MtxInitLibrary();
-  group = newGroupRecord();
-  if (!group) exit(1);
-  if (InterpretCommandLine(argc, argv, group)) exit(1);
+  if (Init(argc, argv))
+  { MTX_ERROR("Error parsing command line. Try --help");
+    exit(1);
+  }
+
   if (group->ordering == 'J')
-    if (constructNontips_Jennings(group)) exit(1);
+  { if (constructNontips_Jennings(group)) exit(1); }
   else
   {
     if (readRegFileHeader(group)) exit(1);
@@ -449,10 +500,10 @@ int main(int argc, char *argv[])
     group->root = allocatePathTree(group);
     if (!group->root) exit(1);
     if (group->ordering == 'L')
-      if (constructNontips_LengthLex(group)) exit(1);
+    { if (constructNontips_LengthLex(group)) exit(1); }
     else
-      if (constructNontips_ReverseLengthLex(group)) exit(1);
+    { if (constructNontips_ReverseLengthLex(group)) exit(1); }
   }
-  freeGroupRecord(group);
+  Cleanup();
   exit(0);
 }

@@ -159,7 +159,7 @@ int recordThisMintip(wgbFolder_t *folder, path_t *p, long a)
   char *mintip = folder->mintip[this];
   strcpy(mintip, p->path);         /* N.B. Even if p has length zero, these  */
   newname = arrowName(a);          /* lines ensure path p.a written to */
-  if (newname==" ") return 1;
+  if (strcmp(newname,' ')==0) return 1;
   mintip[p->depth + 1] = '\0';     /* mintip. No corruption problems either. */
   if (!mintipsOnly)
   {

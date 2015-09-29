@@ -42,7 +42,7 @@ static MtxApplication_t *App = NULL;
  ********************/
 
 static char *stem = NULL;
-static group_t *group;
+static group_t *group = NULL;
 static int bchOnly = 0;
 static int leftOnly = 0;
 static int Field = -1;
@@ -60,7 +60,7 @@ static int Init(int argc, const char *argv[])
   Field = AppGetIntOption(App, "-a", -1, -1, 255);
   bchOnly = AppGetOption(App, "-b");
   leftOnly = AppGetOption(App, "-l");
-  if (AppGetArguments(App,1,1) < 0)
+  if (AppGetArguments(App, 1, 1) < 0)
 	return 1;
 
   stem = mtx_strdup(App->ArgV[0]);
@@ -86,7 +86,6 @@ static int Init(int argc, const char *argv[])
 }
 
 static void Cleanup()
-
 {
     if (App != NULL)
         AppFree(App);

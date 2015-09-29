@@ -215,7 +215,7 @@ static long GetNextLong(FILE **fp, char *buffer)
 }
 
 /****
- * Change fp to NULL pointer on error, close the file, and return " "
+ * Change fp to NULL pointer on error, close the file, and return ' '
  ***************************************************************************/
 static inline char GetNextChar(FILE **fp)
 {
@@ -224,7 +224,7 @@ static inline char GetNextChar(FILE **fp)
     { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
       fclose(*fp);
       *fp = NULL;
-      return " ";
+      return ' ';
     }
   return c;
 }
@@ -237,7 +237,7 @@ static inline char GetNextChar(FILE **fp)
 
 
 /****
- * Change fp to NULL pointer on error, close the file, and return " "
+ * Change fp to NULL pointer on error, close the file, and return ' '
  ***************************************************************************/
 static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
 /* Returns character immediately following path */
@@ -253,7 +253,7 @@ static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
     { MTX_ERROR1("unexpected EOF: %E", MTX_ERR_FILEFMT);
       fclose(*fp);
       *fp = NULL;
-      return " ";
+      return ' ';
     }
     else if (IsArrow(c,arrows))
       *this = c;
@@ -264,14 +264,14 @@ static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
         { MTX_ERROR1("invalid vertex: %E", MTX_ERR_FILEFMT);
           fclose(*fp);
           *fp = NULL;
-          return " ";
+          return ' ';
         }
       *(this++) = c;
       if ((c = NextSignificantCharacter(*fp)) != ')')
         { MTX_ERROR1("invalid vertex path format: %E", MTX_ERR_FILEFMT);
           fclose(*fp);
           *fp = NULL;
-          return " ";
+          return ' ';
         }
       *(this++) = c;
       c = NextSignificantCharacter(*fp);
@@ -283,7 +283,7 @@ static char GetNextPath(FILE **fp, char *dest, long maxlength, long arrows)
     { MTX_ERROR1("buffer overflow: %E", MTX_ERR_NOMEM);
       fclose(*fp);
       *fp = NULL;
-      return " ";
+      return ' ';
     }
   }
   *this = '\0';
@@ -303,7 +303,7 @@ int loadDimensions(group_t *group)
   fp = fopen(dimfile, "r");
   if (!fp)
   {
-      MTX_ERROR1("%E", MTX_ERR_FILEFMT);
+      MTX_ERROR1("Cannot open file %s", dimfile);
       return 1;
   }
   dims = GetNextLong(&fp, buffer);
@@ -916,7 +916,7 @@ void freeGroupRecord (group_t *group)
 }
 
 /****
- * " " on error
+ * ' ' on error
  ***************************************************************************/
 char arrowName(long a)
 {
@@ -924,7 +924,7 @@ char arrowName(long a)
   if (a >= MAXARROW)
   {
       MTX_ERROR1("Need more arrow names: %E", MTX_ERR_RANGE);
-      return " ";
+      return ' ';
   }
   return arrowname[a];
 }

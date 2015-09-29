@@ -79,8 +79,7 @@ writeGroebnerBasis: wgb.o $(common)
 makeNontips: mnt.o $(common)
 	$(CC) $(LFLAGS) -o makeNontips mnt.o $(common) $(LFLAGS2)
 	echo "Testing makeNontips"
-	$(ROOTDIR)/bin/maketab 2
-	./makeNontips -ORLL 2 $(VPATH)/test
+	./makeNontips -O RLL 2 $(VPATH)/test
 
 groupInfo: gi.o $(common)
 	$(CC) $(LFLAGS) -o groupInfo gi.o $(common) $(LFLAGS2)
