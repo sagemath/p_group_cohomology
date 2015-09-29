@@ -122,7 +122,7 @@ int saveBasisChangeMatrices(group_t *group);
 int loadBasisChangeMatrices(group_t *group);
 int readRegFileHeader(group_t *group);
 
-int convertPermutationsToAsci(char *infile, char *outfile);
+int convertPermutationsToAsci(const char *infile, const char *outfile);
 
 void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   long q, PTR scratch, PTR gamma);

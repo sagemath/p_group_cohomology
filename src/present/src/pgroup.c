@@ -1111,7 +1111,7 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
 /****
  * 1 on error
  ***************************************************************************/
-int convertPermutationsToAsci(char *infile, char *outfile)
+int convertPermutationsToAsci(const char *infile, const char *outfile)
 {
   long header[3], *line;
   long nontips, num, i, j;

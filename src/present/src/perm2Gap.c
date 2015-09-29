@@ -12,47 +12,55 @@
 #include "pmatrix_decls.h"
 MTX_DEFINE_FILE_INFO
 
-static char *helptext[] = {
-"SYNTAX",
-"   perm2Gap <infile> <outfile>",
-"",
-"   Reads <infile>: list of permutations in MeatAxe format",
-"   Translates to Gap code <outfile>",
-"",
-"DESCRIPTION",
-"   Convert MeatAxe permutations to Gap code.",
-NULL};
+static MtxApplicationInfo_t AppInfo = {
+    "perm2Gap",
+    "Convert MeatAxe permutations to Gap code",
 
-static proginfo_t pinfo =
-  { "perm2Gap", "Convert MeatAxe permutations to Gap code",
-    "$Revision: 01_June_2000", helptext };
+    "SYNTAX\n"
+    "   perm2Gap <infile> <outfile>\n"
+    "\n"
+    "ARGUMENTS\n"
+    "   <infile> ..... file to be read, containing a list of permutations\n"
+    "                  in MeatAxe format\n"
+    "   <outfile> .... file to be written, providing the permutations in Gap code\n"
+    "\n"
+    "OPTIONS\n"
+    MTX_COMMON_OPTIONS_DESCRIPTION
+    "\n"
+};
+
+static MtxApplication_t *App = NULL;
+
+/******************************************************************************
+ * Control variables
+ ******************************************************************************/
+
+const char *infile = NULL;
+const char *outfile = NULL;
 
 /******************************************************************************/
-int InterpretCommandLine(int argc, char *argv[], char *infile, char*outfile)
+int Init(int argc, const char *argv[])
 {
-  //register int i;
-  char *this;
-  initargs(argc,argv,&pinfo);
-  sprintf(invalid,
-    "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
-  while (zgetopt("") != OPT_END);
-  if (opt_ind != argc - 2)
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
-    return 1;
-  }
-  this = argv[opt_ind++];
-  strcpy(infile, this);
-  this = argv[opt_ind++];
-  strcpy(outfile, this);
+  App = AppAlloc(&AppInfo,argc,argv);
+  if (App == NULL)
+	return 1;
+  if (AppGetArguments(App, 2, 2) < 0)
+	return 1;
+  infile = App->ArgV[0];
+  outfile = App->ArgV[1];
   return 0;
 }
 
 /******************************************************************************/
-int main(int argc, char *argv[])
+int main(int argc, char const*argv[])
 {
-  char infile[MAXLINE], outfile[MAXLINE];
-  MtxInitLibrary();
-  if (InterpretCommandLine(argc, argv, infile, outfile)) exit(1);
+  
+  if (Init(argc, argv))
+  { MTX_ERROR("Error parsing command line");
+    exit(1);
+  }
   if (convertPermutationsToAsci(infile, outfile)) exit(1);
+  if (App != NULL)
+      AppFree(App);
   exit(0);
 }
