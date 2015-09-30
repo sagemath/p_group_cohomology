@@ -64,17 +64,14 @@ LFLAGS2=-l$(MTXLIBNAME) $(DARWIN64)
 ############## End of configuration options ###########################
 
 common=pgroup.o
-top_level=mam.o wgb.o mnt.o gi.o perm2Gap.o mim.o matmag.o
+top_level=mam.o mnt.o gi.o perm2Gap.o mim.o matmag.o
 objects=$(common) $(top_level) pincl.o
-executables=makeActionMatrices writeGroebnerBasis makeNontips groupInfo perm2Gap makeInclusionMatrix matmag
+executables=makeActionMatrices makeNontips groupInfo perm2Gap makeInclusionMatrix matmag
 
 all: $(executables)
 
 makeActionMatrices: mam.o $(common)
 	$(CC) $(LFLAGS) -o makeActionMatrices mam.o $(common) $(LFLAGS2)
-
-writeGroebnerBasis: wgb.o $(common)
-	$(CC) $(LFLAGS) -o writeGroebnerBasis wgb.o $(common) $(LFLAGS2)
 
 makeNontips: mnt.o $(common)
 	$(CC) $(LFLAGS) -o makeNontips mnt.o $(common) $(LFLAGS2)

@@ -18,22 +18,21 @@
 
 # *****************************************************************************
 # This file implements the following functions:
-# 
+#
 #    makeBasis (G,name,RLL: options): GrpPerm, MonStgElt, BoolElt -> RingIntElt
-# 
+#
 #    makeSmallBasis (G,name,RLL,tries: options):
 #      GrpPerm, MonStgElt, BoolElt, RingIntElt -> RingIntElt
-# 
+#
 #    listBasisSizes (G,name,RLL,tries: options):
 #      GrpPerm, MonStgElt, BoolElt, RingIntElt -> [RingIntElt]
-# 
+#
 #    makeJenningsBasis (G,name: options): GrpPerm, MonStgElt ->
 #
 #    regularPermutationAction(G: options): GrpPC or GrpPerm -> GrpPerm
 #    createRegFile(stem, group) ->
 #    writeOutMtxPerms(List(Perm), outfile, tmpfile, degree) ->
 #
-#    writeGroebnerBasis (name): MonStgElt ->
 #    printGroebnerBasis (name): MonStgElt ->
 #    writeMinimalTips (name): MonStgElt ->
 #    printMinimalTips (name): MonStgElt ->
@@ -80,30 +79,6 @@ regularPermutationAction := function(G)
   L := List(gens, g->PermList(List([1..N], i->Position(S,S[i]*g))));
   gg := Group(L);
   return gg;
-end;
-
-# *****************************************************************************
-writeGroebnerBasis := function(name)
-  Exec(Concatenation("writeGroebnerBasis ", name));
-  Print(Concatenation("Groebner basis written to ", name, ".groebner\n"));
-end;
-
-# *****************************************************************************
-printGroebnerBasis := function(name)
-  Exec(Concatenation("writeGroebnerBasis ", name));
-  Exec(Concatenation("cat ", name, ".groebner"));
-end;
-
-# *****************************************************************************
-writeMinimalTips := function(name)
-  Exec(Concatenation("writeGroebnerBasis -t ", name));
-  Print(Concatenation("Minimal tips written to ", name, ".mintips\n"));
-end;
-
-# *****************************************************************************
-printMinimalTips := function(name)
-  Exec(Concatenation("writeGroebnerBasis -t ", name));
-  Exec(Concatenation("cat ", name, ".mintips"));
 end;
 
 # *****************************************************************************
@@ -493,7 +468,7 @@ makeSmallBasis := function(gg,name,RLL,tries)
       if inSeries then
         bestname := name;
       else
-        bestname := Concatenation(name, String(best)); 
+        bestname := Concatenation(name, String(best));
       fi;
       renameStem(tmpname, bestname);
       found := true;

@@ -27,10 +27,10 @@ static MtxApplicationInfo_t AppInfo = {
     "    <stem> ................. label of a prime power group\n"
     "\n"
     "OPTIONS\n"
-    "    -O is obligatory; <Ordering> should be one of\n"
-    "       LL  for LengthLex\n"
-    "       RLL for ReverseLengthLex\n"
-    "       J   for Jennings (also reads file <stem>.dims)\n"
+    "    -O <Ordering> should be one of\n"
+    "           LL  for LengthLex\n"
+    "           RLL for ReverseLengthLex (default)\n"
+    "           (J for Jennings is currently not supported)\n"
     MTX_COMMON_OPTIONS_DESCRIPTION
     "\n"
 };
@@ -51,7 +51,7 @@ int Init(int argc, const char *argv[])
 {
   App = AppAlloc(&AppInfo,argc,argv);
   if (App == NULL)
-	return 1;
+    return 1;
 
   group = newGroupRecord();
   if (!group)
@@ -59,24 +59,23 @@ int Init(int argc, const char *argv[])
     return 1;
   }
 
-  const char * ord_text = AppGetTextOption(App, "-O", "");
-  if (!ord_text)
-    { MTX_ERROR1("An order has to be defined: %E", MTX_ERR_BADARG);
-      return 1;
-    }
+  const char * ord_text = AppGetTextOption(App, "-O", "RLL");
   if (strcmp(ord_text,"LL") == 0)
     group->ordering = 'L';
   else if (strcmp(ord_text,"RLL") == 0)
     group->ordering = 'R';
   else if (strcmp(ord_text, "J") == 0)
-    group->ordering = 'J';
+  { group->ordering = 'J';
+    MTX_ERROR1("Jennings order is currently not supported: %E", MTX_ERR_BADARG);
+    return 1;
+  }
   else
   { MTX_ERROR2("Unkown order %s: %E", ord_text, MTX_ERR_BADARG);
     return 1;
   }
 
   if (AppGetArguments(App, 2, 2) < 0)
-	return 1;
+    return 1;
 
   group->p = atoi(App->ArgV[0]);
   if (FfSetField(group->p)<0) return 1;
@@ -179,7 +178,7 @@ int constructNontips_LengthLex(group_t *group)
   long *index;
   Matrix_t *ptr = MatAlloc(FfOrder, nontips+1, FfNoc);
   Matrix_t *rec = MatAlloc(FfOrder, nontips+1, FfNoc);
-  
+
   PTR rec_parent, rec_child, ptr_child;
   long pl, prev_starts, this_starts, so_far, mintips;
   long i, a;
