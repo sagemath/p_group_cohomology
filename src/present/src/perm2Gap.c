@@ -17,12 +17,12 @@ static MtxApplicationInfo_t AppInfo = {
     "Convert MeatAxe permutations to Gap code",
 
     "SYNTAX\n"
-    "   perm2Gap <infile> <outfile>\n"
+    "    perm2Gap <infile> <outfile>\n"
     "\n"
     "ARGUMENTS\n"
-    "   <infile> ..... file to be read, containing a list of permutations\n"
-    "                  in MeatAxe format\n"
-    "   <outfile> .... file to be written, providing the permutations in Gap code\n"
+    "    <infile> ..... file to be read, containing a list of permutations\n"
+    "                   in MeatAxe format\n"
+    "    <outfile> .... file to be written, providing the permutations in Gap code\n"
     "\n"
     "OPTIONS\n"
     MTX_COMMON_OPTIONS_DESCRIPTION

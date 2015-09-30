@@ -15,15 +15,15 @@ static MtxApplicationInfo_t AppInfo = {
 
     "Print group statistics",
 
-    "   Deciphers .nontips file header and prints group statistics.\n"
+    "    Deciphers .nontips file header and prints group statistics.\n"
     "\n"
-    "   Reads <stem>.nontips (<stem>.dims too if Jennings ordering used)\n"
+    "    Reads <stem>.nontips (<stem>.dims too if Jennings ordering used)\n"
     "\n"
     "SYNTAX\n"
-    "   groupInfo <stem>\n"
+    "    groupInfo <stem>\n"
     "\n"
     "ARGUMENTS\n"
-    "   <stem> ................. label of a prime power group\n"
+    "    <stem> ................. label of a prime power group\n"
     "\n"
     "OPTIONS\n"
     MTX_COMMON_OPTIONS_DESCRIPTION

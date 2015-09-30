@@ -9,74 +9,52 @@
 #include "pgroup_decls.h"
 MTX_DEFINE_FILE_INFO
 
-static char *helptext[] = {
-"SYNTAX",
-"   matmag [-n <Magname>] <Mat> <Magfile>",
-"",
-"   <Mat> : File containing a MeatAxe matrix over a prime field",
-"   <Magfile> : File to write MAGMA matrix to",
-"   Option -n: MAGMA matrix called <Magname> (default A)",
-"",
-"DESCRIPTION",
-"   Convert matrix to MAGMA format.",
-NULL};
+static MtxApplicationInfo_t AppInfo = {
+    "matmag",
 
-static proginfo_t pinfo =
-  { "matmag", "Convert matrix to MAGMA format.",
-    "$Revision: 13_September_2000", helptext };
+    "Convert matrix to MAGMA format.",
 
-/******************************************************************************/
-struct controlVariables
-{
-  char Matname[MAXLINE];
-  char Magfile[MAXLINE];
-  char Magname[MAXLINE];
+    "SYNTAX\n"
+    "    matmag [-n <Magname>] <Mat> <Magfile>\n"
+    "\n"
+    "ARGUMENTS\n"
+    "    <MTXfile> ....... File containing a MeatAxe matrix over a prime field\n"
+    "    <Magfile> ....... File to write MAGMA matrix to\n"
+    "\n"
+    "OPTIONS\n"
+    "    -n <Magname> .... MAGMA matrix will be called <Magname> (default A)\n"
+    MTX_COMMON_OPTIONS_DESCRIPTION
+    "\n"
 };
 
-typedef struct controlVariables control_t;
+static MtxApplication_t *App = NULL;
+
+/***
+ * control variables
+ ****/
+
+const char *MTXfile;
+const char *Magfile;
+const char *Magname;
+
 
 /******************************************************************************/
-control_t *newController(void)
+int Init(int argc, const char *argv[])
 {
-  control_t *control = (control_t *) malloc(sizeof(control_t));
-  if (!control)
-  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
-    return NULL;
-  }
+  App = AppAlloc(&AppInfo,argc,argv);
+  if (App == NULL)
+	return 1;
 
-  sprintf(control->Magname, "A");
-  return control;
-}
-
-/******************************************************************************/
-void freeController(control_t *control)
-{
-  free(control);
-  return;
-}
-
-/******************************************************************************/
-int InterpretCommandLine(int argc, char *argv[], control_t *control)
-{
-  initargs(argc,argv,&pinfo);
-  sprintf(invalid,
-    "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
-  while (zgetopt("n:") != OPT_END)
-  {
-    sprintf(control->Magname, "%s", opt_text);
-  }
-  if (opt_ind == argc - 2)
-  {
-    char *this;
-    this = argv[opt_ind++];
-    strcpy(control->Matname, this);
-    this = argv[opt_ind++];
-    strcpy(control->Magfile, this);
-  }
-  else
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
+  Magname = AppGetTextOption(App, "-n", "A");
+  if (!MTXfile)
+  { MTX_ERROR1("Empty string for option -n: %E", MTX_ERR_BADARG);
     return 1;
   }
+  if (AppGetArguments(App, 2, 2) < 0)
+	return 1;
+
+  MTXfile = App->ArgV[0];
+  Magfile = App->ArgV[1];
   return 0;
 }
 
@@ -98,7 +76,7 @@ static long marksPerLine(long p, long noc)
 }
 
 /******************************************************************************/
-static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
+static int writeMagmaMatrix(FILE *fp, Matrix_t *mat)
 {
   char buffer[MAXLINE], tmp[MAXLINE];
   long mpl = marksPerLine(mat->Field, mat->Noc);
@@ -111,12 +89,12 @@ static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
   }
   /* fprintf(fp, "%s := Matrix(GF(%ld), %ld, %ld, [\n", Magname, mat->Field,
     mat->Nor, mat->Noc); */
-  fprintf(fp, "KMatSpace := KMatrixSpace(GF(%ld), %ld, %ld);\n", mat->Field,
+  fprintf(fp, "KMatSpace := KMatrixSpace(GF(%d), %d, %d);\n", mat->Field,
     mat->Nor, mat->Noc);
   fprintf(fp, "%s := KMatSpace ! [\n", Magname);
   for (i = 0; i < mat->Nor; i++)
   {
-    row = FfGetPtr(mat->Data, i);
+    row = MatGetPtr(mat, i);
     for (j = 0; j < mat->Noc; j++)
     {
       if (thisrow == mpl)
@@ -125,45 +103,43 @@ static int writeMagmaMatrix(FILE *fp, Matrix_t *mat, char *Magname)
         buffer[0] = '\0';
         thisrow = 0;
       }
-      sprintf(tmp, " %ld", FfToInt(FfExtract(row, j)));
+      sprintf(tmp, " %d", FfToInt(FfExtract(row, j)));
       if (i < mat->Nor-1 || j < mat->Noc-1) strcat(tmp, ",");
       strcat(buffer, tmp);
       thisrow++;
     }
   }
   fprintf(fp, "%s\n", buffer);
-  /* fprintf(fp, "]);\n"); */
   fprintf(fp, "];\n");
   return 0;
 }
 
 /******************************************************************************/
-static int dumpMagmaMatrix(Matrix_t *mat, char *Magfile, char *Magname)
+static int dumpMagmaMatrix(Matrix_t *mat)
 {
   FILE *fp = SysFopen(Magfile, FM_CREATE);
   if (!fp) return 1;
-  int r = writeMagmaMatrix(fp, mat, Magname);
+  int r = writeMagmaMatrix(fp, mat);
   fclose(fp);
   return r;
 }
 
 /******************************************************************************/
-static int convertMatrixToMagma(char *Matname, char *Magfile, char *Magname)
+static int convertMatrixToMagma()
 {
-  Matrix_t *mat = MatLoad(Matname);
+  Matrix_t *mat = MatLoad(MTXfile);
   if (!mat) return 1;
-  int r = dumpMagmaMatrix(mat, Magfile, Magname);
+  int r = dumpMagmaMatrix(mat);
   MatFree(mat);
   return r;
 }
 
 /******************************************************************************/
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
-  control_t *control;
-  MtxInitLibrary();
-  control = newController();
-  if (InterpretCommandLine(argc, argv, control)) exit(1);
-  if (convertMatrixToMagma(control->Matname, control->Magfile, control->Magname)) exit(1);
+  if (Init(argc, argv)) exit(1);
+  if (convertMatrixToMagma()) exit(1);
+  if (App != NULL)
+      AppFree(App);
   exit(0);
 }

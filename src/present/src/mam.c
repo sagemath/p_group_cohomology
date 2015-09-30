@@ -23,15 +23,15 @@ static MtxApplicationInfo_t AppInfo = {
     "    makeActionMatrices [-q <q>] [-b] [-l] <stem>\n"
     "\n"
     "ARGUMENTS\n"
-    "   <stem> ................. label of a prime power group\n"
+    "    <stem> ................. label of a prime power group\n"
     "\n"
     "OPTIONS\n"
     MTX_COMMON_OPTIONS_DESCRIPTION
     "\n"
-    "   -b ..................... only write <stem>.bch\n"
-    "   -l ..................... only write <stem>.lgens\n"
-    "   -b -l .................. write both .bch and .lgens\n"
-    "   -q <q>: Work over GF(q) rather than over GF(p)\n"
+    "    -b ..................... only write <stem>.bch\n"
+    "    -l ..................... only write <stem>.lgens\n"
+    "    -b -l .................. write both .bch and .lgens\n"
+    "    -q <q>: Work over GF(q) rather than over GF(p)\n"
     };
 
 static MtxApplication_t *App = NULL;
