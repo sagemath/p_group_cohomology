@@ -74,7 +74,7 @@ long pathDimension(group_t *group, path_t *p);
 int markPathDimensions(group_t *group);
 
 group_t *newGroupRecord (void);
-inline group_t *namedGroupRecord(char *stem);
+inline group_t *namedGroupRecord(const char *stem);
 void freeGroupRecord (group_t *group);
 
 int readHeader(group_t *group); /* WARNING: only for groupInfo */

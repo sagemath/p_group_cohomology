@@ -11,87 +11,76 @@
 #include "pincl_decls.h"
 MTX_DEFINE_FILE_INFO
 
-static char *helptext[] = {
-"SYNTAX",
-"   makeInclusionMatrix <Gstem> <Hstem> <incStem>",
-"",
-"   Reads <Gstem>.nontips, <Gstem>.gens, <Gstem>.bch,",
-"   <Hstem>.nontips, <incStem>.irg",
-"   Writes <incStem>.ima",
-"",
-"DESCRIPTION",
-"   Make matrix for inclusion of H in G.",
-NULL};
+static MtxApplicationInfo_t AppInfo = {
+    "makeInclusionMatrix",
+    "Make matrix for inclusion of subgroup",
 
-static proginfo_t pinfo =
-  { "makeInclusionMatrix", "Make matrix for inclusion of subgroup",
-    "$Revision: 06_June_2000", helptext };
-
-/******************************************************************************/
-struct controlVariables
-{
-  char Gstem[MAXLINE];
-  char Hstem[MAXLINE];
-  char incStem[MAXLINE];
+    "Reads <Gstem>.nontips, <Gstem>.gens, <Gstem>.bch,\n"
+    "      <Hstem>.nontips, <incStem>.irg\n"
+    "Writes <incStem>.ima\n"
+    "\n"
+    "SYNTAX\n"
+    "    makeInclusionMatrix <Gstem> <Hstem> <incStem>\n"
+    "\n"
+    "ARGUMENTS\n"
+    "    <Gstem> ....... label of the ambient group\n"
+    "    <Hstem> ....... label of the isomorphism type of the subgroup\n"
+    "    <incStem> ..... label of the subgroup embedding\n"
+    "\n"
+    "OPTIONS\n"
+    MTX_COMMON_OPTIONS_DESCRIPTION
+    "\n",
 };
 
-typedef struct controlVariables control_t;
+static MtxApplication_t *App = NULL;
+
+/******************************************************************************
+ * control variables
+ ******************************************************************************/
+
+const char *Gstem=NULL;
+const char *Hstem=NULL;
+const char *incStem=NULL;
+group_t *G;
+group_t *H;
+inclus_t *inclus;
 
 /******************************************************************************/
-control_t *newController(void)
+int Init(int argc, const char *argv[])
 {
-  control_t *control = (control_t *) malloc(sizeof(control_t));
-  if (!control)
-  { MTX_ERROR1("%E", MTX_ERR_NOMEM);
-    return NULL;
-  }
-  return control;
+    App = AppAlloc(&AppInfo,argc,argv);
+    if (App == NULL)
+        return 1;
+
+    if (AppGetArguments(App, 3, 3) < 0)
+        return 1;
+    Gstem = App->ArgV[0];
+    Hstem = App->ArgV[1];
+    incStem = App->ArgV[2];
+
+    G = namedGroupRecord(Gstem);
+    if (!G) return 1;
+    H = namedGroupRecord(Hstem);
+    if (!H) return 1;
+    inclus = newInclusionRecord(G, H, incStem);
+    if (!inclus) return 1;
+    return 0;
+}
+
+void Cleanup()
+{
+    if (App != NULL)
+        AppFree(App);
+    freeInclusionRecord(inclus);
+    freeGroupRecord(G);
+    freeGroupRecord(H);
 }
 
 /******************************************************************************/
-void freeController(control_t *control)
+int main(int argc, const char *argv[])
 {
-  free(control);
-  return;
-}
-
-/******************************************************************************/
-int InterpretCommandLine(int argc, char *argv[], control_t *control)
-{
-  //register int i;
-  char *this;
-  initargs(argc,argv,&pinfo);
-  sprintf(invalid,
-    "Invalid command line. Issue \"%s -help\" for more details", pinfo.name);
-  while (zgetopt("") != OPT_END);
-  if (opt_ind != argc - 3)
-  { MTX_ERROR1("%E", MTX_ERR_BADARG);
-    return 1;
-  }
-  this = argv[opt_ind++];
-  strcpy(control->Gstem, this);
-  this = argv[opt_ind++];
-  strcpy(control->Hstem, this);
-  this = argv[opt_ind++];
-  strcpy(control->incStem, this);
-  return 0;
-}
-
-/******************************************************************************/
-int main(int argc, char *argv[])
-{
-  group_t *G, *H;
-  inclus_t *inclus;
-  control_t *control;
-  MtxInitLibrary();
-  control = newController();
-  if (InterpretCommandLine(argc, argv, control)) exit(1);
-  G = namedGroupRecord(control->Gstem);
-  if (!G) exit(1);
-  H = namedGroupRecord(control->Hstem);
-  if (!H) exit(1);
-  inclus = newInclusionRecord(G, H, control->incStem);
-  if (!inclus) exit(1);
+  if (Init(argc, argv))
+  { MTX_ERROR("Error parsing command line. Try --help"); exit(1); }
   if (loadNonTips(G)) exit(1);
   if (buildPathTree(G)) exit(1);
   if (loadActionMatrices(G)) exit(1);
@@ -100,8 +89,6 @@ int main(int argc, char *argv[])
   if (buildPathTree(H)) exit(1);
   if (makeInclusionMatrix(inclus)) exit(1);
   if (saveInclusionMatrix(inclus)) exit(1);
-  freeInclusionRecord(inclus);
-  freeGroupRecord(G);
-  freeGroupRecord(H);
+  Cleanup();
   exit(0);
 }

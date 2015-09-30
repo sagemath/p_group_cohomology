@@ -19,7 +19,7 @@
 #if !defined(__PINCL_DECLS_INCLUDED)	/* Include only once */
 #define __PINCL_DECLS_INCLUDED
 
-inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem);
+inclus_t *newInclusionRecord(group_t *G, group_t *H, const char *stem);
 void freeInclusionRecord(inclus_t *inclus);
 
 int makeInclusionMatrix(inclus_t *inclus);

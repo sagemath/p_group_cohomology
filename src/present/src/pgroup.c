@@ -123,7 +123,7 @@ group_t *newGroupRecord (void)
 /****
  * NULL on error
  ***************************************************************************/
-inline group_t *namedGroupRecord (char *stem)
+inline group_t *namedGroupRecord (const char *stem)
 {
   group_t *group = newGroupRecord();
   if (!group) return NULL;

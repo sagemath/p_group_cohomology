@@ -83,7 +83,7 @@ int main(int argc, const char *argv[])
 {
   int n;
   if (Init(argc, argv))
-  { printf("Error parsing command line\n");
+  { MTX_ERROR("Error parsing command line. Try --help");
     exit(1);
   }
   if (readHeader(group)) exit(1);

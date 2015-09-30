@@ -56,7 +56,7 @@ int main(int argc, char const*argv[])
 {
   
   if (Init(argc, argv))
-  { MTX_ERROR("Error parsing command line");
+  { MTX_ERROR("Error parsing command line. Try --help");
     exit(1);
   }
   if (convertPermutationsToAsci(infile, outfile)) exit(1);

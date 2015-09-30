@@ -19,6 +19,8 @@
 #include "pincl.h"
 #include "meataxe.h"
 
+MTX_DEFINE_FILE_INFO
+
 /******************************************************************************/
 static char *inclusionMatrixFile(inclus_t *inclus)
 /* String returned must be used at once, never reused, never freed. */
@@ -31,7 +33,7 @@ static char *inclusionMatrixFile(inclus_t *inclus)
 /****
  * NULL on error
  ***************************************************************************/
-inclus_t *newInclusionRecord(group_t *G, group_t *H, char *stem)
+inclus_t *newInclusionRecord(group_t *G, group_t *H, const char *stem)
 {
   inclus_t *inclus = (inclus_t *) malloc(sizeof(inclus_t));
   if (!inclus)
