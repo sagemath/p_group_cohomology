@@ -23,6 +23,7 @@
 #include "slice_decls.h"
 #include "urbild_decls.h"
 #include "meataxe.h"
+#include "aufnahme.h"
 
 /******************************************************************************/
 static modW_t *wordForestEntry(ngs_t *ngs, gV_t *gv)

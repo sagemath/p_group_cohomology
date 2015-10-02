@@ -19,8 +19,7 @@
 * Author: David J Green
 */
 
-#include "aufloesung.h"
-#include "meataxe.h"
+#include "modular_resolution.h"
 #define LONGLINE 320
 
 /******************************************************************************/

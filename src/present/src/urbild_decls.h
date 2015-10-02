@@ -19,10 +19,8 @@
 *  First version: 13 March 2000
 */
 
-#if !defined(__URBILD_DECLS_INCLUDED)	/* Include only once */
+#if !defined(__URBILD_DECLS_INCLUDED)   /* Include only once */
 #define __URBILD_DECLS_INCLUDED
-
-#include "meataxe.h"
 
 nFgs_t *nFgsAllocation(group_t *group, long r, char *stem);
 nRgs_t *nRgsAllocation(group_t *group, long r, long s, char *stem);
@@ -34,8 +32,8 @@ int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group);
 
 Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group);
 
-/* The following function just returns numberOfHeadVectors. 
-   Remove it! (Simon King 2008-12) 
+/* The following function just returns numberOfHeadVectors.
+   Remove it! (Simon King 2008-12)
 */
 // long countGenerators(nFgs_t *nFgs);
 void processNewFlaggedGenerator(nFgs_t *nFgs, PTR w, group_t *group);
