@@ -17,8 +17,8 @@
 *****************************************************************************/
 
 #include "pgroup.h"
+#include "pgroup_decls.h"
 #include <unistd.h>
-#include "meataxe.h"
 
 MTX_DEFINE_FILE_INFO
 

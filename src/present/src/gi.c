@@ -9,6 +9,7 @@
 
 #include "pgroup.h"
 #include "pgroup_decls.h"
+MTX_DEFINE_FILE_INFO
 
 static MtxApplicationInfo_t AppInfo = {
     "groupInfo",
@@ -46,7 +47,7 @@ static int Init(int argc, const char *argv[])
 {
   App = AppAlloc(&AppInfo,argc,argv);
   if (App == NULL)
-	return 1;
+    return 1;
 
   group = newGroupRecord();
   if (!group)
@@ -56,7 +57,7 @@ static int Init(int argc, const char *argv[])
   }
 
   if (AppGetArguments(App, 1, 1) < 0)
-	return 1;
+    return 1;
 
   if ((group->stem = mtx_strdup(App->ArgV[0])) == NULL) return 1;
   return 0;

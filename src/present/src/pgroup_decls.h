@@ -16,7 +16,9 @@
                   http://www.gnu.org/licenses/
 *****************************************************************************/
 
-#include "meataxe.h"
+#if !defined(__PGROUP_DECLS_INCLUDED)   /* Include only once */
+#define __PGROUP_DECLS_INCLUDED
+
 #include "pgroup.h"
 // the latter is for yesno etcetera
 
@@ -33,15 +35,6 @@
 #if !defined(false)
 #define false false
 #endif
-
-
-#if !defined(__PGROUP_DECLS_INCLUDED)	/* Include only once */
-#define __PGROUP_DECLS_INCLUDED
-
-/* Simon King: define the following in meataxe.h (where it belongs) as macro
- PTR FfGetPtr(PTR base, long offset);
-*/
-/* returns PTR to base + offset */
 
 inline long maxlong(long n1, long n2);
 inline long minlong(long n1, long n2);

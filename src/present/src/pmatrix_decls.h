@@ -7,6 +7,9 @@
    This program is free software; see the file COPYING for details.
    ================================================================ */
 
+#if !defined(__PMATRIX_DECLS_INCLUDED)    /* Include only once */
+#define __MATRIX_DECLS_INCLUDED
+
 Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch);
 /* Guaranteed not to alter pointer dest->d */
 /* Result will be assembled at scratch, then copied to dest */
@@ -21,3 +24,5 @@ int innerBasisChangeNontips2Reg(group_t *group, Matrix_t **matlist,
   long num, PTR workspace);
 int basisChangeReg2Nontips(group_t *group, Matrix_t **matlist, long num);
 int changeActionMatricesReg2Nontips(group_t *group);
+
+#endif

@@ -21,6 +21,7 @@
 
 #include "modular_resolution.h"
 #define LONGLINE 320
+MTX_DEFINE_FILE_INFO
 
 /******************************************************************************/
 char *differentialFile(resol_t *resol, long n)
@@ -134,7 +135,7 @@ static int ensureResolSizeArraysLargeEnough(resol_t *resol, long N)
   long alloc, alloc_old = resol->numproj_alloc;
   long *projrank_old = resol->projrank, *Imdim_old = resol->Imdim;
   long *projrank, *Imdim;
-  if (N <= alloc_old) return;
+  if (N <= alloc_old) return 0;
   for (alloc = alloc_old; alloc < N; alloc += NUMPROJ_INCREMENT);
   projrank = newLongArray(alloc + 1);
   if (!projrank) return 1;
@@ -520,15 +521,14 @@ int makeThisDifferential(resol_t *resol, long n)
 }
 
 /****
- * NULL on error
+ * 1 on error
  ***************************************************************************/
-static Matrix_t *makeThisCohringDifferential(resol_t *resol, long n)
+static int makeThisCohringDifferential(resol_t *resol, long n)
 /* Know resolving trivial mod, so can use makeFirstDifferential if n=1 */
 {
   if (n == 1)
-    return makeFirstDifferential(resol);
-  else
-    return makeThisDifferential(resol, n);
+    return (makeFirstDifferential(resol))? 0 : 1;
+  return makeThisDifferential(resol, n);
 }
 
 /*****
@@ -546,8 +546,7 @@ int readOrConstructThisProjective(resol_t *resol, long n)
     return readThisProjective(resol, n);
   }
   else
-  { if (!makeThisCohringDifferential(resol, n)) return 1;
-    return 0;
+  { return makeThisCohringDifferential(resol, n);
   }
 }
 
@@ -571,7 +570,7 @@ int ensureThisUrbildGBKnown(resol_t *resol, long n)
   { MTX_ERROR1("%E", MTX_ERR_BADARG);
     return 1;
   }
-  if (fileExists(urbildGBFile(resol, n))) return;
+  if (fileExists(urbildGBFile(resol, n))) return 0;
   return makeThisDifferential(resol, n+1);
 }
 
