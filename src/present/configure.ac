@@ -3,7 +3,10 @@
 
 AC_PREREQ([2.69])
 AC_INIT([modular_resolution], [1.0], [simon.king@uni-jena.de])
-AC_CONFIG_SRCDIR([src/fp_decls.h])
+AM_INIT_AUTOMAKE([check-news dist-bzip2 -Wall])
+AM_PROG_AR
+LT_INIT
+AC_CONFIG_SRCDIR([src/modular_resolution.h])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
@@ -24,5 +27,5 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

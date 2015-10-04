@@ -19,14 +19,13 @@
 *  First version: 15 March 2000 from diag.h
 */
 
-#if !defined(__NDIAG_INCLUDED)	/* Include only once */
+#if !defined(__NDIAG_INCLUDED)  /* Include only once */
 #define __NDIAG_INCLUDED
 
 #include "pcommon.h"
 #include "meataxe.h"
 #include "pgroup.h"
 #include "pgroup_decls.h"
-#include "fp_decls.h"
 
 #define RANK_UNKNOWN -1
 #define ZERO_BLOCK -1
