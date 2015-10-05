@@ -1,5 +1,6 @@
 /*****************************************************************************
        Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+       Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
 
   Distributed under the terms of the GNU General Public License (GPL),
   version 2 or later (at your choice)
@@ -15,8 +16,9 @@
 *****************************************************************************/
 /*
 *  nBuchberger.c : Buchberger Algorithm variants
-*  Author: David J Green
+*  Authors: David J Green, Simon King
 *  First version: 15 March 2000 from buchberger.c
+*  Last modified: October 2015
 *
 * expDim info: rv->expDim = n is the assertion that all expansions of rv
 *              have been performed which have dimension n or less.

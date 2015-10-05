@@ -2,6 +2,7 @@
    pcommon.h : header file common to most programs
 
        Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+       Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
 
   Distributed under the terms of the GNU General Public License (GPL),
   version 2 or later (at your choice)
@@ -16,7 +17,7 @@
                   http://www.gnu.org/licenses/
 *****************************************************************************/
 
-#if !defined(__PCOMMON_INCLUDED)	/* Include only once */
+#if !defined(__PCOMMON_INCLUDED)    /* Include only once */
 #define __PCOMMON_INCLUDED
 
 #include <stdio.h>
@@ -50,7 +51,7 @@
   #define MAX_UNFRUITFUL 1
   #define MAX_OVERSHOOT 5
 #else
-  #define MAX_UNFRUITFUL 2 
+  #define MAX_UNFRUITFUL 2
   #define MAX_OVERSHOOT 1
 #endif
 

@@ -1,5 +1,6 @@
 /*****************************************************************************
        Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+       Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
 
   Distributed under the terms of the GNU General Public License (GPL),
   version 2 or later (at your choice)
@@ -19,7 +20,7 @@
 *  First version: 15 March 2000
 */
 
-#if !defined(__NBUCHBERGER_DECLS_INCLUDED)	/* Include only once */
+#if !defined(__NBUCHBERGER_DECLS_INCLUDED)  /* Include only once */
 #define __NBUCHBERGER_DECLS_INCLUDED
 
 int nFgsBuchberger(nFgs_t *nFgs, group_t *group);

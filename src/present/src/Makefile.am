@@ -3,11 +3,10 @@ lib_LIBRARIES               = libmodres.a
 libmodres_a_SOURCES         = pincl.c pgroup.c aufloesung.c
 
 # -----> Headers
-include_HEADERS             = modular_resolution.h
-dist_noinst_HEADERS         = aufloesung_decls.h aufnahme_decls.h nBuchberger_decls.h\
-                              nDiag.h pcommon.h pgroup_decls.h pgroup.h\
-                              pincl_decls.h pincl.h pmatrix_decls.h\
-                              slice_decls.h urbild_decls.h
+pkginclude_HEADERS          = modular_resolution.h pgroup.h pgroup_decls.h\
+                              nDiag.h urbild_decls.h nBuchberger_decls.h
+dist_noinst_HEADERS         = aufloesung_decls.h aufnahme_decls.h pcommon.h\
+                              pincl_decls.h pincl.h pmatrix_decls.h slice_decls.h
 
 # -----> Executable (built from the shared library)
 bin_PROGRAMS = makeActionMatrices makeNontips groupInfo perm2Gap makeInclusionMatrix

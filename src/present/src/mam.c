@@ -4,6 +4,7 @@
    (C) Copyright 1999-2000 David J. Green <green@math.uni-wuppertal.de>
    Department of Mathematics, University of Wuppertal,
    D-42097 Wuppertal, Germany
+   Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
    This program is free software; see the file COPYING for details.
    ================================================================ */
 
@@ -53,7 +54,7 @@ static int Init(int argc, const char *argv[])
 {
   App = AppAlloc(&AppInfo,argc,argv);
   if (App == NULL)
-	return 1;
+    return 1;
   /*makeActionMatrices [-q <q>] [-b] [-l] <stem> */
 
   /* What field? */
@@ -61,7 +62,7 @@ static int Init(int argc, const char *argv[])
   bchOnly = AppGetOption(App, "-b");
   leftOnly = AppGetOption(App, "-l");
   if (AppGetArguments(App, 1, 1) < 0)
-	return 1;
+    return 1;
 
   stem = mtx_strdup(App->ArgV[0]);
   group = namedGroupRecord(stem);

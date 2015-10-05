@@ -1,8 +1,8 @@
 /*
 *  matmag.c : C program to convert matrix to MAGMA format
-*  Author: David J Green
+*  Authors: David J Green, Simon King
 *  Created: 13 September 2000
-*  Last altered: 13 September 2000
+*  Last altered: October 2015
 */
 
 #include "pgroup.h"
@@ -43,7 +43,7 @@ int Init(int argc, const char *argv[])
 {
   App = AppAlloc(&AppInfo,argc,argv);
   if (App == NULL)
-	return 1;
+    return 1;
 
   Magname = AppGetTextOption(App, "-n", "A");
   if (!MTXfile)
@@ -51,7 +51,7 @@ int Init(int argc, const char *argv[])
     return 1;
   }
   if (AppGetArguments(App, 2, 2) < 0)
-	return 1;
+    return 1;
 
   MTXfile = App->ArgV[0];
   Magfile = App->ArgV[1];

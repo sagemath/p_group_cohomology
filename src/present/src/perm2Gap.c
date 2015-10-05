@@ -4,6 +4,7 @@
    (C) Copyright 2000 David J. Green <green@math.uni-wuppertal.de>
    Department of Mathematics, University of Wuppertal,
    D-42097 Wuppertal, Germany
+   Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
    This program is free software; see the file COPYING for details.
    ================================================================ */
 
@@ -43,9 +44,9 @@ int Init(int argc, const char *argv[])
 {
   App = AppAlloc(&AppInfo,argc,argv);
   if (App == NULL)
-	return 1;
+    return 1;
   if (AppGetArguments(App, 2, 2) < 0)
-	return 1;
+    return 1;
   infile = App->ArgV[0];
   outfile = App->ArgV[1];
   return 0;
@@ -54,7 +55,7 @@ int Init(int argc, const char *argv[])
 /******************************************************************************/
 int main(int argc, char const*argv[])
 {
-  
+
   if (Init(argc, argv))
   { MTX_ERROR("Error parsing command line. Try --help");
     exit(1);

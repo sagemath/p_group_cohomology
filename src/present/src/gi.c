@@ -4,6 +4,7 @@
    (C) Copyright 1999 David J. Green <green@math.uni-wuppertal.de>
    Department of Mathematics, University of Wuppertal,
    D-42097 Wuppertal, Germany
+   Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
    This program is free software; see the file COPYING for details.
    ================================================================ */
 

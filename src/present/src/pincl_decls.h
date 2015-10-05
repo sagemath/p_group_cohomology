@@ -2,6 +2,7 @@
    pincl_decls.h : Header files listing declarations in pincl.c
 
        Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+       Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
 
   Distributed under the terms of the GNU General Public License (GPL),
   version 2 or later (at your choice)
@@ -16,7 +17,7 @@
                   http://www.gnu.org/licenses/
 *****************************************************************************/
 
-#if !defined(__PINCL_DECLS_INCLUDED)	/* Include only once */
+#if !defined(__PINCL_DECLS_INCLUDED)    /* Include only once */
 #define __PINCL_DECLS_INCLUDED
 
 inclus_t *newInclusionRecord(group_t *G, group_t *H, const char *stem);
