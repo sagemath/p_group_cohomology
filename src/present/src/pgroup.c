@@ -1575,23 +1575,6 @@ group_t *fullyLoadedGroupRecord(char *stem)
   return G;
 }
 
-/******************************************************************************/
-inline boolean mateq(Matrix_t *mat1, Matrix_t *mat2)
-{
-  register long i;
-  PTR row1, row2;
-  if (mat1->Field != mat2->Field) return false;
-  if (mat1->Nor != mat2->Nor) return false;
-  if (mat1->Noc != mat2->Noc) return false;
-  FfSetField(mat1->Field);
-  FfSetNoc(mat1->Noc);
-  row1 = mat1->Data;
-  row2 = mat2->Data;
-  for (i = mat1->Nor; i > 0; --i, FfStepPtr(&row1), FfStepPtr(&row2))
-    if (FfCmpRows(row1,row2)) return false;
-  return true;
-}
-
 /****
  * -1 on error
  ***************************************************************************/
@@ -1600,7 +1583,7 @@ static int matricesCommute(Matrix_t *a, Matrix_t *b, Matrix_t *ab,
 {
   if (innerRightProduct(a, b, ab->Data)) return -1;
   if (innerRightProduct(b, a, ba->Data)) return -1;
-  return (mateq(ab,ba)) ? 1 : 0;
+  return (MatCompare(ab,ba)) ? 0 : 1;
 }
 
 /*****

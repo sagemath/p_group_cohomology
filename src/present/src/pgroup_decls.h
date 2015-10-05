@@ -156,7 +156,6 @@ group_t *fullyLoadedGroupRecord(char *stem);
 
 inline boolean fileExists(const char *name);
 
-inline boolean mateq(Matrix_t *mat1, Matrix_t *mat2);
 int verifyGroupIsAbelian(group_t *A);
 
 long *newLongArray(long N);
