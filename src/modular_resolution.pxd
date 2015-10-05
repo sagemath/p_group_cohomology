@@ -1,21 +1,17 @@
-###########################################################
-## Zunaechst MeatAxe-Matrizen
+#*****************************************************************************
+#       Copyright (C) 2015 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-from pGroupCohomology.mtx cimport FEL, PTR, Matrix_t, size_t, MatMulScalar, mtx_tmultinv, FfFromInt, FfGetPtr, FfStepPtr, FfGetPtr, MatFree, MatDup, MTX
-
-cdef extern from "meataxe.h":
-    size_t (FfCurrentRowSize*long nrows)
-    int FfSetNoc(long ncols)
-    int FfSetField(long field)
-    PTR FfAlloc(long nrows)
-    void FfFree(PTR p)
-    PTR FfAddMulRow(PTR dest, PTR src, FEL f)
-    PTR FfAddRow(PTR dest, PTR src)
-    PTR FfMapRow(PTR row, PTR matrix, long nor, PTR result)
-    Matrix_t *MatAdd(Matrix_t *dest, Matrix_t *src) except NULL
+from sage.libs.meataxe cimport *
 
 ###########################################################
-## p-Gruppen
+## p-groups
 ###########################################################
 cdef extern from "pgroup.h":
     ctypedef int boolean
@@ -49,7 +45,7 @@ cdef extern from "pgroup.h":
         long *dS          # /* depth Steps: for resolution only */
 
 ###############################################################
-## Funktionsprototypen fuer Gruppen
+## function prototypes for p-groups
 cdef extern from "pgroup_decls.h":
     #PTR FfGetPtr(PTR base, long offset)
     group_t *fullyLoadedGroupRecord(char *stem) except NULL
@@ -75,11 +71,8 @@ cdef extern from "pgroup_decls.h":
 
 
 ###############################################################
-
+## Resolutions
 cdef extern from "modular_resolution.h":
-## Berechnung von Aufloesungen:
-## 1. Typen
-##
     ctypedef struct resol_t:
         group_t *group
         char *stem
@@ -178,7 +171,7 @@ cdef extern from "nDiag.h":
 
 
 #####################################################################
-## Urbilder / Urbild-GB
+## preimages / "urbild Groebner basis"
 cdef extern from "urbild_decls.h":
     void freeNRgs(nRgs_t *nRgs)
     int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group) except 1
