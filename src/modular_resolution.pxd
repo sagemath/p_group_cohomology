@@ -13,7 +13,7 @@ from sage.libs.meataxe cimport *
 ###########################################################
 ## p-groups
 ###########################################################
-cdef extern from "pgroup.h":
+cdef extern from "modular_resolution/pgroup.h":
     ctypedef int boolean
     ctypedef long yesno
     cdef extern yesno yes
@@ -46,7 +46,7 @@ cdef extern from "pgroup.h":
 
 ###############################################################
 ## function prototypes for p-groups
-cdef extern from "pgroup_decls.h":
+cdef extern from "modular_resolution/pgroup_decls.h":
     #PTR FfGetPtr(PTR base, long offset)
     group_t *fullyLoadedGroupRecord(char *stem) except NULL
     group_t *newGroupRecord () except NULL
@@ -72,7 +72,7 @@ cdef extern from "pgroup_decls.h":
 
 ###############################################################
 ## Resolutions
-cdef extern from "modular_resolution.h":
+cdef extern from "modular_resolution/modular_resolution.h":
     ctypedef struct resol_t:
         group_t *group
         char *stem
@@ -104,7 +104,7 @@ cdef extern from "modular_resolution.h":
     cdef int innerPreimages(nRgs_t *nRgs, PTR images, long noi, group_t *group, PTR preimages) except 1
     # /* PTR preimages(nRgs_t *nRgs, PTR images, long noi, group_t *group); */
 
-cdef extern from "nDiag.h":
+cdef extern from "modular_resolution/nDiag.h":
     ctypedef struct gV_t: # general vector
         PTR w
         FEL coeff
@@ -172,7 +172,7 @@ cdef extern from "nDiag.h":
 
 #####################################################################
 ## preimages / "urbild Groebner basis"
-cdef extern from "urbild_decls.h":
+cdef extern from "modular_resolution/urbild_decls.h":
     void freeNRgs(nRgs_t *nRgs)
     int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group) except 1
     #long countGenerators(nFgs_t *nFgs)
@@ -180,6 +180,6 @@ cdef extern from "urbild_decls.h":
     int saveMinimalGenerators(nFgs_t *nFgs, char *outfile, group_t *group) except 1
     Matrix_t *getMinimalGenerators(nFgs_t *nFgs, group_t *group)
 
-cdef extern from "nBuchberger_decls.h":
+cdef extern from "modular_resolution/nBuchberger_decls.h":
     int nRgsBuchberger(nRgs_t *nRgs, group_t *group) except 1
 

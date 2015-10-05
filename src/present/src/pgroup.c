@@ -1301,8 +1301,6 @@ int makeLeftActionMatrices(group_t *group)
   return 0;
 }
 
-/*********** pmatrix.c partly merged in here **********************************/
-
 /**
  * 1 on error
  *******************************/
@@ -1331,8 +1329,7 @@ int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /**
  * NULL on error
  ******/
-static Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src,
-  PTR scratch)
+Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
 /* Guaranteed not to alter dest->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
@@ -1345,8 +1342,7 @@ static Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src,
 /**
  * NULL on error
  ****/
-static Matrix_t *innerLeftAction(const Matrix_t *src, Matrix_t *dest,
-  PTR scratch)
+Matrix_t *innerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
 /* Guaranteed not to alter dest->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */

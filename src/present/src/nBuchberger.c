@@ -36,8 +36,9 @@
 #include "nDiag.h"
 #include "slice_decls.h"
 #include "urbild_decls.h"
-#include "aufnahme_decls.h"
+#include "aufnahme.h"
 
+MTX_DEFINE_FILE_INFO
 
 /******************************************************************************/
 static void initializeCommonBuchStatus(ngs_t *ngs)
@@ -184,7 +185,8 @@ static int allExpansionsDone(ngs_t *ngs, group_t *group)
 {
   if (ngs->expDim == NO_BUCHBERGER_REQUIRED)
   { MTX_ERROR1("invalid expDim: %E", MTX_ERR_INCOMPAT);
-    return -1
+    return -1;
+  }
   if (ngs->expDim == NOTHING_TO_EXPAND)
     return 1;
   return (ngs->expDim <= group->maxlength) ? 0 : 1;
@@ -209,7 +211,7 @@ static int nFgsBuchbergerFinished(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   int hCR = hardCorrectRank(nFgs, group);
-  swith (hCR)
+  switch (hCR)
   { case -1: return -1;
     case 0: return 0;
     default: return (dimensionOfDeepestHeady(ngs) <= ngs->expDim) ? 1 : 0;

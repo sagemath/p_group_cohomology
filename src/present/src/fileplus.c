@@ -22,13 +22,15 @@
 */
 
 #include "fileplus.h"
+#include "meataxe.h"
+
+MTX_DEFINE_FILE_INFO
 
 /**
  *  NULL on error
  *****/
 FILE *os_fopenplus(char *name, int mode)
 {
-  char *canonical_name = os_mkfilename(name);
   FILE *fp;
   char *mode_str;
   switch (mode)
@@ -47,8 +49,8 @@ FILE *os_fopenplus(char *name, int mode)
       mode_str = "";
       return NULL;
   }
-  fp = fopen(canonical_name,mode_str);
-  if (!fp) MTX_ERROR("Cannot open file");
+  fp = fopen(name,mode_str);
+  if (!fp) MTX_ERROR1("Cannot open file %s", name);
   return fp;
 }
 
@@ -60,7 +62,7 @@ int alterhdrplus(FILE *fp, long nor)
 {
   long header[3];
   if (SysFseek(fp,(long)0))
-  { MTX_ERROR("%E", MTX_ERR_FILEFMT);
+  { MTX_ERROR1("%E", MTX_ERR_FILEFMT);
     return 1;
   }
   if (SysReadLong(fp,header,3) != 3)
@@ -80,7 +82,7 @@ int alterhdrplus(FILE *fp, long nor)
   if (SysWriteLong(fp,header,3) != 3)
   {
     fclose(fp);
-    MTX_ERROR("%E", MTX_ERR_FILEFMT);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
     return 1;
   }
   if (SysFseek(fp,(long)12))
@@ -167,7 +169,7 @@ void PrintMatrixFile(char *matname)
 long numberOfRowsStored(char *name)
 {
   FILE *fp;
-  long fl, nor, noc;
+  int fl, nor, noc;
   fp = FfReadHeader(name, &fl, &nor, &noc);
   if (!fp)
   {

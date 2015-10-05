@@ -1,26 +1,26 @@
 # -----> Shared library
-lib_LIBRARIES               = libmodres.a
-libmodres_a_SOURCES         = pincl.c pgroup.c aufloesung.c
+lib_LTLIBRARIES              = libmodres.la
+libmodres_la_SOURCES         = aufloesung.c aufnahme.c fileplus.c nBuchberger.c pgroup.c pincl.c slice.c urbild.c
 
 # -----> Headers
-pkginclude_HEADERS          = modular_resolution.h pgroup.h pgroup_decls.h\
-                              nDiag.h urbild_decls.h nBuchberger_decls.h
-dist_noinst_HEADERS         = aufloesung_decls.h aufnahme_decls.h pcommon.h\
-                              pincl_decls.h pincl.h pmatrix_decls.h slice_decls.h
+pkginclude_HEADERS          = fileplus.h fp_decls.h modular_resolution.h pgroup.h pgroup_decls.h\
+                              nDiag.h urbild_decls.h nBuchberger_decls.h\
+                              pcommon.h slice_decls.h
+dist_noinst_HEADERS         = aufloesung_decls.h aufnahme.h pincl_decls.h pincl.h
 
 # -----> Executable (built from the shared library)
 bin_PROGRAMS = makeActionMatrices makeNontips groupInfo perm2Gap makeInclusionMatrix
 makeActionMatrices_SOURCES  = mam.c
-makeActionMatrices_LDADD    = $(lib_LIBRARIES)
+makeActionMatrices_LDADD    = $(lib_LTLIBRARIES)
 makeNontips_SOURCES         = mnt.c
 dist_noinst_DATA            = test.reg
-makeNontips_LDADD           = $(lib_LIBRARIES)
+makeNontips_LDADD           = $(lib_LTLIBRARIES)
 groupInfo_SOURCES           = gi.c
-groupInfo_LDADD             = $(lib_LIBRARIES)
+groupInfo_LDADD             = $(lib_LTLIBRARIES)
 perm2Gap_SOURCES            = perm2Gap.c
-perm2Gap_LDADD              = $(lib_LIBRARIES)
+perm2Gap_LDADD              = $(lib_LTLIBRARIES)
 makeInclusionMatrix_SOURCES = mim.c
-makeInclusionMatrix_LDADD   = $(lib_LIBRARIES)
+makeInclusionMatrix_LDADD   = $(lib_LTLIBRARIES)
 
 # -----> A simple check
 check_SCRIPTS               = mnttest.sh

@@ -10,6 +10,7 @@
 
 #include "pgroup.h"
 #include "pgroup_decls.h"
+
 MTX_DEFINE_FILE_INFO
 
 static MtxApplicationInfo_t AppInfo = {

@@ -23,6 +23,8 @@
 #include "slice_decls.h"
 #include "meataxe.h"
 
+MTX_DEFINE_FILE_INFO
+
 /******
  * 1 on error
  *************************************************************************/
@@ -263,7 +265,7 @@ static ngs_t *ngsAllocation(long r, long s, group_t *group, char *stem)
   ngs->w = FfAlloc(r + s);
   if (!ngs->thisBlock || !ngs->theseProds || !ngs->w)
   { free(ngs);
-    MTX_ERROR("%E", MTX_ERR_NOMEM);
+    MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
   }
   strcpy(ngs->stem, stem);
@@ -367,7 +369,7 @@ static void freeUnreducedVectors(ngs_t *ngs)
 
 
 /******************************************************************************/
-static void freeNgs(ngs_t *ngs)
+void freeNgs(ngs_t *ngs)
 {
   freeReducedVectors(ngs->firstReduced, ngs);
   freeUnreducedVectors(ngs);

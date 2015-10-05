@@ -1,18 +1,23 @@
-* [m[33m (HEAD, master)[m Use automake [1;34m<Simon King>[m
-* [m[33m[m Use autoconf [1;34m<Simon King>[m
-* [m[33m[m Clean up header inclusions [1;34m<Simon King>[m
-* [m[33m[m Remove writeGroebnerBasis [1;34m<Simon King>[m
-* [m[33m[m Fix makeInclusionMatrix [1;34m<Simon King>[m
-* [m[33m[m Fix matmag; change indentation of help strings to match with MeatAxe's [1;34m<Simon King>[m
-* [m[33m[m Fix perm2Gap [1;34m<Simon King>[m
-* [m[33m[m Modified mnt.c such that order LL and RLL seem to work [1;34m<Simon King>[m
-* [m[33m[m Some IO-fixes in pgroup.c [1;34m<Simon King>[m
-* [m[33m[m newapplication framework for groupInfo [1;34m<Simon King>[m
-* [m[33m[m Fix further changed names; use new MeatAxe application framework in mam.c [1;34m<Simon King>[m
-* [m[33m[m Attempt to modify mnt.c [1;34m<Simon King>[m
-* [m[33m[m Change to new function/type names [1;34m<Simon King>[m
-* [m[33m[m Rename MeatAxe functions [1;34m<Simon King>[m
-* [m[33m[m Error propagation in Green's programs [1;34m<Simon King>[m
-* [m[33m[m Error return values for Green's programs (not propagated yet). Some function names changed to new MeatAxe [1;34m<Simon King>[m
-* [m[33m[m Version 2.1.5, to be rebased on a more recent MeatAxe version [1;34m<Simon King>[m
+Simon King (21):
+      Version 2.1.5, to be rebased on a more recent MeatAxe version
+      Error return values for Green's programs (not propagated yet). Some function names changed to new MeatAxe
+      Error propagation in Green's programs
+      Rename MeatAxe functions
+      Change to new function/type names
+      Attempt to modify mnt.c
+      Fix further changed names; use new MeatAxe application framework in mam.c
+      newapplication framework for groupInfo
+      Some IO-fixes in pgroup.c
+      Modified mnt.c such that order LL and RLL seem to work
+      Fix perm2Gap
+      Fix matmag; change indentation of help strings to match with MeatAxe's
+      Fix makeInclusionMatrix
+      Remove writeGroebnerBasis
+      Clean up header inclusions
+      Use autoconf
+      Use automake
+      Change some names
+      Slight changes of the basic .pxd file
+      Include Simon King as author; change his address to Cologne
+      Making the library complete
 

@@ -26,6 +26,8 @@
 #include "meataxe.h"
 #include "aufnahme.h"
 
+MTX_DEFINE_FILE_INFO
+
 /******************************************************************************/
 static modW_t *wordForestEntry(ngs_t *ngs, gV_t *gv)
 {

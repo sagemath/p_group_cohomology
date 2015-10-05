@@ -23,6 +23,8 @@
 #include "nDiag.h"
 #include "meataxe.h"
 
+MTX_DEFINE_FILE_INFO
+
 /*******************************************************************************
 * static long layerSize(ngs_t *ngs, group_t *group, long dim)
 {
@@ -308,7 +310,7 @@ static int loadBlock(ngs_t *ngs, long block)
   register long blennor = blen * nor;
   if (FfReadRows(fp, ngs->thisBlock, blennor) != blennor)
   { fclose(fp);
-    MTX_ERROR("%E", MTX_ERR_FILEFMT);
+    MTX_ERROR1("%E", MTX_ERR_FILEFMT);
     return 1;
   }
   fclose(fp);

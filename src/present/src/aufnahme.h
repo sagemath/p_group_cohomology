@@ -15,7 +15,7 @@
                   http://www.gnu.org/licenses/
 *****************************************************************************/
 /* This is C code
-*  aufnahme_decls.h : Header file listing declarations in aufnahme.c
+*  aufnahme.h : Header file listing declarations in aufnahme.c
 *  Author: David J Green
 *  First version: 15 March 2000
 */

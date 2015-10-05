@@ -69,7 +69,7 @@ int markPathDimensions(group_t *group);
 
 group_t *newGroupRecord (void);
 inline group_t *namedGroupRecord(const char *stem);
-void freeGroupRecord (group_t *group);
+void freeGroupRecord(group_t *group);
 
 int readHeader(group_t *group); /* WARNING: only for groupInfo */
 int loadNonTips(group_t *group);
@@ -101,6 +101,13 @@ char arrowName(long a);
 
 boolean smallerJenningsWord(JenningsWord_t *w1, JenningsWord_t *w2);
 
+int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch);
+Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch);
+/* Guaranteed not to alter pointer dest->Data */
+/* Result will be assembled at scratch, then copied to dest */
+/* This routine allocates NO memory */
+Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch);
+/* Guaranteed not to alter pointer dest->Data */
 void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest);
 inline Matrix_t *leftActionMatrix(group_t *group, PTR vec);
 void innerRightActionMatrix(group_t *group, PTR vec, PTR dest);
@@ -143,7 +150,6 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
    Left: use left action matrix of beta_kj
 */
 
-int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch);
 int innerBasisChangeReg2Nontips(group_t *group, Matrix_t **matlist,
   long num, PTR workspace);
 int innerBasisChangeNontips2Reg(group_t *group, Matrix_t **matlist,
