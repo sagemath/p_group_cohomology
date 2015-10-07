@@ -1,4 +1,4 @@
-Simon King (21):
+Simon King (22):
       Version 2.1.5, to be rebased on a more recent MeatAxe version
       Error return values for Green's programs (not propagated yet). Some function names changed to new MeatAxe
       Error propagation in Green's programs
@@ -20,4 +20,5 @@ Simon King (21):
       Slight changes of the basic .pxd file
       Include Simon King as author; change his address to Cologne
       Making the library complete
+      Install cohomology database
 
