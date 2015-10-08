@@ -1,6 +1,6 @@
 #*****************************************************************************
 #
-#    Auxiliar functions for pGroupCohomology
+#    Auxiliar functions for computations in modular group cohomology
 #
 #    Copyright (C) 2015 Simon A. King  <simon.king@uni-jena.de> and
 #
@@ -17,7 +17,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-Auxiliary functions for the optional pGroupCohomology package.
+Auxiliary functions for the optional sage.groups.modular_cohomology package.
 
 AUTHORS:
 
@@ -37,7 +37,7 @@ def safe_save(obj, path):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.auxiliaries import safe_save
+        sage: from sage.groups.modular_cohomology.auxiliaries import safe_save
         sage: d = tmp_dir()
         sage: save(1, os.path.join(d, 'orig'))
         sage: os.symlink(os.path.join(d, 'orig.sobj'), os.path.join(d, 'copy.sobj'))
@@ -101,13 +101,13 @@ class OPTION:
     computation is displayed.
     If option 'timing' is set, timings for various critical steps
     of the computation are displayed (CPU and Wall times).
-    See :mod:`pGroupCohomology`, :mod:`~pGroupCohomology.cohomology` and 
-    :class:`pGroupCohomology.resolution.RESL` for use cases and further 
+    See :mod:`sage.groups.modular_cohomology`, :mod:`~sage.groups.modular_cohomology.cohomology` and
+    :class:`sage.groups.modular_cohomology.resolution.RESL` for use cases and further
     details.
-    
+
     EXAMPLES::
 
-        sage: from pGroupCohomology.auxiliaries import OPTION
+        sage: from sage.groups.modular_cohomology.auxiliaries import OPTION
         sage: sorted(OPTION.opts.items())
         [('SingularCutoff', 70),
          ('liftlist', False),
@@ -144,7 +144,7 @@ class OPTION:
         """
         TESTS::
 
-            sage: from pGroupCohomology.auxiliaries import OPTION
+            sage: from sage.groups.modular_cohomology.auxiliaries import OPTION
             sage: sorted(OPTION.opts.items())
             [('SingularCutoff', 70),
              ('liftlist', False),
@@ -195,7 +195,7 @@ class OPTION:
         """
         TESTS::
 
-            sage: from pGroupCohomology.auxiliaries import OPTION
+            sage: from sage.groups.modular_cohomology.auxiliaries import OPTION
             sage: sorted(OPTION.opts.items())
             [('SingularCutoff', 70),
              ('liftlist', False),
@@ -254,7 +254,7 @@ def print_protocol(txt, slf=None):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.auxiliaries import print_protocol, OPTION
+        sage: from sage.groups.modular_cohomology.auxiliaries import print_protocol, OPTION
         sage: def foo(n):
         ...     print_protocol('Some text')
         ...     if not n:
@@ -328,7 +328,7 @@ class GAP_INIT:
     loaded.  Hence, the GAP functions and global variables are
     available right after the import statement::
 
-        sage: from pGroupCohomology.auxiliaries import _gap_init
+        sage: from sage.groups.modular_cohomology.auxiliaries import _gap_init
         sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
         True
 
@@ -367,7 +367,7 @@ class GAP_INIT:
         """
         TESTS::
 
-            sage: from pGroupCohomology.auxiliaries import GAP_INIT
+            sage: from sage.groups.modular_cohomology.auxiliaries import GAP_INIT
             sage: g = GAP_INIT()  # indirect doctest
             sage: gap.eval('List([1..10],i->Random(1,100000))')
             '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
@@ -391,7 +391,7 @@ class GAP_INIT:
 
         EXAMPLE::
 
-            sage: from pGroupCohomology.auxiliaries import _gap_init
+            sage: from sage.groups.modular_cohomology.auxiliaries import _gap_init
             sage: _gap_init()
             sage: gap.eval('List([1..10],i->Random(1,100000))')
             '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
@@ -436,7 +436,7 @@ class GAP_INIT:
 
         TESTS::
 
-            sage: from pGroupCohomology.auxiliaries import _gap_init
+            sage: from sage.groups.modular_cohomology.auxiliaries import _gap_init
             sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
             True
             sage: gap.eval('List([1..10],i->Random(1,100000))')
@@ -495,16 +495,16 @@ def Ordinals(n):
     Return an ordinal number in string form
 
     INPUT:
-    
+
     n -- a non-negative integer
 
     OUTPUT:
-    
+
     A string representation for the n-th ordinal number
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.auxiliaries import Ordinals
+        sage: from sage.groups.modular_cohomology.auxiliaries import Ordinals
         sage: Ordinals(1)
         '1st'
         sage: Ordinals(2)

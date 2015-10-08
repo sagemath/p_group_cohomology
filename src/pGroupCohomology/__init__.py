@@ -40,15 +40,14 @@ NOTE:
     necessary, you can install it in Sage by
     ``install_package('database_gap')``.
 
-The package "pGroupCohomology" comprises :func:`CohomologyRing`,
-a constructor for the cohomology ring of a finite group `G` that
-does caching etc. behind the scenes. The package also comprises eight
-modules :mod:`~pGroupCohomology.factory`,
-:mod:`~pGroupCohomology.cohomology`,
-:mod:`~pGroupCohomology.modular_cohomology`,
-:mod:`~pGroupCohomology.barcode`, :mod:`~pGroupCohomology.cochain`,
-:mod:`~pGroupCohomology.resolution`, :mod:`~pGroupCohomology.mtx` and
-:mod:`~pGroupCohomology.dickson` that do the real work.
+Modular cohomology rings of a finite group `G` are available via the constructor
+:func:`CohomologyRing`. The real work behind the scenes is done in the modules
+:mod:`~sage.groups.modular_cohomology.factory`,
+:mod:`~sage.groups.modular_cohomology.cohomology`,
+:mod:`~sage.groups.modular_cohomology.modular_cohomology`,
+:mod:`~sage.groups.modular_cohomology.barcode`, :mod:`~sage.groups.modular_cohomology.cochain`,
+:mod:`~sage.groups.modular_cohomology.resolution` and
+:mod:`~sage.groups.modular_cohomology.dickson`.
 
 In the first section of our introduction, we demonstrate the usage of
 our package. After outlining the functionality, we go into more detail
@@ -95,7 +94,7 @@ right away.
 
 The package is shipped with the cohomology rings for all groups of
 order 64; the data are stored in folders and can simply be retrieved
-by calling :func:`~pGroupCohomology.CohomologyRing` with appropriate
+by calling :func:`~sage.groups.modular_cohomology.cohomologyRing` with appropriate
 keys.  These data are provided to *all* users of the Sage installation,
 thus we refer to it as the *public database*.
 
@@ -140,7 +139,7 @@ and stored in the private database.
 
 If all this fails, a new ring is initialized in the current private
 database. So, unless
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.public_db` is used, the
+:meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.public_db` is used, the
 data for any cohomology ring will eventually be in the current private
 database.
 
@@ -166,7 +165,7 @@ option, providing the optional argument ``options='prot'`` or
 ``options=('prot',)``; the protocol gives detailed information on how
 data are computed. If some timings shall be printed as well, one can
 provide ``options=('prot','timing')``. Options can be changed at any
-time using the method :meth:`~pGroupCohomology.cohomology.COHO.option`.
+time using the method :meth:`~sage.groups.modular_cohomology.cohomology.COHO.option`.
 
 Usually, the package attempts to make use of existing data. However,
 if the optional parameter ``from_scratch`` is set to ``True`` then
@@ -176,7 +175,7 @@ ring itself, but not for cohomology rings of certain subgroups that
 might be created during the computation.
 
 Further options are described in the documentation of
-:func:`~pGroupCohomology.CohomologyRing`.
+:func:`~sage.groups.modular_cohomology.cohomologyRing`.
 
 ... using the SmallGroups library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -187,7 +186,7 @@ the databases. We do so in order to avoid a conflict with an existing
 private database.
 ::
 
-    sage: from pGroupCohomology import CohomologyRing
+    sage: from sage.groups.modular_cohomology import CohomologyRing
     sage: CohomologyRing.set_user_db(tmp_dir())
     sage: H0 = CohomologyRing(8,3)
 
@@ -212,7 +211,7 @@ the Dihedral Group of order 8::
     Minimal list of algebraic relations:
     [b_1_0*b_1_1]
 
-The generators are of type :class:`~pGroupCohomology.cochain.COCH`.
+The generators are of type :class:`~sage.groups.modular_cohomology.cochain.COCH`.
 It is also possible to convert the cohomology ring into a quotient
 ring in the Singular interface::
 
@@ -414,9 +413,9 @@ ring of the dihedral group of order 8::
 
 Actually we implemented two essentially different ways of computating
 the Poincaré series. The method
-:meth:`~pGroupCohomology.cohomology.COHO.poincare_without_parameters`
+:meth:`~sage.groups.modular_cohomology.cohomology.COHO.poincare_without_parameters`
 is usually much slower than
-:meth:`~pGroupCohomology.cohomology.COHO.poincare_series`, but of
+:meth:`~sage.groups.modular_cohomology.cohomology.COHO.poincare_series`, but of
 course the results are the same::
 
     sage: H2.poincare_without_parameters()
@@ -425,8 +424,8 @@ course the results are the same::
 After computing the ring structure, generators and relations of the
 cohomology ring are present. Generator number zero is the
 multiplicative unit of the underlying field. The other generators are
-represented by cochains (:class:`~pGroupCohomology.cochain.COCH`, or
-:class:`~pGroupCohomology.cochain.MODCOCH` for non prime power groups)::
+represented by cochains (:class:`~sage.groups.modular_cohomology.cochain.COCH`, or
+:class:`~sage.groups.modular_cohomology.cochain.MODCOCH` for non prime power groups)::
 
     sage: H1.gens()
     [1, c_2_2: 2-Cocycle in H^*(D8; GF(2)), b_1_0: 1-Cocycle in H^*(D8; GF(2)), b_1_1: 1-Cocycle in H^*(D8; GF(2))]
@@ -483,7 +482,7 @@ two groups *equivalent*, if there is a group isomorphism that maps the
 given list of generators of one group to an initial segment of the list
 of generators of the other group.
 
-:meth:`~pGroupCohomology.cohomology.COHO.group` returns a permutation
+:meth:`~sage.groups.modular_cohomology.cohomology.COHO.group` returns a permutation
 group in the gap interface equivalent to the one that was used to set up the
 cohomology ring::
 
@@ -551,7 +550,7 @@ needed to take care of the ``basering`` in Singular::
     b_1_1^100+c_2_2^2*b_1_1^96+c_2_2^16*b_1_1^68+c_2_2^18*b_1_1^64+c_2_2^32*b_1_1^36+c_2_2^34*b_1_1^32+c_2_2^48*b_1_1^4+c_2_2^50,
     b_1_1^50+b_1_0^2*b_1_1^48+b_1_0^16*b_1_1^34+b_1_0^18*b_1_1^32+b_1_0^32*b_1_1^18+b_1_0^34*b_1_1^16+b_1_0^48*b_1_1^2+b_1_0^50,
     b_1_1^50
-        
+
 Note that Singular does not do automatic reduction in quotient
 rings. So, eventually we do the reductions explicitly, in two ways,
 with the same result::
@@ -590,7 +589,7 @@ group homomorphism explicitly::
 
     sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,2), (1,2,3,4,5,6) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,3), (1,2)(3,4) ] )')
     sage: phi_star = HS6a.hom(phi,H0)
-    sage: [H0.element_as_polynomial(phi_star(x)) for x in HS6a.gens()]   
+    sage: [H0.element_as_polynomial(phi_star(x)) for x in HS6a.gens()]
     [1: 0-Cocycle in H^*(D8; GF(2)),
      b_1_1^2+b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
      b_1_0: 1-Cocycle in H^*(D8; GF(2)),
@@ -666,7 +665,7 @@ defined, then it is a single cocycle::
 It is known that in odd degree and for `p>2` it can be expressed as
 minus the composition of the first Steenrod power with the Bockstein
 operator. This allows for a verification of the above result, see
-:meth:`~pGroupCohomology.cochain.COCH.massey_power` for details.
+:meth:`~sage.groups.modular_cohomology.cochain.COCH.massey_power` for details.
 
 Massey products allow to distinguish certain isomorphic cohomology
 rings, so, they contain information that go beyond the ring
@@ -916,8 +915,8 @@ The essential ideal of a cohomology ring is formed by all those elements
 whose restrictions to all subgroups vanish. The depth essential ideal
 at rank `r` is formed by all those elements that vanish on the centralisers
 of all `p`-elementary abelian subgroups of rank `r`. These ideals can be
-computed using :meth:`~pGroupCohomology.cohomology.COHO.essential_ideal`
-and :meth:`~pGroupCohomology.cohomology.COHO.depth_essential_ideal`.
+computed using :meth:`~sage.groups.modular_cohomology.cohomology.COHO.essential_ideal`
+and :meth:`~sage.groups.modular_cohomology.cohomology.COHO.depth_essential_ideal`.
 
 If `r` is at most the depth of the cohomology ring, then the depth essential
 ideal vanishes. It is conjectured by J. Carlson that it is non-zero whenever
@@ -1022,8 +1021,8 @@ Data storage
 We first describe the situation for prime power groups. We do some new
 computations from scratch, using a temporary directory.
 ::
-  
-    sage: from pGroupCohomology import CohomologyRing
+
+    sage: from sage.groups.modular_cohomology import CohomologyRing
     sage: tmp = tmp_dir()
     sage: CohomologyRing.set_user_db(tmp)
     sage: H = CohomologyRing(8,3,from_scratch=True)
@@ -1070,7 +1069,7 @@ names of these folders are composed as follows.
        sage: L.GStem
        'DihedralB'
 
-3. Data belonging to a cohomology ring can be found in a folder that is 
+3. Data belonging to a cohomology ring can be found in a folder that is
    stored as the attribute "gps_folder", and is composed by the root and
    the stem name::
 
@@ -1101,7 +1100,7 @@ location, you may do so. But please make sure that (in the case of prime power
 groups) ``H.gps_folder`` keeps its name (only the parent directory is allowed
 to change!), and that all files in ``H.gps_folder`` and its sub-folders are
 preserved. Then, by
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_user_db`, one can
+:meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.set_user_db`, one can
 activate the private database in the new location, and reload the ring.  In
 order to demonstrate that it really is the same ring, we provide ``H`` with an
 additional attribute before saving and moving the data::
@@ -1166,7 +1165,7 @@ Computing a minimal projective resolution
 [Green]_ provides an algorithm for the computation of initial segments of a
 minimal projective resolutions for modular group algebras of finite
 `p`-groups, using non-commutative Groebner bases. He implemented it in
-C-programs, and we provide a Cython wrapper in :mod:`pGroupCohomology.resolution`.
+C-programs, and we provide a Cython wrapper in :mod:`sage.groups.modular_cohomology.resolution`.
 
 Chosing generators
 ^^^^^^^^^^^^^^^^^^
@@ -1180,7 +1179,7 @@ central elementary abelian subgroup of `P`, and `S_2,...,S_n` denotes
 representatives for the conjugacy classes of maximal elementary abelian
 subgroups of `P`.
 
-1. A cohomology class of `P` is nilpotent if and only if its 
+1. A cohomology class of `P` is nilpotent if and only if its
    restrictions to `S_2,...,S_n` are nilpotent. Since the cohomology
    rings of elementary abelian groups are either polynomial rings
    or the tensor product of a polynomial ring with an outer algebra
@@ -1189,7 +1188,7 @@ subgroups of `P`.
    We choose as many as possible new nilpotent generators in degree `d`.
 2. After step 1, continue with choosing as many as possible new
    generators in degree `d` with nilpotent restriction to `S_1`.
-3. After step 2, include the remaining new generators in degree 
+3. After step 2, include the remaining new generators in degree
    `d`. These are called *Duflot* generators.
 
 If `z` is the rank of the centre of `P` then there are exactly `z` Duflot
@@ -1230,7 +1229,7 @@ follows.
  - Let `N = N_G(Z(S))`. Compute its mod-`p` cohomology ``HN`` as a sub-ring
    of ``HS``.
  - If `N\not=G`: Compute the mod-`p` cohomology of `G` as a sub-ring of ``HN``.
-    
+
 The choice of generators
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1383,7 +1382,7 @@ rise to a degree bound of [Benson]_:
   `f_0,...,f_r` be the filter degree type and let `d_1,...,d_r` be the
   degrees of the filter regular hsop. If
 
-    `n > \max(0, f_0+0,  f_1+1,...,f_{r-1}+r-1) - r + d_1+ ... +d_r` 
+    `n > \max(0, f_0+0,  f_1+1,...,f_{r-1}+r-1) - r + d_1+ ... +d_r`
 
   then `R_n` is isomorphic to the cohomology ring.
 
@@ -1435,7 +1434,7 @@ Arbitrary parameters\---The Symonds Criterion
   F_p)`. Let `N` be the maximal degree of generators of `R_n` as a
   module over the parameters. If
 
-    `n \ge \max(N, d_1+ ... +d_r - r +1)` 
+    `n \ge \max(N, d_1+ ... +d_r - r +1)`
 
   then `R_n` is isomorphic to the cohomology ring.
 
@@ -1622,7 +1621,7 @@ cohomology ring of a Sylow 2-subgroup. It is of order 128::
 We set up the computation of its cohomology ring (requesting a computation
 from scratch in a new temporary directory)::
 
-    sage: from pGroupCohomology import CohomologyRing
+    sage: from sage.groups.modular_cohomology import CohomologyRing
     sage: CohomologyRing.set_user_db(tmp_dir())
     sage: HSyl = CohomologyRing(128, 928, from_scratch=True)
 
@@ -2039,7 +2038,7 @@ degree one. So, in degree one, we obtain::
 
 We find that the stable subspace in degree two is of dimension 5. The
 decomposable elements form a sub-space of dimension 3 (that is the first
-output of :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.find_relations`),
+output of :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.find_relations`),
 and there are no relations in degree two (that is the second output)::
 
     sage: HU.stable_space(2)
@@ -2376,7 +2375,7 @@ simplified, as there is no need to compute the stable subspace::
 
 As we see, the last relations are expected in degree 14, which is actually too
 high (the last relation is in degree 12), but let us compute out to degree 14
-anyway. 
+anyway.
 ::
 
     sage: H.option('noprot')
@@ -2458,12 +2457,12 @@ References
 .. [Kuhn] Nicholas J. Kuhn: Primitives and central detection numbers in group cohomology, *Adv. Math.* **216** (2007), 387--442.
 .. [Pham] Pham Anh Minh: Modular invariant theory and cohomology algebras of extra-special `p`-groups. *Pacific J. Math.* **124** (1986), 345--363.
 .. [Ravenel] Douglas Ravenel, *Complex cobordism and stable homotopy groups of spheres,* Pure and Applied Mathematics, **121**. Academic Press, Inc., Orlando, FL, (1986).
-.. [Symonds] Peter Symonds: `On the Castelnuovo-Mumford Regularity of the Cohomology Ring of a Group <http://www.maths.manchester.ac.uk/~pas/preprints/coreg.pdf>`_.  *J. American Math. Soc.,* **23** (2010), 1159--1173. 
+.. [Symonds] Peter Symonds: `On the Castelnuovo-Mumford Regularity of the Cohomology Ring of a Group <http://www.maths.manchester.ac.uk/~pas/preprints/coreg.pdf>`_.  *J. American Math. Soc.,* **23** (2010), 1159--1173.
 .. [Wilkerson] Clarence Wilkerson: *A primer on the Dickson invariants,* Proceedings of the Northwestern Homotopy Theory Conference (Evanston, Ill., 1982), *Contemp. Math.,* **19** (1983), 421--434.
 
 
 """
 
-from pGroupCohomology import barcode, factory
-from pGroupCohomology.factory import CohomologyRing
-from pGroupCohomology.resolution import gap, singular
+from sage.groups.modular_cohomology import barcode, factory
+from sage.groups.modular_cohomology.factory import CohomologyRing
+from sage.groups.modular_cohomology.resolution import gap, singular

@@ -34,7 +34,7 @@ The basic idea is as follows: Any normal series of a group gives
 rise to a chain of inclusion and quotient maps, which in turn
 give induced homomorphisms in cohomology. The degree `d` bar code
 associated with the normal series is an upper triangular non-negative
-integer matrix, telling how many cocycles of degree `d` 'survive' 
+integer matrix, telling how many cocycles of degree `d` 'survive'
 how long under the induced maps.
 
 It turns out that these simple collections of integers allow to
@@ -49,7 +49,7 @@ We work here with groups of order 64, that are part of the cohomology data base
 shipped with this package.
 ::
 
-    sage: from pGroupCohomology import CohomologyRing
+    sage: from sage.groups.modular_cohomology import CohomologyRing
     sage: H158 = CohomologyRing(64,158)
     sage: H160 = CohomologyRing(64,160)
 
@@ -177,7 +177,7 @@ As we have mentioned above, the bar code is determined by an upper triangular
 
 As usual, the sequence of integers in increasing degrees gives rise to
 a Poincaré series. So, in fact we get an upper triangular persistence
-matrix whose coefficients are rational functions. We show how these 
+matrix whose coefficients are rational functions. We show how these
 look in position ``(2,4)``::
 
     sage: B158.matrix()[2,4]
@@ -193,19 +193,19 @@ class BarCode2d:
     """
     Integer valued bar codes (bar code in a single degree)
 
-    A bar code in a fixed degree is encoded by an upper triangular 
-    matrix of integers and can be depicted by arrangement of bars 
+    A bar code in a fixed degree is encoded by an upper triangular
+    matrix of integers and can be depicted by arrangement of bars
     of different length.
 
     EXAMPLES:
 
     This class was designed for use in persistent group cohomology.
     So, we take an example from this context.
-    See :meth:`~pGroupCohomology.cohomology.COHO.bar_code` for the
+    See :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code` for the
     theoretical background.
     ::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
@@ -234,10 +234,10 @@ class BarCode2d:
         """
         NOTE:
 
-        An instance of ``BarCode2d`` should not be directly constructed. 
-        Usually, it is obtained as output of 
-        :meth:`~pGroupCohomology.cohomology.COHO.bar_code`, or as a slice
-        of an instance of :class:`~pGroupCohomology.barcode.BarCode`.
+        An instance of ``BarCode2d`` should not be directly constructed.
+        Usually, it is obtained as output of
+        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code`, or as a slice
+        of an instance of :class:`~sage.groups.modular_cohomology.barcode.BarCode`.
 
         INPUT:
 
@@ -248,7 +248,7 @@ class BarCode2d:
 
         ``dict(L)`` should yield a dictionary whose keys give the
         positions and whose values give the marks of a persistence
-        matrix. A persistence matrix is an upper triangular 
+        matrix. A persistence matrix is an upper triangular
         non-negative integer matrix, with the additional
         property that the matrix columns are increasing from top to
         bottom and the maatrix rows are decreasing from left to right.
@@ -256,7 +256,7 @@ class BarCode2d:
 
         We are sorry for the fact that the numbering of rows and colums
         does not start with zero; instead, the numbering ranges from
-        ``-d`` to ``d``, where ``d`` is given by the length of the 
+        ``-d`` to ``d``, where ``d`` is given by the length of the
         normal series (non-trivial terms only) by which the bar code
         is defined.
 
@@ -269,7 +269,7 @@ class BarCode2d:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology.barcode import BarCode2d
+            sage: from sage.groups.modular_cohomology.barcode import BarCode2d
             sage: L = [((-2,-2),2),((-2,-1),2),((-2,0),1),((-2,1),1),((-2,2),0),((-1,-1),3),((-1,0),1),((-1,1),1),((-1,2),0),((0,0),3),((0,1),2),((0,2),1),((1,1),2),((1,2),1),((2,2),2)]
             sage: B = BarCode2d(L, ring='some ring', degree=3, command='my favourite GAP command') # indirect doctest
             sage: B
@@ -311,7 +311,7 @@ class BarCode2d:
         """
         TESTS::
 
-            sage: from pGroupCohomology.barcode import BarCode2d
+            sage: from sage.groups.modular_cohomology.barcode import BarCode2d
             sage: L = [((-2,-2),2),((-2,-1),2),((-2,0),1),((-2,1),1),((-2,2),0),((-1,-1),3),((-1,0),1),((-1,1),1),((-1,2),0),((0,0),3),((0,1),2),((0,2),1),((1,1),2),((1,2),1),((2,2),2)]
             sage: B = BarCode2d(L, ring='some ring', degree=3, command='my favourite GAP command')
             sage: B==loads(dumps(B))   # indirect doctest
@@ -328,7 +328,7 @@ class BarCode2d:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -355,7 +355,7 @@ class BarCode2d:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -379,7 +379,7 @@ class BarCode2d:
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -402,7 +402,7 @@ class BarCode2d:
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -432,7 +432,7 @@ class BarCode2d:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology.barcode import BarCode2d
+            sage: from sage.groups.modular_cohomology.barcode import BarCode2d
             sage: B = BarCode2d([((0,0),1)])
             sage: B
             Barcode
@@ -456,7 +456,7 @@ class BarCode2d:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -501,12 +501,12 @@ class BarCode:
     EXAMPLES:
 
     This class was designed for use in persistent group cohomology.
-    So, we take an example from this context. 
-    See :meth:`~pGroupCohomology.cohomology.COHO.bar_code` for the 
+    So, we take an example from this context.
+    See :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code` for the
     theoretical background.
     ::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
@@ -515,7 +515,7 @@ class BarCode:
         sage: B
         Persistence data for H^*(D8; GF(2)) associated with UpperCentralSeries
 
-    The persistence data are encoded in an upper triangular matrix 
+    The persistence data are encoded in an upper triangular matrix
     whose entries are Poincaré series::
 
         sage: B.matrix()
@@ -549,7 +549,7 @@ class BarCode:
 
         An instance of ``BarCode`` should not be directly constructed.
         Usually, it is obtained as output of
-        :meth:`~pGroupCohomology.cohomology.COHO.bar_code`
+        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code`
 
         INPUT:
 
@@ -562,7 +562,7 @@ class BarCode:
         positions and whose values give the marks of a persistence
         matrix. A persistence matrix is an upper triangular
         matrix whose marks are univariate power series with non-negative
-        integer coefficients (Poincaré series). For each degree, 
+        integer coefficients (Poincaré series). For each degree,
         the corresponding coefficients of the Poincaré series yield
         an upper triangular integer matrix with the additional
         property that the matrix columns are increasing from top to
@@ -577,7 +577,7 @@ class BarCode:
 
         TESTS::
 
-            sage: from pGroupCohomology.barcode import BarCode
+            sage: from sage.groups.modular_cohomology.barcode import BarCode
             sage: R.<t> = ZZ[]
             sage: L = [((-1, -1), -1/(t - 1)), ((-1, 0), -1/(t^2 - 1)), ((-1, 1), 1), ((0, 0), 1/(t^2 - 2*t + 1)), ((0, 1), (-t - 1)/(t - 1)), ((1, 1), 1/(t^2 - 2*t + 1))]
             sage: B = BarCode(L,ring='some ring')    # indirect doctest
@@ -597,12 +597,12 @@ class BarCode:
         self._Meta = copy(MetaData)
         self._L = dict(copy(L))
         self._length = max([X[1] for X in self._L.keys()])
-        
+
     def __cmp__(self,other):
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -622,7 +622,7 @@ class BarCode:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -649,7 +649,7 @@ class BarCode:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -673,7 +673,7 @@ class BarCode:
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
@@ -688,7 +688,7 @@ class BarCode:
             s += " for "+self._Meta['ring']
         if self._Meta.has_key('command'):
             s += " associated with "+self._Meta['command']
-        return s        
+        return s
 
     def __getitem__(self, d):
         """
@@ -696,7 +696,7 @@ class BarCode:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
@@ -734,25 +734,25 @@ class BarCode:
         OUT = BarCode2d(D, **(self._Meta))
         OUT.add_metadata('degree',d)
         return OUT
-    
+
     def show(self, *args,**kwds):
         """
         Show a 3D picture of self.
 
         INPUT:
 
-        - ``dmin`` (default = 1): optional non-negative integer, 
+        - ``dmin`` (default = 1): optional non-negative integer,
           the lowest shown degree
         - ``dmax`` (default = 10): optional non-negative integer,
           the highest shown degree
 
-        The resulting picture combines the planar bar codes for 
+        The resulting picture combines the planar bar codes for
         each degree between ``dmin`` and ``dmax`` to a 3-dimensional
         arrangement of bars.
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)

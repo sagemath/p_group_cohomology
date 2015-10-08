@@ -29,7 +29,7 @@ AUTHORS:
 
 This module provides a constructor for modular cohomology rings of
 finite groups, that takes care of caching. The constructor is an
-instance :func:`~pGroupCohomology.CohomologyRing` of the class
+instance :func:`~sage.groups.modular_cohomology.cohomologyRing` of the class
 :class:`CohomologyRingFactory`.
 
 """
@@ -37,9 +37,9 @@ instance :func:`~pGroupCohomology.CohomologyRing` of the class
 from sage.all import SAGE_ROOT, DOT_SAGE, load
 from sage.all import Integer
 from sage.all import singular
-from pGroupCohomology.cohomology import COHO
-from pGroupCohomology.resolution import OPTION, print_protocol, safe_save, _gap_init
-from pGroupCohomology import barcode
+from sage.groups.modular_cohomology.cohomology import COHO
+from sage.groups.modular_cohomology.resolution import OPTION, print_protocol, safe_save, _gap_init
+from sage.groups.modular_cohomology import barcode
 import re,os
 
 import urllib2
@@ -93,7 +93,7 @@ def unit_test_64(D={}):
 
     TEST::
 
-        sage: from pGroupCohomology.factory import unit_test_64
+        sage: from sage.groups.modular_cohomology.factory import unit_test_64
 
     In order to have a test that takes less than two minutes, we allow
     to retrieve the data from the public database. By consequence, the
@@ -196,9 +196,9 @@ def _symlink_to_database(publ, priv):
     We link to an entry of the public database.
     ::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: from pGroupCohomology.factory import _symlink_to_database
+        sage: from sage.groups.modular_cohomology.factory import _symlink_to_database
         sage: os.mkdir(os.path.join(tmp,'8gp3'))
         sage: _symlink_to_database(os.path.join(CohomologyRing.get_public_db(),'8gp3'), os.path.join(tmp,'8gp3'))
         sage: L = os.listdir(os.path.join(tmp, '8gp3'))
@@ -257,13 +257,13 @@ class CohomologyRingFactory:
     r"""
     A factory for creating modular cohomology rings of finite p-groups as unique parent structures
 
-    Please use :func:`~pGroupCohomology.CohomologyRing`, which is an
+    Please use :func:`~sage.groups.modular_cohomology.cohomologyRing`, which is an
     instance of this class, and is provided with a documentation of
     the available options.
-    
+
     TESTS::
-    
-        sage: from pGroupCohomology import CohomologyRing
+
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: H0 = CohomologyRing(8,3)   #indirect doctest
         sage: print H0
         Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -275,13 +275,13 @@ class CohomologyRingFactory:
          b_1_1: 1-Cocycle in H^*(D8; GF(2))]
         Minimal list of algebraic relations:
         [b_1_0*b_1_1]
-    
+
     """
     def __init__(self):
         """
         EXAMPLE::
 
-            sage: from pGroupCohomology.factory import CohomologyRingFactory
+            sage: from sage.groups.modular_cohomology.factory import CohomologyRingFactory
             sage: CR = CohomologyRingFactory()   #indirect doctest
             sage: H = CR(8,3)
             sage: print H
@@ -308,7 +308,7 @@ class CohomologyRingFactory:
 
         EXAMPLE::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: try:
             ....:     from sage.env import SAGE_SHARE
             ....: except ImportError:
@@ -332,7 +332,7 @@ class CohomologyRingFactory:
 
         EXAMPLE::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.get_private_db().startswith(os.path.realpath(DOT_SAGE))
             True
             sage: tmp = tmp_dir()
@@ -367,7 +367,7 @@ class CohomologyRingFactory:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_priv = tmp_dir()
             sage: tmp_publ = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_priv)
@@ -418,7 +418,7 @@ class CohomologyRingFactory:
                 if os.path.isdir(folder):
                     if not os.access(folder,os.W_OK):
                        #print_protocol("WARNING: '%s' is not writeable"%folder)
-                       self._use_public_db = False 
+                       self._use_public_db = False
                 else:
                     raise OSError, "'%s' is no folder"%folder
             else:
@@ -440,7 +440,7 @@ class CohomologyRingFactory:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_priv = tmp_dir()
             sage: tmp_publ = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_priv)
@@ -501,7 +501,7 @@ class CohomologyRingFactory:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.gstem([8,3])
             '8gp3'
             sage: CohomologyRing.gstem([8,3],GStem='DihedralGroup(8)')
@@ -565,11 +565,11 @@ class CohomologyRingFactory:
 
         This package has a list of custom names for certain groups in
         the SmallGroups library. However, this list is only used in the
-        initialisation of :class:`~pGroupCohomology.cohomology.COHO`.
+        initialisation of :class:`~sage.groups.modular_cohomology.cohomology.COHO`.
 
         EXAMPLE::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: G = gap('DihedralGroup(8)')
             sage: CohomologyRing.group_name((8,3))
             sage: CohomologyRing.group_name((8,3),'D8')
@@ -639,7 +639,7 @@ class CohomologyRingFactory:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3)
@@ -741,7 +741,7 @@ class CohomologyRingFactory:
 
         OUTPUT:
 
-        - The group order, and 
+        - The group order, and
 
         NOTE:
 
@@ -753,7 +753,7 @@ class CohomologyRingFactory:
 
         EXAMPLE::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.check_arguments([8,3])
             (8, Group( [ f1, f2, f3 ] ))
             sage: CohomologyRing.check_arguments([gap('DihedralGroup(8)')])
@@ -831,7 +831,7 @@ class CohomologyRingFactory:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3)
@@ -846,7 +846,7 @@ class CohomologyRingFactory:
             ...
             ValueError: The ring H^*(D8; GF(2)) does not match the given key
             sage: H.option('noprot')
-        
+
         """
         if not isinstance(R, COHO):
             raise ValueError, 'The second argument %s is no Cohomology ring'%repr(R)
@@ -893,13 +893,13 @@ class CohomologyRingFactory:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
 
         Since the cohomology of the dihedral group of order 8 is shipped with this
         package, it can be taken from the public database::
-        
+
             sage: H = CohomologyRing._get_p_group_from_cache_or_db('8gp3',(8,3)); H
             H^*(D8; GF(2))
 
@@ -931,7 +931,7 @@ class CohomologyRingFactory:
         If the location of the public database is explicitly set and write permission
         is granted (which is the case here), it is attempted to get the data from there.
         Since this is impossible, ``None`` is returned::
-        
+
             sage: CohomologyRing._get_p_group_from_cache_or_db('8gp3',(8,3), websource=False)
 
         However, if we disable the use of the public database, then the private database
@@ -956,7 +956,7 @@ class CohomologyRingFactory:
         file_name = os.path.join(GStem,'H%s.sobj'%GStem)
         OUT = None
         from_scratch = kwds.get('from_scratch')
-        
+
         ## 1. Cache
         CacheKey = (KEY, os.path.join(root_user_db,GStem,'dat','State'))
         if self._cache.has_key(CacheKey):
@@ -1031,8 +1031,8 @@ class CohomologyRingFactory:
           associated with the cohomology ring
         - GroupName: A string, used as the name of the group.
         - optional arguments that will be passed to the init method
-          of :class:`~pGroupCohomology.cohomology.COHO` or
-          :class:`~pGroupCohomology.modular_cohomology.MODCOHO`.
+          of :class:`~sage.groups.modular_cohomology.cohomology.COHO` or
+          :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`.
 
         OUTPUT:
 
@@ -1040,7 +1040,7 @@ class CohomologyRingFactory:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H1 = CohomologyRing._get_p_group_from_scratch((8,3), 8, '8gp3', 'Group1'); H1
@@ -1107,7 +1107,7 @@ class CohomologyRingFactory:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H1 = CohomologyRing(18,3,prime=2)
@@ -1187,12 +1187,12 @@ class CohomologyRingFactory:
         rings.  However, the presentation of the cohomology rings as
         obtained by our package depends on the choice of a minimal
         generating set of the p-group.
-        
+
         If a `p`-group `G` is given by its position in the SmallGroups
         library, then this position, perhaps together with a custom
         name provided by the user, forms a unique key for the
         cohomology ring.
-        
+
         If `G` is given as a group in the Gap interface, then it is
         required that the first items on the list of generators of `G`
         forms a minimal generating set. If this is not the case, an
@@ -1201,13 +1201,13 @@ class CohomologyRingFactory:
         `G`. The description of that permutation group, perhaps
         together with a custom name, forms a unique key for the
         cohomology ring.
-        
+
         The unique key also depends on the chosen folders containing
         data of the ring.
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_dir())
 
         Since the cohomology of the dihedral group of order 8 is
@@ -1250,17 +1250,17 @@ class CohomologyRingFactory:
             True
 
         """
-        from pGroupCohomology.cohomology import COHO
-        from pGroupCohomology.modular_cohomology import MODCOHO
-        from pGroupCohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.cohomology import COHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.resolution import OPTION
         import os
         root_public_db = COHO.public_db
         if self._use_public_db:
             root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
         else:
             root_user_db = COHO.user_db #DOT_SAGE+'pGroupCohomology/db/'
-        # Basic idea: 
-        # The key shall both be a unique pointer to the data in the file 
+        # Basic idea:
+        # The key shall both be a unique pointer to the data in the file
         # system and a descriptor of the group-with-minimal-generators.
         # Hence, it is the root directory plus the stem name plus [either
         # the position in the SmallGroups library or a permutation group
@@ -1274,7 +1274,7 @@ class CohomologyRingFactory:
         # ring that we are returning below.
         if kwds.has_key('root'):
             raise ValueError, "The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_user_db`` method instead"
-        from pGroupCohomology.cohomology import COHO_option
+        from sage.groups.modular_cohomology.cohomology import COHO_option
         if kwds.has_key('options'):
             if isinstance(kwds['options'], basestring):
                 COHO_option(kwds['options'])
@@ -1282,7 +1282,7 @@ class CohomologyRingFactory:
                 COHO_option(*kwds['options'])
 
         # CHECK ADMISSIBILITY OF THE INPUT
-        from pGroupCohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.resolution import OPTION
         # _gap_init is done inside check_arguments
         GapName = None
         if len(args)==1 and args[0].HasName():
@@ -1379,7 +1379,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         ## cohomology from scratch. The given subgroups may help,
         ## but have to be consistent.
         # 1. check HP and HSyl
-        if HP is not None: 
+        if HP is not None:
             if not isinstance(HP,COHO):
                 raise TypeError, "`SubgpCohomology` must be %s"%COHO
             HSyl = HP._HSyl or HP # ignore the keyword argument for HSyl
@@ -1469,7 +1469,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                 if not ("group identification" in str(msg)):
                     raise msg
                 print_protocol( "SmallGroups address not available. Compute the order")
-                SylowId = [Integer(SylowSubgroup.Order()),0]            
+                SylowId = [Integer(SylowSubgroup.Order()),0]
             if SylowId[1]>0:
                 phiSyl = gap('IsomorphismGroups(SmallGroup(%d,%d),%s)'%(SylowId[0],SylowId[1],SylowSubgroup.name()))
                 SylowSubgroup = gap('Group(List([1..Length(GeneratorsOfGroup(Source(%s)))],x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(phiSyl.name(),phiSyl.name(),phiSyl.name()))
@@ -1512,7 +1512,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                 #gap.eval('Reset(GlobalMersenneTwister,0)') #gap.RestoreStateRandom(0)
                 phiSub = gap('IsomorphismGroups(SmallGroup(%d,%d),%s)'%(SubgpId[0],SubgpId[1],Subgroup.name()))
                 Subgroup = gap('Group(List([1..Length(GeneratorsOfGroup(Source(%s)))],x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(phiSub.name(),phiSub.name(),phiSub.name()))
-                HP = CohomologyRing(Subgroup,SubgpId=SubgpId,prime=pr,SylowSubgroup=SylowSubgroup,SylowSubgpCohomology=HSyl,GStem='%dgp%d'%(SubgpId[0],SubgpId[1]), useElimination=kwds.get('useElimination'),useFactorization=kwds.get('useFactorization')) # not from_scratch=kwds.get('from_scratch') 
+                HP = CohomologyRing(Subgroup,SubgpId=SubgpId,prime=pr,SylowSubgroup=SylowSubgroup,SylowSubgpCohomology=HSyl,GStem='%dgp%d'%(SubgpId[0],SubgpId[1]), useElimination=kwds.get('useElimination'),useFactorization=kwds.get('useFactorization')) # not from_scratch=kwds.get('from_scratch')
             elif SubgpComputedFromScratch:
                 # no minimal generating set needed
                 SubgpId=None
@@ -1530,10 +1530,10 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         ############
         # By now, SylowSubgroup is equal to HP.sylow_subgroup() under the canonical map from Subgroup to HP.group().
         # However, it is not necessarily true that their GENERATING SETS are related by the canonical map.
-        # This will be taken care of in MODCOHO.__init__.            
+        # This will be taken care of in MODCOHO.__init__.
 
         ##################################
-        # 
+        #
         # Extending the group key, so that we can finally see if it is
         # cached.
         #
@@ -1612,7 +1612,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -1655,7 +1655,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         or downloaded from the web.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing.user_db(8,3, from_scratch=True)
@@ -1684,7 +1684,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         If ``s`` is a string, then cohomology rings will be searched
         in a web source named by ``s``. If it is ``None``, the web
         source is reset to some default location.
-        
+
         EXAMPLES:
 
         The example produces files. For safety reasons, we choose
@@ -1693,7 +1693,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_web_db('http://users.minet.uni-jena.de/cohomology/testdb/')
 
         During doctests, the access to the internet is usually not available::
@@ -1702,7 +1702,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
             Traceback (most recent call last):
             ...
             RuntimeError: No web access during doctests
-            sage: from pGroupCohomology.resolution import OPTION
+            sage: from sage.groups.modular_cohomology.resolution import OPTION
             sage: OPTION('use_web_in_doctest')
             sage: H=CohomologyRing.web_db('8gp3') # needs internet access
             sage: OPTION('nouse_web_in_doctest')
@@ -1716,15 +1716,15 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
              b_1_1: 1-Cocycle in H^*(D8; GF(2))]
             Minimal list of algebraic relations:
             [b_1_0*b_1_1]
-        
+
         """
-        from pGroupCohomology.cohomology import COHO
+        from sage.groups.modular_cohomology.cohomology import COHO
         if s is None:
             s = 'http://cohomology.uni-jena.de/db/'
         if isinstance(s,basestring):
             COHO.web_db = s
         else:
-            raise ValueError, "String expected"    
+            raise ValueError, "String expected"
 
 
     # TODO: non prime power groups
@@ -1736,7 +1736,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
 
         Usually this function would not be directly used. It is
         automatically called by
-        :func:`~pGroupCohomology.CohomologyRing` if a cohomology ring
+        :func:`~sage.groups.modular_cohomology.cohomologyRing` if a cohomology ring
         can not be found in a local folder.
 
         INPUT:
@@ -1746,7 +1746,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
           ``'H'+GStem+'mod%d.sobj'%prime`` otherwise.
         - ``websource``: If ``None`` (default), a default location
           (respectively the location provided by
-          :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_web_db`)
+          :meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.set_web_db`)
           is chosen. Otherwise, it should be a web address.
         - ``prime``: An optional prime, the modulus of the cohomology
           ring. It must be provided if ond *only* if the group is not
@@ -1754,7 +1754,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
 
         NOTE:
 
-        During doctests, the web access is usually switched off, 
+        During doctests, the web access is usually switched off,
 
         EXAMPLES:
 
@@ -1765,8 +1765,8 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.resolution import OPTION
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.resolution import OPTION
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: OPTION('prot')
             <BLANKLINE>
@@ -1800,13 +1800,13 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         In order to not break the other doc tests, we now switch the
         protocol mode off.
         ::
-        
+
             sage: OPTION('noprot')
             <BLANKLINE>
-              
+
         """
         import os
-        from pGroupCohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.resolution import OPTION
         if not OPTION.opts.get('use_web_in_doctest'):
             import inspect
             for stackline in inspect.stack():
@@ -1821,7 +1821,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
             websource = COHO.web_db
         if not websource.endswith('/'):
             websource = websource + '/'
-        
+
         # First step: Download the tar file from the web and unpack it to root
         print_protocol("Press Ctrl-c to interrupt web access.")
         if prime is None:
@@ -1855,7 +1855,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                 _gap_init(OUT.group().parent())
                 return OUT
             else:
-                raise RuntimeError, "No cohomology ring found in "+websource + 'H'+GStem + 'mod%d.sobj'%prime            
+                raise RuntimeError, "No cohomology ring found in "+websource + 'H'+GStem + 'mod%d.sobj'%prime
 
         ## Second step: load the cohomology ring and return it
         ## It is now the prime power case.
@@ -1891,7 +1891,7 @@ def _IsKeyEquivalent(k1, k2):
     ``k1``, ``k1``: Keys of cohomology rings
 
     OUTPUT:
-    
+
     - 0, if the keys are essentially different,
     - 1 if they are equivalent,
     - 2 if they are equal (up to file location)
@@ -1903,8 +1903,8 @@ def _IsKeyEquivalent(k1, k2):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology import CohomologyRing
-        sage: from pGroupCohomology.factory import _IsKeyEquivalent
+        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology.factory import _IsKeyEquivalent
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: G = gap('SymmetricGroup(6)')
@@ -1957,7 +1957,7 @@ def _IsKeyEquivalent(k1, k2):
         (('Group([(1,2,3,4,5,6),(1,2)])',), 'Sym6', ((16, 11), '.../16gp11/dat/State'), 2)
 
     """
-    from pGroupCohomology.resolution import gap
+    from sage.groups.modular_cohomology.resolution import gap
     if len(k1)!=len(k2):
         return 0
     if k1[0]==k2[0]:
@@ -1984,8 +1984,8 @@ CohomologyRing.__doc__ = r"""
 Constructor for modular cohomology rings of finite groups.
 
 This constructor is an instance of
-:class:`~pGroupCohomology.factory.CohomologyRingFactory`.  See there
-and see :mod:`pGroupCohomology` for more examples.
+:class:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory`.  See there
+and see :mod:`sage.groups.modular_cohomology` for more examples.
 
 The constructor can be called directly. Then, it is first checked
 whether the completely computed cohomology ring of the given group is
@@ -1993,13 +1993,13 @@ part of some database, or whether it can be downloaded. If this is
 not the case, a new cohomology ring is created, being part of a
 user defined database.
 
-Using :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_user_db`, the
+Using :meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.set_user_db`, the
 location of the user defined database can be determined. By
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.user_db`, one can
+:meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.user_db`, one can
 explicitly ask for taking data from the user defined database. The
-input formats for calling :func:`~pGroupCohomology.CohomologyRing` and
-for calling :meth:`~pGroupCohomology.factory.CohomologyRingFactory.user_db`
-or :meth:`~pGroupCohomology.factory.CohomologyRingFactory.public_db` are the same.
+input formats for calling :func:`~sage.groups.modular_cohomology.cohomologyRing` and
+for calling :meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.user_db`
+or :meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.public_db` are the same.
 
 INPUT:
 
@@ -2009,8 +2009,8 @@ INPUT:
 
   * given by an integer ``q`` and a positive number ``n``, determining
     an entry of the SmallGroups library, or
-  * given as an object in the Gap interface  
-- ``GroupName`` (optional string): a name for the group. If the 
+  * given as an object in the Gap interface
+- ``GroupName`` (optional string): a name for the group. If the
   group `G` is given in the Gap interface and if it is not provided with
   a custom name (using Gap's ``SetName``) then ``GroupName`` *must* be
   provided.
@@ -2036,7 +2036,7 @@ INPUT:
 
 **Parameters modifying the algorithm**
 
-- ``useElimination`` (optional, default ``None``): If ``True``, the 
+- ``useElimination`` (optional, default ``None``): If ``True``, the
   elimination method is used for trying to construct the Dickson classes.
   If ``False``, the linear algebra method is used for that purpose. By
   default, the linear algebra method is chosen, unless there is a Dickson
@@ -2047,7 +2047,7 @@ INPUT:
   bound for the power to which the Dickson classes might be raised: If
   `G` is a `p`-group and `n` is the given ``DicksonExp``, then the
   Dickson classes of the elementary abelian sub-groups of `G` are raised
-  to the power of `p^0,p^1,...,p^n` before trying to simultaneously lift 
+  to the power of `p^0,p^1,...,p^n` before trying to simultaneously lift
   them to `G`. We do not know any example in which the default value would
   not suffice.
 - ``useFactorization`` (optional boolean, default True): Try to replace
@@ -2056,7 +2056,7 @@ INPUT:
   factorisation is a bigger problem than a high degree bound.
 - ``auto`` (optional integer, default = 2 for abelian groups, and = 4
   otherwise): Only applies to the case of prime power groups. A quick but
-  potentially memory consuming method for lifting chain maps will be 
+  potentially memory consuming method for lifting chain maps will be
   used in degree at most ``auto``. For prime power groups up to orders
   around 500, the default value seems to be heuristically best.
 - ``useSlimgb`` / ``useStd`` (optinal boolean): Use Singular's ``slimgb``
@@ -2077,7 +2077,7 @@ by prepending ``'no'`` to that string.
 
   * ``'prot'`` [not default], display protocol
   * ``'timing'`` [not default], display timing
-  * ``'useMTX'`` [default], use :class:`~pGroupCohomology.mtx.MTX`
+  * ``'useMTX'`` [default], use :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
     matrices for linear algebra over finite fields, when computing
     the ring structure. Note that the resolutions will always be
     computed using the Aachen
@@ -2086,12 +2086,12 @@ by prepending ``'no'`` to that string.
     on the conversion of different matrix types.
   * ``'save'`` [default], save intermediate results
   * ``'sparse'`` [default], remove temporarily unneeded data from
-    memory 
+    memory
   * ``'liftlist'`` [not default], try to lift a whole bunch of
     cochains at once
 
-The options can also be (un)set later, by using the method 
-:meth:`~pGroupCohomology.cohomology.COHO.option`.
+The options can also be (un)set later, by using the method
+:meth:`~sage.groups.modular_cohomology.cohomology.COHO.option`.
 
 The options ``'prot'`` and ``'timing'`` are useful to see the progress
 of lengthy computations. If ``'save'`` is set, the ring will be saved
@@ -2106,10 +2106,10 @@ experimental, and are not officially supported.
 * If ``'useMTX'`` is unset, the computation time usually dramatically
   increases. So, we strongly recommend to not unset ``'useMTX'``.
 * Using the option ``'sparse'`` not only allows for computation of rather
-  big examples; it turns out that it improves the computation time in small 
+  big examples; it turns out that it improves the computation time in small
   examples. So, it is strongly recommended to not unset ``'sparse'``.
-* With the option ``'liftlist'``, some examples are faster, others are slower. 
-  On the groups of order 64, it is slightly faster to not use this option, 
+* With the option ``'liftlist'``, some examples are faster, others are slower.
+  On the groups of order 64, it is slightly faster to not use this option,
   therefore our default is to not use it.
 
 """

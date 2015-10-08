@@ -29,8 +29,8 @@ It is based on the stable element method of Henri Cartan and Samuel
 Eilenberg [CartanEilenberg]_ and uses a completeness criterion based
 on the Poincaré series [King]_.  The stable element method involves the
 computation of cohomology rings of finite `p`-groups, which is based
-on the class :class:`~pGroupCohomology.cohomology.COHO`. See
-:mod:`pGroupCohomology` for an introduction.
+on the class :class:`~sage.groups.modular_cohomology.cohomology.COHO`. See
+:mod:`sage.groups.modular_cohomology` for an introduction.
 
 AUTHORS:
 
@@ -40,10 +40,9 @@ AUTHORS:
 """
 
 import sys, os
-from pGroupCohomology import CohomologyRing
-from pGroupCohomology.auxiliaries import OPTION, print_protocol, safe_save
-from pGroupCohomology.cohomology import COHO, temporary_result, permanent_result
-from pGroupCohomology.mtx cimport MTX
+from sage.groups.modular_cohomology import CohomologyRing
+from sage.groups.modular_cohomology.auxiliaries import OPTION, print_protocol, safe_save, _gap_init
+from sage.groups.modular_cohomology.cohomology import COHO, temporary_result, permanent_result
 
 from sage.all import Ring
 from sage.all import Integer
@@ -55,10 +54,12 @@ from sage.all import Algebras, CommutativeAlgebras
 from sage.all import subsets
 from sage.all import Infinity
 
-from pGroupCohomology.resolution import gap
-from pGroupCohomology.cohomology import singular, unpickle_gap_data, pickle_gap_data
-from pGroupCohomology.resolution cimport RESL
-from pGroupCohomology.cochain cimport COCH, ChMap
+from sage.libs.modular_resolution cimport *
+from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
+from sage.groups.modular_cohomology.resolution import gap
+from sage.groups.modular_cohomology.cohomology import singular, unpickle_gap_data, pickle_gap_data
+from sage.groups.modular_cohomology.resolution cimport RESL
+from sage.groups.modular_cohomology.cochain cimport COCH, ChMap
 
 #############################
 ##                         ##
@@ -104,11 +105,11 @@ def _IdGroup(G, D, Client, ring=True):
 
     TESTS::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(8,3)
-        sage: from pGroupCohomology.modular_cohomology import _IdGroup
+        sage: from sage.groups.modular_cohomology.modular_cohomology import _IdGroup
         sage: D = {'prime':3}
         sage: G1 = gap('AlternatingGroup(7)')
 
@@ -154,7 +155,6 @@ def _IdGroup(G, D, Client, ring=True):
 
     """
     gap = G.parent()
-    from pGroupCohomology.resolution import _gap_init
     _gap_init(gap) #gap.RestoreStateRandom(0)
     try:
         q,n = G.IdGroup().sage()
@@ -165,10 +165,6 @@ def _IdGroup(G, D, Client, ring=True):
                 try:
                     phi = H.group().canonicalIsomorphism(G)
                 except:
-                    from pGroupCohomology.resolution import _gap_init
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
                     _gap_init(gap)
                     phi = H.group().canonicalIsomorphism(G)
                 if repr(phi)=='fail':
@@ -228,14 +224,14 @@ class MODCOHO(COHO):
     Modular cohomology rings of finite groups that are not of prime power order
 
     Normally, instances of this class should be created using the constructor
-    :func:`~pGroupCohomology.CohomologyRing`, since this takes care of
+    :func:`~sage.groups.modular_cohomology.cohomologyRing`, since this takes care of
     uniqueness of parent structures. See
-    :func:`~pGroupCohomology.CohomologyRing` and
-    :mod:`pGroupCohomology` for an introduction.
+    :func:`~sage.groups.modular_cohomology.cohomologyRing` and
+    :mod:`sage.groups.modular_cohomology` for an introduction.
 
     EXAMPLES::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: G = gap('SmallGroup(48,36)')
@@ -268,15 +264,15 @@ class MODCOHO(COHO):
     def __init__(self, G,p, HP,Subgroup, **kwds):
         """
         Normally, instances of this class should be created using the constructor
-        :func:`pGroupCohomology.CohomologyRing`, since this takes care of unique
+        :func:`sage.groups.modular_cohomology.cohomologyRing`, since this takes care of unique
         parent structures. Here, we demonstrate the input used internally.
 
         INPUT:
 
         - ``G`` (Group in GAP)
         - ``p`` (prime number, must divide the order of ``G``)
-        - ``HP`` (instance of :class:`~pGroupCohomology.cohomology.COHO` or
-          :class:`~pGroupCohomology.modular_cohomology.MODCOHO`): Cohomology ring
+        - ``HP`` (instance of :class:`~sage.groups.modular_cohomology.cohomology.COHO` or
+          :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`): Cohomology ring
           of a subgroup of ``G`` the stable element method will be applied to
         - ``Subgroup``, a subgroup of ``G`` that contains a Sylow subgroup of ``G``.
           The generators of ``Subgroup`` must match the generators of ``HP.group()``.
@@ -292,8 +288,8 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.modular_cohomology import MODCOHO
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G = gap('SymmetricGroup(6)')
@@ -339,7 +335,7 @@ class MODCOHO(COHO):
         self._decorator_cache = {}
 
         from weakref import WeakValueDictionary
-        from pGroupCohomology.cohomology import COHO_prefix, COHO_Terminator
+        from sage.groups.modular_cohomology.cohomology import COHO_prefix, COHO_Terminator
         self._HomsetCache = WeakValueDictionary({})
         self.GenS = singular(0)
         singular.eval('option(redSB,redTail,redThrough)')
@@ -369,11 +365,8 @@ class MODCOHO(COHO):
         if not (hasattr(G,'parent') and repr(G.parent())=='Gap'):
             raise ValueError, "The group must be given in the Gap interface"
         gap = G.parent()
-        from pGroupCohomology.resolution import _gap_init
-        _gap_init(gap) #gap.RestoreStateRandom(0)
         if not isinstance(HP,COHO):
             raise ValueError, "Cohomology ring of a subgroup expected, not "+repr(type(HP))
-        #print "@inspecting key words"
         GPerm     = kwds.get('GPerm')
         SubgpId   = kwds.get('SubgpId')
         GroupName = kwds.get('GroupName')
@@ -396,7 +389,7 @@ class MODCOHO(COHO):
         # Get some Group-ID
         if isinstance(G,tuple):
             GId = G
-            from pGroupCohomology.resolution import gap
+            from sage.groups.modular_cohomology.resolution import gap
             G = gap('SmallGroup(%d,%d)'%(G[0],G[1]))
             GStem = GStem or "%dgp%d"%(GId[0],GId[1])
         else:
@@ -407,10 +400,6 @@ class MODCOHO(COHO):
                 try:
                     bla = gap.eval('canonicalIsomorphism(SmallGroup(%d,%d),%s)'%(GId[0],GId[1],G.name()))
                 except:
-                    from pGroupCohomology.resolution import _gap_init
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
                     _gap_init(gap)
                     bla = gap.eval('canonicalIsomorphism(SmallGroup(%d,%d),%s)'%(GId[0],GId[1],G.name()))
                 if bla=='fail':
@@ -441,22 +430,15 @@ class MODCOHO(COHO):
                 tmpPhi = None
                 G2 = G
         else:
-            #print "@already got permutation presentation"
             G2 = GPerm
-            #print "@finding canonical isomorphism"
             if kwds.get('verifyGroupIso'):
                 try:
                     tmpPhi = G.canonicalIsomorphism(G2)
                 except:
-                    from pGroupCohomology.resolution import _gap_init
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-                    #gap.eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
                     _gap_init(gap)
                     tmpPhi = G.canonicalIsomorphism(G2)
             else:
                 tmpPhi = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%(G.name(),G2.name(),G.name(),G2.name()))
-            #print "@done"
             if repr(tmpPhi)=='fail':
                 raise ValueError, "The given permutation group GPerm is not an equivalent description of the given group G"
         self._gap_group = G2
@@ -473,14 +455,9 @@ class MODCOHO(COHO):
         if not G.IsSubgroup(Subgroup):
             raise ValueError, "We expected a group-subgroup pair"
         if kwds.get('verifyGroupIso'):
-            #print "@canonical iso for subgroup"
             try:
                 bla = gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))
             except:
-                from pGroupCohomology.resolution import _gap_init
-                #gap.eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-                #gap.eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-                #gap.eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
                 _gap_init(gap)
                 bla = gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))
             if bla=='fail':
@@ -528,20 +505,14 @@ class MODCOHO(COHO):
         # it was checked above if kwds.get('verifyGroupIso').
         # So now, do it quick and dirty...
         #phiHPtoP = HP.group().canonicalIsomorphism(P)
-        #print "@get subgroup iso"
         if kwds.get('verifyGroupIso'):
             try:
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
             except:
-                from pGroupCohomology.resolution import _gap_init
-                #gap.eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-                #gap.eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-                #gap.eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
                 _gap_init(gap)
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
         else:
             phiHPtoP = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->GeneratorsOfGroup(%s)[x]))'%(HP.group().name(),P.name(),HP.group().name(),HP.group().name(),P.name()))
-        #print "@done"
         SubSylow = (HP.sylow_subgroup or HP.group)()
         _SylowGp = gap('Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(SubSylow.name(),phiHPtoP.name(),SubSylow.name()))
         if tmpPhi is not None:
@@ -665,7 +636,7 @@ class MODCOHO(COHO):
         # - The prime
         self.setprop('_key', (( ''.join([t.strip() for t in ('Group('+repr(G2.GeneratorsOfGroup())+')').split()]),) if GId[1]==0 else tuple(GId), self.GStem, self._HP._key, p))
         # Insert self into the cache
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology import CohomologyRing
         _cache = CohomologyRing._cache
         _cache[self._key] = self  # Note that there is no entry yet with this key --
                                   # provided that the ring
@@ -700,7 +671,7 @@ class MODCOHO(COHO):
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,48,prime=3, from_scratch=True)
@@ -780,7 +751,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,48,prime=2, from_scratch=True)
@@ -841,7 +812,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -869,7 +840,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -888,7 +859,7 @@ class MODCOHO(COHO):
         try:
             self._gap_group._check_valid()
         except:
-            from pGroupCohomology.resolution import gap
+            from sage.groups.modular_cohomology.resolution import gap
             self._gap_group = gap(self._gapBackup)
         return self._gap_group
 
@@ -898,7 +869,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -913,7 +884,7 @@ class MODCOHO(COHO):
         try:
             self._SylowGp._check_valid()
         except:
-            from pGroupCohomology.resolution import gap
+            from sage.groups.modular_cohomology.resolution import gap
             self._SylowGp = gap(self._SylowGpBackup)
         return self._SylowGp
 
@@ -923,7 +894,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -940,7 +911,7 @@ class MODCOHO(COHO):
         try:
             self._Subgp._check_valid()
         except:
-            from pGroupCohomology.resolution import gap
+            from sage.groups.modular_cohomology.resolution import gap
             self._Subgp = gap(self._SubgpBackup)
         return self._Subgp
 
@@ -963,7 +934,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -1009,7 +980,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -1027,7 +998,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -1059,7 +1030,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50, prime=2)
@@ -1114,7 +1085,7 @@ class MODCOHO(COHO):
 ##         if not l:
 ##             return
 ##         cdef int i,j
-## 	# Idea: a ring Rtotal, with variables
+##  # Idea: a ring Rtotal, with variables
 ##         # -  @a(1..len(self._HP.Gen))
 ##         # -  @s(1..2) identifies the summand
 ##         # -  @g(1..l) identifies the subgroup
@@ -1176,7 +1147,7 @@ class MODCOHO(COHO):
         condition. The result is nonsense, but good for testing.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50,prime=2)
@@ -1228,9 +1199,9 @@ class MODCOHO(COHO):
             return
         if not self._HP.completed:
             raise RuntimeError, "The cohomology ring of the underlying subgroup must be known"
-        from pGroupCohomology.resolution import OPTION
-        from pGroupCohomology.cochain import MODCOCH
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology import CohomologyRing
         _cache = CohomologyRing._cache
         print_protocol( "Copying ring structure from "+repr(self._HP), self)
         # self._prime must already be OK
@@ -1305,7 +1276,7 @@ class MODCOHO(COHO):
         #    self.setprop('A_INV',self._HP.A_INV)
         if self._HP.A_INV_Expos is not None:
             self.setprop('A_INV_Expos',self._HP.A_INV_Expos)
-        from pGroupCohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.resolution import OPTION
         if OPTION.opts['save']:
             safe_save(self,self.autosave_name())
 
@@ -1339,7 +1310,7 @@ class MODCOHO(COHO):
         whether by chance the restricted Dickson elements found for
         the Sylow subgroup happen to be stable.  If only the last
         parameter can not be lifted,
-        :meth:`~pGroupCohomology.cohomology.COHO.find_small_last_parameter`
+        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.find_small_last_parameter`
         may help to find a filter regular homogeneous system of
         parameters in small degrees.
 
@@ -1350,7 +1321,7 @@ class MODCOHO(COHO):
         taken from an outdated version of the public database, and
         compute it from scratch::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(64,138,from_scratch=True)
@@ -1416,7 +1387,7 @@ class MODCOHO(COHO):
         if br is not None:
             br.set_ring()
         print_protocol( "Trying to lift the parameters of "+repr(HS), self)
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         D = [self.small_factor(self.stable_to_polynomial(MODCOCH(HS,t,name=t,S=self.GenS.parent(), is_polyrep=True), verify=True)) if t is not None else None for t in HS.Dickson]
         if D.count(None)==1:
             print_protocol( "One parameter could not be lifted", self)
@@ -1497,7 +1468,7 @@ class MODCOHO(COHO):
 ##         return a basis for the subspace of stable elements in self._HP of degree d
 
 ##         OUTPUT:
-##         - a list of cochains (:class:`~pGroupCohomology.cochain.MODCOCH`),
+##         - a list of cochains (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`),
 ##           that form a basis for the space of stable elements
 ##         - a list of standard monomials of the underlying cohomology ring
 ##           of a subgroup
@@ -1598,7 +1569,7 @@ class MODCOHO(COHO):
 ##             singular.eval('%sMon=NF(imap(%s,%s),std(0))'%(self.prefix,R.name(),I.name()))
 ##         cdef list OUT = []
 ##         cdef list Pivots = []
-##         from pGroupCohomology.cochain import MODCOCH
+##         from sage.groups.modular_cohomology.cochain import MODCOCH
 ##         for i from 1<=i<=k:
 ##             if singular.eval('%sMon[%d]==0'%(self.prefix,i))!='1': # it is stable:
 ##                 OUT.append(MODCOCH(self, singular('%sMon[%d]'%(self.prefix,i)), deg=n, name='Gen%d'%i, is_NF=True))
@@ -1617,7 +1588,7 @@ class MODCOHO(COHO):
 
 ##         OUTPUT:
 
-##         - a list of cochains (:class:`~pGroupCohomology.cochain.MODCOCH`),
+##         - a list of cochains (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`),
 ##           that form a basis for the space of stable elements
 ##         - a list of standard monomials of the underlying cohomology ring
 ##           of a subgroup
@@ -1681,7 +1652,7 @@ class MODCOHO(COHO):
 ##             singular.eval('%sMon=NF(imap(%s,%s),std(0))'%(self.prefix,Ring.name(),MonI.name()))
 ##         cdef list OUT = []
 ##         cdef list Pivots = []
-##         from pGroupCohomology.cochain import MODCOCH
+##         from sage.groups.modular_cohomology.cochain import MODCOCH
 ##         for i from 1<=i<=k:
 ##             if singular.eval('%sMon[%d]==0'%(self.prefix,i))!='1': # it is stable:
 ##                 OUT.append(MODCOCH(self, singular('%sMon[%d]'%(self.prefix,i)), deg=n, name='Gen%d'%i, is_NF=True))
@@ -1703,7 +1674,7 @@ class MODCOHO(COHO):
 
         OUTPUT:
 
-        - a list of elements (:class:`~pGroupCohomology.cochain.MODCOCH`) of ``self``
+        - a list of elements (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`) of ``self``
           whose restriction to the underlying subgroup yield a basis for the space
           of stable elements in degree ``n``.
         - a list of standard monomials of the underlying cohomology ring
@@ -1714,7 +1685,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('MathieuGroup(11)')
@@ -1893,7 +1864,7 @@ class MODCOHO(COHO):
         else:
             singular.eval('%stmpI=ideal(0)'%self.prefix)
         cdef list OUT = []
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         l = len(L)
         singular.eval('%stmpI[%d]=0'%(self.prefix,l))
         for j from 0 < j <= l:
@@ -1958,12 +1929,12 @@ class MODCOHO(COHO):
         elements in the special subgroups found with
         dickson_in_subgroup, one can even find a hsop that is filter
         regular. However, if `p^{r}-p^{r-i}` is too large, one should
-        use :meth:`~pGroupCohomology.cohomology.COHO.find_dickson`,
+        use :meth:`~sage.groups.modular_cohomology.cohomology.COHO.find_dickson`,
         that avoids the construction of elements of high degrees.
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(162,19,prime=3)
@@ -2004,7 +1975,7 @@ class MODCOHO(COHO):
             singular.eval('ideal %sDI'%(self.prefix))
             singular.eval('for (tmp_i=%d;tmp_i>=1;tmp_i--) { %sDI[tmp_i] = Delta(%d,%d,%d,tmp_i); }'%(r-z,self.prefix,r,z,t))
         singular.eval('kill tmp_i')
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         self.subgpDickson[id] = [MODCOCH(G, singular('%sDI[%d]'%(self.prefix,k+1)), deg=(p**(r-z)-p**(r-z-k-1))*(2 if p%2 else 1), name='D_%d'%k) for k in range(r-z)]
         tmp = [t.val_str() for t in self.subgpDickson[id]] # supports data reconstruction after crash
         if OPTION.opts['timing']:
@@ -2022,7 +1993,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
@@ -2128,7 +2099,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('MathieuGroup(11)')
@@ -2204,11 +2175,11 @@ class MODCOHO(COHO):
         NOTE:
 
         This method first invokes
-        :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.generator_degbound`
+        :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.generator_degbound`
         to test whether all generators are known. If this is the case, the
         last degree of relations is estimated.  Eventually, either
-        :meth:`~pGroupCohomology.cohomology.COHO.SymondsTest` or
-        :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.HilbertPoincareTest`
+        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.SymondsTest` or
+        :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.HilbertPoincareTest`
         is called.
 
         EXAMPLES:
@@ -2217,7 +2188,7 @@ class MODCOHO(COHO):
         is called. We use ``MathieuGroup(11)``.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
@@ -2482,7 +2453,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_public_db(tmp_dir())
             sage: H = CohomologyRing(384,5602, prime=2, from_scratch=True)
 
@@ -2652,7 +2623,7 @@ class MODCOHO(COHO):
         We compute a cohmology ring step by step, in order to demonstrate what
         happens behind the scenes when launching :meth:`make`. ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(384, 5602, prime=2, from_scratch=True)
@@ -2820,7 +2791,7 @@ class MODCOHO(COHO):
         NOTE:
 
         This is an auxiliary function for
-        :meth:`~pGroupCohomology.cohomology.COHO.filter_regular_parameters`
+        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.filter_regular_parameters`
         and should not be called directly.
 
         EXAMPLES:
@@ -2829,7 +2800,7 @@ class MODCOHO(COHO):
         a subgroup, we compute it from scratch, in order to have
         a well defined behaviour in this doctest::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(81,7, from_scratch=True)
@@ -3022,7 +2993,7 @@ class MODCOHO(COHO):
         decomposable and if ``rank`` is ``None``, then ``D`` is ``None``,
         indicating that the cohomology ring being studied has no minimal
         generator in degree ``n``. Otherwise, ``D`` is a list of
-        :class:`~pGroupCohomology.cochain.MODCOCH` providing a basis for
+        :class:`~sage.groups.modular_cohomology.cochain.MODCOCH` providing a basis for
         the decomposable subspace of the `n`-th cohomology group.
 
         The list ``R`` provides algebraic relations in degree ``n`` that
@@ -3038,7 +3009,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -3191,7 +3162,7 @@ class MODCOHO(COHO):
             # This is how the interreduced standard monomials look in self:
             SelfValues = [t.strip() for t in singular.eval('print(%s)'%DG.name()).split(',')]
             Rels = [SelfValues[i] for i in range(nMon) if Indicators[i]=='1']
-            from pGroupCohomology.cochain import MODCOCH
+            from sage.groups.modular_cohomology.cochain import MODCOCH
             DecGen = [MODCOCH(self, PValues[i], deg=n, name=SelfValues[i], S=singular, is_polyrep=True, is_NF=True) for i in range(nMon) if Indicators[i]=='0']
         else:
             # only extract the relations
@@ -3233,7 +3204,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -3303,7 +3274,7 @@ class MODCOHO(COHO):
 
         OUTPUT:
 
-        An element of ``self`` (type :class:`~pGroupCohomology.cochain.MODCOCH`)
+        An element of ``self`` (type :class:`~sage.groups.modular_cohomology.cochain.MODCOCH`)
         corresponding to ``c``, or ``None`` if ``c`` is not stable and if
         ``verify`` is true. If ``c`` is not stable and ``verify`` is not true,
         then an error is raised.
@@ -3313,7 +3284,7 @@ class MODCOHO(COHO):
         We work with the mod-2 cohomology of the Mathieu group `M_{12}`.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
@@ -3407,7 +3378,7 @@ class MODCOHO(COHO):
                         br.set_ring()
                     return None
             print_protocol( "Input is stable in this ring", self)
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         singular(self._HP).set_ring()
         s = repr(singular(c))
         c2 = MODCOCH(self,s,deg=c.deg(), name='tmpcycle',S=singular,rdeg=c.rdeg(),ydeg=c.ydeg(),is_NF=True)
@@ -3427,7 +3398,7 @@ class MODCOHO(COHO):
 
         INPUT:
 
-        ``c`` of type :class:`~pGroupCohomology.cochain.MODCOCH`: An element of ``self``
+        ``c`` of type :class:`~sage.groups.modular_cohomology.cochain.MODCOCH`: An element of ``self``
 
         OUTPUT:
 
@@ -3435,7 +3406,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -3450,7 +3421,7 @@ class MODCOHO(COHO):
             b_3_3+b_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         if (not isinstance(c,MODCOCH)) or (c.parent() is not self):
             raise TypeError, "element of %s expected"%repr(self)
         if not self.Gen:
@@ -3495,7 +3466,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -3509,7 +3480,7 @@ class MODCOHO(COHO):
             sage: r1 = H.restriction_maps()[2][1]
             sage: r2 = H.restriction_maps()[3][1]
             sage: V = r1.codomain()
-            sage: from pGroupCohomology.cochain import MODCOCH
+            sage: from sage.groups.modular_cohomology.cochain import MODCOCH
             sage: D = MODCOCH(V,'c_1_2^4+c_1_1^2*c_1_2^2+c_1_1^4+c_1_0*c_1_1*c_1_2^2+c_1_0*c_1_1^2*c_1_2+c_1_0^2*c_1_2^2+c_1_0^2*c_1_1*c_1_2+c_1_0^2*c_1_1^2+c_1_0^4',name='D')
             sage: D
             D: 4-Cocycle in H^*(SmallGroup(8,5); GF(2))
@@ -3585,7 +3556,7 @@ class MODCOHO(COHO):
         In order to produce an example, we need to destroy some internal data.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
@@ -3645,7 +3616,7 @@ class MODCOHO(COHO):
                 singular.eval('%sRegTest=groebner(%sRegTest)'%(self.prefix,self.prefix))
             else:
                 singular.eval('ideal %sRegTest = std(0)'%self.prefix)
-        from pGroupCohomology.cohomology import explore_one_parameter
+        from sage.groups.modular_cohomology.cohomology import explore_one_parameter
         HGS.set_ring()
         while(1):
             val, Coef = explore_one_parameter(singular('%sRegTest'%self.prefix),L,self._prime,regularity=2)
@@ -3688,7 +3659,7 @@ class MODCOHO(COHO):
         protocol mode.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(4,2, from_scratch=True)
@@ -3829,7 +3800,7 @@ class MODCOHO(COHO):
 
         """
         cdef RESL R = self.Resl
-        from pGroupCohomology.resolution import Ordinals
+        from sage.groups.modular_cohomology.resolution import Ordinals
         from sage.all import add
         if self.completed and (not Forced): # and (not self.ElAb)::
             print_protocol("Ring approximation already is complete", self)
@@ -3963,7 +3934,7 @@ class MODCOHO(COHO):
                 self.delprop('degbound_for_gens')
             if self.original_parameters: # should only happen if the last parameter was replaced
                 self.Dickson = self.original_parameters
-            from pGroupCohomology.cochain import MODCOCH
+            from sage.groups.modular_cohomology.cochain import MODCOCH
             if NrNewGen==1:
                 print_protocol("We have to choose 1 new generator in degree %d"%(n), self)
             else:
@@ -4238,7 +4209,7 @@ class MODCOHO(COHO):
         The group we are using in this example is ``MathieuGroup(12)``.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6),(1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
@@ -4490,8 +4461,8 @@ def COHO_from_key(key):
 
     TESTS::
 
-        sage: from pGroupCohomology import CohomologyRing
-        sage: from pGroupCohomology.modular_cohomology import COHO_from_key
+        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology.modular_cohomology import COHO_from_key
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -4539,9 +4510,9 @@ def COHO_from_key(key):
         [b_3_2*b_3_3]
 
     """
-    from pGroupCohomology import CohomologyRing
+    from sage.groups.modular_cohomology import CohomologyRing
     _cache = CohomologyRing._cache
-    from pGroupCohomology.resolution import OPTION
+    from sage.groups.modular_cohomology.resolution import OPTION
     # The p-group case
     proto = OPTION.opts['prot']
     OPTION.opts['prot'] = False
@@ -4576,7 +4547,7 @@ def COHO_from_key(key):
     HN = COHO_from_key(key[2])
     # ... and see if we are lucky enough to find stuff on disk
     from sage.all import load
-    from pGroupCohomology.cohomology import COHO
+    from sage.groups.modular_cohomology.cohomology import COHO
     import os
     try:
         HP = load(os.path.join(COHO.user_db, 'H'+key[1]+'mod%d.sobj'%key[-1]))  # realpath here?
@@ -4593,7 +4564,7 @@ def MODCOHO_unpickle(*L):
 
     TESTS::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -4611,10 +4582,10 @@ def MODCOHO_unpickle(*L):
         raise ValueError, "wrong number of arguments"
 
     OUT = MODCOHO(None,_prime,None,None) # It is initialised as a ring over GF(_prime), but nothing more.
-    from pGroupCohomology.cochain import MODCOCH
-    from pGroupCohomology import CohomologyRing
+    from sage.groups.modular_cohomology.cochain import MODCOCH
+    from sage.groups.modular_cohomology import CohomologyRing
     _cache = CohomologyRing._cache
-    from pGroupCohomology.resolution import OPTION
+    from sage.groups.modular_cohomology.resolution import OPTION
     OUT._property_dict = dict(unpickle_gap_data(_property_dict, gap))
     OUT._decorator_cache = dict(unpickle_gap_data(cache, gap))
     if _cache.has_key(OUT._key):
@@ -4693,7 +4664,7 @@ def MODCOHO_unpickle(*L):
     OUT._PtoPcapCPtwist = []
     OUT._PtoPcapCPdirectSing = []
     OUT._PtoPcapCPtwistSing = []
-    from pGroupCohomology.cochain import chmap_unpickle
+    from sage.groups.modular_cohomology.cochain import chmap_unpickle
     from sage.interfaces.singular import SingularElement
     OUT_S = singular(OUT._HP)
     for i in range(len(SubgroupList)):

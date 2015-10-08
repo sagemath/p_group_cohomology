@@ -18,6 +18,9 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.libs.modular_resolution cimport *
+from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
+
 #########################################################
 ## Typen fuer Cohomologieberechnung
 ########################################################

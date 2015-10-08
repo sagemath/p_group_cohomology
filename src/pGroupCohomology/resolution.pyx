@@ -32,8 +32,6 @@ import sage.all
 import inspect
 from sage.all import cputime
 from sage.all import walltime
-#from sage.all import add
-from warnings import showwarning
 import sys
 import os
 from sage.all import Integer
@@ -48,12 +46,12 @@ from sage.all import load
 from sage.all import SAGE_DB
 from sage.all import SAGE_ROOT
 
-from pGroupCohomology.auxiliaries import OPTION, _gap_init, print_protocol, safe_save, Ordinals
+from sage.groups.modular_cohomology.auxiliaries import OPTION, _gap_init, print_protocol, safe_save, Ordinals
 
-from pGroupCohomology.cochain cimport YCOCH
+from sage.groups.modular_cohomology.cochain cimport YCOCH
 # import gc
 
-from pGroupCohomology.cochain cimport COCH
+from sage.groups.modular_cohomology.cochain cimport COCH
 include "interrupt.pxi"
 
 ####################
@@ -71,10 +69,10 @@ cdef MTX makeMTX (Matrix_t *Data):
     The example produces files. For safety reasons, we choose files
     in a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
-    (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+    (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+        sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
         sage: makeGroupData(8,3,folder=tmp_root)
         sage: gstem='8gp3'
         sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -94,7 +92,7 @@ cdef MTX makeMTX (Matrix_t *Data):
 #cdef MTX baseMTX (f, m,n, i,j):
 def baseMTX (f, m,n, i,j):
     """
-    Return an immutable :class:`~pGroupCohomology.mtx.MTX` matrix with a single mark ``1``.
+    Return an immutable :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with a single mark ``1``.
 
     INPUT:
 
@@ -104,12 +102,12 @@ def baseMTX (f, m,n, i,j):
 
     OUTPUT:
 
-    An immutable `(m\\times n)` :class:`~pGroupCohomology.mtx.MTX` matrix
+    An immutable `(m\\times n)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix
     over `GF(f)` with a single entry ``1`` at `(i,j)`
 
     EXAMPLE::
 
-        sage: from pGroupCohomology.resolution import baseMTX
+        sage: from sage.groups.modular_cohomology.resolution import baseMTX
         sage: baseMTX(3, 4, 5, 1, 2)
         (4 x 5) MTX matrix over GF(3)
         sage: print baseMTX(3, 4, 5, 1, 2)
@@ -175,10 +173,10 @@ def makeGroupData(q,n, folder = None, ElAb=False,Forced=False):
     in a temporary directory; it will be removed as soon as Sage is quit.
     We construct the data for the dihedral group of order 8, which is
     number 3 in the SmallGroups library. For illustration, we switch the
-    protocol mode on (see :class:`~pGroupCohomology.auxiliaries.OPTION`)::
+    protocol mode on (see :class:`~sage.groups.modular_cohomology.auxiliaries.OPTION`)::
 
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology.resolution import makeGroupData, OPTION
+        sage: from sage.groups.modular_cohomology.resolution import makeGroupData, OPTION
         sage: OPTION('prot')
         sage: makeGroupData(8,3,folder=tmp_root)
         Computing data for Small Group number 1 of order 2
@@ -218,10 +216,10 @@ def makeGroupData(q,n, folder = None, ElAb=False,Forced=False):
     subgroup will always be the greatest central elementary abelian.
     Here is a matrix defining the embedding of the third special subgroup,
     which is elementary abelian of order 4. The matrix is a MeatAxe matrix
-    (see :class:`~pGroupCohomology.mtx.MTX`).
+    (see :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`).
     ::
 
-        sage: from pGroupCohomology.mtx import MTX
+        sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: M=MTX(os.path.join(tmp_root,'8gp3','sgp','8gp3sg3.ima'))
         sage: print M
         [1 0 0 0 0 0 0 0]
@@ -295,7 +293,7 @@ def makeGroupData(q,n, folder = None, ElAb=False,Forced=False):
     # which becomes immanent when doing parallel tests. So,
     # we verify that the files are OK before returning.
     import os
-    from pGroupCohomology.mtx import MTX
+    from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
     # 1. test if the sgs is there. If it isn,t then it is safe to think
     # that we have an (elementary) abelian group.
     inc_folder = os.path.join(gps_folder,'sgp')
@@ -329,18 +327,18 @@ def makeSpecialGroupData(H,GStem,folder=None):
 
     OUTPUT:
 
-    See :func:`~pGroupCohomology.resolution.makeGroupData`
+    See :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`
 
     NOTE:
 
-    In contrast to  :func:`~pGroupCohomology.resolution.makeGroupData`,
+    In contrast to  :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`,
     this function does not have an optional argument ``forced``. So,
     if corrupted data are present for the given folder and the given
     ``GStem``, they must be removed before invoking ``makeSpecialGroupData``.
 
     ALGORITHM:
 
-    See :func:`~pGroupCohomology.resolution.makeGroupData`
+    See :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`
 
     EXAMPLES:
 
@@ -353,7 +351,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
         sage: G = gap('DihedralGroup(8)')
         sage: GStem = 'DihedralGroup'
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology.resolution import makeGroupData, makeSpecialGroupData, OPTION
+        sage: from sage.groups.modular_cohomology.resolution import makeGroupData, makeSpecialGroupData, OPTION
 
     Again, we choose the protocol mode.
     ::
@@ -368,7 +366,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
     Now, all data concerning G are in subfolders of the stem folder of G,
     which is ``os.path.join(tmp_root,GStem)``. Also the file names make use of
     the given GStem. Here are the contents, analogous to the example of
-    :func:`~pGroupCohomology.resolution.makeGroupData`::
+    :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`::
 
         sage: f=file(os.path.join(tmp_root,GStem,GStem+'.nontips'))
         sage: print f.read()
@@ -390,7 +388,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
          'DihedralGroupsg2.irg',
          'DihedralGroupsg3.ima',
          'DihedralGroupsg3.irg']
-        sage: from pGroupCohomology.mtx import MTX
+        sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: M=MTX(os.path.join(tmp_root,GStem,'sgp',GStem+'sg3.ima'))
         sage: print M
         [1 0 0 0 0 0 0 0]
@@ -400,7 +398,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
 
     Note that the result is different from the result obtained with
     ``makeGroupData(8,3)`` (see
-    :func:`~pGroupCohomology.resolution.makeGroupData`): We consider
+    :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`): We consider
     two *different* presentations of the dihedral group, so the output
     is not necessarily identical (but certainly isomorphic).
 
@@ -422,9 +420,6 @@ def makeSpecialGroupData(H,GStem,folder=None):
     for i in xrange(1,F[0][1]):
         makeGroupData(F[0][0]**i, Integer(gap('NumberSmallGroups(%d)'%(F[0][0]**i))), folder, True)
     _gap_init(H.parent())
-#    H.parent().eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-#    H.parent().eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-#    H.parent().eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
     print_protocol( "Computing data for %s"%(GStem))
     try:
         os.remove(os.path.join(gps_folder,GStem+'.bch'))
@@ -465,7 +460,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
     # we verify that the files are OK before returning.
     import os
     from sage.all import sleep
-    from pGroupCohomology.mtx import MTX
+    from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
     # 1. test if the sgs is there. If it isn,t then it is safe to think
     # that we have an (elementary) abelian group.
     inc_folder = os.path.join(gps_folder,'sgp/')
@@ -493,7 +488,7 @@ def makeSpecialGroupData(H,GStem,folder=None):
 
 class RESL_sparse_unpickle_class:
     """
-    Used for unpickling class instances of :class:`~pGroupCohomology.resolution.RESL`
+    Used for unpickling class instances of :class:`~sage.groups.modular_cohomology.resolution.RESL`
 
     EXAMPLES:
 
@@ -502,7 +497,7 @@ class RESL_sparse_unpickle_class:
     as Sage is quit.
     ::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
@@ -521,7 +516,7 @@ class RESL_sparse_unpickle_class:
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -541,7 +536,7 @@ class RESL_sparse_unpickle_class:
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,2)
@@ -572,7 +567,7 @@ class RESL_sparse_unpickle_class:
         r = os.path.realpath(os.path.split(gps_folder)[0])
         # We have a special treatment for the public and the private cohomology data base:
         if ROOT is not None:
-            from pGroupCohomology.cohomology import COHO
+            from sage.groups.modular_cohomology.cohomology import COHO
             if ROOT == '@user_db@':
                 newroot = newroot or COHO.user_db
                 oldroot = r
@@ -642,7 +637,7 @@ cdef class RESL:
     INPUT:
 
     - ``gstem`` -- a string, providing a short unique descriptor of a finite
-      `p`-group (see :func:`~pGroupCohomology.resolution.makeSpecialGroupData`)
+      `p`-group (see :func:`~sage.groups.modular_cohomology.resolution.makeSpecialGroupData`)
     - ``gps_folder`` (optional) -- a string, defining the folder in which data
       for the group specified by ``gstem`` can be found. Default: ``gps_folder=''``
     - ``res_folder`` (optional) -- a string, defining the folder in which the
@@ -651,7 +646,7 @@ cdef class RESL:
     NOTE:
 
     - Usually, one wouldn't create an instance of RESL on its own. The normal
-      usage is to create a cohomology ring by :func:`~pGroupCohomology.CohomologyRing`,
+      usage is to create a cohomology ring by :func:`~sage.groups.modular_cohomology.CohomologyRing`,
       which internally will produce an instance of RESL.
 
     OUTPUT:
@@ -662,25 +657,24 @@ cdef class RESL:
     EXAMPLES:
 
     Usually, objects of type RESL will only play a role when computing
-    a cohomology ring using our :mod:`pGroupCohomology` package. But
-    as such, they are hardly visible, and will hardly ever be directly
-    used. Nevertheless, we hope that the following examples give some
-    insight on how the RESL class works.
+    a cohomology ring. But as such, they are hardly visible, and will
+    hardly ever be directly used. Nevertheless, we hope that the following
+    examples give some insight on how the RESL class works.
 
     **Creating a RESL object**
 
     The examples produce files. For safety reasons, we choose files in
     a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
-    (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+    (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+        sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
         sage: makeGroupData(8,3,folder=tmp_root)
 
     The ``gstem`` is ``'8gp3'``, so, the group data are stored in the folder
     ``os.path.join(tmp_root,'8gp3')``, to which we refer as the stem
-    folder. The function :func:`~pGroupCohomology.resolution.makeGroupData`
+    folder. The function :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`
     also creates a subdirectory ``'dat'`` of the stem folder, which is
     intended to be used for storing the resolution.  ::
 
@@ -759,14 +753,14 @@ cdef class RESL:
     would not allow for reloading the resolution, since the paths
     break.
 
-    See :mod:`pGroupCohomology` for a discussion of that
+    See :mod:`sage.groups.modular_cohomology` for a discussion of that
     problem. However, the problem is rather easy to work around for
-    :class:`~pGroupCohomology.resolution.RESL`: All data files used
-    and produced by :class:`~pGroupCohomology.resolution.RESL` have a
+    :class:`~sage.groups.modular_cohomology.resolution.RESL`: All data files used
+    and produced by :class:`~sage.groups.modular_cohomology.resolution.RESL` have a
     unique location relative to ``gps_folder`` and ``res_folder``. And
     all methods producing the data files would also be able to reload
     the data from the files. So, a re-construction of the
-    :class:`~pGroupCohomology.resolution.RESL` object is easy provided
+    :class:`~sage.groups.modular_cohomology.resolution.RESL` object is easy provided
     the option 'reload' is used, and moving the folders thus is
     possible::
 
@@ -789,7 +783,7 @@ cdef class RESL:
 
     **Differentials**
 
-    A :class:`~pGroupCohomology.resolution.RESL` object represents a
+    A :class:`~sage.groups.modular_cohomology.resolution.RESL` object represents a
     minimal free resolution for a finite `p`-group `G`, hence, it
     provides a sequence of free `\\mathbb F_p`-modules that are
     related by homomorphisms, the differentials. The construction of
@@ -805,9 +799,9 @@ cdef class RESL:
     F_p`. Therefore, the data for the differentials are stored as
     matrices with `|G|` columns and `r\\times s` rows. Since David
     Green's programs use C-MeatAxe for linear algebra over finite
-    fields, our :class:`~pGroupCohomology.resolution.RESL` class
+    fields, our :class:`~sage.groups.modular_cohomology.resolution.RESL` class
     relies on our C-MeatAxe wrapper
-    :class:`~pGroupCohomology.mtx.MTX`.
+    :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`.
 
     If sufficiently many terms of the resolution are computed (using
     :meth:`nextDiff`), the differentials can be easily requested::
@@ -877,14 +871,14 @@ cdef class RESL:
     construction as 'lifting'.
 
     Here is a step-by-step example. Note that
-    :class:`~pGroupCohomology.cochain.COCH` provides this
+    :class:`~sage.groups.modular_cohomology.cochain.COCH` provides this
     functionality with high-level functions, hence, it is not needed
     to perform the following steps manually.
 
     First, we define a `1\\times 3` matrix that represents a 2-cochain, and
     construct the lowest term of the corresponding chain map::
 
-        sage: from pGroupCohomology.mtx import MTX
+        sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: C = MTX(2,[[1,0,1]])
         sage: c0 = R.CochainToChainmap(2,C)
         sage: c0
@@ -956,13 +950,13 @@ cdef class RESL:
     map is given by all columns after the first. Hence, the cup product of ``C`` with
     itself is given by [1,0,0,0,1].
 
-    Using the class :class:`~pGroupCohomology.cochain.COCH`, the computation is of
+    Using the class :class:`~sage.groups.modular_cohomology.cochain.COCH`, the computation is of
     course much more comfortable. For using this class, we need to create
     a cohomology ring, since we consider cochains as (representatives of)
     cohomology classes::
 
-        sage: from pGroupCohomology.cochain import COCH
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology.cochain import COCH
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3, from_scratch=True)
         sage: C = COCH(H,2,'C',[1,0,1])
@@ -1031,7 +1025,7 @@ cdef class RESL:
     ``OPTION('sparse')`` is used, certain other data will be temporarily saved
     on disk before loading the Urbild Groebner bases, and vice versa. This not
     only saves memory in huge examples, but is faster, on average.
-    See :class:`~pGroupCohomology.cohomology.COHO` for examples.
+    See :class:`~sage.groups.modular_cohomology.cohomology.COHO` for examples.
 
     """
 #####################
@@ -1051,15 +1045,15 @@ cdef class RESL:
         The examples produce files. For safety reasons, we choose files in
         a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
 
         The ``gstem`` is ``'8gp3'``, so, the group data are stored in the
         folder ``os.path.join(tmp_root,'8gp3')``, to which we refer as the
-        stem folder. The function :func:`~pGroupCohomology.resolution.makeGroupData`
+        stem folder. The function :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`
         also creates a subdirectory ``'dat'`` of the stem folder, which is
         intended to be used for storing the resolution.
         ::
@@ -1110,10 +1104,10 @@ cdef class RESL:
         The examples produce files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1145,10 +1139,10 @@ cdef class RESL:
         The examples produce files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1186,7 +1180,7 @@ cdef class RESL:
 
         NOTE:
 
-        In the documentation of  :func:`~pGroupCohomology.cohomology.COHO`, it is explained in
+        In the documentation of  :func:`~sage.groups.modular_cohomology.cohomology.COHO`, it is explained in
         more detail why saving a resolution in a file does not suffice to port it to a different
         plattform.
 
@@ -1195,10 +1189,10 @@ cdef class RESL:
         The examples produce files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1219,7 +1213,7 @@ cdef class RESL:
         for X,Y in self.Lifts.Data.items():
             Lifts.append((X,Y[1]))
         r = os.path.split(self.gps_folder)[0]
-        from pGroupCohomology.cohomology import COHO
+        from sage.groups.modular_cohomology.cohomology import COHO
         if r == COHO.public_db:
             return resl_sparse_unpickle, (self.gstem,self.gps_folder,self.res_folder,self.deg(),Lifts,self.Autolift,self.Action,'@public_db@')
         if r == COHO.user_db:
@@ -1235,10 +1229,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1264,7 +1258,7 @@ cdef class RESL:
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1288,10 +1282,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1311,7 +1305,7 @@ cdef class RESL:
         We verify that indeed the stored matrix coincides with the third
         differential::
 
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: MTX(R.__getitem_name__(3))==R[3]
             True
 
@@ -1333,10 +1327,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1365,11 +1359,11 @@ cdef class RESL:
 
             sage: isinstance(R.__getitem_name__(3),basestring)
             True
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: MTX(R.__getitem_name__(3))==R[3]
             True
 
-        See  :class:`~pGroupCohomology.resolution.RESL` for further examples.
+        See  :class:`~sage.groups.modular_cohomology.resolution.RESL` for further examples.
 
         """
         if isinstance(key,int) or isinstance(key,Integer):
@@ -1385,17 +1379,17 @@ cdef class RESL:
 
     def G_ALG(self):
         """
-        Return the  :class:`~pGroupCohomology.resolution.G_ALG` object over which the resolution is defined
+        Return the  :class:`~sage.groups.modular_cohomology.resolution.G_ALG` object over which the resolution is defined
 
         EXAMPLES:
 
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1416,10 +1410,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1450,10 +1444,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1488,10 +1482,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1515,10 +1509,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1539,10 +1533,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1570,8 +1564,8 @@ cdef class RESL:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cochain import COCH
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cochain import COCH
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
@@ -1615,7 +1609,7 @@ cdef class RESL:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
@@ -1626,7 +1620,7 @@ cdef class RESL:
 
         Now we construct a cochain::
 
-            sage: from pGroupCohomology.cochain import COCH
+            sage: from sage.groups.modular_cohomology.cochain import COCH
             sage: C = COCH(H,2,'C',[1,0,1])
             sage: R.getLifts()
             {}
@@ -1662,10 +1656,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1721,10 +1715,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1768,8 +1762,8 @@ cdef class RESL:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cochain import COCH
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cochain import COCH
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: C = COCH(H,1,'C',[0,1])
@@ -1804,8 +1798,8 @@ cdef class RESL:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cochain import COCH
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cochain import COCH
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
@@ -1859,8 +1853,8 @@ cdef class RESL:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cochain import COCH
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cochain import COCH
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
@@ -1917,10 +1911,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1966,10 +1960,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, OPTION
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, OPTION
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2006,10 +2000,10 @@ cdef class RESL:
         The examples produce files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2115,8 +2109,8 @@ cdef class RESL:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cochain import COCH
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cochain import COCH
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
@@ -2224,23 +2218,23 @@ cdef class RESL:
         OUTPUT:
 
         ``P,K,D``: Data that allow for the fast computation of a Yoneda `(n-1)`-cochain that cobounds
-        a given Yoneda `n` cocycle. Compare :meth:`yoneda_coboundary` and :meth:`~pGroupCohomology.cochain.YCOCH.find_cobounding_yoneda_cochain`.
+        a given Yoneda `n` cocycle. Compare :meth:`yoneda_coboundary` and :meth:`~sage.groups.modular_cohomology.cochain.YCOCH.find_cobounding_yoneda_cochain`.
 
         This method should only be of internal use. The output is cached on disk.
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: P,K,D = H.resolution()._get_yoneda_liftdata(2)
 
-        Now, ``P`` is a list of pivots, ``K`` is a list of pairs of :class:`~pGroupCohomology.mtx.MTX`
+        Now, ``P`` is a list of pivots, ``K`` is a list of pairs of :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
         matrices defining some Yoneda cocycle (hence, the coboundary vanishes), and
         ``D`` is a dictionary whose keys are the given pivot, and whose values are pairs of
-        :class:`~pGroupCohomology.mtx.MTX` matrices defining some Yoneda cochain whose coboundary
+        :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrices defining some Yoneda cochain whose coboundary
         realizes a certain pivot.
 
             sage: P
@@ -2413,7 +2407,7 @@ cdef class RESL:
         INPUT:
 
         - n -- integer, determining a term of self
-        - x -- `(r \\times |G|)` :class:`~pGroupCohomology.mtx.MTX` matrix, where `r` is
+        - x -- `(r \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `r` is
           the projective rank of the `n`-th term of self, and `G` is the group upon which
           `R` is defined.
 
@@ -2422,10 +2416,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2471,7 +2465,7 @@ cdef class RESL:
         INPUT:
 
         - ``n`` -- integer, determining a term of self
-        - ``M`` -- `(r \\times |G|)` :class:`~pGroupCohomology.mtx.MTX`
+        - ``M`` -- `(r \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
           matrix, where `r` is the projective rank of the `(n-1)`-th
           term of self, and `G` is the group upon which `R` is defined.
           ``M`` represents a chain.
@@ -2481,7 +2475,7 @@ cdef class RESL:
         OUTPUT:
 
         A `n`-chain, represented by a `(s \\times |G|)`
-        :class:`~pGroupCohomology.mtx.MTX` matrix, where `s`
+        :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `s`
         is the projective rank of the `n`-th term of self.
 
         EXAMPLES:
@@ -2491,8 +2485,8 @@ cdef class RESL:
         as Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -2587,13 +2581,13 @@ cdef class RESL:
 
         INPUT:
 
-        - ``M1``, ``M2``  -- :class:`~pGroupCohomology.mtx.MTX` matrices defining morphisms from
+        - ``M1``, ``M2``  -- :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrices defining morphisms from
           the `s`-th to the `r`-th respectively from the `r`-th to the `q`-th term of self
         - ``s, r, q``  -- integers, refering to terms of self
 
         OUTPUT:
 
-        A :class:`~pGroupCohomology.mtx.MTX` matrix representing the composition of ``M1`` with ``M2``,
+        A :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the composition of ``M1`` with ``M2``,
         a chain map from the s-th to the q-th term of self.
 
         EXAMPLES:
@@ -2601,10 +2595,10 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2672,16 +2666,16 @@ cdef class RESL:
 
         INPUT:
 
-        - ``M1``  -- :class:`~pGroupCohomology.mtx.MTX` matrix defining a morphism from
+        - ``M1``  -- :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix defining a morphism from
           the `s`-th to the `r`-th term of self
         - ``s``   -- an integer, referring to a term of self
         - ``L``   -- a list/tuple whose elements are triples ``(r, q_i, M_i)``, where
-          ``M_i`` is a :class:`~pGroupCohomology.mtx.MTX` matrix describing a morphism
+          ``M_i`` is a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing a morphism
           from the `r`-th to the `q_i`-th term of self
 
         OUTPUT:
 
-        A list of triples ``[s,q_i,N_i]``, where ``N_i`` is a :class:`~pGroupCohomology.mtx.MTX`
+        A list of triples ``[s,q_i,N_i]``, where ``N_i`` is a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
         matrix representing a morphism from the `s`-th to the `q_i`-th term of self, namely the
         composition of ``M`` with ``M_i``
 
@@ -2690,11 +2684,11 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2804,7 +2798,7 @@ cdef class RESL:
 
         INPUT:
 
-        - ``L`` -- a list whose elements ``L[i]`` are triples ``(n,d_i,M_i)``, where the :class:`~pGroupCohomology.mtx.MTX` matrix ``M_i``
+        - ``L`` -- a list whose elements ``L[i]`` are triples ``(n,d_i,M_i)``, where the :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix ``M_i``
           represents a morphism from the `n`-th to the `(d_i)`-th term of self, `d_i<n`.
 
         OUTPUT:
@@ -2814,7 +2808,7 @@ cdef class RESL:
 
         NOTE:
 
-        Uses the autolift method, if possible. See :class:`pGroupCohomology.resolution.RESL`
+        Uses the autolift method, if possible. See :class:`sage.groups.modular_cohomology.resolution.RESL`
         for an explanation of the notion 'lift' and of the autolift method.
 
         EXAMPLES:
@@ -2822,11 +2816,11 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2960,17 +2954,17 @@ cdef class RESL:
 
         INPUT:
 
-        ``(n,d,M)`` -- a :class:`~pGroupCohomology.mtx.MTX` matrix ``M`` representing a morphism from
+        ``(n,d,M)`` -- a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix ``M`` representing a morphism from
         the `n`-th to the `d`-th term of self, with `d<n`.
 
         OUTPUT:
 
-        ``(n+1,d+1,N)`` -- A :class:`~pGroupCohomology.mtx.MTX` matrix ``N`` representing the lift of
+        ``(n+1,d+1,N)`` -- A :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix ``N`` representing the lift of
         ``M`` to a morphism from the `(n+1)`-th to the `(d+1)`-th term of self.
 
         NOTE:
 
-        Uses the autolift method, if possible. See :class:`~pGroupCohomology.resolution.RESL` for an
+        Uses the autolift method, if possible. See :class:`~sage.groups.modular_cohomology.resolution.RESL` for an
         explanation of the notion 'lift' and of the autolift method.
 
         EXAMPLES:
@@ -2978,11 +2972,11 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3069,17 +3063,17 @@ cdef class RESL:
         INPUT:
 
         - n, d -- integers, `d<n`
-        - M    -- a :class:`~pGroupCohomology.mtx.MTX` matrix representing a morphism from
+        - M    -- a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing a morphism from
           the `(n-1)`-th to the `(d-1)`-th term of self.
 
         OUTPUT:
 
-        A :class:`~pGroupCohomology.mtx.MTX` matrix representing the lift to a morphism
+        A :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the lift to a morphism
         from the `n`-th to the `d`-th term of self.
 
         NOTE:
 
-        See :class:`~pGroupCohomology.resolution.RESL` for an explanation of the notion
+        See :class:`~sage.groups.modular_cohomology.resolution.RESL` for an explanation of the notion
         'lift'. It certainly is odd that the syntax of this method differs from the syntax
         of :meth:`liftChainMap`. Sorry.
 
@@ -3088,11 +3082,11 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3154,14 +3148,14 @@ cdef class RESL:
         """
         INPUT:
 
-        - ``X, Y``: :class:`~pGroupCohomology.mtx.MTX` matrices representing the terms `\\phi_n^i: P_n\\to P_{n-i}`
+        - ``X, Y``: :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrices representing the terms `\\phi_n^i: P_n\\to P_{n-i}`
           and `\\phi_{n+1}^i: P_{n+1}\\to P_{n-i+1}` of an element `\\phi^i` of degree `i` in the
           Yoneda complex, where `P_\\ast` is the underlying resolution.
         - ``n, i``: integers, `i \\le n`.
 
         OUTPUT:
 
-        ``Z``: :class:`~pGroupCohomology.mtx.MTX` matrix representing the term `(\\partial \\phi^i)_{n+1}: P_{n+1}\\to P_{n-i}`
+        ``Z``: :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the term `(\\partial \\phi^i)_{n+1}: P_{n+1}\\to P_{n-i}`
         representing the Yoneda coboundary of `\\phi^i`.
 
         NOTE:
@@ -3175,8 +3169,8 @@ cdef class RESL:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -3201,11 +3195,11 @@ cdef class RESL:
 
         INPUT:
         - n -- an integer
-        - C -- a :class:`~pGroupCohomology.mtx.MTX` matrix with only one row, representing a `n`-cochain
+        - C -- a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with only one row, representing a `n`-cochain
 
         OUTPUT:
 
-        ``(n,0,M)``, where the :class:`~pGroupCohomology.mtx.MTX` matrix ``M`` represents the lowest term
+        ``(n,0,M)``, where the :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix ``M`` represents the lowest term
         of a chain map of degree `n`.
 
         NOTE:
@@ -3218,11 +3212,11 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3264,12 +3258,12 @@ cdef class RESL:
 
         INPUT:
 
-        ``(n,0,M)`` -- ``M`` is a `\\operatorname{rank}(P_n) \\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix,
+        ``(n,0,M)`` -- ``M`` is a `\\operatorname{rank}(P_n) \\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix,
         where `P_n` is the `n`-th term of self and `G` is the finite `p`-group under consideration.
 
         OUTPUT:
 
-        A `1 \\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix representing a `n`-cochain.
+        A `1 \\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing a `n`-cochain.
 
         NOTE:
 
@@ -3281,11 +3275,11 @@ cdef class RESL:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3346,18 +3340,18 @@ cdef class LIFTcontainer:
 
     NOTE:
 
-    Internally, any :class:`~pGroupCohomology.resolution.RESL`
+    Internally, any :class:`~sage.groups.modular_cohomology.resolution.RESL`
     instance has a member that is a
-    :class:`~pGroupCohomology.resolution.LIFTcontainer` instance,
+    :class:`~sage.groups.modular_cohomology.resolution.LIFTcontainer` instance,
     and if the cup product of cochains is computed (see
-    :class:`~pGroupCohomology.cochain.COCH` for more details),
+    :class:`~sage.groups.modular_cohomology.cochain.COCH` for more details),
     caching is automatically done.
 
     EXAMPLE::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3396,7 +3390,7 @@ cdef class LIFTcontainer:
         TEST::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3423,10 +3417,10 @@ cdef class LIFTcontainer:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3456,12 +3450,12 @@ cdef class LIFTcontainer:
 
         - n -- integer
         - d -- integer
-        - M -- A :class:`~pGroupCohomology.mtx.MTX` matrix with a
+        - M -- A :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with a
           single row, representing a `d`-cochain
 
         OUTPUT:
 
-        - A :class:`~pGroupCohomology.mtx.MTX` matrix representing a
+        - A :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing a
           morphism from the `n`-th to the `(n-d)`-th term of a
           resolution, corresponding to the chain map defined by `M`
           ("lift to degree `n`")
@@ -3478,11 +3472,11 @@ cdef class LIFTcontainer:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3542,7 +3536,7 @@ cdef class LIFTcontainer:
         INPUT:
 
         - n,d -- integers
-        - M   -- M is a :class:`~pGroupCohomology.mtx.MTX` matrix with
+        - M   -- M is a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with
           a single row, representing a `d`-cochain.
         - N   -- a morphism from the `n`-th to the `(n-d)`-the term of
           a resolution, obtained by considering the `d`-cochain given
@@ -3558,11 +3552,11 @@ cdef class LIFTcontainer:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3614,7 +3608,7 @@ cdef class LIFTcontainer:
         INPUT:
 
         - n, d -- integers
-        - M   -- M is a :class:`~pGroupCohomology.mtx.MTX` matrix with a single row, representing a `d`-cochain
+        - M   -- M is a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with a single row, representing a `d`-cochain
 
         NOTE:
 
@@ -3626,11 +3620,11 @@ cdef class LIFTcontainer:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3684,11 +3678,11 @@ cdef class LIFTcontainer:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3712,11 +3706,11 @@ cdef class LIFTcontainer:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL, LIFTcontainer
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, RESL, LIFTcontainer
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3779,45 +3773,45 @@ cdef class G_ALG:
 
     NOTE:
 
-    This extension class is internally used in :class:`~pGroupCohomology.resolution.RESL`.
+    This extension class is internally used in :class:`~sage.groups.modular_cohomology.resolution.RESL`.
     Its purpose is simply to provide a couple of very basic methods
     around the underlying C-type.
 
     **The user is warned not to use this class independently!**
 
-    When an instance of :class:`~pGroupCohomology.resolution.G_ALG` is attribute of an
-    instance of :class:`~pGroupCohomology.resolution.RESL`, they share some C-data. So,
+    When an instance of :class:`~sage.groups.modular_cohomology.resolution.G_ALG` is attribute of an
+    instance of :class:`~sage.groups.modular_cohomology.resolution.RESL`, they share some C-data. So,
     when deallocating them, it has to be taken care that the shared data are not freed
     twice (which would result in a segmentation fault). Our solution is that these C-data
-    are freed when the :class:`~pGroupCohomology.resolution.RESL` instance is deallocated,
-    but are usually *not* freed if the :class:`~pGroupCohomology.resolution.G_ALG` instance
+    are freed when the :class:`~sage.groups.modular_cohomology.resolution.RESL` instance is deallocated,
+    but are usually *not* freed if the :class:`~sage.groups.modular_cohomology.resolution.G_ALG` instance
     is deallocated.
 
-    Hence, if one would create a :class:`~pGroupCohomology.resolution.G_ALG` instance
-    independent from a :class:`~pGroupCohomology.resolution.RESL` instance, the C-data
+    Hence, if one would create a :class:`~sage.groups.modular_cohomology.resolution.G_ALG` instance
+    independent from a :class:`~sage.groups.modular_cohomology.resolution.RESL` instance, the C-data
     would not be freed, resulting in a memory leak. Our solution for this second problem
     is to provide an optional argument 'dependent'. If it is ``True`` (which is default)
-    then the :class:`~pGroupCohomology.resolution.G_ALG` instance behaves like being part
-    of a :class:`~pGroupCohomology.resolution.RESL` instance, and the C-data are not
+    then the :class:`~sage.groups.modular_cohomology.resolution.G_ALG` instance behaves like being part
+    of a :class:`~sage.groups.modular_cohomology.resolution.RESL` instance, and the C-data are not
     deallocated when the instance is deleted.
 
     In the following examples, we define ``dependent=False``, and then the C-data will
     be properly deallocated.
 
-    An instance of :class:`~pGroupCohomology.resolution.G_ALG` can be created using
-    files that are created with :func:`~pGroupCohomology.resolution.makeGroupData` or
-    :func:`~pGroupCohomology.resolution.makeSpecialGroupData`.
+    An instance of :class:`~sage.groups.modular_cohomology.resolution.G_ALG` can be created using
+    files that are created with :func:`~sage.groups.modular_cohomology.resolution.makeGroupData` or
+    :func:`~sage.groups.modular_cohomology.resolution.makeSpecialGroupData`.
 
     EXAMPLES:
 
     The example produces files. For safety reasons, we choose files
     in a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
-    (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+    (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-        sage: from pGroupCohomology.mtx import MTX
+        sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+        sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: makeGroupData(8,3,folder=tmp_root)
         sage: gstem='8gp3'
         sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3839,15 +3833,15 @@ cdef class G_ALG:
           in which data are stored.
         - ``dependent`` -- optional bool, default ``True``. If
           it is ``True``, it is assumed that this instance is
-          a member of a :class:`~pGroupCohomology.resolution.G_ALG`
+          a member of a :class:`~sage.groups.modular_cohomology.resolution.G_ALG`
           instance. This information is used when deallocating
           the underlying C-data.
 
         TEST::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3870,17 +3864,17 @@ cdef class G_ALG:
 
     def __dealloc__(self):
         """
-        Deallocate C-data for a :class:`~pGroupCohomology.resolution.G_ALG` instance
+        Deallocate C-data for a :class:`~sage.groups.modular_cohomology.resolution.G_ALG` instance
 
-        The instance must *not* be member of a :class:`~pGroupCohomology.resolution.RESL` instance!
+        The instance must *not* be member of a :class:`~sage.groups.modular_cohomology.resolution.RESL` instance!
 
-        See :class:`~pGroupCohomology.resolution.G_ALG` for a more detailed account.
+        See :class:`~sage.groups.modular_cohomology.resolution.G_ALG` for a more detailed account.
 
         TEST::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3904,11 +3898,11 @@ cdef class G_ALG:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
+        (compare :func:`~sage.groups.modular_cohomology.resolution.makeGroupData`)::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -3939,8 +3933,8 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: makeGroupData(8,2,folder=tmp_root)
             sage: gstem1='8gp3'
@@ -3992,7 +3986,7 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -4014,7 +4008,7 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -4033,12 +4027,12 @@ cdef class G_ALG:
 
         INPUT:
 
-        M -- a :class:`~pGroupCohomology.mtx.MTX` matrix with a single row and `|G|` columns, representing
+        M -- a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with a single row and `|G|` columns, representing
         an element of the group algebra of a finite `p`-group `G`
 
         OUTPUT:
 
-        A `|G|\\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix describing the right action of the
+        A `|G|\\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing the right action of the
         given element on the group algebra. The result of the action is obtained by matrix multiplication
         from the right side.
 
@@ -4049,8 +4043,8 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -4089,12 +4083,12 @@ cdef class G_ALG:
 
         INPUT:
 
-        M -- a :class:`~pGroupCohomology.mtx.MTX` matrix with a single row and `|G|` columns, representing
+        M -- a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with a single row and `|G|` columns, representing
         an element of the group algebra of a finite `p`-group `G`
 
         OUTPUT:
 
-        A `|G|\\times |G|` :class:`~pGroupCohomology.mtx.MTX` matrix describing the left action of the
+        A `|G|\\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing the left action of the
         given element on the group algebra. The result of the left action is obtained by matrix
         multiplication from the *right* side.
 
@@ -4105,8 +4099,8 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -4145,16 +4139,16 @@ cdef class G_ALG:
 
         INPUT:
 
-        - M -- `((s\\cdot r) \\times |G|)` :class:`~pGroupCohomology.mtx.MTX` matrix, representing a
+        - M -- `((s\\cdot r) \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, representing a
           right-`\\mathbb F_pG`-module morphism from a free right `\\mathbb F_pG`-module of rank `r`
           to a free right `\mathbb F_pG`-module of rank `s`, where `G` is a finite `p`-group.
           The data of ``M`` are organized in `s` blocks of `r` rows.
-        - x -- `(r \\times |G|)` :class:`~pGroupCohomology.mtx.MTX` matrix representing an element
+        - x -- `(r \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing an element
           of a free right `\\mathbb F_pG`-module of rank `r`
 
         OUTPUT:
 
-        A `(s \\times |G|)` :class:`~pGroupCohomology.mtx.MTX` matrix representing the image of ``x``
+        A `(s \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the image of ``x``
         under the map represented by ``M``
 
         EXAMPLES:
@@ -4164,8 +4158,8 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -4218,7 +4212,7 @@ cdef class G_ALG:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
+            sage: from sage.groups.modular_cohomology.resolution import makeGroupData, G_ALG
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -4249,7 +4243,7 @@ cdef class G_ALG:
 #################################################################################
 #################################################################################
 
-from pGroupCohomology.cochain import YCOCH
+from sage.groups.modular_cohomology.cochain import YCOCH
 class MasseyDefiningSystems:
     # Main attribute: States, a list of length len(inputdata)
     # entry number i is a list describing the states at level i, corresponding to the left upper corner (i+2)x(i+2) submatrix.
@@ -4263,11 +4257,11 @@ class MasseyDefiningSystems:
 
     NOTE:
 
-    This class is used behind the scenes in :meth:`~pGroupCohomology.cohomology.COHO.massey_products`.
+    This class is used behind the scenes in :meth:`~sage.groups.modular_cohomology.cohomology.COHO.massey_products`.
 
     INPUT:
 
-    ``Y_1,Y_2,...``: Yoneda cochains (:class:`~pGroupCohomology.cochain.YCOCH`) over a common resolution
+    ``Y_1,Y_2,...``: Yoneda cochains (:class:`~sage.groups.modular_cohomology.cochain.YCOCH`) over a common resolution
 
 
     The method :meth:`value` returns a list of all possible values (given by Yoneda cochains) for defining
@@ -4278,8 +4272,8 @@ class MasseyDefiningSystems:
     The example produces files. For safety reasons, we choose files
     in a temporary directory; it will be removed as soon as Sage is quit::
 
-        sage: from pGroupCohomology import CohomologyRing
-        sage: from pGroupCohomology.resolution import MasseyDefiningSystems
+        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology.resolution import MasseyDefiningSystems
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
@@ -4331,8 +4325,8 @@ class MasseyDefiningSystems:
         """
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.resolution import MasseyDefiningSystems
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -4403,8 +4397,8 @@ class MasseyDefiningSystems:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.resolution import MasseyDefiningSystems
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -4486,8 +4480,8 @@ class MasseyDefiningSystems:
         reasons, we choose files in a temporary directory; it will be removed as soon as
         Sage is quit::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.resolution import MasseyDefiningSystems
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(9,2)

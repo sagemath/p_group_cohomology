@@ -25,8 +25,8 @@ Modular Cohomology Rings of Finite p-Groups
 This module contains :class:`COHO`, that provides a framework for the
 computation of the cohomology rings with coefficients in `\\mathbb
 F_p` for any finite `p`-group.  It is based on algorithms of David
-Green and Dave Benson. See :mod:`pGroupCohomology` for an extensive
-introduction. Note that :class:`~pGroupCohomology.modular_cohomology.MODCOHO`,
+Green and Dave Benson. See :mod:`sage.groups.modular_cohomology` for an extensive
+introduction. Note that :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`,
 the basic class for the non prime power case, inherits from :class:`COHO`,
 so that many methods of the former work in the non prime power case
 as well.
@@ -46,7 +46,6 @@ import os
 import sage
 import sage.all
 from sage.all import cached_method
-from warnings import showwarning
 from sage.all import cputime
 from sage.all import walltime
 from sage.all import dumps
@@ -61,7 +60,7 @@ from sage.all import DOT_SAGE
 from sage.all import SAGE_ROOT
 from sage.all import singular
 from sage.misc.sageinspect import sage_getargspec
-from pGroupCohomology.resolution import gap
+from sage.groups.modular_cohomology.resolution import gap
 
 # Sage rings etc.
 from sage.all import Matrix
@@ -76,13 +75,15 @@ from sage.all import Algebras, CommutativeAlgebras
 from sage.interfaces.gap import GapElement
 from sage.interfaces.singular import SingularElement
 
-# pGroupCohomology Cython and Python types
-from pGroupCohomology.mtx cimport FEL, PTR, MTX
-from pGroupCohomology.resolution cimport RESL, G_ALG
-from pGroupCohomology.cochain cimport COCH
-from pGroupCohomology.auxiliaries import OPTION, print_protocol, Ordinals, safe_save
-from pGroupCohomology.resolution import resl_sparse_unpickle, makeGroupData, makeSpecialGroupData
-from pGroupCohomology.dickson import DICKSON
+# sage.groups.modular_cohomology Cython and Python types
+from sage.libs.meataxe cimport *
+from sage.libs.modular_resolution cimport *
+from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
+from sage.groups.modular_cohomology.resolution cimport RESL, G_ALG
+from sage.groups.modular_cohomology.cochain cimport COCH
+from sage.groups.modular_cohomology.auxiliaries import OPTION, print_protocol, Ordinals, safe_save, _gap_init
+from sage.groups.modular_cohomology.resolution import resl_sparse_unpickle, makeGroupData, makeSpecialGroupData
+from sage.groups.modular_cohomology.dickson import DICKSON
 
 ## CACHE for CohomologyHomsets
 from weakref import WeakValueDictionary
@@ -103,7 +104,7 @@ def COHO_unpickle(GroupKey, StateFile):
     TESTS::
 
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
@@ -118,7 +119,7 @@ def COHO_unpickle(GroupKey, StateFile):
     # to a writeable private database, by means of symbolic
     # links. Hence, the root of the statefile will be public,
     # but we want it in private.
-    from pGroupCohomology import CohomologyRing
+    from sage.groups.modular_cohomology import CohomologyRing
     _cache = CohomologyRing._cache
     if not StateFile.endswith('.sobj'):
         StateFile = StateFile+'.sobj'
@@ -239,7 +240,7 @@ class GapPickler(object):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
+        sage: from sage.groups.modular_cohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
         sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):5}
         sage: unpickle_gap_data(pickle_gap_data(D), gap) == D  # indirect doctest
@@ -255,7 +256,7 @@ class GapPickler(object):
 
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import GapPickler
+            sage: from sage.groups.modular_cohomology.cohomology import GapPickler
             sage: G = GapPickler("15")  # indirect doctest
             sage: G.value
             '15'
@@ -268,7 +269,7 @@ class GapPickler(object):
         """
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import GapPickler
+            sage: from sage.groups.modular_cohomology.cohomology import GapPickler
             sage: G = GapPickler("15")
             sage: G.value
             '15'
@@ -299,7 +300,7 @@ def unpickle_gap_data(G, gap):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
+        sage: from sage.groups.modular_cohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
         sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):5}
         sage: unpickle_gap_data(pickle_gap_data(D), gap) == D
@@ -343,7 +344,7 @@ def pickle_gap_data(G):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
+        sage: from sage.groups.modular_cohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
         sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):(5,G)}
         sage: unpickle_gap_data(pickle_gap_data(D), gap) == D
@@ -428,7 +429,7 @@ def COHO_option(*args):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import COHO
+        sage: from sage.groups.modular_cohomology.cohomology import COHO
         sage: COHO.option('')   # indirect doctest
         SingularCutoff: 70
         liftlist: False
@@ -487,7 +488,7 @@ def FilterDegreeType(dv, rt):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import FilterDegreeType
+        sage: from sage.groups.modular_cohomology.cohomology import FilterDegreeType
         sage: d=[8,4,6,4]
         sage: r=[-1,4,7,14,18]
         sage: FilterDegreeType(d,r)
@@ -538,7 +539,7 @@ def MonomialHilbert(I):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import MonomialHilbert
+        sage: from sage.groups.modular_cohomology.cohomology import MonomialHilbert
         sage: R = singular.ring(0,'(x,y,z)','dp')
         sage: I = singular.ideal(['x^2','y^2','z^2'])
         sage: MonomialHilbert(I)
@@ -584,7 +585,7 @@ def Mul(L,L0):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import Mul
+        sage: from sage.groups.modular_cohomology.cohomology import Mul
         sage: M=Matrix(GF(5),[[1,2],[1,1]])
         sage: M1=Matrix(GF(5),[[1,2],[1,1]])
         sage: M2=Matrix(GF(5),[[1,3],[2,1]])
@@ -631,7 +632,7 @@ def str2html(s,linelength=80):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import str2html
+        sage: from sage.groups.modular_cohomology.cohomology import str2html
         sage: R.<x,y>=QQ[]
         sage: s=str(x^2+2*x*y+y^4)
         sage: s
@@ -708,7 +709,7 @@ def HV2Poly(L):
 
     EXAMPLES::
 
-        sage: from pGroupCohomology.cohomology import HV2Poly
+        sage: from sage.groups.modular_cohomology.cohomology import HV2Poly
         sage: HV2Poly([3,2,4])
         4*t^2 + 2*t + 3
 
@@ -752,8 +753,8 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
 
     TESTS::
 
-        sage: from pGroupCohomology import CohomologyRing
-        sage: from pGroupCohomology.cohomology import explore_one_parameter
+        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology.cohomology import explore_one_parameter
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(32,33)
@@ -940,11 +941,11 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
 
 class COHO_prefix:
     """
-    COHO_prefix()() returns the next safe prefix used for naming Singular interface data of a :class:`~pGroupCohomology.cohomology.COHO` instance.
+    COHO_prefix()() returns the next safe prefix used for naming Singular interface data of a :class:`~sage.groups.modular_cohomology.cohomology.COHO` instance.
 
     TESTS::
 
-        sage: from pGroupCohomology.cohomology import COHO_prefix
+        sage: from sage.groups.modular_cohomology.cohomology import COHO_prefix
         sage: COHO_prefix.instance=0  # initialization, for avoiding other doc tests to interfere
         sage: COHO_prefix()()
         'COHO1'
@@ -958,7 +959,7 @@ class COHO_prefix:
         """
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import COHO_prefix
+            sage: from sage.groups.modular_cohomology.cohomology import COHO_prefix
             sage: COHO_prefix.instance=0  # initialization, for avoiding other doc tests to interfere
             sage: C = COHO_prefix()  # indirect doctest
             sage: COHO_prefix.instance
@@ -974,7 +975,7 @@ class COHO_prefix:
 
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import COHO_prefix
+            sage: from sage.groups.modular_cohomology.cohomology import COHO_prefix
             sage: COHO_prefix.instance=0  # initialization, for avoiding other doc tests to interfere
             sage: COHO_prefix()()      # indirect doctest
             'COHO1'
@@ -1013,7 +1014,7 @@ class COHO_Terminator:
 
     TESTS::
 
-        sage: from pGroupCohomology.cohomology import COHO_Terminator
+        sage: from sage.groups.modular_cohomology.cohomology import COHO_Terminator
         sage: T = COHO_Terminator(singular(1), 'MyPrefix')
         sage: singular.eval('ring MyPrefixR = 0,(a,b,c),dp')
         ''
@@ -1042,7 +1043,7 @@ class COHO_Terminator:
         """
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import COHO_Terminator
+            sage: from sage.groups.modular_cohomology.cohomology import COHO_Terminator
             sage: T = COHO_Terminator(singular,'MyPrefix')    # indirect doctest
             sage: T._S is singular
             True
@@ -1061,7 +1062,7 @@ class COHO_Terminator:
 
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import COHO_Terminator
+            sage: from sage.groups.modular_cohomology.cohomology import COHO_Terminator
             sage: T = COHO_Terminator(singular(1), 'MyPrefix')
             sage: singular.eval('ring MyPrefixR = 0,(a,b,c),dp')
             ''
@@ -1169,7 +1170,7 @@ class permanent_result(object):
     This decorator is designed for use in cohomology rings, but the
     examples show that it works more generally::
 
-        sage: from pGroupCohomology.cohomology import permanent_result
+        sage: from sage.groups.modular_cohomology.cohomology import permanent_result
         sage: class FOO:
         ...     def __init__(self,R):
         ...         self.R = R
@@ -1305,13 +1306,13 @@ class permanent_result(object):
     In the next example, we demonstrate that pickling works, even if Gap data
     are involved::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(184,5, prime=2)
         sage: H.make()
         sage: type(H.essential_ideal)
-        <class 'pGroupCohomology.cohomology.permanent_result'>
+        <class 'sage.groups.modular_cohomology.cohomology.permanent_result'>
         sage: H.essential_ideal([H.group().SylowSubgroup(2).Centre()])
         b_1_0,
         b_1_1
@@ -1346,14 +1347,14 @@ class permanent_result(object):
 
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import permanent_result
+            sage: from sage.groups.modular_cohomology.cohomology import permanent_result
             sage: def f(self): return None
             ...
             sage: A = permanent_result(f)    # indirect doctest
             sage: A()
             Traceback (most recent call last):
             ...
-            ValueError: <class 'pGroupCohomology.cohomology.permanent_result'> instance can not be called unboundedly
+            ValueError: <class 'sage.groups.modular_cohomology.cohomology.permanent_result'> instance can not be called unboundedly
 
         """
         self._f = f
@@ -1368,7 +1369,7 @@ class permanent_result(object):
         """
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import permanent_result
+            sage: from sage.groups.modular_cohomology.cohomology import permanent_result
             sage: class FOO:
             ...     def __init__(self,R):
             ...         self.R = R
@@ -1407,7 +1408,7 @@ class permanent_result(object):
 
         EXAMPLE::
 
-            sage: from pGroupCohomology.cohomology import permanent_result
+            sage: from sage.groups.modular_cohomology.cohomology import permanent_result
             sage: class FOO:
             ...     @permanent_result
             ...     def bar(self, G):
@@ -1466,7 +1467,7 @@ class permanent_result(object):
 
         EXAMPLE::
 
-            sage: from pGroupCohomology.cohomology import permanent_result
+            sage: from sage.groups.modular_cohomology.cohomology import permanent_result
             sage: class FOO:
             ...     GenS = singular.int(0) # needed for Singular reconstruction
             ...     def _singular_(self, S):
@@ -1578,7 +1579,7 @@ class permanent_result(object):
 
         TESTS::
 
-            sage: from pGroupCohomology.cohomology import permanent_result
+            sage: from sage.groups.modular_cohomology.cohomology import permanent_result
             sage: class FOO:
             ...     _t = 0
             ...     @permanent_result
@@ -1669,12 +1670,12 @@ class temporary_result(permanent_result):
 
     EXAMPLE:
 
-    The method :meth:`~pGroupCohomology.cohomology.COHO.poincare_series`
+    The method :meth:`~sage.groups.modular_cohomology.cohomology.COHO.poincare_series`
     uses our decorator for temporary results. In order to avoid
     using a stored value, we force a new computation in the first place.
     ::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(8,4, from_scratch=True)
@@ -1723,7 +1724,7 @@ class temporary_result(permanent_result):
         r"""
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print H.poincare_series.__doc__    #indirect doctest
@@ -1754,7 +1755,7 @@ class temporary_result(permanent_result):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
@@ -1809,7 +1810,7 @@ class temporary_result(permanent_result):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
@@ -1901,17 +1902,17 @@ class COHO(Ring):
 
     The purpose of this examples is to document some internals of the
     implementation. For examples of the actual use of this package, we
-    refer to :mod:`pGroupCohomology`. Note that usually one would not
+    refer to :mod:`sage.groups.modular_cohomology`. Note that usually one would not
     construct an instance of the class COHO directly. Just for
     documentation, we use COHO in all but the first example. In the
     first example, we use the constructor
-    :func:`pGroupCohomology.CohomologyRing`, which is the recommended
+    :func:`sage.groups.modular_cohomology.cohomologyRing`, which is the recommended
     way of creating a cohomology ring.
 
     EXAMPLES:
 
     First, a small example showing the protocol mode. We use the
-    constructor :func:`pGroupCohomology.CohomologyRing` in a way that
+    constructor :func:`sage.groups.modular_cohomology.cohomologyRing` in a way that
     prevents the ring from being downloaded from the web repository or
     reloaded from the data based shipped with this package.
 
@@ -1923,7 +1924,7 @@ class COHO(Ring):
     separately and insist on a computation from scratch. For one of them,
     we show details of the computation by using the protocol mode::
 
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: X = CohomologyRing(4,2, from_scratch=True)
@@ -2167,10 +2168,10 @@ class COHO(Ring):
     Now, without protocol or timing mode, an example using a group
     defined in Gap. By now, just for documentation, we invoke the
     class COHO directly (but in practice, one should use
-    :func:`~pGroupCohomology.CohomologyRing`).
+    :func:`~sage.groups.modular_cohomology.cohomologyRing`).
     ::
 
-        sage: from pGroupCohomology.cohomology import COHO
+        sage: from sage.groups.modular_cohomology.cohomology import COHO
         sage: H.option('noprot','notiming')
         sage: G = gap('DihedralGroup(8)')
         sage: G
@@ -2280,7 +2281,7 @@ class COHO(Ring):
         'Symonds'
 
     A cohomology ring is based on some minimal projective resolution
-    (see :class:`~pGroupCohomology.resolution.RESL`)::
+    (see :class:`~sage.groups.modular_cohomology.resolution.RESL`)::
 
         sage: H.resolution()
         Resolution:
@@ -2325,7 +2326,7 @@ class COHO(Ring):
     related with a specific cohomology ring ``H`` have a common
     prefix, namely ``H.prefix``.  The prefix is chosen automatically
     and is different for any instance of
-    :class:`~pGroupCohomology.cohomology.COHO`::
+    :class:`~sage.groups.modular_cohomology.cohomology.COHO`::
 
         sage: H.prefix==H.subgps[(4,2)].prefix
         False
@@ -2405,7 +2406,7 @@ class COHO(Ring):
         True
 
     Usually, cohomology rings that are created using the constructor
-    :func:`~pGroupCohomology.CohomologyRing` are cached::
+    :func:`~sage.groups.modular_cohomology.cohomologyRing` are cached::
 
         sage: H is loads(dumps(H))
         True
@@ -2581,13 +2582,101 @@ class COHO(Ring):
     """
 
 ####################
-## Initializing the dictionary of group names as class variable
-    GroupNames = {}
-    try:
-        for X in load(os.path.join(SAGE_ROOT,"local","pGroupCohomology","GroupNames.sobj")):
-            GroupNames[tuple(X[0])] = [X[1],X[2]]
-    except (OSError, IOError):
-        "We did not find the dictionary of custom group names."
+## Initialise the dictionary of group names as class variable
+    GroupNames ={(8, 3): ['D8', 'Dihedral group of order 8'],
+                 (8, 4): ['Q8', 'Quaternion group of order 8'],
+                 (16, 6): ['Mod16', 'Modular group of order 16'],
+                 (16, 7): ['D16', 'Dihedral group of order 16'],
+                 (16, 8): ['SD16', 'Semidihedral group of order 16'],
+                 (16, 9): ['Q16', 'Quaternion group of order 16'],
+                 (16, 11): ['D8xC2', 'Direct product D8 x C_2'],
+                 (16, 12): ['Q8xC2', 'Direct product Q8 x C_2'],
+                 (16, 13): ['D8*C4', 'Central product D8 * C_4'],
+                 (27, 3): ['E27', 'Extraspecial 3-group of order 27 and exponent 3'],
+                 (27, 4): ['M27', 'Extraspecial 3-group of order 27 and exponent 9'],
+                 (32, 17): ['Mod32', 'Modular group of order 32'],
+                 (32, 18): ['D32', 'Dihedral group of order 32'],
+                 (32, 19): ['SD32', 'Semidihedral group of order 32'],
+                 (32, 20): ['Q32', 'Quaternion group of order 32'],
+                 (32, 22): ['16gp3xC2', 'Direct product 16gp3 x C_2'],
+                 (32, 23): ['16gp4xC2', 'Direct product 16gp4 x C_2'],
+                 (32, 25): ['D8xC4', 'Direct product D8 x C_4'],
+                 (32, 26): ['Q8xC4', 'Direct product Q8 x C_4'],
+                 (32, 37): ['Mod16xC2', 'Direct product Mod16 x C_2'],
+                 (32, 39): ['D16xC2', 'Direct product D16 x C_2'],
+                 (32, 40): ['SD16xC2', 'Direct product SD16 x C_2'],
+                 (32, 41): ['Q16xC2', 'Direct product Q16 x C_2'],
+                 (32, 46): ['D8xV4', 'Direct product D8 x V_4'],
+                 (32, 47): ['Q8xV4', 'Direct product Q8 x V_4'],
+                 (32, 48): ['16gp13xC2', 'Direct product 16gp13 x C_2'],
+                 (32, 49): ['E32+', 'Extraspecial 2-group of order 32 and type +'],
+                 (32, 50): ['E32-', 'Extraspecial 2-group of order 32 and type -'],
+                 (64, 51): ['Mod64', 'Modular group of order 64'],
+                 (64, 52): ['D64', 'Dihedral group of order 64'],
+                 (64, 53): ['SD64', 'Semidihedral group of order 64'],
+                 (64, 54): ['Q64', 'Quaternion group of order 64'],
+                 (64, 82): ['Syl2(Sz(8))', 'Sylow 2-subgroup of Suzuki Group Sz(8)'],
+                 (64, 134): ['Syl2(M12)', 'Sylow 2-subgroup of Mathieu Group M_12'],
+                 (64, 239): ['Q8xQ8', 'Direct product Q8 x Q8'],
+                 (64, 242): ['Syl2(L3(4))', 'Sylow 2-subgroup of L_3(4)'],
+                 (64, 245): ['Syl2(U3(4))', 'Sylow 2-subgroup of U_3(4)'],
+                 (64, 261): ['D8xV8', 'Direct product D8 x V_8'],
+                 (64, 262): ['Q8xV8', 'Direct product Q8 x V_8'],
+                 (64, 266): ['E32+*C4', 'Central product E32+ * C_4'],
+                 (81, 6): ['Mod81', 'Modular group of order 81'],
+                 (81, 7): ['Syl3(A9)', 'Sylow 3-subgroup of A_9'],
+                 (81, 9): ['Syl3(U3(8))', 'Sylow 3-subgroup of U_3(8)'],
+                 (81, 12): ['E27xC3', 'Direct product E27 x C_3'],
+                 (81, 13): ['M27xC3', 'Direct product M27 x C_3'],
+                 (81, 14): ['E27*C9', 'Central product E27 * C_9'],
+                 (125, 3): ['E125', 'Extraspecial 5-group of order 125 and exponent 5'],
+                 (125, 4): ['M125', 'Extraspecial 5-group of order 125 and exponent 25'],
+                 (128, 67): ['Syl2(U3(7))', 'Sylow 2-subgroup of U_3(7)'],
+                 (128, 147): ['Syl2(2PGU2(31))', 'Sylow 2-subgroup of 2.PGU_2(31)'],
+                 (128, 160): ['Mod128', 'Modular group of order 128'],
+                 (128, 161): ['D128', 'Dihedral group of order 128'],
+                 (128, 162): ['SD128', 'Semidihedral group of order 128'],
+                 (128, 163): ['Q128', 'Quaternion group of order 128'],
+                 (128, 836): ['Syl2(2Sz8)', 'Sylow 2-subgroup of one double cover of Sz(8)'],
+                 (128, 850): ['64gp32xC2', 'Direct product 64gp32 x C_2'],
+                 (128, 928): ['Syl2(S8)', 'Sylow 2-subgroup of Symmetric Group S_8'],
+                 (128, 931): ['Syl2(M22)', 'Sylow 2-subgroup of Mathieu Group M_22'],
+                 (128, 932): ['Syl2(G2(3):2)', 'Sylow 2-subgroup of exceptional group G_2(3):2'],
+                 (128, 934): ['Syl2(J2)', 'Sylow 2-subgroup of Hall-Janko Group J_2'],
+                 (128, 937): ['Syl2(Sp4(3))', 'Sylow 2-subgroup of Symplectic Group Sp_4(3)'],
+                 (128, 1578): ['V8wrC2', 'Wreath product V_8 wr C_2'],
+                 (128, 1755): ['64gp138xC2', 'Direct product 64gp138 x C_2'],
+                 (128, 2023): ['SD16*SD16', 'Central product SD_16 * SD_16'],
+                 (128, 2320): ['D8xV16', 'Direct product D8 x V_16'],
+                 (128, 2321): ['Q8xV16', 'Direct product Q8 x V_16'],
+                 (128, 2326): ['E128+', 'Extraspecial 2-group of order 128 and type +'],
+                 (128, 2327): ['E128-', 'Extraspecial 2-group of order 128 and type -'],
+                 (243, 24): ['Mod243', 'Modular group of order 243'],
+                 (243, 32): ['81gp3xC3', 'Direct product 81gp3 x C_3'],
+                 (243, 33): ['81gp4xC3', 'Direct product 81gp4 x C_3'],
+                 (243, 35): ['E27xC9', 'Direct product E27 x C_9'],
+                 (243, 36): ['M27xC9', 'Direct product M27 x C_9'],
+                 (243, 49): ['81gp6xC3', 'Direct product 81gp6 x C_3'],
+                 (243, 51): ['81gp7xC3', 'Direct product 81gp7 x C_3'],
+                 (243, 52): ['81gp8xC3', 'Direct product 81gp8 x C_3'],
+                 (243, 53): ['81gp9xC3', 'Direct product 81gp9 x C_3'],
+                 (243, 54): ['81gp10xC3', 'Direct product 81gp10 x C_3'],
+                 (243, 62): ['E27xV9', 'Direct product E27 x C_3 x C_3'],
+                 (243, 63): ['M27xV9', 'Direct product M27 x C_3 x C_3'],
+                 (243, 64): ['(E27*C3)xC3', 'Direct product E27*C3 x C_3'],
+                 (243, 65): ['E243', 'Extraspecial 3-group of order 243 and exponent 3'],
+                 (243, 66): ['M243', 'Extraspecial 3-group of order 243 and exponent 9'],
+                 (256, 6661): ['Syl2(S4(7))', 'Sylow 2-group of Symplectic group S4(7)'],
+                 (256, 6665): ['Syl2(Ly)', 'Sylow 2-group of 2A_11 and of Ly'],
+                 (256, 8935): ['Syl2(S4(4))', 'Sylow 2-group of Symplectic group S4(4)'],
+                 (343, 3): ['E343', 'Extraspecial 7-group of order 343 and exponent 7'],
+                 (343, 4): ['M343', 'Extraspecial 7-group of order 343 and exponent 49'],
+                 (625, 7): ['Syl5(Co1)', 'Sylow 5-subgroup of Co_1'],
+                 (625, 12): ['E125xC5', 'Direct product E125 x C_5'],
+                 (625, 13): ['M125xC5', 'Direct product M125 x C_5'],
+                 (625, 14): ['E125*C25', 'Central product E125 * C_25'],
+                 (729, 498): ['E27xV27', 'Direct product E27 x V_27'],
+                 (729, 499): ['M27xV27', 'Direct product M27 x V_27 ']}
 ## Determine the standard locations for the public and the private data bases
     # private
     user_db = os.path.join(DOT_SAGE,'pGroupCohomology','db')
@@ -2612,7 +2701,7 @@ class COHO(Ring):
         """
     TESTS::
 
-        sage: from pGroupCohomology.cohomology import COHO
+        sage: from sage.groups.modular_cohomology.cohomology import COHO
         sage: tmp_root = tmp_dir()
         sage: H4 = COHO(64,14,root=tmp_root)   # indirect doctest
         sage: H4.make()          # about 8 seconds
@@ -2670,8 +2759,7 @@ class COHO(Ring):
                 raise ValueError, "The group must be given in the gap interface"
             gap = args[0].parent()
         else:
-            from pGroupCohomology.resolution import gap
-        from pGroupCohomology.resolution import _gap_init
+            from sage.groups.modular_cohomology.resolution import gap
         _gap_init(gap)
         if len(args) == 2:
             # We expect an address in the Small Groups library
@@ -2709,7 +2797,7 @@ class COHO(Ring):
             ## It is assumed here that the group is given by minimal generators, and that there is a unique
             ## descriptor for the group provided (by the option 'key'). Moreover, GStem and GroupName must
             ## be explicitly provided. This is taken care of in
-            ##       pGroupCohomology.CohomologyRing
+            ##       sage.groups.modular_cohomology.cohomologyRing
             ## So, we see if there are proper key words (provided by CohomologyRing) and otherwise
             ## we test the input explicitly.
             if kwds.get('gap_input'):
@@ -2724,7 +2812,6 @@ class COHO(Ring):
                 if not hasattr(H0,'parent'):
                     raise TypeError, "We expected a group defined in Gap"
                 GAP = H0.parent()
-                from pGroupCohomology.resolution import _gap_init
                 _gap_init(GAP)
 
                 ####
@@ -2830,7 +2917,7 @@ class COHO(Ring):
             self.setprop('_key', kwds['key'])
         else:
             self.setprop('_key', (GroupKey, os.path.join(self.dat_folder,'State')))
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology import CohomologyRing
         _cache = CohomologyRing._cache
         _cache[self._key] = self  # Note that there is no entry yet with this key --
                                   # provided that the ring
@@ -2845,7 +2932,7 @@ class COHO(Ring):
         ## Make the group data on disc ready for use!
         if Hfinal is None:
             try: # we assume that *if* data are present then they are
-                 # alright. pGroupCohomology.CohomologyRing takes care
+                 # alright. sage.groups.modular_cohomology.cohomologyRing takes care
                  # of this.
                 f = file(os.path.join(self.gps_folder,GStem+'.nontips'),'r')
                 f.close()
@@ -2956,7 +3043,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -2982,8 +3069,8 @@ class COHO(Ring):
             TypeError: Cochain belongs to a different cohomology ring, namely H^*(D8; GF(2))
 
         """
-        from pGroupCohomology.cochain import MODCOCH
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if isinstance(s, COCH) or isinstance(s, MODCOCH):
             if s.parent() is self:
                 return s
@@ -3016,7 +3103,7 @@ class COHO(Ring):
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3024,8 +3111,8 @@ class COHO(Ring):
             1: 0-Cocycle in H^*(D8; GF(2))
 
         """
-        from pGroupCohomology.cochain import MODCOCH
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if isinstance(self, MODCOHO):
             return MODCOCH(self, singular(r), deg=0, name=repr(r), S=singular, is_polyrep=True)
         return COCH(self, 0, repr(r), [r], is_polyrep=True)
@@ -3038,7 +3125,7 @@ class COHO(Ring):
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3077,7 +3164,7 @@ class COHO(Ring):
         soon as Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -3092,7 +3179,7 @@ class COHO(Ring):
             return self._HomsetCache[other._key, category]
         except KeyError:
             pass
-        from pGroupCohomology.cochain import CohomologyHomset
+        from sage.groups.modular_cohomology.cochain import CohomologyHomset
         H = CohomologyHomset(self, other, category=category)
         self._HomsetCache[other._key, category] = H
         return H
@@ -3105,13 +3192,13 @@ class COHO(Ring):
 
         - ``m``, which usually is a group homomorphism defined in the
           Gap interface, but in principle could also be a
-          :class:`~pGroupCohomology.mtx.MTX` matrix describing a
+          :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing a
           homomorphism of the group algebras (not documented). The
           domain must be equivalent to the underlying group of ``other``,
           the codomain must be equivalent to the underlying group of
           ``self``.
         - ``other``, a cohomology ring
-        - ``M`` (optional :class:`~pGroupCohomology.mtx.MTX` matrix):
+        - ``M`` (optional :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix):
           By this matrix one could prescribe a mapping of the first
           terms of the respective resolutions (not documented, and not
           needed for induced maps of group homomorphisms).
@@ -3130,7 +3217,7 @@ class COHO(Ring):
         soon as Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -3239,7 +3326,7 @@ class COHO(Ring):
         TESTS::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3280,8 +3367,8 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cohomology import COHO
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cohomology import COHO
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3426,8 +3513,8 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
-            sage: from pGroupCohomology.cohomology import COHO
+            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology.cohomology import COHO
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3673,7 +3760,7 @@ class COHO(Ring):
                     print 'where ``H`` denotes the name of this cohomology ring.'
                     self.setprop('_key', ((GStem,),os.path.join(dat_folder,'State')))
             # use the updated _key for inserting self into the cache
-            from pGroupCohomology import CohomologyRing
+            from sage.groups.modular_cohomology import CohomologyRing
             _cache = CohomologyRing._cache
             if not ((self._key is None) or _cache.has_key(self._key)):
                 _cache[self._key] = self
@@ -3744,7 +3831,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3784,7 +3871,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
@@ -3831,7 +3918,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
@@ -3875,7 +3962,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -3972,7 +4059,7 @@ class COHO(Ring):
         Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H=CohomologyRing(8,3)
@@ -4023,7 +4110,7 @@ class COHO(Ring):
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
 
         """
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology import CohomologyRing
         if not self.SUBGPS:
             return
         self.subgps = {}
@@ -4070,7 +4157,7 @@ class COHO(Ring):
         NOTE:
 
         Usually, one would create a cohomology ring using
-        :func:`~pGroupCohomology.CohomologyRing`. Then, the resulting
+        :func:`~sage.groups.modular_cohomology.cohomologyRing`. Then, the resulting
         cohomology rings are cached, so that two cohomology rings of
         the *same* group with data stored in the *same* location are
         not only equal but identical.
@@ -4081,7 +4168,7 @@ class COHO(Ring):
         Sage is quit.
         ::
 
-            sage: from pGroupCohomology.cohomology import COHO
+            sage: from sage.groups.modular_cohomology.cohomology import COHO
             sage: tmp_root1 = tmp_dir()
             sage: tmp_root2 = tmp_dir()
             sage: H1 = COHO(8,3,root=tmp_root1)
@@ -4122,7 +4209,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H      # indirect doctest
@@ -4155,7 +4242,7 @@ class COHO(Ring):
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: H = CohomologyRing(8,3)
             sage: H.label()
             'H^*(8gp3; GF(2))'
@@ -4181,7 +4268,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H._html_()
@@ -4215,7 +4302,7 @@ class COHO(Ring):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -4276,7 +4363,7 @@ Minimal list of algebraic relations:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,5)
@@ -4332,7 +4419,7 @@ Minimal list of algebraic relations:
         Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -4351,7 +4438,7 @@ Minimal list of algebraic relations:
                 return self._gap_group
             except ValueError:
                 pass
-        from pGroupCohomology.resolution import gap, _gap_init
+        from sage.groups.modular_cohomology.resolution import gap, _gap_init
         _gap_init(gap)
         if isinstance(self._key[0], basestring):
             self._gap_group = gap(self._key[0])
@@ -4385,7 +4472,7 @@ Minimal list of algebraic relations:
         Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -4420,7 +4507,7 @@ Minimal list of algebraic relations:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -4464,7 +4551,7 @@ Minimal list of algebraic relations:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -4498,7 +4585,7 @@ Minimal list of algebraic relations:
         Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -4558,7 +4645,7 @@ Minimal list of algebraic relations:
         # file and hence the ring data are located!
         import os
         if key == '_default_filename': # This ought to be a *proper* attribute, no fake attribute!
-            raise AttributeError, "'pGroupCohomology.cohomology.COHO' object has no attribute '_default_filename'"
+            raise AttributeError, "'sage.groups.modular_cohomology.cohomology.COHO' object has no attribute '_default_filename'"
         if key == '__members__':
             return self._property_dict.keys()
         if self._property_dict.get('_need_new_root'):
@@ -4624,7 +4711,7 @@ Minimal list of algebraic relations:
         Sage is quit.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -4651,7 +4738,7 @@ Minimal list of algebraic relations:
         from the web.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -4702,7 +4789,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -4741,7 +4828,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -4780,7 +4867,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -4809,7 +4896,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
@@ -4844,7 +4931,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
@@ -4880,7 +4967,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3, from_scratch=True)
             sage: H.make(2)
@@ -4915,7 +5002,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3, from_scratch=True)
             sage: H.make(2)
@@ -4941,7 +5028,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(192,1493,prime=2, from_scratch=True)
@@ -4993,7 +5080,7 @@ Minimal list of algebraic relations:
 
         EXAMPLE::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
 
@@ -5046,7 +5133,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(32,6, from_scratch=True)
@@ -5143,7 +5230,7 @@ Minimal list of algebraic relations:
         semi-dihedral group of order 16, and some group which
         is not of prime power order::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: D = CohomologyRing(8,3, from_scratch=True)
@@ -5285,25 +5372,10 @@ Minimal list of algebraic relations:
         selfS = singular(self)
         selfS.set_ring()
         gap = self.group().parent()
-        from pGroupCohomology.resolution import _gap_init
         _gap_init()
         # prepare the key for caching:
         if Subgroups is not None:
             Subgroups = gap.Set(list(Subgroups))
-## This is now done by the decorator:
-#        # if we are lucky, the result is known.
-#        # Note that this attribute is lost when
-#        # we pickle - the Gap and Singular data
-#        # would be lost anyway.
-#        if self._EssentialIdeal is None:
-#            self._EssentialIdeal = {}
-#        Out = self._EssentialIdeal.get(Subgroups)
-#        if Out is not None:
-#            try:
-#                Out._check_valid()
-#                return Out
-#            except ValueError:
-#                pass
 
         # We came to this point, so the result is not known
         # or Singular crashed. If we are lucky, the result
@@ -5324,18 +5396,16 @@ Minimal list of algebraic relations:
         if Subgroups is None: # try theoretical results
             if not Integer(self._Order or self.Resl.G_ALG().order()).is_prime_power():
                 print_protocol("The group is not of prime power order -- no essential ideal",self)
-#                self._EssentialIdeal[None] = singular.ideal(0)
                 return singular.ideal(0)
             if self._lower_bound_depth()>self.CenterRk:
                 print_protocol("The depth exceeds the Duflot bound -- no essential ideal",self)
-#                self._EssentialIdeal[None] = singular.ideal(0)
                 return singular.ideal(0)
-        # Helas, this can be a long computation...
+        # Alas, this can be a long computation...
         if Subgroups is None:
             Mraw = [G for G in self.group().MaximalSubgroups()]
         else:
             Mraw = list(Subgroups)
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology import CohomologyRing
         dgb = singular.eval('degBound')
         singular.eval('degBound=0')
         Out = singular.ideal(1)
@@ -5417,7 +5487,7 @@ Minimal list of algebraic relations:
         We choose a group of order 64 (that is contained in the public database
         shipped with this package), and verify Carlson's conjecture::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: H = CohomologyRing(64,23)
             sage: H.CenterRk
             2
@@ -5458,7 +5528,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: sorted(H.subgroups().items())
@@ -5486,7 +5556,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: sorted(H.restriction_maps().items())
@@ -5511,7 +5581,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,5, from_scratch=True)
             sage: H
@@ -5546,7 +5616,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -5562,7 +5632,7 @@ Minimal list of algebraic relations:
         if isinstance(x,int) or isinstance(x,Integer):
             return str(x%self.Resl.coef())
         self.set_ring() # singular.eval("setring %sr(%d)"%(self.prefix,self.knownDeg))
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         if isinstance(x,COCH) or isinstance(x,MODCOCH):
             if not (x.parent() is self):
                 raise TypeError, "The cocycle belongs to a different cohomology ring"
@@ -5595,7 +5665,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
@@ -5854,7 +5924,7 @@ Minimal list of algebraic relations:
 
         abelian_case = bool(self.group().IsAbelian())
         quaternion_case = q.is_prime_power() and self.pRank==1
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if self._method:
             _method = self._method
         else:
@@ -6382,7 +6452,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_dir())
             sage: H = CohomologyRing(8,1)
             sage: H._gb_command()
@@ -6412,7 +6482,7 @@ Minimal list of algebraic relations:
 
         OUTPUT:
 
-        An element of ``self`` (:class:`~pGroupCohomology.cochain.COCH`), given by
+        An element of ``self`` (:class:`~sage.groups.modular_cohomology.cochain.COCH`), given by
         a power product of generators.
 
         EXAMPLES:
@@ -6422,7 +6492,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
@@ -6521,7 +6591,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.cohomology import COHO
+            sage: from sage.groups.modular_cohomology.cohomology import COHO
             sage: H = COHO(27,3,root=tmp_root)
             sage: H.option('liftlist')
             sage: H.make(2)
@@ -6638,7 +6708,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(2)
@@ -6752,7 +6822,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -6797,7 +6867,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
@@ -6833,7 +6903,7 @@ Minimal list of algebraic relations:
             Monomials = []
         singular.eval('kill %sMon'%self.prefix)
         # Protect against spoiled data
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if not isinstance(self,MODCOHO):
             if not Monomials:
                 self.StdMon = {0:{'1':singular('1')}}
@@ -6879,7 +6949,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -6894,7 +6964,7 @@ Minimal list of algebraic relations:
             True
 
         """
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         if isinstance(c,MODCOCH):
             if c.parent() is not self:
                 raise ValueError, "The given cochain does not belong to "+repr(self)
@@ -6964,8 +7034,8 @@ Minimal list of algebraic relations:
           the method :meth:`InitSubgroups`
         * It reads the data for the inclusion map from a file whose name is
           determined by ``self.GStem`` and ``n``. The necessary files are
-          created by :func:`~pGroupCohomology.resolution.makeGroupData` or
-          or :func:`~pGroupCohomology.resolution.makeSpecialGroupData` during
+          created by :func:`~sage.groups.modular_cohomology.resolution.makeGroupData` or
+          or :func:`~sage.groups.modular_cohomology.resolution.makeSpecialGroupData` during
           iniitialisation of the cohomology ring.
         * Normally, we only consider elementary abelian subgroups. This
           method probably also allows for insertion of other interesting
@@ -6993,7 +7063,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: sorted(H.subgroups().items())
@@ -7042,7 +7112,7 @@ Minimal list of algebraic relations:
         of the second and third subgroup. Although they are isomorphic,
         the inclusions are, of course, different::
 
-            sage: from pGroupCohomology.mtx import MTX
+            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: print MTX(os.path.join(H.inc_folder,H.GStem+'sg2.ima'))
             [1 0 0 0 0 0 0 0]
             [0 0 0 1 1 1 1 1]
@@ -7075,7 +7145,7 @@ Minimal list of algebraic relations:
             [b_1_0*b_1_1]
 
         """
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology import CohomologyRing
         if not ((isinstance(q,int) or isinstance(q,Integer)) and (isinstance(nr,int) or isinstance(nr,Integer)) and (isinstance(n,int) or isinstance(n,Integer))):
             raise TypeError, "Subgroup and imbedding have to be defined by three integers"
         if self.subgps.has_key((q,nr)): # that isomorphism type is known
@@ -7127,7 +7197,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
 
@@ -7230,7 +7300,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -7297,7 +7367,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -7361,7 +7431,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -7454,7 +7524,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -7542,7 +7612,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -7661,7 +7731,7 @@ Minimal list of algebraic relations:
         The following three cohomology rings have the same generator degrees
         and Poincaré series::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: H1 = CohomologyRing(64, 18)
             sage: H2 = CohomologyRing(64, 19)
             sage: H3 = CohomologyRing(64, 25)
@@ -7766,7 +7836,7 @@ Minimal list of algebraic relations:
         ::
 
         sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology import CohomologyRing
+        sage: from sage.groups.modular_cohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
@@ -7840,7 +7910,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -8015,7 +8085,7 @@ Minimal list of algebraic relations:
         classes of maximal elementary abelian subgroups::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(32,27, from_scratch=True)
 
@@ -8115,7 +8185,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print H.lift_dickson(0,0)
@@ -8196,7 +8266,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(64,33, useElimination=True, from_scratch=True)
 
@@ -8340,7 +8410,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(64,33, useElimination=True, from_scratch=True)
             sage: H.make(3)
@@ -8435,7 +8505,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(144,186,prime=3, from_scratch=True)
@@ -8518,7 +8588,7 @@ Minimal list of algebraic relations:
         Since we will access data from the cohomology of a subgroup,
         we will force its computation from scratch first::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(64,138,from_scratch=True)
@@ -8584,7 +8654,7 @@ Minimal list of algebraic relations:
 
         TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -8656,7 +8726,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -8740,7 +8810,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_dir())
             sage: H = CohomologyRing(64,201)
 
@@ -8857,7 +8927,7 @@ Minimal list of algebraic relations:
 
         We use an example of order 64, that is thus contained in our database::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_dir())
             sage: H = CohomologyRing(64,201)
             sage: H._get_obvious_parameter(frozenset(['c_2_8', 'c_4_21']), 2)
@@ -9027,7 +9097,7 @@ Minimal list of algebraic relations:
 
         In each degree, a default of at most 512 candidates are tested; this
         default can be altered by assigning a value to
-        ``pGroupCohomology.resolution.OPTION.opts['NrCandidates']``. The
+        ``sage.groups.modular_cohomology.resolution.OPTION.opts['NrCandidates']``. The
         reason for setting the default to such a small number is that
         both in the modified Benson criterion and in the
         Hilbert-Poincaré criterion we can do with an existence proof
@@ -9038,7 +9108,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -9159,7 +9229,7 @@ Minimal list of algebraic relations:
         cdef tuple C
         from sage.all import cartesian_product_iterator
         interruption = False
-        from pGroupCohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.resolution import OPTION
         cdef int BreakPoint = OPTION.opts.get('NrCandidates',512)
         gb_command = self._gb_command()
 
@@ -9359,7 +9429,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('AlternatingGroup(8)')
@@ -9406,7 +9476,7 @@ Minimal list of algebraic relations:
             0
 
         """
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
 #        print_protocol("Try to find small parameters", self)
         if isinstance(self,MODCOHO):
             P = self.parameters_from_sylow_subgroup()
@@ -9475,7 +9545,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -9516,7 +9586,7 @@ Minimal list of algebraic relations:
         R = PolynomialRing(GF(Resl.G_Alg.Data.p),[X.name() for X in self.Gen])
         #singular.eval('attrib(%sI,"isSB",1)'%(self.prefix))
         cdef list L
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         if isinstance(C,COCH) or isinstance(C,MODCOCH) or repr(C.parent()) == 'Singular':
             if repr(C.parent()) == 'Singular':
                 s = C.parent().eval(C)
@@ -9587,7 +9657,7 @@ Minimal list of algebraic relations:
         If the optional argument ``enumerate`` is ``True``, then in
         each degree, at most 1000 candidates are tested; this default
         can be altered by assigning a value to
-        ``pGroupCohomology.resolution.OPTION.opts['NrCandidates']``.
+        ``sage.groups.modular_cohomology.resolution.OPTION.opts['NrCandidates']``.
 
         NOTE:
 
@@ -9600,7 +9670,7 @@ Minimal list of algebraic relations:
         shipped with this package.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: H = CohomologyRing(64,235)
             sage: H.gens()
             [1,
@@ -9651,7 +9721,7 @@ Minimal list of algebraic relations:
         p = self._prime or self.resolution().coef()
         cdef list L,Lshort
         cdef int i, j, mdeg
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         try:
             br = singular('basering')
         except:
@@ -9669,7 +9739,7 @@ Minimal list of algebraic relations:
         else:
             raise TypeError, "Cochain expected"
 
-        from pGroupCohomology.resolution import OPTION
+        from sage.groups.modular_cohomology.resolution import OPTION
         cdef int BreakPoint = OPTION.opts.get('NrCandidates',1000)
         self.set_ring()
         mdeg = min(int(int(singular.eval('deg(%s)'%s))/2),self.knownDeg)
@@ -9762,7 +9832,7 @@ Minimal list of algebraic relations:
 
         EXAMPLE::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(32,32, from_scratch=True)
@@ -9892,7 +9962,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -9939,7 +10009,7 @@ Minimal list of algebraic relations:
         We start a cohomology computation and carry it out to degree 3.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -10079,7 +10149,7 @@ Minimal list of algebraic relations:
         singular.LIB('poly.lib')
         singular.LIB('dickson.lib')
         singular.LIB('filterregular.lib')
-        from pGroupCohomology.cochain import MODCOCH
+        from sage.groups.modular_cohomology.cochain import MODCOCH
         if singular.eval('defined(i)')=='0':
             singular.eval('int i')
         else:
@@ -10116,7 +10186,7 @@ Minimal list of algebraic relations:
                     singular.eval('ideal %sI'%(self.prefix))
             singular.eval('ideal %sDG'%self.prefix)
         self.StdMon = {0:{'1':singular('1')}}
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if isinstance(self,MODCOHO):
             singular(self._HP).set_ring()
             for g in self.Gen:
@@ -10145,7 +10215,7 @@ Minimal list of algebraic relations:
         TESTS::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
@@ -10217,7 +10287,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3, from_scratch=True)
             sage: H.make(3)
@@ -10292,7 +10362,7 @@ Minimal list of algebraic relations:
 ##        ::
 
 ##            sage: tmp_root = tmp_dir()
-##            sage: from pGroupCohomology import CohomologyRing
+##            sage: from sage.groups.modular_cohomology import CohomologyRing
 ##            sage: CohomologyRing.set_user_db(tmp_root)
 ##            sage: H = CohomologyRing.user_db(27,3, websource=False)
 ##            sage: H.make(3)
@@ -10331,7 +10401,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.dimension()
@@ -10348,7 +10418,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_public_db(tmp_dir())
 
         For the cohomology ring of a group that is not of prime
@@ -10411,7 +10481,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(32,27)
             sage: H.make()
@@ -10430,7 +10500,7 @@ Minimal list of algebraic relations:
             if a[0] == 'raw_filter_degree_type':
                 if not isinstance(b[0],KeyboardInterrupt):#b[0] is not NotImplemented:
                     return b[0][0][:-1].count(-1)
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if isinstance(self,MODCOHO):
             if len(self._PtoPcapCPdirect)==0:
                 return self._HP.depth()
@@ -10507,7 +10577,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print H.filter_degree_type()
@@ -10517,7 +10587,7 @@ Minimal list of algebraic relations:
             [-1, -2, -2]
 
         """
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if isinstance(self,MODCOHO):
             if len(self._PtoPcapCPdirect)==0:
                 return self._HP.filter_degree_type()
@@ -10574,7 +10644,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: H.make()
@@ -10655,7 +10725,7 @@ Minimal list of algebraic relations:
         The input `'std(0)'` yields the Poincaré series of the current ring
         approximation::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
@@ -10806,7 +10876,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -10878,7 +10948,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -10909,7 +10979,7 @@ Minimal list of algebraic relations:
 
         We test commutative and non-commutative cohomology rings::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: for n in range(1,268):
             ....:     H = CohomologyRing(64, n)
             ....:     H.make()
@@ -10977,9 +11047,9 @@ Minimal list of algebraic relations:
         OUTPUT:
 
         ``self``'s full bar code (class
-        :class:`~pGroupCohomology.barcode.BarCode`) respectively
+        :class:`~sage.groups.modular_cohomology.barcode.BarCode`) respectively
         bar code of the given degree (class
-        :class:`~pGroupCohomology.barcode.BarCode2d`),
+        :class:`~sage.groups.modular_cohomology.barcode.BarCode2d`),
         associated with the specified normal series.
 
         THEORY:
@@ -11009,7 +11079,7 @@ Minimal list of algebraic relations:
         cohomology data base shipped with this package.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: H158 = CohomologyRing(64,158)
             sage: H160 = CohomologyRing(64,160)
 
@@ -11169,7 +11239,6 @@ Minimal list of algebraic relations:
             C = gap(command)
         except TypeError:
             raise ValueError, 'The given command "%s" is not known to Gap'%command
-        from pGroupCohomology.resolution import _gap_init
         _gap_init(gap)
         O = self.Resl.grouporder()
         try:
@@ -11230,7 +11299,7 @@ Minimal list of algebraic relations:
         # Second Part: Create the cohomology rings of the groups stored in G
         ###########################
         C = {0:self} # Cohomology rings
-        from pGroupCohomology import CohomologyRing
+        from sage.groups.modular_cohomology import CohomologyRing
         from sage.all import tmp_dir
         tmp_root = tmp_dir()
         for i from 0 < i < l-1:
@@ -11255,7 +11324,7 @@ Minimal list of algebraic relations:
                 else:
                     OUT[i,j] = C[j].hom(GH[i,j],C[i]).rank_of_image(degree)
 
-        from pGroupCohomology.barcode import BarCode,BarCode2d
+        from sage.groups.modular_cohomology.barcode import BarCode,BarCode2d
         if degree==-1:
             return BarCode(OUT, ring=self.__repr__(),command=command)
         return BarCode2d(OUT, degree=degree,ring=self.__repr__(),command=command)
@@ -11284,7 +11353,7 @@ Minimal list of algebraic relations:
         temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -11320,7 +11389,7 @@ Minimal list of algebraic relations:
 
         There are various results on Massey products that can be used for
         testing our computations.  We give one explicit computation in the
-        documentation of :meth:`~pGroupCohomology.cochain.COCH.massey_power`.
+        documentation of :meth:`~sage.groups.modular_cohomology.cochain.COCH.massey_power`.
         Here, we test against a part of the Juggling Theorem (see [Ravenel]_
         Section A1.4) that states
 
@@ -11355,8 +11424,8 @@ Minimal list of algebraic relations:
         for X in L: # X should be an element of self
             if (not hasattr(X,'parent')) or (X.parent() is not self):
                 raise ValueError, "Item %s is not an element of self"%X
-        from pGroupCohomology.resolution import MasseyDefiningSystems
-        from pGroupCohomology.cochain import YCOCH
+        from sage.groups.modular_cohomology.resolution import MasseyDefiningSystems
+        from sage.groups.modular_cohomology.cochain import YCOCH
         YCList = [C.yoneda_cocycle() for C in L]
         P = MasseyDefiningSystems(*YCList, all=all)
         S = P.values()
@@ -11412,7 +11481,7 @@ Minimal list of algebraic relations:
         the centre of a Sylow subgroup has no influence on the degree
         bound.
 
-        We give more details in the documentation of :mod:`pGroupCohomology`.
+        We give more details in the documentation of :mod:`sage.groups.modular_cohomology`.
 
         ALGORITHM:
 
@@ -11428,7 +11497,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H64 = CohomologyRing(64,6, useElimination=True, from_scratch=True)
             sage: H64.make(3)
@@ -11506,7 +11575,7 @@ Minimal list of algebraic relations:
         the modified Benson criterion.
 
         """
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if self.suffDeg>-1 and self.knownDeg >= self.suffDeg:
             self.completed=True
             return True
@@ -11577,7 +11646,7 @@ Minimal list of algebraic relations:
 
         THEORY:
 
-        See [GreenKing]_ and the outline we gave in :mod:`pGroupCohomology`.
+        See [GreenKing]_ and the outline we gave in :mod:`sage.groups.modular_cohomology`.
 
         EXAMPLES:
 
@@ -11586,7 +11655,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(64,6, useElimination=True, from_scratch=True)
             sage: H.next()
@@ -11714,7 +11783,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3, from_scratch=True)
             sage: H.make(3)
@@ -11779,7 +11848,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3, useElimination=False, from_scratch=True)
 
@@ -11942,7 +12011,7 @@ Minimal list of algebraic relations:
                                 self.setprop('WhatFRS',(n,d))
                                 self.setprop('potential_bound',potBound)
             singular.eval("%s = %s,%s"%(I0.name(),I0.name(),FRS[-n])) # we can not replace FRS[-n], hence, it will be killed now
-        from pGroupCohomology.modular_cohomology import MODCOHO
+        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
         if isinstance(self, MODCOHO) and FRS[:len(self.duflot_regular_sequence())]!=self.duflot_regular_sequence():
             I0 = (self.relation_ideal() + singular.ideal(self.duflot_regular_sequence())).groebner()
             degsum = sum([int(singular.eval('deg(%s)'%el)) for el in self.duflot_regular_sequence()]) - self.dimension()
@@ -11985,7 +12054,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: H.next()
@@ -12109,7 +12178,7 @@ Minimal list of algebraic relations:
         automatic application of the criterion.
         ::
 
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(64,32, from_scratch=True)
@@ -12193,7 +12262,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: print H
@@ -12712,7 +12781,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.groups.modular_cohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(32,5, from_scratch=True)
             sage: H.make(2)
