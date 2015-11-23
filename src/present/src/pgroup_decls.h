@@ -92,8 +92,6 @@ inline Matrix_t **allocateActionMatrices(group_t *group);
 inline void freeMatrixList(Matrix_t **mat);
 inline void freeActionMatrices(Matrix_t **mat);
 
-void addmul(Matrix_t *dest, Matrix_t *src, FEL f);
-
 char *mtx_strdup(const char *src);
 void strext(char *dest, char *stem, char *ext);
 
@@ -166,8 +164,5 @@ inline boolean fileExists(const char *name);
 int verifyGroupIsAbelian(group_t *A);
 
 long *newLongArray(long N);
-
-/* l[0] is length of l */
-long listPos(long *l, long n);
 
 #endif

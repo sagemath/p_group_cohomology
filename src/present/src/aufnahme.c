@@ -31,7 +31,7 @@ MTX_DEFINE_FILE_INFO
 /******************************************************************************/
 static modW_t *wordForestEntry(ngs_t *ngs, gV_t *gv)
 {
-  return ngs->proot[gv->block - 1] + (gv->col - 1);
+  return ngs->proot[gv->block] + (gv->col);
 }
 
 /******************************************************************************/
@@ -335,15 +335,18 @@ int nFgsAufnahme(nFgs_t *nFgs, group_t *group)
   long sweepDim;
   if (!ngs->unreducedHeap)
   {
+    printf("no unreducedHeap\n");
     tidyUpAfterAufnahme(ngs);
-    return;
+    return 0;
   }
   sweepDim = ngs->unreducedHeap->gv->dim;
   if (selectNewDimension(ngs, group, sweepDim)) return 1;
+  printf("Aufnahme with sweepDim = %d, group->maxlength = %d\n", sweepDim, group->maxlength);
   for (; sweepDim <= group->maxlength; sweepDim++)
-  {
-    while ((uv = unreducedSuccessor(ngs, NULL)) && uv->gv->dim == sweepDim)
+  { uv = unreducedSuccessor(ngs, NULL);
+    while ((uv != NULL) && uv->gv->dim == sweepDim)
     {
+        printf("have unreducedSuccessor\n");
       unlinkUnreducedVector(ngs, uv);
       gv = uv->gv;
       if (nFgsPerformLinearReductions(nFgs, gv, group)) return 1;

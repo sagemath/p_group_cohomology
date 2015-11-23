@@ -302,12 +302,15 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   FEL minus_one = FfSub(FF_ZERO, FF_ONE);
   group_t *group = resol->group;
   long r = rankProj(resol, n-1);
+  printf("r=%d, n-1=%d --- ",r,n-1);
   if (r==-1) return NULL;
   long s = rankProj(resol, n);
+  printf("s=%d, n=%d\n",s,n);
   if (s==-1) return NULL;
   nRgs_t *nRgs;
   ngs_t *ngs;
   register PTR pre = FfAlloc(s * s); /* Initialization guaranteed */
+  printf("FfNoc=%d\n",FfNoc);
   if (!pre)
   { MTX_ERROR1("%E", MTX_ERR_NOMEM);
     return NULL;
@@ -316,21 +319,30 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   nRgs = nRgsAllocation(group, r, s, thisStem);
   if (!nRgs) return NULL;
   ngs = nRgs->ngs;
-  for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s+1))
+  printf("starting with expDim = %d\n", ngs->expDim);
+  for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s))
     FfInsert(ptr, 0, minus_one);
-  if (nRgsInitializeVectors(nRgs, mat, pre, s, group)) return NULL;
+  if (nRgsInitializeVectors(nRgs, mat, pre, s, group))
+  {
+      /*MTX_ERROR("Error initializing nRgs vectors");*/
+      return NULL;
+  }
+  printf("after vector init expDim = %d\n", ngs->expDim);
   free(pre);
   ngs->targetRank = dimIm(resol, n);
   if (ngs->targetRank == -1)
   { freeNRgs(nRgs);
+    MTX_ERROR("ngs->targetRank == -1: Theoretical error");
     return NULL;
   }
   nRgs->ker->ngs->targetRank = dimIm(resol, n+1);
   if (nRgs->ker->ngs->targetRank == -1)
   { freeNRgs(nRgs);
+    MTX_ERROR("nRgs->ker->ngs->targetRank == -1: Theoretical error");
     return NULL;
   }
   /* nRgs->ker->ngs->targetRank = RANK_UNKNOWN; */
+  printf("Finally expDim = %d\n", ngs->expDim);
   return nRgs;
 }
 
@@ -510,6 +522,7 @@ int makeThisDifferential(resol_t *resol, long n)
   group_t *G = resol->group;
   nRgs_t *nRgs = loadDifferential(resol, n-1);
   nFgs_t *ker = nRgs->ker;
+  printf("Directly after loading: expDim = %d\n", nRgs->ngs->expDim);
   if (nRgsBuchberger(nRgs, G)) return 1;
   if (setRankProj(resol, n, numberOfHeadyVectors(ker->ngs)))
   {

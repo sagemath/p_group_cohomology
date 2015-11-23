@@ -884,22 +884,6 @@ inline long modifiedMinlong(long n1, long n2)
   return minlong(n1, n2);
 }
 
-
-/******************************************************************************/
-void addmul(Matrix_t *dest, Matrix_t *src, FEL f)
-{
-  register long i;
-  PTR pdest = dest->Data;
-  PTR psrc = src->Data;
-  for (i = dest->Nor; i > 0; i--)
-  {
-    FfAddMulRow(pdest,psrc,f);
-    FfStepPtr(&pdest);
-    FfStepPtr(&psrc);
-  }
-  return;
-}
-
 /******************************************************************************/
 void freeGroupRecord (group_t *group)
 {
@@ -1628,13 +1612,4 @@ long *newLongArray(long N)
       }
   for (i = 0; i < N; i++) l[i] = 0;
   return l;
-}
-
-/******************************************************************************/
-long listPos(long *l, long n)
-{
-  long i;
-  for (i = 1; i <= l[0]; i++)
-    if (l[i] == n) return i;
-  return -1;
 }

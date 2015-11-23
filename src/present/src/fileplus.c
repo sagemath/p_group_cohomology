@@ -91,6 +91,7 @@ int alterhdrplus(FILE *fp, long nor)
     MTX_ERROR1("%E", MTX_ERR_FILEFMT);
     return 1;
   }
+  return 0;
 }
 
 /**

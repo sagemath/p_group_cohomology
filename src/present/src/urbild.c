@@ -642,7 +642,10 @@ int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
     i++, w = FfGetPtr(w, ngs->r), m = FfGetPtr(m, ngs->s))
   {
     gv = popGeneralVector(ngs);
-    if (!gv) return 1;
+    if (!gv)
+    { MTX_ERROR("Error in popGeneralVector");
+      return 1;
+    }
     /* gv->radical is true by default; superfluous for nRgs */
     w_tmp = gv->w;
     gv->w = w;
@@ -651,14 +654,14 @@ int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
     if (gv->dim == ZERO_BLOCK)
     {
       pushGeneralVector(ngs, gv);
-      if (processNewFlaggedGenerator (nRgs->ker, m, group)) return 1;
+      if (processNewFlaggedGenerator (nRgs->ker, m, group)) return MTX_ERROR("Error in processNewFlaggedGenerator"),1;
     }
     else
     {
       memcpy(gv->w, w, (FfCurrentRowSize*ngs->r));
       memcpy(FfGetPtr(gv->w, ngs->r), m, (FfCurrentRowSize*ngs->s));
-      if (makeVectorMonic(ngs, gv)) return 1;
-      if (insertNewUnreducedVector(ngs, gv)) return 1;
+      if (makeVectorMonic(ngs, gv)) return MTX_ERROR("Error in makeVectorMonic"),1;
+      if (insertNewUnreducedVector(ngs, gv)) return  MTX_ERROR("Error in insertNewUnreducedVector"),1;
     }
   }
   return 0;
