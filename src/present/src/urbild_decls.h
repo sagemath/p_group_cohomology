@@ -45,7 +45,7 @@ void insertUnreducedVector(ngs_t *ngs, uV_t *uv);
 uV_t *unreducedSuccessor(ngs_t *ngs, uV_t *uv);
 void freeReducedVector(rV_t *rv, ngs_t *ngs);
 rV_t *reducedVector(gV_t *gv, group_t *group);
-inline long numberOfHeadyVectors(ngs_t *ngs);
+long numberOfHeadyVectors(ngs_t *ngs);
 long dimensionOfDeepestHeady(ngs_t *ngs);
 int insertNewUnreducedVector(ngs_t *ngs, gV_t *gv);
 int insertReducedVector(ngs_t *ngs, rV_t *rv);

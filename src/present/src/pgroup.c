@@ -862,21 +862,20 @@ inline void freeActionMatrices(Matrix_t **mat)
 }
 
 /***************************************************************************/
-  /* Simon King (2008-12): Make these macros*/
-inline long maxlong(long n1, long n2)
+static inline long maxlong(long n1, long n2)
 {
   return (n1 >= n2) ? n1 : n2;
 }
 
 
 /******************************************************************************/
-inline long minlong(long n1, long n2)
+static inline long minlong(long n1, long n2)
 {
   return (n1 <= n2) ? n1 : n2;
 }
 
 /******************************************************************************/
-inline long modifiedMinlong(long n1, long n2)
+static inline long modifiedMinlong(long n1, long n2)
 /* Allows for -1 being used to represent +infinity */
 {
   if (n1 == -1) return n2;

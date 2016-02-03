@@ -88,7 +88,7 @@ void pushGeneralVector(ngs_t *ngs, gV_t *gv)
 /***
  * 1 on error
  ****************************************************************************/
-inline int makeVectorMonic(ngs_t *ngs, gV_t *gv)
+int makeVectorMonic(ngs_t *ngs, gV_t *gv)
 /* f is the leading coefficient */
 {
   register long nor = ngs->r + ngs->s;
@@ -138,7 +138,7 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
 }
 
 /******************************************************************************/
-inline void multiply(PTR row, Matrix_t *mat, PTR result, long r)
+void multiply(PTR row, Matrix_t *mat, PTR result, long r)
 {
   register long i;
   PTR p1 = row;

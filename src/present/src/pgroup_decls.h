@@ -37,10 +37,6 @@
 #define false false
 #endif
 
-inline long maxlong(long n1, long n2);
-inline long minlong(long n1, long n2);
-inline long modifiedMinlong(long n1, long n2);
-
 // boolean certainThat(yesno yn);
 #if !defined(certainThat)
 #define certainThat(yn) ( ((yn) == yes) ? true : false )
@@ -68,29 +64,29 @@ long pathDimension(group_t *group, path_t *p);
 int markPathDimensions(group_t *group);
 
 group_t *newGroupRecord (void);
-inline group_t *namedGroupRecord(const char *stem);
+extern group_t *namedGroupRecord(const char *stem);
 void freeGroupRecord(group_t *group);
 
 int readHeader(group_t *group); /* WARNING: only for groupInfo */
 int loadNonTips(group_t *group);
-inline void freeNonTips(char **nontip);
+extern void freeNonTips(char **nontip);
 
 path_t *allocatePathTree(group_t *group);
 int buildPathTree(group_t *group);
 int buildLeftPathTree(group_t *group);
-inline void freeRoot(path_t *root);
+extern void freeRoot(path_t *root);
 
 Matrix_t **loadMatrixList(group_t *group, char *name, long num);
-inline int loadActionMatrices(group_t *group);
-inline int loadLeftActionMatrices(group_t *group);
+extern int loadActionMatrices(group_t *group);
+extern int loadLeftActionMatrices(group_t *group);
 int makeLeftActionMatrices(group_t *group);
 int saveMatrixList(group_t *group, Matrix_t **action, long num, char *name);
 int saveActionMatrices(group_t *group);
 int saveLeftActionMatrices(group_t *group);
 Matrix_t **allocateMatrixList(group_t *group, long num);
-inline Matrix_t **allocateActionMatrices(group_t *group);
-inline void freeMatrixList(Matrix_t **mat);
-inline void freeActionMatrices(Matrix_t **mat);
+extern Matrix_t **allocateActionMatrices(group_t *group);
+extern void freeMatrixList(Matrix_t **mat);
+extern void freeActionMatrices(Matrix_t **mat);
 
 char *mtx_strdup(const char *src);
 void strext(char *dest, char *stem, char *ext);
@@ -107,11 +103,11 @@ Matrix_t *InnerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch);
 Matrix_t *InnerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch);
 /* Guaranteed not to alter pointer dest->Data */
 void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest);
-inline Matrix_t *leftActionMatrix(group_t *group, PTR vec);
+extern Matrix_t *leftActionMatrix(group_t *group, PTR vec);
 void innerRightActionMatrix(group_t *group, PTR vec, PTR dest);
-inline Matrix_t *rightActionMatrix(group_t *group, PTR vec);
-inline int loadActionMatrices(group_t *group);
-inline int loadLeftActionMatrices(group_t *group);
+extern Matrix_t *rightActionMatrix(group_t *group, PTR vec);
+extern int loadActionMatrices(group_t *group);
+extern int loadLeftActionMatrices(group_t *group);
 
 int loadGeneralRegularActionMatrices(group_t *group, Matrix_t **action,
   char *name, long nor);
@@ -159,7 +155,7 @@ long pathTreeGirth(group_t *group);
 int calculateDimSteps(group_t *group);
 group_t *fullyLoadedGroupRecord(char *stem);
 
-inline boolean fileExists(const char *name);
+extern boolean fileExists(const char *name);
 
 int verifyGroupIsAbelian(group_t *A);
 

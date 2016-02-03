@@ -125,7 +125,7 @@ int saveUrbildGroebnerBasis(nRgs_t *nRgs, char *outfile, group_t *group)
 }
 
 /******************************************************************************/
-inline long numberOfHeadyVectors(ngs_t *ngs)
+long numberOfHeadyVectors(ngs_t *ngs)
 {
   rV_t *rv;
   uV_t *uv;

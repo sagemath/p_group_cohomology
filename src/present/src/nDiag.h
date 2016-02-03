@@ -141,7 +141,7 @@ typedef struct newResentfulGeneratingSet nRgs_t;
 #if !defined(NULL)
 #define NULL NULL
 #endif
-inline gV_t *generalVectorTemplate(long nor);
+extern gV_t *generalVectorTemplate(long nor);
 
 #if !defined(popGeneralVector)
 #define popGeneralVector(ngs) ({gV_t *GV_; ((ngs)->gVwaiting) ? ({ GV_ = (ngs)->gVwaiting; (ngs)->gVwaiting = NULL; GV_;}) : ({ GV_ = generalVectorTemplate((ngs)->r + (ngs)->s); GV_;});})
