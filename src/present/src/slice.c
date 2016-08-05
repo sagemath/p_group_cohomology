@@ -114,9 +114,11 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
   register long b;
   // register long d;
   //  register long col;
+  register long impossibleDim = group->nontips + 1;
   PTR ptr = gv->w;
-  gv->dim = group->nontips + 1;
-  gv->coeff = FF_ZERO;
+  printf("findLeadingMonomial defines gv->dim=%d\n",impossibleDim);
+  printf("and gets %#x\n",*ptr);
+  gv->dim = impossibleDim;
   for (b = 0; b < r; b++, FfStepPtr(&ptr))
   {
     register long col = FfFindPivot(ptr, &coeff);
@@ -124,7 +126,7 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
     {
       register long d = group->root[col].dim;
       if (d < gv->dim)
-      {
+      { printf("for col=%d, b=%d: gv->dim:=%d\n",col, b, d);
         gv->dim = d;
         gv->coeff = coeff;
         gv->len = group->root[col].depth;
@@ -133,7 +135,10 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
       }
     }
   }
-  if (gv->dim == group->nontips + 1) gv->dim = ZERO_BLOCK;
+  if (gv->dim == impossibleDim)
+  {  gv->coeff = FF_ZERO;
+     gv->dim = ZERO_BLOCK;
+  }
   return;
 }
 

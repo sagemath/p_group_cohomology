@@ -417,13 +417,16 @@ int nRgsAufnahme(nRgs_t *nRgs, group_t *group)
   long sweepDim;
   if (!ngs->unreducedHeap)
   {
+    printf("no unreduced heap\n");
     tidyUpAfterAufnahme(ngs);
     return 0;
   }
   sweepDim = ngs->unreducedHeap->gv->dim;
+  printf("sweepDim = %d\n", sweepDim);
   if (selectNewDimension(ngs, group, sweepDim)) return 1;
+  printf("starting for loop\n");
   for (; sweepDim <= group->maxlength; sweepDim++)
-  {
+  { printf("in loop, sweepDim=%d, expDim=%d\n",sweepDim, nRgs->ngs->expDim);
     while ((uv = unreducedSuccessor(ngs, NULL)) && uv->gv->dim == sweepDim)
     {
       unlinkUnreducedVector(ngs, uv);
@@ -440,8 +443,9 @@ int nRgsAufnahme(nRgs_t *nRgs, group_t *group)
       }
     }
     if (!uv) break; /* All unreduced vectors processed */
-    else if (incrementSlice(ngs, group)) return 1;
+    else {printf("no break\n"); if (incrementSlice(ngs, group)) return 1;}
   }
+  printf("fertig\n");
   tidyUpAfterAufnahme(ngs);
   return 0;
 }

@@ -448,19 +448,20 @@ static void insertReducedVectorAfter(ngs_t *ngs, rV_t *base, rV_t *rv)
  * 1 on error
  **************************************************************************/
 static int lowerExpDimIfNecessary(ngs_t *ngs, long d)
-{
-  if (ngs->expDim == NO_BUCHBERGER_REQUIRED) return 0;
+{ printf("lower expdim: expDim %d vs. %d\n",ngs->expDim,d);
+  if (ngs->expDim == NO_BUCHBERGER_REQUIRED) { printf("no buchberger\n"); return 0;}
   if (d != ngs->dimLoaded)
   { MTX_ERROR3("The current dimension should be %d, not %d: %E", ngs->dimLoaded, d, MTX_ERR_INCOMPAT);
     return 1;
   }
   if (ngs->expDim == NOTHING_TO_EXPAND)
-  {
+  { printf("nothing to expand\n");
     ngs->expDim = d;
     return 0;
   }
   if (ngs->expDim > d)
   {
+    printf("expDim %d > %d\n",ngs->expDim,d);
     destroyExpansionSliceFile(ngs);
     ngs->expDim = d;
   }
@@ -476,8 +477,10 @@ int insertReducedVector(ngs_t *ngs, rV_t *rv)
   rV_t *base = ngs->lastReduced;
   while (base && vectorLessThan(base->gv, rv->gv))
     base = base->prev;
+  printf("Vor insertAfter: rv->gv->expDim=%d\n",rv->gv->dim);
   insertReducedVectorAfter(ngs, base, rv);
   rv->expDim = rv->gv->dim;
+  printf("insert ist erst expDim=%d\n",rv->expDim);
   return lowerExpDimIfNecessary(ngs, rv->expDim);
 }
 
@@ -601,6 +604,7 @@ int processNewFlaggedGenerator(nFgs_t *nFgs, PTR w, group_t *group)
   /* gv->radical is set to true on creation; set to false below */
   PTR w_tmp = gv->w;
   gv->w = w;
+  printf("Call leading from newFlagged\n");
   findLeadingMonomial(gv, ngs->r, group);
   gv->w = w_tmp;
   if (gv->dim != ZERO_BLOCK)
@@ -640,7 +644,12 @@ int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
   register long i;
   for (w = im, m = pre, i = 0; i < n;
     i++, w = FfGetPtr(w, ngs->r), m = FfGetPtr(m, ngs->s))
-  {
+  { printf("w = %#x\n",*w);
+      printf("ngs->r = %d\n",ngs->r);
+      printf("m = %#x\n",*m);
+      printf("ngs->s = %d\n",ngs->s);
+      printf("i = %d\n",i);
+
     gv = popGeneralVector(ngs);
     if (!gv)
     { MTX_ERROR("Error in popGeneralVector");
@@ -649,6 +658,7 @@ int nRgsInitializeVectors(nRgs_t *nRgs, PTR im, PTR pre, long n,
     /* gv->radical is true by default; superfluous for nRgs */
     w_tmp = gv->w;
     gv->w = w;
+    printf("call from nRgsInitializeVectors\n");
     findLeadingMonomial(gv, ngs->r, group);
     gv->w = w_tmp;
     if (gv->dim == ZERO_BLOCK)

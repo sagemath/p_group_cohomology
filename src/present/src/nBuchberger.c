@@ -96,6 +96,7 @@ static int nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
         gv = popGeneralVector(ngs);
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
+        printf("Calling findLeading from expandThisLevel\n");
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != FF_ZERO)
         {
@@ -144,6 +145,7 @@ static int nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
         gv = popGeneralVector(ngs);
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
+        printf("Calling from nRgsExpand\n");
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != FF_ZERO)
         {
@@ -305,14 +307,19 @@ int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
  **************************************************************************/
 int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
 {
+  printf("nRgsBuchberger starts\n");
   register ngs_t *ngs = nRgs->ngs;
   register nFgs_t *ker = nRgs->ker;
   ker->nRgsUnfinished = true;
   if (nRgsAufnahme (nRgs, group)) return MTX_ERROR("Error with nRgsAufnahme"),1;
+  printf("Nach Aufnahme\n");
+  printf("ExpDim %d\n", nRgs->ngs->expDim);
   initializeCommonBuchStatus(ngs);
   int allExpDone, allExpDone2;
+  printf("Start loop\n");
   while (allExpDone = allExpansionsDone(ngs, group) == 0)
   {
+    printf("doing something...\n");
     recordCurrentSizeOfVisibleKernel(nRgs);
     /* Can assume expDim slice precalculated; cannot assume preloaded */
     if (loadExpansionSlice(ngs, group)) return MTX_ERROR("Error with loadExpansionSlice"),1;
@@ -330,6 +337,7 @@ int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
       if (ker->finished) {printf("breaking!\n"); break;}
     }
   }
+  printf("loop fertig\n");
   if (allExpDone==-1) return 1;
   /* If targetRank known, then nFgsBuchberger guaranteed already finished. */
   /* So next line should only apply if unknown. NB nRgsUnfinished now false. */

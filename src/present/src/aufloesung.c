@@ -322,6 +322,7 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   printf("starting with expDim = %d\n", ngs->expDim);
   for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s))
     FfInsert(ptr, 0, minus_one);
+  printf("NOTICE pre=%#x, mat=%#x\n",*pre,*mat);
   if (nRgsInitializeVectors(nRgs, mat, pre, s, group))
   {
       /*MTX_ERROR("Error initializing nRgs vectors");*/
@@ -394,7 +395,7 @@ Matrix_t *makeFirstDifferential(resol_t *resol)
       MTX_ERROR1("%E", MTX_ERR_NOMEM);
       return NULL;
   }
-  for (i = 0, ptr = pres->Data; i < dimP1; i++, FfStepPtr(&ptr))
+  for (i = 1, ptr = pres->Data; i <= dimP1; i++, FfStepPtr(&ptr))
     FfInsert(ptr, i, FF_ONE);
   if (setRankProj(resol, 1, dimP1))
   { MatFree(pres);
@@ -491,6 +492,7 @@ int innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
     gv = popGeneralVector(ngs);
     if (!gv) return 1;
     tmp = gv->w;
+    printf("call FfGetPtr(images, %d*%d)\n", i,ngs->r);
     gv->w = FfGetPtr(images, i * ngs->r);
     findLeadingMonomial(gv, ngs->r, group);
     gv->w = tmp;
