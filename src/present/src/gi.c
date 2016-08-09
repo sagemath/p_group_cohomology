@@ -53,7 +53,6 @@ static int Init(int argc, const char *argv[])
   group = newGroupRecord();
   if (!group)
   {
-      printf("Error creating group record\n");
       return 1;
   }
 

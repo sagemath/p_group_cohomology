@@ -116,8 +116,6 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
   //  register long col;
   register long impossibleDim = group->nontips + 1;
   PTR ptr = gv->w;
-  printf("findLeadingMonomial defines gv->dim=%d\n",impossibleDim);
-  printf("and gets %#x\n",*ptr);
   gv->dim = impossibleDim;
   for (b = 0; b < r; b++, FfStepPtr(&ptr))
   {
@@ -126,7 +124,7 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
     {
       register long d = group->root[col].dim;
       if (d < gv->dim)
-      { printf("for col=%d, b=%d: gv->dim:=%d\n",col, b, d);
+      {
         gv->dim = d;
         gv->coeff = coeff;
         gv->len = group->root[col].depth;
@@ -262,7 +260,6 @@ int destroyCurrentDimension(ngs_t *ngs)
   { MTX_ERROR("no current dimension");
     return 1;
   }
-  printf("destroyCurrentDimension\n");
   if (ngs->dimLoaded != ngs->expDim)
     removeStoredProductFile(ngs, ngs->dimLoaded);
   ngs->blockLoaded = NONE;
@@ -282,7 +279,6 @@ int destroyCurrentDimensionIfAny(ngs_t *ngs)
 /******************************************************************************/
 void destroyExpansionSliceFile(ngs_t *ngs)
 {
-    printf("destroyExpansionSliceFile\n");
   removeStoredProductFile(ngs, ngs->expDim);
   return;
 }
@@ -310,20 +306,16 @@ static int loadBlock(ngs_t *ngs, long block)
   if (!fp) {printf("readhdrplus returns NULL\n"); return 1;}
   if (totrows != nor * ngs->nops)
   {
-    printf("Expected %d, got %d", nor*ngs->nops, totrows);
     MTX_ERROR1("incorrect number of rows: %E", MTX_ERR_INCOMPAT);
     return 1;
   }
   /*FfSeekRow(fp, 1 + block * nor * ngs->blockSize);*/
   totrows = FfCurrentRowSizeIo*(block * nor * ngs->blockSize);
-  printf("seek %d byte forward\n",totrows);
   if (totrows) SysFseekRelative(fp, totrows);
   register long blennor = blen * nor;
-  printf("When reading, we got rowsize = %d, %d\n",FfTrueRowSize(FfNoc),FfRowSize(FfNoc));
   totrows = FfReadRows(fp, ngs->thisBlock, blennor);
   if (totrows != blennor)
   { fclose(fp);
-    printf("in FfReadRows, file %s: Expected %d, got %d\n",storedProductFile(ngs, ngs->dimLoaded),blennor, totrows);
     MTX_ERROR2("%s: %E", storedProductFile(ngs, ngs->dimLoaded), MTX_ERR_FILEFMT);
     return 1;
   }
@@ -367,7 +359,7 @@ PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node)
 ***/
 
 static inline void commenceNewDimension(ngs_t *ngs, group_t *group, int dim)
-{   printf("commenceNewDimension\n");
+{
     (ngs)->dimLoaded = dim;
     updateWordStatusData((ngs),(group)), (group);
     (ngs)->blockLoaded = NONE;
@@ -392,7 +384,6 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
   PTR w, dest;
   FILE *fp = writehdrplus(storedProductFile(ngs, d+1), FfOrder, 0, group->nontips);
   if (!fp) return 1;
-  printf("calculateNextProducts starting with rowsize = %d, %d\n", FfTrueRowSize(FfNoc), FfRowSize(FfNoc));
   for (blo = 0; blo < ngs->r; blo++)
     for (pat = group->dS[d]; pat < group->dS[d+1]; pat++)
     {
@@ -495,7 +486,7 @@ int incrementSlice(ngs_t *ngs, group_t *group)
 int selectNewDimension(ngs_t *ngs, group_t *group, long dim)
 {
   register long n;
-  if (ngs->dimLoaded == dim) return;
+  if (ngs->dimLoaded == dim) return 0;
   if (ngs->dimLoaded != NONE && ngs->dimLoaded > dim)
   {
     printf("Warning sND: Backtracking\n");
@@ -513,7 +504,7 @@ int selectNewDimension(ngs_t *ngs, group_t *group, long dim)
     if (createEmptySliceFile(ngs, group, n)) return 1;
     commenceNewDimension(ngs, group, n); /* uWSD should set nops = 0 */
     if (ngs->nops != 0)
-    { MTX_ERROR("theoretical error");
+    { MTX_ERROR1("theoretical error: ngs->nops = %d\n",ngs->nops);
       return 1;
     }
   }

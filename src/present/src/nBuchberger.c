@@ -96,7 +96,6 @@ static int nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
         gv = popGeneralVector(ngs);
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
-        printf("Calling findLeading from expandThisLevel\n");
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != FF_ZERO)
         {
@@ -145,7 +144,6 @@ static int nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
         gv = popGeneralVector(ngs);
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
-        printf("Calling from nRgsExpand\n");
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != FF_ZERO)
         {
@@ -194,10 +192,9 @@ static int allExpansionsDone(ngs_t *ngs, group_t *group)
 static int hardCorrectRank(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
-  if (easyCorrectRank(ngs, group)) {printf("easy!\n");return true;}
+  if (easyCorrectRank(ngs, group)) return true;
   if (nFgs->nRgsUnfinished) return false;
   if (ngs->unreducedHeap) return false;
-  printf("returning all expansions done\n");
   return allExpansionsDone(ngs, group);
 }
 
@@ -208,7 +205,6 @@ static int nFgsBuchbergerFinished(nFgs_t *nFgs, group_t *group)
 {
   ngs_t *ngs = nFgs->ngs;
   int hCR = hardCorrectRank(nFgs, group);
-  printf("hardCorrect Rank has returned %d\n",hCR);
   switch (hCR)
   { case -1: return -1;
     case 0: return 0;
@@ -266,7 +262,6 @@ static inline boolean shouldFetchMoreGenerators(nFgs_t *nFgs, group_t *group)
  ***************************************************************************/
 int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
 {
-    printf("doing nFgsBuchberger\n");
   register ngs_t *ngs = nFgs->ngs;
   if (nFgsAufnahme (nFgs, group)) return 1;
   initializeCommonBuchStatus(ngs);
@@ -274,12 +269,11 @@ int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
   int BuchFinished = nFgsBuchbergerFinished(nFgs, group);
   if (BuchFinished==-1) {printf("Error before we didn't even start\n"); return 1;}
   if (BuchFinished) /* Can happen on reentry */
-  { printf("we didn't even start\n");
+  {
     assertMinimalGeneratorsFound(nFgs);
   }
   else while (allExpDone=allExpansionsDone(ngs, group) == 0)
   {
-      printf("being in while loop\n");
     /* Can assume expDim slice precalculated; cannot assume preloaded */
     if (loadExpansionSlice(ngs, group)) return 1;
     if (nFgsExpandThisLevel(nFgs, group)) return 1; /* increments ngs->expDim */
@@ -307,19 +301,14 @@ int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
  **************************************************************************/
 int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
 {
-  printf("nRgsBuchberger starts\n");
   register ngs_t *ngs = nRgs->ngs;
   register nFgs_t *ker = nRgs->ker;
   ker->nRgsUnfinished = true;
   if (nRgsAufnahme (nRgs, group)) return MTX_ERROR("Error with nRgsAufnahme"),1;
-  printf("Nach Aufnahme\n");
-  printf("ExpDim %d\n", nRgs->ngs->expDim);
   initializeCommonBuchStatus(ngs);
   int allExpDone, allExpDone2;
-  printf("Start loop\n");
   while (allExpDone = allExpansionsDone(ngs, group) == 0)
   {
-    printf("doing something...\n");
     recordCurrentSizeOfVisibleKernel(nRgs);
     /* Can assume expDim slice precalculated; cannot assume preloaded */
     if (loadExpansionSlice(ngs, group)) return MTX_ERROR("Error with loadExpansionSlice"),1;
@@ -334,10 +323,9 @@ int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
     if (appropriateToPerformHeadyBuchberger(nRgs, group))
     {
       if (nFgsBuchberger(ker, group)) return MTX_ERROR("Error with nFgsBuchberger"),1;
-      if (ker->finished) {printf("breaking!\n"); break;}
+      if (ker->finished) break;
     }
   }
-  printf("loop fertig\n");
   if (allExpDone==-1) return 1;
   /* If targetRank known, then nFgsBuchberger guaranteed already finished. */
   /* So next line should only apply if unknown. NB nRgsUnfinished now false. */

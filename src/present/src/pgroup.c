@@ -919,7 +919,7 @@ long pathDimension(group_t *group, path_t *p)
   if (p->depth == 0)
     return 0;
   else
-  { printf("pathDimension, depth>0\n");
+  {
     return pathDimension(group, p->parent) + group->dim[1+p->lastArrow];
   }
 }
@@ -936,7 +936,6 @@ int markPathDimensions(group_t *group)
     for (i=0; i < group->nontips; i++)
     {
       group->root[i].dim = group->root[i].depth;
-      printf("i=%d, group->root[i].dim=%d, group->root[i].path=%s\n", i, group->root[i].dim,group->root[i].path);
     }
     if (group->lroot)
       for (i=0; i < group->nontips; i++)
