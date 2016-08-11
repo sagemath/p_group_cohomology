@@ -181,8 +181,7 @@ static int allExpansionsDone(ngs_t *ngs, group_t *group)
   { MTX_ERROR1("invalid expDim: %E", MTX_ERR_INCOMPAT);
     return -1;
   }
-  if (ngs->expDim == NOTHING_TO_EXPAND)
-    {printf("Nothing to expand, expDim = %d, maxlength = %d\n",ngs->expDim, group->maxlength); return 1;}
+  if (ngs->expDim == NOTHING_TO_EXPAND) return 1;
   return (ngs->expDim <= group->maxlength) ? 0 : 1;
 }
 
@@ -267,7 +266,7 @@ int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
   initializeCommonBuchStatus(ngs);
   int allExpDone;
   int BuchFinished = nFgsBuchbergerFinished(nFgs, group);
-  if (BuchFinished==-1) {printf("Error before we didn't even start\n"); return 1;}
+  if (BuchFinished==-1) return 1;
   if (BuchFinished) /* Can happen on reentry */
   {
     assertMinimalGeneratorsFound(nFgs);
@@ -304,25 +303,25 @@ int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
   register ngs_t *ngs = nRgs->ngs;
   register nFgs_t *ker = nRgs->ker;
   ker->nRgsUnfinished = true;
-  if (nRgsAufnahme (nRgs, group)) return MTX_ERROR("Error with nRgsAufnahme"),1;
+  if (nRgsAufnahme (nRgs, group)) return 1;
   initializeCommonBuchStatus(ngs);
   int allExpDone, allExpDone2;
   while (allExpDone = allExpansionsDone(ngs, group) == 0)
   {
     recordCurrentSizeOfVisibleKernel(nRgs);
     /* Can assume expDim slice precalculated; cannot assume preloaded */
-    if (loadExpansionSlice(ngs, group)) return MTX_ERROR("Error with loadExpansionSlice"),1;
-    if (nRgsExpandThisLevel(nRgs, group)) return MTX_ERROR("Error with ExpandThisLevel"),1; /* increments ngs->expDim */
+    if (loadExpansionSlice(ngs, group)) return 1;
+    if (nRgsExpandThisLevel(nRgs, group)) return 1; /* increments ngs->expDim */
     if (incrementSlice(ngs, group)) return 1;
-    if (nRgsAufnahme (nRgs, group)) return MTX_ERROR("Error with nRgsAufnahme"),1; /* Now certain no slice loaded */
+    if (nRgsAufnahme (nRgs, group)) return 1; /* Now certain no slice loaded */
     allExpDone2 = allExpansionsDone(ngs, group);
     if (allExpDone2==1) ker->nRgsUnfinished = false;
-    if (allExpDone2==-1) return MTX_ERROR("Error with allExpansionsDone"),1;
+    if (allExpDone2==-1) return 1;
     updateCommonBuchStatus(ngs, group);
-    if (nFgsAufnahme (ker, group)) return MTX_ERROR("Error with nFgsAufnahme"),1;
+    if (nFgsAufnahme (ker, group)) return 1;
     if (appropriateToPerformHeadyBuchberger(nRgs, group))
     {
-      if (nFgsBuchberger(ker, group)) return MTX_ERROR("Error with nFgsBuchberger"),1;
+      if (nFgsBuchberger(ker, group)) return 1;
       if (ker->finished) break;
     }
   }
@@ -330,7 +329,7 @@ int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
   /* If targetRank known, then nFgsBuchberger guaranteed already finished. */
   /* So next line should only apply if unknown. NB nRgsUnfinished now false. */
   if (!ker->finished)
-  { if (nFgsBuchberger(ker, group)) return MTX_ERROR("again Error with nFgsBuchberger"),1;}
+  { if (nFgsBuchberger(ker, group)) return 1;}
   int r = checkRanksCorrect(nRgs); /* 0 on error */
   destroyExpansionSliceFile(ngs);
   return 1-r;

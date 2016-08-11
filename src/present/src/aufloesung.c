@@ -316,7 +316,8 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   nRgs = nRgsAllocation(group, r, s, thisStem);
   if (!nRgs) return NULL;
   ngs = nRgs->ngs;
-  for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s))
+  register long s1 = s+1;
+  for (i = 1, ptr = pre; i <= s; i++, ptr = FfGetPtr(ptr, s1))
     FfInsert(ptr, 0, minus_one);
   if (nRgsInitializeVectors(nRgs, mat, pre, s, group))
   {

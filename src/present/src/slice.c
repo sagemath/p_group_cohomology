@@ -351,13 +351,6 @@ PTR nodeVector(ngs_t *ngs, group_t *group, modW_t *node)
   return w;
 }
 
-/*******************************************************************************
-
-#if !defined(commenceNewDimension)
-#define commenceNewDimension(ngs,group,dim) ( {(ngs)->dimLoaded = dim; updateWordStatusData((ngs),(group)), (group); (ngs)->blockLoaded = NONE;})
-#endif
-***/
-
 static inline void commenceNewDimension(ngs_t *ngs, group_t *group, int dim)
 {
     (ngs)->dimLoaded = dim;
