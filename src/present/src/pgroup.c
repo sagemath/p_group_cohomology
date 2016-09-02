@@ -1292,24 +1292,23 @@ int makeLeftActionMatrices(group_t *group)
  * 1 on error
  *******************************/
 int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
-/* Assembles dest * src at scratch. */
-/* src should be square, scratch should point to enough space. */
+/* Assembles dest*src at scratch.
+ * src should be square, scratch should point to enough space,
+ * which is not required to be empty. */
 {
-  register long i;
-  PTR this_dest = dest->Data;
-  PTR this_scratch = scratch;
-  if (src->Field != dest->Field || src->Nor != dest->Noc || src->Nor != src->Noc)
-  {
-      MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
-      return 1;
-  }
+  Matrix_t Res;
+  FfSetField(src->Field);
   FfSetNoc(src->Noc);
-  for (i = dest->Nor; i != 0; --i)
-  {
-    FfMapRow(this_dest,src->Data,src->Nor,this_scratch);
-    FfStepPtr(&this_scratch);
-    FfStepPtr(&this_dest);
-  }
+  memset(scratch, FF_ZERO, dest->Nor*FfCurrentRowSize);
+  Res.Magic = dest->Magic;
+  Res.Field = dest->Field;
+  Res.Nor = dest->Nor;
+  Res.Noc = src->Noc;
+  Res.PivotTable = NULL;
+  Res.Data = scratch;
+  Res.RowSize = FfCurrentRowSize;
+  if (!MatMulStrassen(&Res, dest, src)) { return 1; }
+  FfSetNoc(src->Noc);
   return 0;
 }
 
@@ -1330,25 +1329,37 @@ Matrix_t *innerRightAction(Matrix_t *dest, const Matrix_t *src, PTR scratch)
  * NULL on error
  ****/
 Matrix_t *innerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
-/* Guaranteed not to alter dest->Data */
+/* Guaranteed not to alter src->Data */
 /* Result will be assembled at scratch, then copied to dest */
 /* This routine allocates NO memory */
 {
-  register long i;
-  PTR this_src = src->Data;
-  PTR this_scratch = scratch;
   if (src->Field != dest->Field || src->Noc != dest->Nor || src->Nor != src->Noc)
   {
     MTX_ERROR1("%E", MTX_ERR_INCOMPAT);
     return NULL;
   }
   FfSetNoc(dest->Noc);
+  memset(scratch, FF_ZERO, FfCurrentRowSize*dest->Nor);
+  Matrix_t Res;
+  Res.Magic = dest->Magic;
+  Res.Field = dest->Field;
+  Res.Nor = dest->Nor;
+  Res.Noc = src->Noc;
+  Res.PivotTable = NULL;
+  Res.Data = scratch;
+  Res.RowSize = FfCurrentRowSize;
+  if (!MatMulStrassen(&Res, src, dest)) { return NULL; }
+  /*
+  register long i;
+  PTR this_src = src->Data;
+  PTR this_scratch = scratch;
   for (i = dest->Nor; i != 0; --i)
   {
     FfMapRow(this_src,dest->Data,dest->Nor,this_scratch);
     FfStepPtr(&this_scratch);
     FfStepPtr(&this_src);
-  }
+  }*/
+  FfSetNoc(Res.Noc);
   memcpy(dest->Data, scratch, (FfCurrentRowSize*dest->Nor));
   return dest;
 }
@@ -1560,18 +1571,18 @@ group_t *fullyLoadedGroupRecord(char *stem)
 }
 
 /****
- * -1 on error
+ * Potential error if -1 is returned
  ***************************************************************************/
 static int matricesCommute(Matrix_t *a, Matrix_t *b, Matrix_t *ab,
   Matrix_t *ba)
 {
   if (innerRightProduct(a, b, ab->Data)) return -1;
   if (innerRightProduct(b, a, ba->Data)) return -1;
-  return (MatCompare(ab,ba)) ? 0 : 1;
+  return MatCompare(ab,ba);
 }
 
 /*****
- * -1 on error
+ * potential error if -1 is returned
  **************************************************************************/
 int verifyGroupIsAbelian(group_t *A)
 {
@@ -1591,8 +1602,17 @@ int verifyGroupIsAbelian(group_t *A)
     for (j = i+1; j < ngens; j++)
     {
       thisPairCommutes = matricesCommute(A->action[i], A->action[j], ab, ba);
-      if (thisPairCommutes==1) return 0;
+      if (thisPairCommutes > 0) {MatFree(ab); MatFree(ba); return 0;}
+      if (thisPairCommutes < 0)
+      {
+        if (thisPairCommutes == -1) {MatFree(ab); MatFree(ba); return -1;}
+        MatFree(ab);
+        MatFree(ba);
+        return 0;
+      }
     }
+  MatFree(ab);
+  MatFree(ba);
   return 1;
 }
 
