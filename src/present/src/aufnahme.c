@@ -39,11 +39,11 @@ static void subtract(PTR ptr1, PTR ptr2, long nor)
 /* writes ptr1 - ptr2 to ptr1 */
 {
   register long i;
-  PTR p1 = ptr1, p2 = ptr2;
-  for (i = 0; i < nor; i++)
+  register PTR p1 = ptr1, p2 = ptr2;
+  for (i = 0; i < nor; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
   {
     FfSubRow(p1,p2);
-    FfStepPtr(&p1); FfStepPtr(&p2);
+    /*FfStepPtr(&p1); FfStepPtr(&p2);*/
   }
   return;
 }
@@ -53,12 +53,12 @@ static void submul(PTR ptr1, PTR ptr2, FEL f, long nor)
 /* writes ptr1 - f.ptr2 to ptr1 */
 {
   register long i;
-  register FEL g = FfSub(FF_ZERO, f);
+  register FEL g = FfNeg(f);
   PTR p1 = ptr1, p2 = ptr2;
-  for (i = 0; i < nor; i++)
+  for (i = 0; i < nor; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
   {
     FfAddMulRow(p1,p2, g);
-    FfStepPtr(&p1); FfStepPtr(&p2);
+    /*FfStepPtr(&p1); FfStepPtr(&p2);*/
   }
   return;
 }

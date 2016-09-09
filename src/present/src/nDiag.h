@@ -57,7 +57,7 @@ struct generalVector
   long dim;
   long len;
   long block;
-  long col;
+  int col;
   boolean radical;
 };
 

@@ -299,7 +299,7 @@ nRgs_t *nRgsStandardSetup(resol_t *resol, long n, PTR mat)
   register long i;
   PTR ptr;
   char thisStem[MAXLINE];
-  FEL minus_one = FfSub(FF_ZERO, FF_ONE);
+  FEL minus_one = FfNeg(FF_ONE);
   group_t *group = resol->group;
   long r = rankProj(resol, n-1);
   if (r==-1) return NULL;
@@ -456,16 +456,6 @@ void readKnownResolution(resol_t *resol, long N)
   return;
 }
 
-/******************************************************************************/
-static void initializeRows(PTR base, long nor)
-{
-  PTR p;
-  register long i;
-  for (p = base, i = 0; i < nor; i++, FfStepPtr(&p))
-    FfMulRow(p, FF_ZERO);
-  return;
-}
-
 /****
  * 1 on error
  ***************************************************************************/
@@ -497,8 +487,9 @@ int innerPreimages(nRgs_t *nRgs, PTR images, long num, group_t *group,
     else
     {
       memcpy(gv->w, FfGetPtr(images, i * ngs->r), (FfCurrentRowSize*ngs->r));
-      initializeRows(FfGetPtr(gv->w, ngs->r), ngs->s);
       /* That gv->w is initialized is very likely, but not absolutely certain */
+      /*initializeRows(FfGetPtr(gv->w, ngs->r), ngs->s);*/
+      memset(FfGetPtr(gv->w, ngs->r), 0, FfCurrentRowSize*ngs->s);
       uv = unreducedVector(ngs, gv);
       if (!uv) return 1;
       uv->index = i;

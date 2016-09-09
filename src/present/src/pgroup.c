@@ -971,15 +971,15 @@ void innerRightActionMatrix(group_t *group, PTR vec, PTR dest)
 /******************************************************************************/
 void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
 {
-  long a, i;
+  register int i;
   PTR prev, this;
-  memcpy(dest, vec, FfCurrentRowSizeIo); //(FfCurrentRowSize*1));
-  for (i = 1; i < group->nontips; i++)
+  memcpy(dest, vec, FfCurrentRowSize);
+  this = dest + FfCurrentRowSize;
+  for (i = 1; i < group->nontips; i++, this+=FfCurrentRowSize)
   {
     prev = FfGetPtr(dest, group->root[i].parent->index);
-    this = FfGetPtr(dest, i);
-    a = group->root[i].lastArrow;
-    FfMapRow(prev, group->action[a]->Data, group->nontips, this);
+    /*this = FfGetPtr(dest, i);*/
+    FfMapRow(prev, group->action[group->root[i].lastArrow]->Data, group->nontips, this);
   }
   return;
 }
@@ -1132,7 +1132,7 @@ int loadGeneralRegularActionMatrices(group_t *group, Matrix_t **action,
 {
   long buffer[3], nontips = group->nontips;
   PTR ptr;
-  FEL F_MINUS = FfSub(FF_ZERO, FF_ONE);
+  FEL F_MINUS = FfNeg(FF_ONE);
   long i,j;
   FILE *fp;
   fp = SysFopen(name, FM_READ);
@@ -1255,12 +1255,14 @@ int makeLeftActionMatrices(group_t *group)
   }
   for (a = 0; a < group->arrows; a++)
   {
-    FfMulRow(vec, FF_ZERO);
+    /*FfMulRow(vec, FF_ZERO);*/
+    memset(vec, 0, FfCurrentRowSize);
     p = group->root->child[a];
     FfInsert(vec, p->index, FF_ONE); /* Should work with Jennings order too */
     innerLeftActionMatrix(group, vec, laction[a]->Data);
   }
   group->laction = laction;
+  free(vec);
   return 0;
 }
 
@@ -1275,7 +1277,7 @@ int innerRightProduct(const Matrix_t *dest, const Matrix_t *src, PTR scratch)
   Matrix_t Res;
   FfSetField(src->Field);
   FfSetNoc(src->Noc);
-  memset(scratch, FF_ZERO, dest->Nor*FfCurrentRowSize);
+  memset(scratch, 0, dest->Nor*FfCurrentRowSize);
   Res.Magic = dest->Magic;
   Res.Field = dest->Field;
   Res.Nor = dest->Nor;
@@ -1315,7 +1317,7 @@ Matrix_t *innerLeftAction(const Matrix_t *src, Matrix_t *dest, PTR scratch)
     return NULL;
   }
   FfSetNoc(dest->Noc);
-  memset(scratch, FF_ZERO, FfCurrentRowSize*dest->Nor);
+  memset(scratch, 0, FfCurrentRowSize*dest->Nor);
   Matrix_t Res;
   Res.Magic = dest->Magic;
   Res.Field = dest->Field;

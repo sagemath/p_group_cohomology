@@ -102,7 +102,7 @@ int makeVectorMonic(ngs_t *ngs, gV_t *gv)
   { MTX_ERROR1("%E", MTX_ERR_DIV0);
     return 1;
   }
-  g = FfDiv(FF_ONE, f);
+  g = FfInv(f);
   for (i = 0, ptr = gv->w; i < nor; i++, FfStepPtr(&ptr)) FfMulRow(ptr, g);
   return 0;
 }
@@ -113,22 +113,21 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
 {
   FEL coeff;
   register long b;
-  // register long d;
-  //  register long col;
-  register long impossibleDim = group->nontips + 1;
-  PTR ptr = gv->w;
+  long impossibleDim = group->nontips + 1;
+  register PTR ptr = gv->w;
+  path_t rootcol;
   gv->dim = impossibleDim;
-  for (b = 0; b < r; b++, FfStepPtr(&ptr))
+  for (b = 0; b < r; b++, ptr+=FfCurrentRowSize)
   {
-    register long col = FfFindPivot(ptr, &coeff);
+    register int col = FfFindPivot(ptr, &coeff);
     if (col != -1)
     {
-      register long d = group->root[col].dim;
-      if (d < gv->dim)
+      rootcol = group->root[col];
+      if (rootcol.dim < gv->dim)
       {
-        gv->dim = d;
+        gv->dim = rootcol.dim;
         gv->coeff = coeff;
-        gv->len = group->root[col].depth;
+        gv->len = rootcol.depth;
         gv->block = b;
         gv->col = col;
       }
@@ -145,15 +144,35 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
 void multiply(PTR row, Matrix_t *mat, PTR result, long r)
 {
   register long i;
-  PTR p1 = row;
-  PTR p2 = result;
-  register long noc = FfNoc;
-  for (i = 0; i < r; i++)
+  register PTR p1 = row;
+  register PTR p2 = result;
+  if (FfCurrentRowSizeIo<100)
   {
-    FfMapRow(p1, mat->Data, noc, p2);
-    FfStepPtr(&p1); FfStepPtr(&p2);
+    for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
+    {
+      FfMapRow(p1, mat->Data, FfNoc, p2);
+    }
+    return;
   }
-  return;
+  Matrix_t Res;
+  Matrix_t Src;
+  memset(result, 0, r*FfCurrentRowSize);
+  Res.Magic = mat->Magic;
+  Res.Field = mat->Field;
+  Res.Nor = r;
+  Res.Noc = mat->Noc;
+  Res.PivotTable = NULL;
+  Res.Data = result;
+  Res.RowSize = FfCurrentRowSize;
+
+  Src.Magic = mat->Magic;
+  Src.Field = mat->Field;
+  Src.Nor = r;
+  Src.Noc = mat->Noc;
+  Src.PivotTable = NULL;
+  Src.Data = row;
+  Src.RowSize = FfCurrentRowSize;
+  MatMulStrassen(&Res, &Src, mat);
 }
 
 /****
