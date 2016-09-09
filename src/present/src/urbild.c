@@ -461,7 +461,7 @@ static int lowerExpDimIfNecessary(ngs_t *ngs, long d)
   }
   if (ngs->expDim > d)
   {
-    destroyExpansionSliceFile(ngs);
+    if (destroyExpansionSliceFile(ngs)) return 1;
     ngs->expDim = d;
   }
   return 0;

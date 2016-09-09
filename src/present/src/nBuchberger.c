@@ -291,7 +291,7 @@ int nFgsBuchberger(nFgs_t *nFgs, group_t *group)
     }
   }
   if (allExpDone==-1) return 1;
-  if (nFgs->finished) destroyExpansionSliceFile(ngs);
+  if (nFgs->finished) return destroyExpansionSliceFile(ngs);
   return 0;
 }
 
@@ -331,6 +331,6 @@ int nRgsBuchberger(nRgs_t *nRgs, group_t *group)
   if (!ker->finished)
   { if (nFgsBuchberger(ker, group)) return 1;}
   int r = checkRanksCorrect(nRgs); /* 0 on error */
-  destroyExpansionSliceFile(ngs);
+  if (destroyExpansionSliceFile(ngs)) return 1;
   return 1-r;
 }

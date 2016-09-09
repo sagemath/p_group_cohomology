@@ -32,7 +32,7 @@ int createWordForest(ngs_t *ngs, group_t *group);
 // void freeWordForest(ngs_t *ngs);
 int destroyCurrentDimension(ngs_t *ngs);
 int destroyCurrentDimensionIfAny(ngs_t *ngs);
-void destroyExpansionSliceFile(ngs_t *ngs);
+int destroyExpansionSliceFile(ngs_t *ngs);
 int selectNewDimension(ngs_t *ngs, group_t *group, long dim);
 int loadExpansionSlice(ngs_t *ngs, group_t *group);
 int incrementSlice(ngs_t *ngs, group_t *group);

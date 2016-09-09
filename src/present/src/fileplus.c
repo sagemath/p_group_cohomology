@@ -155,15 +155,6 @@ FILE *readhdrplus(char *name, long *fl, long *nor, long *noc)
   return fp;
 }
 
-void PrintMatrixFile(char *matname)
-{
-  char buffer[200];
-  strcpy(buffer,"zpr ");
-  strcat(buffer,matname);
-  strcat(buffer," >> yyyy");
-  system(buffer);
-}
-
 /**
  * -1 on error
  ****/

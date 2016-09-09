@@ -22,6 +22,7 @@
 
 #include "nDiag.h"
 #include "meataxe.h"
+#include <stdio.h>
 
 MTX_DEFINE_FILE_INFO
 
@@ -242,13 +243,16 @@ static char *storedProductFile(ngs_t *ngs, long dim)
   return buffer;
 }
 
-/******************************************************************************/
-static void removeStoredProductFile(ngs_t *ngs, long d)
+/******************************************************************************
+ * Return 1 on error
+ */
+static int removeStoredProductFile(ngs_t *ngs, long d)
 {
-  static char buffer[MAXLINE];
-  sprintf(buffer, "rm %s", storedProductFile(ngs, d));
-  system(buffer);
-  return;
+  if (remove(storedProductFile(ngs, d)))
+  { MTX_ERROR1("Cannot remove file %s", storedProductFile(ngs, d));
+    return 1;
+  }
+  return 0;
 }
 
 /****
@@ -261,7 +265,7 @@ int destroyCurrentDimension(ngs_t *ngs)
     return 1;
   }
   if (ngs->dimLoaded != ngs->expDim)
-    removeStoredProductFile(ngs, ngs->dimLoaded);
+    { if (removeStoredProductFile(ngs, ngs->dimLoaded)) return 1; }
   ngs->blockLoaded = NONE;
   ngs->dimLoaded = NONE;
   return 0;
@@ -277,10 +281,9 @@ int destroyCurrentDimensionIfAny(ngs_t *ngs)
 }
 
 /******************************************************************************/
-void destroyExpansionSliceFile(ngs_t *ngs)
+int destroyExpansionSliceFile(ngs_t *ngs)
 {
-  removeStoredProductFile(ngs, ngs->expDim);
-  return;
+  return removeStoredProductFile(ngs, ngs->expDim);
 }
 
 /******************************************************************************/

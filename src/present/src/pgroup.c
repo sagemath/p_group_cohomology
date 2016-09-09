@@ -54,28 +54,11 @@ void strext(char *dest, char *stem, char *ext)
   return;
 }
 
-/******************************************************************************/
-static inline void gzip(const char *name)
-{
-/*  char buffer[MAXLINE];
-  sprintf(buffer,"gzip %s",name);
-  system(buffer);
-*/
-}
-
 /*****************************************************************************/
 inline boolean fileExists(const char *name)
 {
   int stat = access(name, F_OK);
   return (stat == 0) ? true : false;
-}
-
-/******************************************************************************/
-static inline void gunzip(const char *name)
-{
-  char buffer[MAXLINE];
-  sprintf(buffer,"gunzip %s",name);
-  if (!fileExists(name)) { system(buffer); }
 }
 
 /******************************************************************************/
@@ -637,7 +620,6 @@ Matrix_t **loadMatrixList(group_t *group, char *name, long num)
   Matrix_t *bigmat;
   Matrix_t **action;
   long nontips = group->nontips;
-  //PTR base, ptr;
   long i;
   bigmat = MatLoad(name); /* sets FfOrder, FfNoc to required values */
   if (!bigmat) return NULL;
@@ -687,10 +669,8 @@ inline int loadActionMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".gens");
-  gunzip(name);
   group->action = loadMatrixList(group, name, group->arrows);
   if (!group->action) return 1;
-  gzip(name);
   return 0;
 }
 
@@ -701,10 +681,8 @@ inline int loadLeftActionMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".lgens");
-  gunzip(name);
   group->laction = loadMatrixList(group, name, group->arrows);
   if (!group->laction) return 1;
-  gzip(name);
   return 0;
 }
 
@@ -715,10 +693,8 @@ int loadBasisChangeMatrices(group_t *group)
 {
   char name[MAXLINE];
   strext(name, group->stem, ".bch");
-  gunzip(name);
   group->bch = loadMatrixList(group, name, 2);
   if (!group->bch) return 1;
-  gzip(name);
   return 0;
 }
 
@@ -749,7 +725,7 @@ int saveActionMatrices(group_t *group)
   char name[MAXLINE];
   strext(name, group->stem, ".gens");
   if (saveMatrixList(group, group->action, group->arrows, name)) return 1;
-  gzip(name);
+  /*gzip(name);*/
   return 0;
 }
 
@@ -761,7 +737,7 @@ int saveLeftActionMatrices(group_t *group)
   char name[MAXLINE];
   strext(name, group->stem, ".lgens");
   if (saveMatrixList(group, group->laction, group->arrows, name)) return 1;
-  gzip(name);
+  /*gzip(name);*/
   return 0;
 }
 
@@ -773,7 +749,7 @@ int saveBasisChangeMatrices(group_t *group)
   char name[MAXLINE];
   strext(name, group->stem, ".bch");
   if (saveMatrixList(group, group->bch, 2, name)) return 1;
-  gzip(name);
+  /*gzip(name);*/
   return 0;
 }
 
