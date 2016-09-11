@@ -30,6 +30,8 @@ MTX_DEFINE_FILE_INFO
 
 #define MAT_MAGIC 0x6233af91
 
+typedef unsigned char BYTE;
+
 /***
  * NULL on error
  *
@@ -837,6 +839,99 @@ inline void freeActionMatrices(Matrix_t **mat)
   free(mat);
 }
 
+/******************************************************************************
+ * The following is basically a copy of FfMapRow, deleting some assembly code.
+ * Only difference: The @em result is not initialized to zero.
+ ** Multiply the vector @em row by the matrix @em matrix from the right, and
+ ** add the product to @em result.
+ ** @attention @em result and @em row must not overlap. Otherwise the result is
+ ** undefined.
+ ** @param row The source vector (nor columns).
+ ** @param matrix A matrix (nor by nor).
+ ** @param nor Number of rows in the matrix. It must coincide with FfCurrentRowSizeIo*MPB.
+ ** @param[out] result The resulting vector (nor columns).
+*/
+void FfAddMapRow(PTR row, PTR matrix, int nor, PTR result)
+{
+    register int i;
+    register FEL f;
+    BYTE *m = (BYTE *) matrix;
+    register long *l = (long *)result;
+
+    if (FfOrder == 2)       /* GF(2) is a special case */
+    {
+        register long *x1 = (long *) matrix;
+        register BYTE *r = (BYTE *) row;
+
+        for (i = nor; i > 0; ++r)
+        {
+            register BYTE mask;
+            if (*r == 0)   /* Skip eight rows */
+            {
+            i -= 8;
+            x1 += 8 * LPR;
+            continue;
+            }
+            for (mask = 0x80; mask != 0 && i > 0; mask >>= 1, --i)
+            {
+                if ((mask & *r) == 0)
+                {
+                    x1 += LPR;  /* Skip that row */
+                    continue;
+                }
+                register long *x2 = (long *)result;
+                register int k;
+                for (k = LPR; k; --k)
+                    *x2++ ^= *x1++;
+            }
+        }
+    }
+    else                /* Any other field */
+    {
+        register BYTE *brow = (BYTE *) row;
+        register int pos = 0;
+
+        for (i = nor; i > 0; --i)
+        {
+            f = mtx_textract[pos][*brow];
+            if (++pos == (int) MPB)
+            {
+                pos = 0;
+                ++brow;
+            }
+            if (f != FF_ZERO)
+            {
+                register BYTE *v = m;
+                register BYTE *r = result;
+                register int k = FfCurrentRowSizeIo;
+                if (f == FF_ONE)
+                {
+                    for (; k != 0; --k)
+                    {
+                        register BYTE x = *v++;
+                        if (x!=0)
+                            *r = mtx_tadd[*r][x];
+                        ++r;
+                    }
+                }
+                else
+                {
+                    register BYTE *multab = mtx_tmult[f];
+                    for (; k != 0; --k)
+                    {
+                        if (*v != 0)
+                            *r = mtx_tadd[multab[*v]][*r];
+                        ++v;
+                        ++r;
+                    }
+                }
+            }
+            m += FfCurrentRowSize;              /* next row */
+        }
+    }
+}
+
+
 /***************************************************************************/
 static inline long maxlong(long n1, long n2)
 {
@@ -1018,18 +1113,21 @@ void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   long i,j,k;
   PTR alpha_ji, beta_kj, gamma_ki;
   PTR mat = scratch, tmp = FfGetPtr(scratch, nontips);
-  for (i = 0; i < s; i++)
+  alpha_ji = alpha;
+  gamma_ki = gamma;
+  for (i = 0; i < s; i++, alpha_ji+=FfCurrentRowSize)
   {
-    for (j = 0; j < r; j++)
+    beta_kj = beta;
+    for (j = 0; j < r; j++, alpha_ji+=FfCurrentRowSize, beta_kj+=FfCurrentRowSize)
     {
-      alpha_ji = FfGetPtr(alpha, j + i * r);
+      /*alpha_ji = FfGetPtr(alpha, j + i * r);*/
       innerRightActionMatrix(group, alpha_ji, mat);
-      for (k = 0; k < q; k++)
+      gamma_ki = FfGetPtr(gamma, i * q);
+      for (k = 0; k < q; k++, beta_kj+=FfCurrentRowSize, gamma_ki+=FfCurrentRowSize)
       {
-        beta_kj = FfGetPtr(beta, k + j * q);
-        gamma_ki = FfGetPtr(gamma, k + i * q);
-        FfMapRow(beta_kj, mat, nontips, tmp);
-        FfAddRow(gamma_ki, tmp);
+        /*beta_kj = FfGetPtr(beta, k + j * q);
+        gamma_ki = FfGetPtr(gamma, k + i * q);*/
+        FfAddMapRow(beta_kj, mat, nontips, gamma_ki);
       }
     }
   }
@@ -1037,8 +1135,6 @@ void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
 }
 
 /******************************************************************************/
-void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
-  long q, PTR scratch, PTR gamma)
 /* alpha: matrix representing map from free rk s to free rk r
    beta : free rk r to free rk q
    free = free RIGHT G-module
@@ -1049,6 +1145,8 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
    scratch: scratch space, nontips+1 rows
    Left: use left action matrix of beta_kj
 */
+/*void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
+  long q, PTR scratch, PTR gamma)
 {
   long nontips = group->nontips;
   long i,j,k;
@@ -1070,7 +1168,7 @@ void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
     }
   }
   return;
-}
+}*/
 
 /****
  * 1 on error

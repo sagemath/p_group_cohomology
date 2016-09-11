@@ -87,6 +87,7 @@ Matrix_t **allocateMatrixList(group_t *group, long num);
 extern Matrix_t **allocateActionMatrices(group_t *group);
 extern void freeMatrixList(Matrix_t **mat);
 extern void freeActionMatrices(Matrix_t **mat);
+void FfAddMapRow(PTR row, PTR matrix, int nor, PTR result);
 
 char *mtx_strdup(const char *src);
 void strext(char *dest, char *stem, char *ext);
@@ -131,8 +132,8 @@ void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
    scratch: scratch space, nontips+1 rows
    Right: use right action matrix of alpha_ji
 */
-void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
-  long q, PTR scratch, PTR gamma);
+/*void innerLeftCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
+  long q, PTR scratch, PTR gamma);*/
 /* alpha: matrix representing map from free rk s to free rk r
    beta : free rk r to free rk q
    free = free RIGHT G-module
