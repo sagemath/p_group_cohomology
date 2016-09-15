@@ -1114,11 +1114,10 @@ void innerRightCompose(group_t *group, PTR alpha, PTR beta, long s, long r,
   PTR alpha_ji, beta_kj, gamma_ki;
   PTR mat = scratch, tmp = FfGetPtr(scratch, nontips);
   alpha_ji = alpha;
-  gamma_ki = gamma;
-  for (i = 0; i < s; i++, alpha_ji+=FfCurrentRowSize)
+  for (i = 0; i < s; i++)
   {
     beta_kj = beta;
-    for (j = 0; j < r; j++, alpha_ji+=FfCurrentRowSize, beta_kj+=FfCurrentRowSize)
+    for (j = 0; j < r; j++, alpha_ji+=FfCurrentRowSize)
     {
       /*alpha_ji = FfGetPtr(alpha, j + i * r);*/
       innerRightActionMatrix(group, alpha_ji, mat);
