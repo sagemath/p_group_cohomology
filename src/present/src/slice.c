@@ -96,14 +96,14 @@ int makeVectorMonic(ngs_t *ngs, gV_t *gv)
   register FEL f = gv->coeff;
   register FEL g;
   PTR ptr;
-  register long i;
+  register int i;
   if (f == FF_ONE) return 0;
   if (f == FF_ZERO)
   { MTX_ERROR1("%E", MTX_ERR_DIV0);
     return 1;
   }
   g = FfInv(f);
-  for (i = 0, ptr = gv->w; i < nor; i++, FfStepPtr(&ptr)) FfMulRow(ptr, g);
+  for (i = 0, ptr = gv->w; i < nor; i++, ptr+=FfCurrentRowSize) FfMulRow(ptr, g);
   return 0;
 }
 
@@ -112,7 +112,7 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
 /* By dim, then by block, then by RLL */
 {
   FEL coeff;
-  register long b;
+  register int b;
   long impossibleDim = group->nontips + 1;
   register PTR ptr = gv->w;
   path_t rootcol;

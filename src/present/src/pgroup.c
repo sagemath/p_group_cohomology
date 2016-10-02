@@ -1050,15 +1050,12 @@ boolean smallerJenningsWord(JenningsWord_t *w1, JenningsWord_t *w2)
 /******************************************************************************/
 void innerRightActionMatrix(group_t *group, PTR vec, PTR dest)
 {
-  long a, i;
-  PTR prev, this;
-  memcpy(dest, vec, (FfCurrentRowSize*1));
-  for (i = 1; i < group->nontips; i++)
+  register int i;
+  PTR this = dest+FfCurrentRowSize;
+  memcpy(dest, vec, FfCurrentRowSize);
+  for (i = 1; i < group->nontips; i++, this+=FfCurrentRowSize)
   {
-    prev = FfGetPtr(dest, group->lroot[i].parent->index);
-    this = FfGetPtr(dest, i);
-    a = group->lroot[i].lastArrow;
-    FfMapRow(prev, group->laction[a]->Data, group->nontips, this);
+    FfMapRow(FfGetPtr(dest, group->lroot[i].parent->index), group->laction[group->lroot[i].lastArrow]->Data, group->nontips, this);
   }
   return;
 }
@@ -1067,14 +1064,11 @@ void innerRightActionMatrix(group_t *group, PTR vec, PTR dest)
 void innerLeftActionMatrix(group_t *group, PTR vec, PTR dest)
 {
   register int i;
-  PTR prev, this;
+  PTR this = dest + FfCurrentRowSize;
   memcpy(dest, vec, FfCurrentRowSize);
-  this = dest + FfCurrentRowSize;
   for (i = 1; i < group->nontips; i++, this+=FfCurrentRowSize)
   {
-    prev = FfGetPtr(dest, group->root[i].parent->index);
-    /*this = FfGetPtr(dest, i);*/
-    FfMapRow(prev, group->action[group->root[i].lastArrow]->Data, group->nontips, this);
+    FfMapRow(FfGetPtr(dest, group->root[i].parent->index), group->action[group->root[i].lastArrow]->Data, group->nontips, this);
   }
   return;
 }
