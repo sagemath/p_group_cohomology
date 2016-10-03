@@ -409,12 +409,10 @@ void freeNRgs(nRgs_t *nRgs)
 /******************************************************************************/
 static boolean vectorLessThan(gV_t *w1, gV_t *w2)
 {
-  if (w1->dim > w2->dim) return true;
-  if (w1->dim < w2->dim) return false;
+  if (w1->len > w2->len) return true;
+  if (w1->len < w2->len) return false;
   if (w1->block > w2->block) return true;
   if (w1->block < w2->block) return false;
-  if (w1->len < w2->len) return true;
-  if (w1->len > w2->len) return false;
   if (w1->col > w2->col) return true;
   if (w1->col < w2->col) return false;
   if (w2->radical && !w1->radical) return true;

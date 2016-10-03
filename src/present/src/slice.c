@@ -109,21 +109,22 @@ int makeVectorMonic(ngs_t *ngs, gV_t *gv)
 
 /******************************************************************************/
 void findLeadingMonomial(gV_t *gv, long r, group_t *group)
-/* By dim, then by block, then by RLL */
+/* By negative length, then by block, then by RLL */
 {
   FEL coeff;
   register int b;
-  long impossibleDim = group->nontips + 1;
   register PTR ptr = gv->w;
   path_t rootcol;
-  gv->dim = impossibleDim;
+  gv->len = group->maxlength+1;
+  gv->coeff = FF_ZERO;
+  gv->dim = ZERO_BLOCK;
   for (b = 0; b < r; b++, ptr+=FfCurrentRowSize)
   {
     register int col = FfFindPivot(ptr, &coeff);
     if (col != -1)
     {
       rootcol = group->root[col];
-      if (rootcol.dim < gv->dim)
+      if (rootcol.depth < gv->len)
       {
         gv->dim = rootcol.dim;
         gv->coeff = coeff;
@@ -133,11 +134,6 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
       }
     }
   }
-  if (gv->dim == impossibleDim)
-  {  gv->coeff = FF_ZERO;
-     gv->dim = ZERO_BLOCK;
-  }
-  return;
 }
 
 /******************************************************************************/
