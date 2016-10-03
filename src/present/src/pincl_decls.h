@@ -2,7 +2,7 @@
    pincl_decls.h : Header files listing declarations in pincl.c
 
        Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
-       Copyright (C) 2015 Simon A. King <simon.king@uni-koeln.de>
+       Copyright (C) 2018 Simon A. King <simon.king@uni-jena.de>
 
   Distributed under the terms of the GNU General Public License (GPL),
   version 2 or later (at your choice)

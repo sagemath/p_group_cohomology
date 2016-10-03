@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([modular_resolution], [1.0], [simon.king@uni-koeln.de])
+AC_INIT([modular_resolution], [1.0], [simon.king@uni-jena.de])
 AM_INIT_AUTOMAKE([check-news dist-bzip2 -Wall])
 AM_PROG_AR
 LT_INIT
