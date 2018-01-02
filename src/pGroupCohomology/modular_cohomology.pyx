@@ -4,7 +4,7 @@
 #
 #    Modular Cohomology Rings of Finite Non Prime Power Groups
 #
-#    Copyright (C) 2010 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2010, 2015 Simon A. King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 r"""
-Modular Cohomology Rings of Finite Groups
+Modular Cohomology Rings of Finite Non-Primepower Groups
 
 This module contains :class:`MODCOHO`, that provides a framework for the computation of
 the cohomology rings with coefficients in `\\mathbb F_p` for any finite group.
@@ -29,8 +29,8 @@ It is based on the stable element method of Henri Cartan and Samuel
 Eilenberg [CartanEilenberg]_ and uses a completeness criterion based
 on the Poincaré series [King]_.  The stable element method involves the
 computation of cohomology rings of finite `p`-groups, which is based
-on the class :class:`~sage.groups.modular_cohomology.cohomology.COHO`. See
-:mod:`sage.groups.modular_cohomology` for an introduction.
+on the class :class:`~pGroupCohomology.cohomology.COHO`. See
+:mod:`pGroupCohomology` for an introduction.
 
 AUTHORS:
 
@@ -40,9 +40,9 @@ AUTHORS:
 """
 
 import sys, os
-from sage.groups.modular_cohomology import CohomologyRing
-from sage.groups.modular_cohomology.auxiliaries import OPTION, print_protocol, safe_save, _gap_init
-from sage.groups.modular_cohomology.cohomology import COHO, temporary_result, permanent_result
+from pGroupCohomology import CohomologyRing
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
+from pGroupCohomology.cohomology import COHO, temporary_result, permanent_result
 
 from sage.all import Ring
 from sage.all import Integer
@@ -55,11 +55,18 @@ from sage.all import subsets
 from sage.all import Infinity
 
 from sage.libs.modular_resolution cimport *
+from sage.libs.meataxe cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
-from sage.groups.modular_cohomology.resolution import gap
-from sage.groups.modular_cohomology.cohomology import singular, unpickle_gap_data, pickle_gap_data
-from sage.groups.modular_cohomology.resolution cimport RESL
-from sage.groups.modular_cohomology.cochain cimport COCH, ChMap
+from pGroupCohomology.resolution import gap
+from pGroupCohomology.cohomology import singular, unpickle_gap_data, pickle_gap_data
+from pGroupCohomology.resolution cimport *
+from pGroupCohomology.cochain cimport COCH, ChMap
+
+####################
+## Meataxe is a static library, hence, we need to define some internals
+## consistent with other modules that are using meataxe.
+
+meataxe_init()
 
 #############################
 ##                         ##
@@ -105,11 +112,11 @@ def _IdGroup(G, D, Client, ring=True):
 
     TESTS::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(8,3)
-        sage: from sage.groups.modular_cohomology.modular_cohomology import _IdGroup
+        sage: from pGroupCohomology.modular_cohomology import _IdGroup
         sage: D = {'prime':3}
         sage: G1 = gap('AlternatingGroup(7)')
 
@@ -117,6 +124,7 @@ def _IdGroup(G, D, Client, ring=True):
     So, the pair "(Group Order, 0)" is returned::
 
         sage: _IdGroup(G1,D,H, ring=False)
+        Failed to construct a minimal generating set of the group -- keep your fingers crossed...
         (2520, 0)
 
     We take another group of the same order and compute their cohomology
@@ -126,13 +134,14 @@ def _IdGroup(G, D, Client, ring=True):
         sage: G2 = gap('CyclicGroup(2520)')
         sage: _IdGroup(G2,D,H)
         (2520, 0)
-        sage: sorted(D.items(), cmp=lambda x,y: cmp(str(x),str(y)))
-        [('prime', 3), (2520, {0: H^*(8gp3_2520_0; GF(3))})]
+        sage: sorted(D.items())
+        [(2520, {0: H^*(8gp3_2520_0; GF(3))}), ('prime', 3)]
 
     When we now test ``G1`` again, a different identifier is returned,
     since it is not isomorphic to ``G2``::
 
         sage: _IdGroup(G1,D,H, ring=False)
+        Failed to construct a minimal generating set of the group -- keep your fingers crossed...
         (2520, -1)
 
     However, the identifier for ``G2`` is preserved::
@@ -146,19 +155,21 @@ def _IdGroup(G, D, Client, ring=True):
         sage: G3 = gap('AlternatingGroup(6)')
         sage: _IdGroup(G3,D,H, ring=False)
         (360, 118)
-        sage: sorted(D.items(), cmp=lambda x,y: cmp(str(x),str(y)))
-        [('prime', 3), (2520, {0: H^*(8gp3_2520_0; GF(3))}), (360, {})]
+        sage: sorted(D.items())
+        [(360, {}), (2520, {0: H^*(8gp3_2520_0; GF(3))}), ('prime', 3)]
         sage: _IdGroup(G3,D,H)
         (360, 118)
-        sage: sorted(D.items(), cmp=lambda x,y: cmp(str(x),str(y)))
-        [('prime', 3), (2520, {0: H^*(8gp3_2520_0; GF(3))}), (360, {118: H^*(SmallGroup(360,118); GF(3))})]
+        sage: sorted(D.items())
+        [(360, {118: H^*(SmallGroup(360,118); GF(3))}),
+         (2520, {0: H^*(8gp3_2520_0; GF(3))}),
+         ('prime', 3)]
 
     """
     gap = G.parent()
-    _gap_init(gap) #gap.RestoreStateRandom(0)
+    _gap_init(gap)
     try:
         q,n = G.IdGroup().sage()
-        print_protocol( "--> SmallGroup(%d,%d)"%(q,n))
+        coho_logger.info( "Considering SmallGroup(%d,%d)"%(q,n), None)
         if q!=1:
             if D.has_key(q) and D[q].has_key(n):
                 H = D[q][n]
@@ -171,7 +182,6 @@ def _IdGroup(G, D, Client, ring=True):
                     phi = gap('IsomorphismGroups(%s,%s)'%(H.group().name(),G.name()))
                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(G.name(),H.group().name(),phi.name(),H.group().name()))
             else:
-                #gap.eval('Reset(GlobalMersenneTwister,0)') #gap.RestoreStateRandom(0)
                 phi = gap('IsomorphismGroups(SmallGroup(%d,%d),%s)'%(q,n,G.name()))
                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(Source(%s)))], x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(G.name(),phi.name(),phi.name(),phi.name()))
         if D.has_key(q) and D[q].has_key(n):
@@ -191,21 +201,21 @@ def _IdGroup(G, D, Client, ring=True):
         if not ("group identification" in str(msg)):
             raise msg
     q = Integer(G.Order())
-    print_protocol( "--> Order %s"%q)
+    coho_logger.info( "Considering group of order %s"%q, None)
     if not D.has_key(q):
         D[q]={}
     for m,H in D[q].items():
-        #gap.eval('Reset(GlobalMersenneTwister,0)') #gap.RestoreStateRandom(0)
         phiG = gap('IsomorphismGroups(%s,%s)'%(H.group().name(),G.name()))
         if repr(phiG) != 'fail':
             gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(G.name(),H.group().name(),phiG.name(),H.group().name()))
             return (q,m)
     n = -len(D[q].keys())
-    print_protocol( "Computing minimal generating set")
+    coho_logger.info( "Computing minimal generating set of the group", None)
     try:
         gap.eval('%s := Group(MinimalGeneratingSet(%s))'%(G.name(),G.name()))
-    except:
-        print_protocol( "Failed to construct a minimal generating set -- keep your fingers crossed...")
+    except RuntimeError:
+        coho_logger.warn( "Failed to construct a minimal generating set of the group -- keep your fingers crossed...", None)
+        gap.eval('%s := Group(SmallGeneratingSet(%s))'%(G.name(),G.name()))
     if ring:
         if q.is_prime_power():
             D[q][n] = CohomologyRing(G,GStem=Client.GStem+'_%d_%d'%(q,-n),useFactorization=Client.useFactorization,useElimination=Client.useElimination)
@@ -224,14 +234,14 @@ class MODCOHO(COHO):
     Modular cohomology rings of finite groups that are not of prime power order
 
     Normally, instances of this class should be created using the constructor
-    :func:`~sage.groups.modular_cohomology.cohomologyRing`, since this takes care of
+    :func:`~pGroupCohomology.cohomologyRing`, since this takes care of
     uniqueness of parent structures. See
-    :func:`~sage.groups.modular_cohomology.cohomologyRing` and
-    :mod:`sage.groups.modular_cohomology` for an introduction.
+    :func:`~pGroupCohomology.cohomologyRing` and
+    :mod:`pGroupCohomology` for an introduction.
 
     EXAMPLES::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: G = gap('SmallGroup(48,36)')
@@ -264,15 +274,15 @@ class MODCOHO(COHO):
     def __init__(self, G,p, HP,Subgroup, **kwds):
         """
         Normally, instances of this class should be created using the constructor
-        :func:`sage.groups.modular_cohomology.cohomologyRing`, since this takes care of unique
+        :func:`pGroupCohomology.cohomologyRing`, since this takes care of unique
         parent structures. Here, we demonstrate the input used internally.
 
         INPUT:
 
         - ``G`` (Group in GAP)
         - ``p`` (prime number, must divide the order of ``G``)
-        - ``HP`` (instance of :class:`~sage.groups.modular_cohomology.cohomology.COHO` or
-          :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`): Cohomology ring
+        - ``HP`` (instance of :class:`~pGroupCohomology.cohomology.COHO` or
+          :class:`~pGroupCohomology.modular_cohomology.MODCOHO`): Cohomology ring
           of a subgroup of ``G`` the stable element method will be applied to
         - ``Subgroup``, a subgroup of ``G`` that contains a Sylow subgroup of ``G``.
           The generators of ``Subgroup`` must match the generators of ``HP.group()``.
@@ -288,8 +298,8 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.modular_cohomology import MODCOHO
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G = gap('SymmetricGroup(6)')
@@ -330,12 +340,13 @@ class MODCOHO(COHO):
             []
 
         """
-        self.__dict__['_property_dict']={}            # Strange, but these
-        self._property_dict = self.__dict__['_property_dict'] # two lines seem necessary.
+        # Strange, but these three lines seem necessary:
+        self.__dict__['_property_dict']={}
+        self._property_dict = self.__dict__['_property_dict']
         self._decorator_cache = {}
 
         from weakref import WeakValueDictionary
-        from sage.groups.modular_cohomology.cohomology import COHO_prefix, COHO_Terminator
+        from pGroupCohomology.cohomology import COHO_prefix, COHO_Terminator
         self._HomsetCache = WeakValueDictionary({})
         self.GenS = singular(0)
         singular.eval('option(redSB,redTail,redThrough)')
@@ -384,17 +395,15 @@ class MODCOHO(COHO):
         else:
             self.setprop('useFactorization', True)
         self._DuflotRegSeq = [] # will be a maximal Duflot regular sequence
-        #print "@keywords done"
 
         # Get some Group-ID
         if isinstance(G,tuple):
             GId = G
-            from sage.groups.modular_cohomology.resolution import gap
+            from pGroupCohomology.resolution import gap
             G = gap('SmallGroup(%d,%d)'%(G[0],G[1]))
             GStem = GStem or "%dgp%d"%(GId[0],GId[1])
         else:
             gap = G.parent()
-            #print "@attempting Group Order"
             GId = kwds.get('GroupId',(Integer(G.Order()),0))
             if GId[1]>0:
                 try:
@@ -404,11 +413,9 @@ class MODCOHO(COHO):
                     bla = gap.eval('canonicalIsomorphism(SmallGroup(%d,%d),%s)'%(GId[0],GId[1],G.name()))
                 if bla=='fail':
                     raise ValueError, "Group and GroupId are incompatible"
-        #gap.eval('Reset(GlobalMersenneTwister,0)') #gap.eval('RestoreStateRandom(0)')
         self._Order = GId[0]
 
         # Construct GStem
-        #print "@find GStem"
         if GStem is None: # explicit advice of the user has preference.
             # If nothing else is found, use Name from gap
             if G.HasName():
@@ -422,7 +429,6 @@ class MODCOHO(COHO):
 
         # Find an *equivalent* PermutationGroup
         if GPerm is None:
-            #print "@try to find permutation presentation"
             if gap.eval('IsPermGroup(%s)'%G.name())=='false':
                 G2 = gap('regularPermutationAction(%s: forceDefiningGenerators)'%G.name())
                 tmpPhi = gap('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%(G.name(),G2.name(),G.name(),G2.name()))
@@ -449,8 +455,7 @@ class MODCOHO(COHO):
         # If G is not G2, tmpPhi:G->G2 is an isomorphism;
         # otherwise tmpPhi is None
 
-        # The subgroup
-        # HP and Subgroup must be provided by CohomologyRing
+        # The subgroups HP and Subgroup must be provided by CohomologyRing
         # Test if they are admissible
         if not G.IsSubgroup(Subgroup):
             raise ValueError, "We expected a group-subgroup pair"
@@ -463,7 +468,6 @@ class MODCOHO(COHO):
             if bla=='fail':
                 raise ValueError, "The generators of the given subgroup must be compatible with those of the group of the given cohomology ring"
 
-            #print "@done"
         P = Subgroup
         PId = SubgpId
         if PId is None:
@@ -475,7 +479,7 @@ class MODCOHO(COHO):
             self._POrder = Order = PId[0]
         self._HP = HP
         self.Resl = self._HP.Resl
-        print_protocol( "Using a subgroup of order %s"%self._POrder, self)
+        coho_logger.info( "Using a subgroup of order %s", self, self._POrder)
         if not HP.completed:
             HP.make()
 
@@ -494,9 +498,6 @@ class MODCOHO(COHO):
         while isinstance(HS, MODCOHO):
             HS = HS._HP
         self._HSyl = HS
-        #if HS is HP:
-        #    _SylowGp = P
-        #else:
         # The subgroup pair (P, _SylowGp) has to be compatible with (HP.group(),HP.sylow_subgroup())
         # This was forgotten in the old approach
         #
@@ -504,7 +505,6 @@ class MODCOHO(COHO):
         # have a canonical Isomorphism by construction, and also
         # it was checked above if kwds.get('verifyGroupIso').
         # So now, do it quick and dirty...
-        #phiHPtoP = HP.group().canonicalIsomorphism(P)
         if kwds.get('verifyGroupIso'):
             try:
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
@@ -538,10 +538,9 @@ class MODCOHO(COHO):
         # We are interested in the stable elements of self._HP. The only
         # elements of G that act nontrivially on P are its double coset
         # representatives.
-        print_protocol( "Computing double coset representatives for the given subgroup", self)
+        coho_logger.info( "Computing double coset representatives for the given subgroup", self)
         CBase = G.DoubleCosetRepsAndSizes(P,P) # This should start with 1, but we better don't rely on it.
-        print_protocol( "Intersecting subgroup with %d conjugates"%(int(gap.eval('Length(%s)'%CBase.name()))-1), self)
-        #self.setprop('_analyse',[int(gap.eval('Length(%s)'%CBase.name()))])
+        coho_logger.info( "Intersecting subgroup with %d conjugates", self, int(gap.eval('Length(%s)'%CBase.name()))-1)
         C = [] # relevant double coset representatives
         phiC = [] # conjugator isomorphism corresponding to C
         HCP = [] # the cohomology of the intersection of P with its conjugates
@@ -577,7 +576,6 @@ class MODCOHO(COHO):
                         if not HCP[-1].completed:
                             HCP[-1].make()
                     else:
-                        #self._analyse.append([repr(c),'Order(X)==%d'%PIdTmp[0]])
                         HCP.append(None)
                 if HCP[-1] is not None:
                     # Now, construct the restriction maps
@@ -590,11 +588,11 @@ class MODCOHO(COHO):
             self.setprop('Cosets',[repr(X).replace('\n','').replace(' ','') for X in C])
 
         if len(C)==0:
-            print_protocol( "No stability condition - all cocycles are stable", self)
+            coho_logger.info( "No stability condition - all cocycles are stable", self)
         elif len(C)==1:
-            print_protocol( "1 double coset may be relevant to stability", self)
+            coho_logger.info( "1 double coset may be relevant to stability", self)
         else:
-            print_protocol("%d double cosets may be relevant to stability"%len(C), self)
+            coho_logger.info("%d double cosets may be relevant to stability",self, len(C))
 
         # The elements of self are represented by the stable
         # elements of self._HP, and these are the elements on
@@ -613,21 +611,19 @@ class MODCOHO(COHO):
                         self._PtoPcapCPtwist.append(Y)
                         IdPairs.append(ID)
                     else:
-                        #self._analyse.append([self.Cosets[i],'chain map pair redundant'])
                         self.Cosets[i] = None
                 else:
-                    #self._analyse.append([self.Cosets[i],'identical chain maps'])
                     self.Cosets[i] = None
         self.setprop('Cosets',[X for X in self.Cosets if X is not None])
         # in the folowing method, maps are removed if their singular
         # representations are redundant
         self._simplifyMapData()
         if len(self._PtoPcapCPdirect)==0:
-            print_protocol( "All cocycles are stable", self)
+            coho_logger.info( "All cocycles are stable", self)
         elif len(self._PtoPcapCPdirect)==1:
-            print_protocol( "One induced map on the cohomology of the given subgroup may be relevant to stability", self)
+            coho_logger.info( "One induced map on the cohomology of the given subgroup may be relevant to stability", self)
         else:
-            print_protocol("%d induced maps on the cohomology of the given subgroup may be relevant to stability"%len(self._PtoPcapCPdirect), self)
+            coho_logger.info("%d induced maps on the cohomology of the given subgroup may be relevant to stability",self, len(self._PtoPcapCPdirect))
 
         # The key is:
         # - A unique description of the given group-with-generators
@@ -636,7 +632,7 @@ class MODCOHO(COHO):
         # - The prime
         self.setprop('_key', (( ''.join([t.strip() for t in ('Group('+repr(G2.GeneratorsOfGroup())+')').split()]),) if GId[1]==0 else tuple(GId), self.GStem, self._HP._key, p))
         # Insert self into the cache
-        from sage.groups.modular_cohomology import CohomologyRing
+        from pGroupCohomology import CohomologyRing
         _cache = CohomologyRing._cache
         _cache[self._key] = self  # Note that there is no entry yet with this key --
                                   # provided that the ring
@@ -671,7 +667,7 @@ class MODCOHO(COHO):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,48,prime=3, from_scratch=True)
@@ -706,7 +702,7 @@ class MODCOHO(COHO):
 
         # Ring structure
         GEN = [(X.val_str(), X.Deg, X._name, X._rdeg, X._ydeg) for X in self.Gen]
-        Triangular = []#[[i,[(X.val_str(), X.Deg, X._name, X._rdeg, X._ydeg) for X in Tr]] for i,Tr in self.Triangular.items()]
+        Triangular = []
         DuflotRegSeq = [(X.val_str(), X.Deg, X._name, X._rdeg, X._ydeg) for X in self._DuflotRegSeq]
         ## Singular elements:
         StdMon = []
@@ -717,16 +713,14 @@ class MODCOHO(COHO):
             # it may happen that a relation was found *after*
             # the last make_groebner was issued. So, we need
             # to update self.RelG
-            self.RelG = [s.strip() for s in singular.eval('print(%sI)'%(self.prefix)).split(',')] # str(singular('%sI'%(self.prefix))).split(',')]
+            self.RelG = [s.strip() for s in singular.eval('print(%sI)'%(self.prefix)).split(',')]
             for nkey in self.StdMon.keys():
                 StdMon.append([nkey,[]])
                 # it may be that some of the data aren't defined in singular anymore
                 if [1 for _ in self.StdMon[nkey].values() if _.parent().eval('defined(%s)'%_.name())=='1']:
                     for monkey in self.StdMon[nkey].keys():
                         StdMon[-1][1].append([monkey, [s.strip() for s in str(self.StdMon[nkey][monkey]).split(',')]])
-            #if singular.eval('defined(%sDG)'%self.prefix)=='1':
-            #    DG = [s.strip() for s in singular.eval('print(%sDG)'%self.prefix).split(',\n')]
-        # self._HP can be found (on disc or wherever) if its group description
+        # self._HP can be found (on disk or wherever) if its group description
         # and its GStem are.
         # But this is part of self._key, thus, is in self._property_dict
         return MODCOHO_unpickle, (self._prime, GEN, self.Rel, self.RelG, self.lastRel, self.lastRelevantDeg, self.knownDeg, self.suffDeg, self.completed, self.Dickson, DuflotRegSeq, self.alpha, Triangular, StdMon, DG, self._gapBackup, self._SubgpBackup, self._SylowGpBackup, SubgroupList, PtoPcapCPdirect, PtoPcapCPtwist, PtoPcapCPdirectSing, PtoPcapCPtwistSing, self._Order, self._POrder, sgpDickson, pickle_gap_data(self._property_dict.items()), self.SingularTime, pickle_gap_data(self._decorator_cache.items()))
@@ -751,7 +745,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,48,prime=2, from_scratch=True)
@@ -812,7 +806,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -840,7 +834,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -859,7 +853,7 @@ class MODCOHO(COHO):
         try:
             self._gap_group._check_valid()
         except:
-            from sage.groups.modular_cohomology.resolution import gap
+            from pGroupCohomology.resolution import gap
             self._gap_group = gap(self._gapBackup)
         return self._gap_group
 
@@ -869,7 +863,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -884,7 +878,7 @@ class MODCOHO(COHO):
         try:
             self._SylowGp._check_valid()
         except:
-            from sage.groups.modular_cohomology.resolution import gap
+            from pGroupCohomology.resolution import gap
             self._SylowGp = gap(self._SylowGpBackup)
         return self._SylowGp
 
@@ -894,7 +888,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -911,7 +905,7 @@ class MODCOHO(COHO):
         try:
             self._Subgp._check_valid()
         except:
-            from sage.groups.modular_cohomology.resolution import gap
+            from pGroupCohomology.resolution import gap
             self._Subgp = gap(self._SubgpBackup)
         return self._Subgp
 
@@ -934,7 +928,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -980,7 +974,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -998,7 +992,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -1030,7 +1024,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50, prime=2)
@@ -1055,13 +1049,11 @@ class MODCOHO(COHO):
             if singular.eval('matrix(ideal(%s))==matrix(ideal(%s))'%(singular(self._PtoPcapCPdirect[-i]).name(),singular(self._PtoPcapCPtwist[-i]).name()))=='1':
                 self._PtoPcapCPdirect[-i] = None
                 self._PtoPcapCPtwist[-i] = None
-                #self._analyse.append([self.Cosets[-i],'identical induced maps'])
                 self.Cosets[-i] = None
             else:
                 ID = (id(self._PtoPcapCPdirect[-i].codomain()), set([singular.eval('print(ideal(%s))'%singular(self._PtoPcapCPdirect[-i]).name()), singular.eval('print(ideal(%s))'%singular(self._PtoPcapCPtwist[-i]).name())]))
                 if ID in IDList:
                     self._PtoPcapCPdirect[-i] = None
-                    #self._analyse.append([self.Cosets[-i],'redundant induced maps'])
                     self._PtoPcapCPtwist[-i] = None
                     self.Cosets[-i] = None
                 else:
@@ -1074,61 +1066,11 @@ class MODCOHO(COHO):
         if len(self._PtoPcapCPdirect)<l:
             l = len(self._PtoPcapCPdirect)
             if l==1:
-                print_protocol( "Only one map is relevant for stability", self)
+                coho_logger.info( "Only one map is relevant for stability", self)
             elif l==0:
-                print_protocol( "No stability conditions - all elements are stable", self)
+                coho_logger.info( "No stability conditions - all elements are stable", self)
             else:
-                print_protocol( "Only %d maps are relevant for stability"%l, self)
-
-##     def _make_mapper(self):
-##         cdef int l = len(self._PtoPcapCPdirect)
-##         if not l:
-##             return
-##         cdef int i,j
-##  # Idea: a ring Rtotal, with variables
-##         # -  @a(1..len(self._HP.Gen))
-##         # -  @s(1..2) identifies the summand
-##         # -  @g(1..l) identifies the subgroup
-##         # -  @t(1..l)(1..len(self._PtoPcapCPdirect[i].codomain().Gen)) copying the target of the stability conditions
-##         #
-##         ## A polynomial 'Multiplier', (@s(1)-@s(2))*sum(@g(1..l)) [no, will be created in place, when adding the ring to something corresponding to the variables
-##         #
-##         # An ideal 'Mapper',
-##         # - so that something multiplied with @s(i)*@g(j) maps a monomial to the j-th subgroup by the direct/twisted map
-##         # - so that something multiplied with @g(j) is reduced as in the j-th subgroup
-##         # and an ideal 'Eval', that replaces @s(i)*@g(j) by 1.
-
-##         # copy the singular versions of the target rings,
-##         # so that mapping can be done by interreduction
-
-##         singular = self.GenS.parent()
-##         Ring = singular.ring(self._prime,'(@a(1..%d),@s(1..2),@g(1..%d))'%(len(self._HP.Gen),l),'dp')
-##         RingL = []
-##         for i from 0 <= i < l:
-##             f = self._PtoPcapCPdirect[i]
-##             f.codomain().set_ring()
-##             RingL.append(singular('changevar("@t(%d)(1..%d)",basering)'%(i,len(f.codomain().Gen))))
-##             Ring = Ring+RingL[-1]
-##         # now, the ring is complete
-##         Ring.set_ring()
-##         #singular.eval('poly %sMultiplier=(@s(1)-@s(2))*sum(@g(1..%d))'%(self.prefix,l))
-##         maxI0 = singular('matrix(ideal(@a(1..%d)))'%len(self._HP.Gen))
-##         singular.eval('ideal %sMapper'%self.prefix)
-##         for i from 0 <= i < l:
-##             f = self._PtoPcapCPdirect[i]
-##             f.codomain().set_ring()
-##             R = singular('basering')
-##             RingL[i].set_ring()
-##             RelI  = singular('fetch(%s,%sI)'%(R.name(),f.codomain().prefix))
-##             Map1  = singular('matrix(ideal(fetch(%s,%s)))'%(singular(f.codomain()).name(),self._PtoPcapCPdirectSing[i].name()))
-##             Map2  = singular('matrix(ideal(fetch(%s,%s)))'%(singular(f.codomain()).name(),self._PtoPcapCPtwistSing[i].name()))
-
-##             Ring.set_ring()
-##             singular.eval('%sMapper=%sMapper+ideal(@s(1)*@g(%d)*(%s-imap(%s,%s)))'%(self.prefix,self.prefix,i+1, maxI0.name(), RingL[i].name(),Map1.name()))
-##             singular.eval('%sMapper=%sMapper+ideal(@s(2)*@g(%d)*(%s-imap(%s,%s)))'%(self.prefix,self.prefix,i+1, maxI0.name(), RingL[i].name(),Map2.name()))
-##             singular.eval('%sMapper=%sMapper+imap(%s,%s)'%(self.prefix,self.prefix, RingL[i].name(),RelI.name()))
-##         singular.eval('%sMapper=interred(%sMapper)'%(self.prefix,self.prefix))
-##         self._totalRing = Ring
+                coho_logger.info( "Only %d maps are relevant for stability", self, l)
 
     def _copy_from_subgroup(self):
         """
@@ -1147,7 +1089,7 @@ class MODCOHO(COHO):
         condition. The result is nonsense, but good for testing.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50,prime=2)
@@ -1199,11 +1141,11 @@ class MODCOHO(COHO):
             return
         if not self._HP.completed:
             raise RuntimeError, "The cohomology ring of the underlying subgroup must be known"
-        from sage.groups.modular_cohomology.resolution import OPTION
-        from sage.groups.modular_cohomology.cochain import MODCOCH
-        from sage.groups.modular_cohomology import CohomologyRing
+        from pGroupCohomology.resolution import coho_options
+        from pGroupCohomology.cochain import MODCOCH
+        from pGroupCohomology import CohomologyRing
         _cache = CohomologyRing._cache
-        print_protocol( "Copying ring structure from "+repr(self._HP), self)
+        coho_logger.info( "Copying ring structure from %r",self, self._HP)
         # self._prime must already be OK
         # MODCOCH and  string data
         singular = self._HP.GenS.parent()
@@ -1260,30 +1202,20 @@ class MODCOHO(COHO):
         # we disregard the standard monomials. After all, it is
         # relatively cheap to reconstruct
         self.StdMon = {0:{'1':singular('1')}}
-        #if self._HP.ParameterDegrees is not None:
-        #    self.setprop('ParameterDegrees',self._HP.ParameterDegrees)
-        #if self._HP.HilbertVectors is not None:
-        #    self.setprop('HilbertVectors',self._HP.HilbertVectors)
-        #if self._HP.rfdt is not None:
-        #    self.setprop('rfdt',self._HP.rfdt)
         if self._HP.fdt is not None:
             self.setprop('fdt',self._HP.fdt)
         if self._HP.completeGroebner is not None:
             self.setprop('completeGroebner',self._HP.completeGroebner)
-        #if self._HP.lastTested is not None:
-        #    self.setprop('lastTested',self._HP.lastTested)
-        #if self._HP.A_INV is not None:
-        #    self.setprop('A_INV',self._HP.A_INV)
         if self._HP.A_INV_Expos is not None:
             self.setprop('A_INV_Expos',self._HP.A_INV_Expos)
-        from sage.groups.modular_cohomology.resolution import OPTION
-        if OPTION.opts['save']:
+        from pGroupCohomology.resolution import coho_options
+        if coho_options['save']:
             safe_save(self,self.autosave_name())
 
     # if the degree is too low, we won't lift the parameters. Hence,
     # no "@permanent_result"
-    # But @temporary_result isn't good either: If the parameters are
-    # lifted then they can be kept.
+    # But @temporary_result isn't good either: If the parameters do
+    # lift then they can be kept.
     #@temporary_result
     def parameters_from_sylow_subgroup(self):
         """
@@ -1310,7 +1242,7 @@ class MODCOHO(COHO):
         whether by chance the restricted Dickson elements found for
         the Sylow subgroup happen to be stable.  If only the last
         parameter can not be lifted,
-        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.find_small_last_parameter`
+        :meth:`~pGroupCohomology.cohomology.COHO.find_small_last_parameter`
         may help to find a filter regular homogeneous system of
         parameters in small degrees.
 
@@ -1321,7 +1253,7 @@ class MODCOHO(COHO):
         taken from an outdated version of the public database, and
         compute it from scratch::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(64,138,from_scratch=True)
@@ -1369,7 +1301,6 @@ class MODCOHO(COHO):
         """
         if self._params_from_sylow is not None:
             OUT = [t for t in self._params_from_sylow]
-            #self.delprop('_params_from_sylow')
             return OUT
         if len(self._DuflotRegSeq)<(self.PCenterRk or self.pRank):
             return None
@@ -1386,15 +1317,15 @@ class MODCOHO(COHO):
             return None
         if br is not None:
             br.set_ring()
-        print_protocol( "Trying to lift the parameters of "+repr(HS), self)
-        from sage.groups.modular_cohomology.cochain import MODCOCH
+        coho_logger.info( "Trying to lift the parameters of %r",self, HS)
+        from pGroupCohomology.cochain import MODCOCH
         D = [self.small_factor(self.stable_to_polynomial(MODCOCH(HS,t,name=t,S=self.GenS.parent(), is_polyrep=True), verify=True)) if t is not None else None for t in HS.Dickson]
         if D.count(None)==1:
-            print_protocol( "One parameter could not be lifted", self)
+            coho_logger.info( "One parameter could not be lifted", self)
         elif D.count(None)==0:
-            print_protocol( "All parameters could be lifted", self)
+            coho_logger.info( "All parameters could be lifted", self)
         else:
-            print_protocol("%d parameters could not be lifted"%D.count(None), self)
+            coho_logger.info("%d parameters could not be lifted",self, D.count(None))
         self.setprop('_params_from_sylow',[t.name() for t in self._DuflotRegSeq]+D)
         return [t.name() for t in self._DuflotRegSeq]+D
 
@@ -1468,7 +1399,7 @@ class MODCOHO(COHO):
 ##         return a basis for the subspace of stable elements in self._HP of degree d
 
 ##         OUTPUT:
-##         - a list of cochains (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`),
+##         - a list of cochains (:class:`~pGroupCohomology.cochain.MODCOCH`),
 ##           that form a basis for the space of stable elements
 ##         - a list of standard monomials of the underlying cohomology ring
 ##           of a subgroup
@@ -1482,15 +1413,14 @@ class MODCOHO(COHO):
 ##         singular = self.GenS.parent()
 ##         cdef int SizePieces
 ##         try:
-##             SizePieces = min(max(int(OPTION.opts.get('SingularCutoff',50)*(get_memory_usage()*1024*512)/int(singular.eval
+##             SizePieces = min(max(int(coho_options.get('SingularCutoff',50)*(get_memory_usage()*1024*512)/int(singular.eval
 ## ('memory(2)'))),2),100)
 ##         except: # may happen on non-linux non-osx
-##             SizePieces = OPTION.opts.get('SingularCutoff',50)
+##             SizePieces = coho_options.get('SingularCutoff',50)
 ##         print "SizePieces =", SizePieces
 
 ##         # standard monomials for the Sylow subgroup
-##         if OPTION.opts['prot']:
-##             print "Determining stable subspace in degree",n
+##         coho_logger.info("Determining stable subspace in degree %d"%n, self)
 ##         self._HP._makeStdMon(n,"%sMon"%self.prefix)
 ##         self._HP.set_ring()
 ##         rHP = singular('basering')
@@ -1516,8 +1446,7 @@ class MODCOHO(COHO):
 ##             singular.eval('poly %sP(1) = imap(%s,%sMon)[1]'%(self.prefix, rHP.name(), self.prefix))
 ##         #print "P start"
 ##         #print singular.eval('%sP(1..%d)'%(self.prefix,m))
-##         if OPTION.opts['prot']:
-##             print '> found %d monomials for the Sylow subgroup'%m
+##         coho_logger.info('> found %d monomials for the Sylow subgroup'%m, self)
 
 ##         cdef list L, Restr, Mon, Coefs, Terms, NegTerms
 ##         cdef dict SubgpMonomials = {} # will be a dictionary COHO._key -> monomial dictionary
@@ -1544,8 +1473,7 @@ class MODCOHO(COHO):
 ##         I = singular('imap(%s,%sMon)'%(rHP.name(),self.prefix))
 ##         #print I
 ##         for i from 0 <= i < l: # subgps distinguished by @x(i+1)
-##             if OPTION.opts['prot']:
-##                 print "  Conjugator isomorphism",i
+##             coho_logger.info("Conjugator isomorphism %d"%i, self)
 ##             for j from 0<= j < m:
 ##                 im1,im2 = self._mon_image(Monomials[j],i)
 ##                 rname = singular(self._PtoPcapCPdirect[i].codomain()).name()
@@ -1555,8 +1483,7 @@ class MODCOHO(COHO):
 ##         # Those that don't have '@' in them are stable; note that we
 ##         # rely on tthe fact that in the cohomology rings no variable
 ##         # name contains '@'
-##         if OPTION.opts['prot']:
-##             print "  Extracting the stable subspace"
+##         coho_logger.info("> Extracting the stable subspace",self)
 ##         singular.eval('%s=interred(%s)'%(I.name(),I.name())) # this should be sorted -- hopefully it is...
 ##         maxI = singular('imap(%s,%s)'%(r.name(),maxI.name()))
 ##         singular.eval('for (%s_i=ncols(%s);%s_i>0;%s_i--){ if (NF(%s[%s_i],%s)<>%s[%s_i]){%s[%s_i]=0;}}'%(self.prefix,I.name(),self.prefix,self.prefix, I.name(),self.prefix,maxI.name(),I.name(),self.prefix, I.name(),self.prefix))
@@ -1569,7 +1496,7 @@ class MODCOHO(COHO):
 ##             singular.eval('%sMon=NF(imap(%s,%s),std(0))'%(self.prefix,R.name(),I.name()))
 ##         cdef list OUT = []
 ##         cdef list Pivots = []
-##         from sage.groups.modular_cohomology.cochain import MODCOCH
+##         from pGroupCohomology.cochain import MODCOCH
 ##         for i from 1<=i<=k:
 ##             if singular.eval('%sMon[%d]==0'%(self.prefix,i))!='1': # it is stable:
 ##                 OUT.append(MODCOCH(self, singular('%sMon[%d]'%(self.prefix,i)), deg=n, name='Gen%d'%i, is_NF=True))
@@ -1588,7 +1515,7 @@ class MODCOHO(COHO):
 
 ##         OUTPUT:
 
-##         - a list of cochains (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`),
+##         - a list of cochains (:class:`~pGroupCohomology.cochain.MODCOCH`),
 ##           that form a basis for the space of stable elements
 ##         - a list of standard monomials of the underlying cohomology ring
 ##           of a subgroup
@@ -1604,14 +1531,13 @@ class MODCOHO(COHO):
 ##         singular = self.GenS.parent()
 ##         #cdef int SizePieces
 ##         #try:
-##         #    SizePieces = min(max(int(OPTION.opts.get('SingularCutoff',50)*(get_memory_usage()*1024*512)/int(singular.eval('memory(2)'))),2),100)
+##         #    SizePieces = min(max(int(coho_options.get('SingularCutoff',50)*(get_memory_usage()*1024*512)/int(singular.eval('memory(2)'))),2),100)
 ##         #except: # may happen on non-linux non-osx
-##         #    SizePieces = OPTION.opts.get('SingularCutoff',50)
+##         #    SizePieces = coho_options.get('SingularCutoff',50)
 ##         #print "SizePieces =", SizePieces
 
 ##         # standard monomials for the Sylow subgroup
-##         if OPTION.opts['prot']:
-##             print "Determining stable subspace in degree",n
+##         coho_logger.info("Determining stable subspace in degree %d"%n, self)
 ##         self._HP._makeStdMon(n,"%sMon"%self.prefix)
 ##         self._HP.set_ring()
 ##         rHP = singular('basering')
@@ -1621,24 +1547,19 @@ class MODCOHO(COHO):
 ##         m = len(Monomials)
 ##         if m==0:
 ##             return [],[],[]
-##         if OPTION.opts['prot']:
-##             print '> found %d monomials for the Sylow subgroup, that are now to be mapped'%m
+##         coho_logger.info('> found %d monomials for the Sylow subgroup, that are now to be mapped'%m, self)
 ##         Ring = self._totalRing+rHP
 ##         self._totalRing.set_ring()
 ##         MonI = singular('NF(ideal(matrix(fetch(%s,%sMon))*(@s(1)-@s(2))*sum(@g(1..%d))),%sMapper)'%(rHP.name(),self.prefix,l,self.prefix))
-##         print "Map done"
 ##         singular.eval('%s=NF(%s,std(ideal(@s(1)-1,@s(2)-1)))'%(MonI.name(),MonI.name()))
-##         print "2nd NF done"
 ##         Ring.set_ring()
 ##         MonI = singular('ideal(matrix(fetch(%s,%s))+matrix(imap(%s,%sMon)))'%(self._totalRing.name(),MonI.name(),rHP.name(),self.prefix))
-##         print "Neu MonI"
 
 ##         # determine stable elements by elimination.
 ##         # Those that don't have '@' in them are stable; note that we
 ##         # rely on tthe fact that in the cohomology rings no variable
 ##         # name contains '@'
-##         if OPTION.opts['prot']:
-##             print "  Extracting the stable subspace"
+##         coho_logger.info("> Extracting the stable subspace", self)
 ##         singular.eval('%s=interred(%s)'%(MonI.name(),MonI.name())) # this should be sorted -- hopefully it is...
 ##         maxI = singular('ideal(@g(1..%d))'%l)
 ##         singular.eval('int %s_i'%self.prefix)
@@ -1652,7 +1573,7 @@ class MODCOHO(COHO):
 ##             singular.eval('%sMon=NF(imap(%s,%s),std(0))'%(self.prefix,Ring.name(),MonI.name()))
 ##         cdef list OUT = []
 ##         cdef list Pivots = []
-##         from sage.groups.modular_cohomology.cochain import MODCOCH
+##         from pGroupCohomology.cochain import MODCOCH
 ##         for i from 1<=i<=k:
 ##             if singular.eval('%sMon[%d]==0'%(self.prefix,i))!='1': # it is stable:
 ##                 OUT.append(MODCOCH(self, singular('%sMon[%d]'%(self.prefix,i)), deg=n, name='Gen%d'%i, is_NF=True))
@@ -1674,7 +1595,7 @@ class MODCOHO(COHO):
 
         OUTPUT:
 
-        - a list of elements (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`) of ``self``
+        - a list of elements (:class:`~pGroupCohomology.cochain.MODCOCH`) of ``self``
           whose restriction to the underlying subgroup yield a basis for the space
           of stable elements in degree ``n``.
         - a list of standard monomials of the underlying cohomology ring
@@ -1685,7 +1606,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('MathieuGroup(11)')
@@ -1722,18 +1643,16 @@ class MODCOHO(COHO):
 
         """
         cdef int i,j,l,m,k,nr,a,b
-        cdef int SizePieces = OPTION.opts.get('SingularCutoff',50)
+        cdef int SizePieces = coho_options.get('SingularCutoff',50)
 
         # standard monomials for the Sylow subgroup
-        print_protocol( "Determining stable subspace in degree %d"%n, self)
+        coho_logger.info( "Determining stable subspace in degree %d",self, n)
         singular = self.GenS.parent()
         self._HP._makeStdMon(n,"%sMon"%self.prefix)
-        #print "#done"
         self._HP.set_ring()
         RHP = singular('basering')
         singular.eval('%sMon=sort(%sMon)[1]'%(self.prefix,self.prefix))
         cdef list Monomials = [singular.eval("print(%sMon[%d])"%(self.prefix,i)).strip() for i in range(1,int(singular.eval('size(%sMon)'%self.prefix))+1)] # stable and unstable monomials
-        #print "#monomials done"
         cdef list MonExp
         cdef dict tmpD
         cdef list tmpL
@@ -1753,9 +1672,8 @@ class MODCOHO(COHO):
             singular.eval('poly %sP(1..%d) = imap(%s,%sMon)'%(self.prefix, m, RHP.name(), self.prefix))
         else:
             singular.eval('poly %sP(1) = imap(%s,%sMon)[1]'%(self.prefix, RHP.name(), self.prefix))
-        #print "#polys done"
         singular.eval('ideal %sMon=imap(%s,%sMon)'%(self.prefix, RHP.name(), self.prefix))
-        print_protocol( '> found %d monomials for the subgroup'%m, self)
+        coho_logger.debug( '> found %d monomials for the subgroup', self,m)
         cdef list L, Restr, Mon, Coefs, Differences, Terms, NegTerms, tmpL1, tmpL2
         cdef dict SubgpMonomials = {} # will be a dictionary COHO._key -> monomial dictionary
 
@@ -1764,18 +1682,16 @@ class MODCOHO(COHO):
         # 1. get strings from the differences that have been computed above
         Differences = []
         SubgpMonomials[self._HP._key] = dict(zip(Monomials, [j for j in range(len(Monomials))]))
-        for i from 0 <= i < l: #f in self._PtoPcapCPdirect:
+        for i from 0 <= i < l:
             f = self._PtoPcapCPdirect[i]
             fd = self._PtoPcapCPtwist[i]
             if not SubgpMonomials.has_key(f.codomain()._key):
                 f.codomain()._makeStdMon(n,"%sMon"%f.codomain().prefix)
                 f.codomain().set_ring()
-                #print "#_makeStdMon for subgroup done"
-                L = [singular.eval('print(%sMon[%d])'%(f.codomain().prefix,k)).strip() for k in range(1,int(singular.eval('size(%sMon)'%f.codomain().prefix))+1)] # singular.eval("print(%sMon)"%f.codomain().prefix).split(',\n')
-                #print "#monomials gotten"
+                L = [singular.eval('print(%sMon[%d])'%(f.codomain().prefix,k)).strip() for k in range(1,int(singular.eval('size(%sMon)'%f.codomain().prefix))+1)]
                 SubgpMonomials[f.codomain()._key] = dict(zip(L, [j for j in range(len(L))]))
                 singular.eval('kill %sMon'%f.codomain().prefix)
-            print_protocol( "> Conjugator isomorphism %d"%i, self)
+            coho_logger.debug( "> Considering conjugator isomorphism %d"%i, self)
             singular(f.codomain()).set_ring()
             # The following is working around a memory leak in Singular
             # and a bug in the Singular interface
@@ -1784,14 +1700,12 @@ class MODCOHO(COHO):
             for k from 1<=k<=m:
                 tmpL1=[]
                 singular.eval('%s=NF(%s(%sP(%d))-%s(%sP(%d)),std(0))'%(tmpP.name(),self._PtoPcapCPdirectSing[i].name(),self.prefix,k, self._PtoPcapCPtwistSing[i].name(),self.prefix,k))
-                #print "#tmpPoly modified"
                 a = int(singular.eval('size(%s)'%tmpP.name()))
                 nr = int(a/SizePieces)
                 for j from 0<=j<nr:
                     tmpL1.append(singular.eval('print(%s[%d..%d])'%(tmpP.name(),j*SizePieces+1,(j+1)*SizePieces)).strip())
                 if nr*SizePieces<a:
                     tmpL1.append(singular.eval('print(%s[%d..%d])'%(tmpP.name(),nr*SizePieces+1,a)).strip())
-                #print "#tmpL1 completed"
                 tmpL2.append(tmpL1)
             Differences.append(tmpL2)
 
@@ -1803,7 +1717,7 @@ class MODCOHO(COHO):
                     singular.eval('kill %sMon'%f.codomain().prefix)
 
         singular(self._HP).set_ring()
-        print_protocol( "Setting up conditions to determine stable elements", self)
+        coho_logger.info( "Setting up conditions to determine stable elements", self)
         Restr = []
         for j from 0 <= j < m:
             Restr.append([])
@@ -1813,7 +1727,6 @@ class MODCOHO(COHO):
                 L = len(tmpD.keys())*[0]
                 Coefs = []
                 Mon = []
-                #p = Differences[i][j]
                 tmpL1 = Differences[i][j]
                 for p in tmpL1:
                     NegTerms = p.split('-')
@@ -1846,13 +1759,13 @@ class MODCOHO(COHO):
                     except:
                         raise
                 Restr[-1].extend(L)
-        print_protocol( "Solving equations", self)
+        coho_logger.info( "Solving equations", self)
         if Restr and Restr[0]:
-            M = MTX(self._prime, Restr).nullspace()
+            M = makeMTX(MatNullSpace__(rawMatrix(self._prime, Restr)))
         else:
-            M = MTX(self._prime, len(Monomials),"id")
+            M = makeMTX(MatId(self._prime, len(Monomials)))
         if M.nrows():
-            L = M._matlist_()
+            L = [M._rowlist_(i) for i in range(M.nrows())]
         else:
             return [],[],[]
         # Create MODCOCH instances, which avoids lifting of cocycles and
@@ -1864,16 +1777,14 @@ class MODCOHO(COHO):
         else:
             singular.eval('%stmpI=ideal(0)'%self.prefix)
         cdef list OUT = []
-        from sage.groups.modular_cohomology.cochain import MODCOCH
+        from pGroupCohomology.cochain import MODCOCH
         l = len(L)
         singular.eval('%stmpI[%d]=0'%(self.prefix,l))
         for j from 0 < j <= l:
             Coefs = L[j-1]
             for i from 0 <= i < m:
                 if Coefs[i]!=0:
-                    #print "#updating tmpI"
-                    singular.eval('%stmpI[%d]=%d*%sP(%d)+%stmpI[%d]'%(self.prefix, j, Coefs[i], self.prefix, i+1, self.prefix, j))#Monomials[i], self.prefix, j))
-                    #print "#done"
+                    singular.eval('%stmpI[%d]=%d*%sP(%d)+%stmpI[%d]'%(self.prefix, j, Coefs[i], self.prefix, i+1, self.prefix, j))
         singular.eval('kill %sP(1..%d)'%(self.prefix,m))
 
         singular.eval('%stmpI=sort(%stmpI)[1]'%(self.prefix,self.prefix))
@@ -1885,12 +1796,10 @@ class MODCOHO(COHO):
         singular.eval('%s=interred(%s)'%(tmpI.name(),tmpI.name()))
         singular(self._HP).set_ring()
         singular.eval('%stmpI=imap(%s,%s)'%(self.prefix,tmpBR.name(),tmpI.name()))
-        #print "#nearly finished"
         l = int(singular.eval('size(%stmpI)'%self.prefix))+1
         OUT = [MODCOCH(self, singular('%stmpI[%d]'%(self.prefix,i)), deg=n, name='Gen%d'%i, is_NF=True) for i in range(1,l)]
         OUT.reverse()
         Pivots = [t.strip() for t in singular.eval('print(normalize(lead(%stmpI)))'%self.prefix).split(',')]
-        #print "#finished"
         Pivots.reverse()
         singular.eval('kill %stmpI'%self.prefix)
         Monomials.reverse()
@@ -1929,30 +1838,37 @@ class MODCOHO(COHO):
         elements in the special subgroups found with
         dickson_in_subgroup, one can even find a hsop that is filter
         regular. However, if `p^{r}-p^{r-i}` is too large, one should
-        use :meth:`~sage.groups.modular_cohomology.cohomology.COHO.find_dickson`,
+        use :meth:`~pGroupCohomology.cohomology.COHO.find_dickson`,
         that avoids the construction of elements of high degrees.
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(162,19,prime=3)
             sage: sorted(H.subgroups().items())
-            [((3, 1), H^*(SmallGroup(3,1); GF(3))), ((9, 2), H^*(SmallGroup(9,2); GF(3))), ((27, 5), H^*(SmallGroup(27,5); GF(3)))]
+            [((3, 1), H^*(SmallGroup(3,1); GF(3))),
+             ((9, 2), H^*(SmallGroup(9,2); GF(3))),
+             ((27, 5), H^*(SmallGroup(27,5); GF(3)))]
             sage: H.dickson_in_subgroup((9,2))
             sage: H.dickson_in_subgroup((27,5))
             sage: sorted(H.subgpDickson.items())
-            [((9, 2), [D_0: 36-Cocycle in H^*(SmallGroup(9,2); GF(3)), D_1: 48-Cocycle in H^*(SmallGroup(9,2); GF(3)), D_2: 52-Cocycle in H^*(SmallGroup(9,2); GF(3))]), ((27, 5), [D_0: 36-Cocycle in H^*(SmallGroup(27,5); GF(3)), D_1: 48-Cocycle in H^*(SmallGroup(27,5); GF(3)), D_2: 52-Cocycle in H^*(SmallGroup(27,5); GF(3))])]
+            [((9, 2),
+              [D_0: 36-Cocycle in H^*(SmallGroup(9,2); GF(3)),
+               D_1: 48-Cocycle in H^*(SmallGroup(9,2); GF(3)),
+               D_2: 52-Cocycle in H^*(SmallGroup(9,2); GF(3))]),
+             ((27, 5),
+              [D_0: 36-Cocycle in H^*(SmallGroup(27,5); GF(3)),
+               D_1: 48-Cocycle in H^*(SmallGroup(27,5); GF(3)),
+               D_2: 52-Cocycle in H^*(SmallGroup(27,5); GF(3))])]
 
         """
         G = self.subgps[id]
         if G.knownDeg<2:
-            G.make() #raise RuntimeError, "we need to know the cohomology ring up to degree 2"
+            G.make()
         if self.subgpDickson is None:
             self.subgpDickson = {}
-        if OPTION.opts['timing']:
-            wt = walltime()
         p = self._prime
         r = self.pRank
         z = self.CenterRk
@@ -1965,7 +1881,7 @@ class MODCOHO(COHO):
             raise RuntimeError, "The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup"
         if t==0:
             return
-        print_protocol ("Computing Dickson invariants in elementary abelian subgroup of rank %d"%sgprank, self)
+        coho_logger.info("Computing Dickson invariants in elementary abelian subgroup of rank %d"%sgprank, self)
 
         # construct the Dickson invariants in the qring of the special subgroup
         singular(G._HP or G).set_ring()
@@ -1975,13 +1891,9 @@ class MODCOHO(COHO):
             singular.eval('ideal %sDI'%(self.prefix))
             singular.eval('for (tmp_i=%d;tmp_i>=1;tmp_i--) { %sDI[tmp_i] = Delta(%d,%d,%d,tmp_i); }'%(r-z,self.prefix,r,z,t))
         singular.eval('kill tmp_i')
-        from sage.groups.modular_cohomology.cochain import MODCOCH
+        from pGroupCohomology.cochain import MODCOCH
         self.subgpDickson[id] = [MODCOCH(G, singular('%sDI[%d]'%(self.prefix,k+1)), deg=(p**(r-z)-p**(r-z-k-1))*(2 if p%2 else 1), name='D_%d'%k) for k in range(r-z)]
         tmp = [t.val_str() for t in self.subgpDickson[id]] # supports data reconstruction after crash
-        if OPTION.opts['timing']:
-            print 'Time for computing Dickson invariants in maximal elementary abelian subgroups'
-            print "   CPU: %.2f"%(walltime(wt))
-
 
     def InitSubgroups(self):
         """
@@ -1993,7 +1905,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
@@ -2008,12 +1920,16 @@ class MODCOHO(COHO):
 
             sage: H.InitSubgroups()
             sage: sorted(H.subgpDickson.items())
-            [((16, 14), [D_0: 8-Cocycle in H^*(SmallGroup(16,14); GF(2)), D_1: 12-Cocycle in H^*(SmallGroup(16,14); GF(2)), D_2: 14-Cocycle in H^*(SmallGroup(16,14); GF(2)), D_3: 15-Cocycle in H^*(SmallGroup(16,14); GF(2))])]
+            [((16, 14),
+              [D_0: 8-Cocycle in H^*(SmallGroup(16,14); GF(2)),
+               D_1: 12-Cocycle in H^*(SmallGroup(16,14); GF(2)),
+               D_2: 14-Cocycle in H^*(SmallGroup(16,14); GF(2)),
+               D_3: 15-Cocycle in H^*(SmallGroup(16,14); GF(2))])]
             sage: sorted(H.subgps.items())
             [((16, 14), H^*(SmallGroup(16,14); GF(2)))]
 
         """
-        print_protocol( "Initialising subgroups", self)
+        coho_logger.info( "Initialising subgroups", self)
         cdef ChMap Map, Tmp
         gap = self._Subgp.parent()
         if self._HP.PCenterRk: # this should only be the case for MODCOHO
@@ -2021,7 +1937,7 @@ class MODCOHO(COHO):
         else:
             self.PCenterRk = self._HP.CenterRk # self._HP is COHO
         if self.PCenterRk is None: # the underlying group is abelian
-            Syl = self._HP.group().SylowSubgroup(self._prime) #gap('SylowSubgroup(%s,%d)'%(self._Subgp.name(),self._prime))
+            Syl = self._HP.group().SylowSubgroup(self._prime)
             self.pRank = CenterRk = int(gap.eval('RankPGroup(%s)'%(Syl.name())))
             # Construct the maximal p-elementary abelian group in self._Subgp
             ExpL = gap('List(GeneratorsOfGroup(%s),Order)'%Syl.name()).sage()[:CenterRk]
@@ -2094,21 +2010,21 @@ class MODCOHO(COHO):
 
         ``None``. Attributes ``degbound_for_gens`` (the currently found maximal
         possible degree of a generator) and ``all_generators_found`` (``True``,
-        if there will be no further generators) are set, and there is some
-        protocol output.
+        if there will be no further generators) are set, and there is some log.
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('MathieuGroup(11)')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(4)
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H.generator_degbound()
-            H^*(M11; GF(2)): New generators will be found at most in degree 5
-            sage: H.option('noprot')
+            H^*(M11; GF(2)):
+                      New generators will be found at most in degree 5
+            sage: CohomologyRing.global_options('warn')
             sage: H.degbound_for_gens
             5
             sage: print H.all_generators_found
@@ -2121,7 +2037,10 @@ class MODCOHO(COHO):
             sage: H.all_generators_found
             True
             sage: sorted(H.gens())
-            [1, b_3_0: 3-Cocycle in H^*(M11; GF(2)), c_4_0: 4-Cocycle in H^*(M11; GF(2)), b_5_0: 5-Cocycle in H^*(M11; GF(2))]
+            [1,
+             b_3_0: 3-Cocycle in H^*(M11; GF(2)),
+             c_4_0: 4-Cocycle in H^*(M11; GF(2)),
+             b_5_0: 5-Cocycle in H^*(M11; GF(2))]
 
         These are all generators, and completeness of the ring
         structure is proved in degree 10::
@@ -2130,7 +2049,10 @@ class MODCOHO(COHO):
             sage: H.knownDeg
             10
             sage: sorted(H.gens())
-            [1, b_3_0: 3-Cocycle in H^*(M11; GF(2)), c_4_0: 4-Cocycle in H^*(M11; GF(2)), b_5_0: 5-Cocycle in H^*(M11; GF(2))]
+            [1,
+             b_3_0: 3-Cocycle in H^*(M11; GF(2)),
+             c_4_0: 4-Cocycle in H^*(M11; GF(2)),
+             b_5_0: 5-Cocycle in H^*(M11; GF(2))]
 
         """
         if self.all_generators_found:
@@ -2139,15 +2061,15 @@ class MODCOHO(COHO):
             if self.knownDeg>=self.degbound_for_gens:
                 self.setprop('all_generators_found',True)
                 return
-            print_protocol("New generators will be found at most in degree %d"%(self.degbound_for_gens), self)
+            coho_logger.info("New generators will be found at most in degree %d"%(self.degbound_for_gens), self)
             return
         if len(self._DuflotRegSeq)<(self.PCenterRk or self.pRank):
             return
-        print_protocol( "Try to find a bound for the degree of generators", self)
+        coho_logger.info( "Try to find a bound for the degree of generators", self)
         L = [singular(t.as_cocycle_in_subgroup()) for t in self.Gen]
         if not L:
-            print_protocol("> No degree bound available, yet", self)
-            return #self.knownDeg+1
+            coho_logger.info("> No degree bound available, yet", self)
+            return
         br = singular('basering')
         singular(self._HP).set_ring()
         I = singular.ideal(L).groebner()
@@ -2158,10 +2080,10 @@ class MODCOHO(COHO):
         br.set_ring()
         self.setprop('degbound_for_gens', m)
         if self.knownDeg>=m:
-            print_protocol("> The generating set is complete", self)
+            coho_logger.info("> The generating set is complete", self)
             self.setprop('all_generators_found',True)
         else:
-            print_protocol( "> New generators will be found at most in degree %d"%(m), self)
+            coho_logger.info( "> New generators will be found at most in degree %d"%(m), self)
 
     def test_for_completion(self,forced = False):
         """
@@ -2175,11 +2097,11 @@ class MODCOHO(COHO):
         NOTE:
 
         This method first invokes
-        :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.generator_degbound`
+        :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.generator_degbound`
         to test whether all generators are known. If this is the case, the
         last degree of relations is estimated.  Eventually, either
-        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.SymondsTest` or
-        :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.HilbertPoincareTest`
+        :meth:`~pGroupCohomology.cohomology.COHO.SymondsTest` or
+        :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.HilbertPoincareTest`
         is called.
 
         EXAMPLES:
@@ -2188,7 +2110,7 @@ class MODCOHO(COHO):
         is called. We use ``MathieuGroup(11)``.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
@@ -2211,7 +2133,7 @@ class MODCOHO(COHO):
         We have a Duflot regular sequence, but it is possible that there are
         more generators in degree 5::
 
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H.test_for_completion()
             H^*(M11; GF(2)): Try to find a bound for the degree of generators
                     > New generators will be found at most in degree 5
@@ -2222,67 +2144,69 @@ class MODCOHO(COHO):
         completion criterion is still not invoked. But at least, there
         are now nice filter regular parameters::
 
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
             sage: H.next()
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H.test_for_completion()
             H^*(M11; GF(2)): We expect a relation in degree at least 10
             sage: H.filter_regular_parameters()
-                    Compute filter_regular_parameters
-                    Trying to lift the parameters of H^*(SD16; GF(2))
-            H^*(48gp29; GF(2)): Input is stable in this ring
-                    Determine degree 1 standard monomials
-                    Express 1 standard monomial as cocycle
-                    > Interreduction
-                    > Determining decomposable subspace
-                    > Extracting decomposable cocycles and relations
-            H^*(M11; GF(2)): Stability condition #0 is violated
-                    One parameter could not be lifted
-                    Testing whether parameters of the cohomology ring can be found
-                    Compute find_small_last_parameter
-                    Computing complete Groebner basis
-                    Compute _parameter_restrictions
-            Map H^*(M11; GF(2)) -> H^*(4gp2; GF(2)): compute restricted parameters
-            H^*(M11; GF(2)): Compute _get_obvious_parameter
-                    Compute _parameter_restrictions
-                    compute radicals of restricted parameters
-                    Compute _parameter_restrictions
-            Map H^*(M11; GF(2)) -> H^*(4gp2; GF(2)): compute restricted parameters
-            H^*(M11; GF(2)): Determine degree 1 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 2 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 3 standard monomials
-                    --> Last parameter found in degree 3
-                    Compute find_small_last_parameter
-                    Compute _get_obvious_parameter
-                    Determine degree 1 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 2 standard monomials
-                    The given last parameter could not be improved
+                      Compute filter_regular_parameters
+                      Trying to lift the parameters of H^*(SD16; GF(2))
+            H^*(SmallGroup(48,29); GF(2)):
+                      Exploring relations in degree 1
+                      Determine degree 1 standard monomials
+                      Express 1 standard monomial as cocycle
+                      Found 0 relations in degree 1
+            H^*(M11; GF(2)):
+                      One parameter could not be lifted
+                      Testing whether parameters of the cohomology ring can be found
+                      > Ja
+                      Compute find_small_last_parameter
+                      Computing complete Groebner basis
+                      Compute _parameter_restrictions
+            Induced homomorphism of degree 0 from H^*(M11; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
+                      Compute restricted parameters
+            H^*(M11; GF(2)):
+                      Compute _get_obvious_parameter
+                      Compute _parameter_restrictions
+                      compute radicals of restricted parameter ideal
+                      Compute _parameter_restrictions
+            Induced homomorphism of degree 0 from H^*(M11; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
+                      Compute restricted parameters
+            H^*(M11; GF(2)):
+                      Determine degree 1 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 2 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 3 standard monomials
+                      --> Last parameter found in degree 3
+                      Compute find_small_last_parameter
+                      Compute _get_obvious_parameter
+                      Determine degree 1 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 2 standard monomials
+                      The given last parameter could not be improved
             ['c_4_0', 'b_3_0']
 
         We continue out to degree 10, and then test again. In this
         case, the Symonds criterion is chosen for the test::
 
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
             sage: H.next()
             sage: H.next()
             sage: H.next()
             sage: H.next()
             sage: H.next()
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H.test_for_completion()
-            H^*(M11; GF(2)): Compute dependent_parameters
-                    Try to find a set of generators over which the cohomology ring is finite.
-                    Computing complete Groebner basis
-                      > Considering 2 elements
-                      > Considering 1 elements
-                      > Considering 1 elements
-                    Trying Symonds' criterion
-                    Successful application of the Symonds criterion
+            H^*(M11; GF(2)):
+                      Compute dependent_parameters
+                      Try to find a set of generators over which the cohomology ring is finite.
+                      Computing complete Groebner basis
+                      Trying Symonds' criterion
+                      Successful application of the Symonds criterion
             True
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
             sage: H.completed
             True
 
@@ -2342,6 +2266,7 @@ class MODCOHO(COHO):
             0
             sage: singular.ideal(H.parameters()+H.rels()).groebner().dim()
             0
+            sage: CohomologyRing.reset()
 
         """
         if self.suffDeg>-1 and self.knownDeg >= self.suffDeg:
@@ -2351,14 +2276,14 @@ class MODCOHO(COHO):
         if not self.all_generators_found:
             return False
         if (self.expect_last_relation() > self.knownDeg) and not forced:
-            print_protocol("We expect a relation in degree at least %d"%self.expect_last_relation(), self)
+            coho_logger.info("We expect a relation in degree at least %d"%self.expect_last_relation(), self)
             return
         #########
         ## try Symonds' criterion first: It is particularly good
         ## when "easy" parameters can be found.
         DepPars = self.dependent_parameters()
         if DepPars is None:
-            print_protocol("The ring approximation does not contain parameters for the complete ring.", self)
+            coho_logger.info("The ring approximation does not contain parameters for the complete ring.", self)
             return False
         self.set_ring()
         Depdv = [Integer(singular.eval("deg(%s)"%(x))) for x in DepPars]  # this is the real degree vector
@@ -2366,21 +2291,21 @@ class MODCOHO(COHO):
             Pars = DepPars
             dv = Depdv
         else: # the following can be very costly, but the user can interrupt it.
-            print_protocol("We found parameters, but they would not allow for an application of Symonds' criterion.", self)
-            print_protocol("Try to find better parameters in a more costly way.", self)
+            coho_logger.info("We found parameters, but they would not allow for an application of Symonds' criterion.", self)
+            coho_logger.info("Trying to find better parameters in a more costly way.", self)
             try:
                 Pars = self.parameters()
             except ValueError:
                 # This is just to be on the safe side. There can only be a value error if the
                 # cohomology ring approximation has no generator.
-                print_protocol("The approximation is incomplete (no parameters found).", self)
+                coho_logger.info("The approximation is incomplete (no parameters found).", self)
                 return False
             #########
             if Pars is None:
                 # This probably can not happen.
                 Pars = DepPars
             if Pars is None:
-                print_protocol("The ring approximation does not contain parameters for the complete ring.", self)
+                coho_logger.info("The ring approximation does not contain parameters for the complete ring.", self)
                 return False
             self.set_ring()
             dv = [Integer(singular.eval("deg(%s)"%(x))) for x in Pars]  # this is the real degree vector
@@ -2389,34 +2314,33 @@ class MODCOHO(COHO):
                 dv = Depdv
         Symonds = self.SymondsTest(Pars,dv, forced = forced)
         if Symonds:
-            print_protocol("Successful application of the Symonds criterion", self)
+            coho_logger.info("Successful application of the Symonds criterion", self)
             self.completed = True
-            #self.setprop('_final_non_fr_parameters',[t for t in Pars])
             self.setprop('_parameters_for_criterion',[t for t in Pars])
             self.setprop('_method','Symonds')
             return True
         elif Symonds is False:
-            print_protocol("The parameters are no parameters for the ring approximation, which is thus incomplete.", self)
+            coho_logger.info("The parameters are no parameters for the ring approximation, which is thus incomplete.", self)
             return False
 
-        print_protocol("The Symonds criterion is inconclusive.", self)
+        coho_logger.info("The Symonds criterion is inconclusive.", self)
         #########
         ## There may still be the chance to use an existence proof!
         self.set_ring()
         try:
             HilbertPoincare = self.HilbertPoincareTest(forced=forced)
         except KeyboardInterrupt:
-            print_protocol("The Hilbert-Poincare completion test was interrupted.", self)
+            coho_logger.warn("The Hilbert-Poincare completion test was interrupted.", self)
             HilbertPoincare=None
         if HilbertPoincare:
-            print_protocol("Successful application of the Hilbert-Poincare criterion", self)
+            coho_logger.info("Successful application of the Hilbert-Poincare criterion", self)
             self.completed = True
             self.setprop('_final_parameters',[t for t in self.filter_regular_parameters()])
             self.setprop('_method','Hilbert-Poincar&eacute;')
         elif HilbertPoincare is None:
-            print_protocol("No conclusion on the completeness of this cohomology ring.", self)
+            coho_logger.info("No conclusion on the completeness of this cohomology ring.", self)
         elif HilbertPoincare is False:
-            print_protocol("According to the Hilbert-Poincare completion test, this cohomology ring is incomplete.", self)
+            coho_logger.info("By the Hilbert-Poincare test, the ring is incomplete.", self)
         return HilbertPoincare # which is none if the existence proof was not good enough
 
     @temporary_result
@@ -2453,7 +2377,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_public_db(tmp_dir())
             sage: H = CohomologyRing(384,5602, prime=2, from_scratch=True)
 
@@ -2501,6 +2425,7 @@ class MODCOHO(COHO):
             7
             sage: H._method
             'Hilbert-Poincar&eacute;'
+            sage: CohomologyRing.set_public_db(False)
 
         """
         # Prove the existence of parameters over a finite field extension.
@@ -2529,13 +2454,13 @@ class MODCOHO(COHO):
                 if hsop is None and self.find_dickson():
                     hsop = self.parameters(forced=self.last_interesting_degree()==self.knownDeg)
         except KeyboardInterrupt,msg:
-            print_protocol("The existence proof of parameters over a field extension has been interrupted.", self)
+            coho_logger.warn("The existence proof of parameters over a field extension has been interrupted.", self)
             return None,None,None
 
         # At this point, it should be impossible that hsop is None.
         # To be on the safe side:
         if hsop is None:
-            print_protocol("There should be parameters, but apparently it is too difficult to find them.", self)
+            coho_logger.info("There should be parameters, but apparently it is too difficult to find them.", self)
             return None, None, None
         try:
             hsop[-1] = self.find_small_last_parameter(hsop, self.knownDeg)
@@ -2623,7 +2548,7 @@ class MODCOHO(COHO):
         We compute a cohmology ring step by step, in order to demonstrate what
         happens behind the scenes when launching :meth:`make`. ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(384, 5602, prime=2, from_scratch=True)
@@ -2745,18 +2670,18 @@ class MODCOHO(COHO):
             ['4', '2', '1', '3']
 
         """
-        print_protocol("Attempt application of the Hilbert-Poincare criterion", self)
+        coho_logger.info("Trying the Hilbert-Poincare criterion", self)
 
         dv, D, use_existence_proof = self.parameter_degrees_over_field_extension()
         if dv is None:
-            #print_protocol("No parameters were found, the ring approximation is incomplete.", self)
+            coho_logger.info("No parameters were found, the ring approximation is incomplete.", self)
             return False
         optimalbound = sum(dv) - D
         if self.knownDeg<optimalbound:
             if optimalbound<Infinity:
-                print_protocol("We expect that the Hilbert-Poincare criterion will not apply before degree %d"%optimalbound, self)
+                coho_logger.info("We expect that the Hilbert-Poincare criterion will not apply before degree %d"%optimalbound, self)
                 return
-            #print_protocol("No parameters were found, the ring approximation is incomplete.")
+            coho_logger.info("No parameters were found, the ring approximation is incomplete.", self)
             return False
         p = self.poincare_without_parameters()
         R = p.parent()
@@ -2766,7 +2691,7 @@ class MODCOHO(COHO):
             denom = denom*(1-t**e)
         numer = p*denom
         if hasattr(numer.denominator(),'degree') and numer.denominator().degree():
-            print_protocol( "There will be further relations", self)
+            coho_logger.info( "There will be further relations", self)
             return False
         if numer.numerator().degree()<=optimalbound:
             self.suffDeg = optimalbound
@@ -2775,7 +2700,7 @@ class MODCOHO(COHO):
             if use_existence_proof:
                 self.setprop('WhatHSOP',[repr(t) for t in dv])
             return True
-        print_protocol( "There will be further relations", self)
+        coho_logger.info( "There will be further relations", self)
         return False
 
     def _construct_fr_parameters(self):
@@ -2791,7 +2716,7 @@ class MODCOHO(COHO):
         NOTE:
 
         This is an auxiliary function for
-        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.filter_regular_parameters`
+        :meth:`~pGroupCohomology.cohomology.COHO.filter_regular_parameters`
         and should not be called directly.
 
         EXAMPLES:
@@ -2800,7 +2725,7 @@ class MODCOHO(COHO):
         a subgroup, we compute it from scratch, in order to have
         a well defined behaviour in this doctest::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(81,7, from_scratch=True)
@@ -2831,72 +2756,83 @@ class MODCOHO(COHO):
         heuristics can not find it, but succeeds in many other examples. Try
         to find a heuristics that combines the advantages of both approaches!
 
-        When we now construct filter regular parameters, it can be seen in the
-        protocol mode what is happening behind the scenes when we find a last
-        parameter in degree 4::
+        When we now construct filter regular parameters, the log shows what
+        is happening behind the scenes when we find a last parameter in degree 4::
 
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H._construct_fr_parameters()
-            H^*(324gp39; GF(3)): Testing whether parameters of the cohomology ring can be found
-                    Compute find_small_last_parameter
-                    Computing complete Groebner basis
-                    Compute _parameter_restrictions
-            Map H^*(324gp39; GF(3)) -> H^*(9gp2; GF(3)): compute restricted parameters
-            Map H^*(324gp39; GF(3)) -> H^*(27gp5; GF(3)): compute restricted parameters
-            H^*(324gp39; GF(3)): Compute _get_obvious_parameter
-                    Compute _parameter_restrictions
-            Map H^*(324gp39; GF(3)) -> H^*(9gp2; GF(3)): compute restricted parameters
-            Map H^*(324gp39; GF(3)) -> H^*(27gp5; GF(3)): compute restricted parameters
-            H^*(324gp39; GF(3)): Determine degree 1 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 2 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 3 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 4 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 5 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 6 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 7 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 8 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 9 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 10 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 11 standard monomials
-                    Compute _get_obvious_parameter
-                    Determine degree 12 standard monomials
-                    The given last parameter could not be improved
-                    Compute find_dickson
-                    Try to lift Dickson invariants using elimination methods
-                    Lift Dickson invariants of the 2nd special subgroup
-            H^*(9gp2; GF(3)): Compute nil_radical
-            Res9gp2: We need more lifts!
-                    Compose Chain Map with Differential
-                    > Lift with the autolift method
-            H^*(9gp2; GF(3)): Compute order_matrix
-            H^*(324gp39; GF(3)): Compute order_matrix
-            Map H^*(324gp39; GF(3)) -> H^*(9gp2; GF(3)): Compute preimages by elimination
-            H^*(324gp39; GF(3)): Lift Dickson invariants of the 3rd special subgroup
-            H^*(27gp5; GF(3)): Compute nil_radical
-            Res27gp5: We need more lifts!
-                    Compose Chain Map with Differential
-                    > Lift with the autolift method
-            H^*(27gp5; GF(3)): Compute order_matrix
-            Map H^*(324gp39; GF(3)) -> H^*(27gp5; GF(3)): Compute preimages by elimination
-            H^*(324gp39; GF(3)): Simplification modulo nilpotent generators
-            Computing factors (ignoring relations); it can be interrupted with Ctrl-c
-                    Simplification modulo nilpotent generators
-            Computing factors (ignoring relations); it can be interrupted with Ctrl-c
-                    Simplification modulo nilpotent generators
-            Computing factors (ignoring relations); it can be interrupted with Ctrl-c
-                    We succeeded to lift Dickson invariants!
+            H^*(SmallGroup(324,39); GF(3)):
+                      Testing whether parameters of the cohomology ring can be found
+                      > Ja
+                      Compute find_small_last_parameter
+                      Computing complete Groebner basis
+                      Compute _parameter_restrictions
+            Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(9,2); GF(3)):
+                      Compute restricted parameters
+            Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
+                      Compute restricted parameters
+            H^*(SmallGroup(324,39); GF(3)):
+                      Compute _get_obvious_parameter
+                      Compute _parameter_restrictions
+            Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(9,2); GF(3)):
+                      Compute restricted parameters
+            Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
+                      Compute restricted parameters
+            H^*(SmallGroup(324,39); GF(3)):
+                      Determine degree 1 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 2 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 3 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 4 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 5 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 6 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 7 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 8 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 9 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 10 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 11 standard monomials
+                      Compute _get_obvious_parameter
+                      Determine degree 12 standard monomials
+                      The given last parameter could not be improved
+                      Compute find_dickson
+                      Try to lift Dickson invariants using elimination methods
+                      Lift Dickson invariants of the 2nd special subgroup
+            H^*(SmallGroup(9,2); GF(3)):
+                      Compute nil_radical
+            Resolution of GF(3)[SmallGroup(9,2)]:
+                      Compose chain maps R_2 -> R_1 -> R_0
+            H^*(SmallGroup(9,2); GF(3)):
+                      Compute order_matrix
+            H^*(SmallGroup(324,39); GF(3)):
+                      Compute order_matrix
+            Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(9,2); GF(3)):
+                      Compute preimages by elimination
+            H^*(SmallGroup(324,39); GF(3)):
+                      Lift Dickson invariants of the 3rd special subgroup
+            H^*(SmallGroup(27,5); GF(3)):
+                      Compute nil_radical
+            Resolution of GF(3)[SmallGroup(27,5)]:
+                      Compose chain maps R_2 -> R_1 -> R_0
+            H^*(SmallGroup(27,5); GF(3)):
+                      Compute order_matrix
+            Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
+                      Compute preimages by elimination
+            H^*(SmallGroup(324,39); GF(3)):
+                      Factorising an element; it can be interrupted with Ctrl-c
+                      Factorising an element; it can be interrupted with Ctrl-c
+                      Factorising an element; it can be interrupted with Ctrl-c
+                      We succeeded to lift Dickson invariants!
             True
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
             sage: P1 = H._current_parameters; P1
             ['b_4_2^9+b_4_1^9+b_4_0^6*b_4_1^3-b_4_0^9-b_4_1^4*b_8_4*c_12_7+b_4_0*b_4_1^3*b_8_4*c_12_7-b_4_0^2*b_4_1^2*b_8_4*c_12_7+b_4_0^2*b_4_1^4*c_12_7+b_4_0^3*b_4_1^3*c_12_7+b_4_0^4*b_4_1^2*c_12_7+b_4_1*b_8_4*c_12_7^2+b_4_1^3*c_12_7^2-b_4_0*b_4_1^2*c_12_7^2+b_4_0^2*b_4_1*c_12_7^2+c_12_7^3',
              'b_4_0^6*b_4_1^6-b_4_0^9*b_4_1^3-b_4_1^7*b_8_4*c_12_7+b_4_0*b_4_1^6*b_8_4*c_12_7+b_4_0^2*b_4_1^5*b_8_4*c_12_7+b_4_0^2*b_4_1^7*c_12_7+b_4_0^3*b_4_1^6*c_12_7-b_4_0^4*b_4_1^5*c_12_7+b_4_0^5*b_4_1^2*b_8_4*c_12_7-b_4_0^7*b_4_1^2*c_12_7+b_4_1^6*c_12_7^2+b_4_0*b_4_1^3*b_8_4*c_12_7^2+b_4_0*b_4_1^5*c_12_7^2-b_4_0^3*b_4_1*b_8_4*c_12_7^2+b_4_0^3*b_4_1^3*c_12_7^2-b_4_0^4*b_4_1^2*c_12_7^2-b_4_0^5*b_4_1*c_12_7^2+b_4_2^3*c_12_7^3-b_4_1*b_8_4*c_12_7^3+b_4_0^2*b_4_1*c_12_7^3-b_4_0^3*c_12_7^3',
@@ -2930,12 +2866,13 @@ class MODCOHO(COHO):
             ([-1, -1, 79, 85],
              [[0], [0], [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 1, 0, 1, 3, 2, 0, 1, 3, 2, 0, 2, 4, 2, 0, 2, 5, 3, 0, 2, 5, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 5, 2, 0, 3, 5, 2, 0, 2, 4, 2, 0, 2, 3, 1, 0, 2, 3, 1, 0, 1, 2, 1, 0, 1, 1, 0, 0, 1, 1], [1, 0, 0, 3, 2, 0, 2, 5, 3, 1, 5, 8, 4, 1, 7, 11, 5, 2, 9, 13, 6, 3, 12, 16, 7, 3, 14, 19, 8, 4, 16, 21, 9, 5, 19, 24, 9, 5, 21, 24, 9, 6, 21, 24, 9, 6, 21, 24, 8, 6, 21, 21, 7, 6, 19, 19, 6, 5, 16, 16, 5, 5, 14, 13, 4, 4, 12, 11, 3, 3, 9, 8, 2, 3, 7, 5, 1, 2, 5, 3, 0, 1, 2, 0, 0, 1]],
              [36, 48, 4])
+            sage: CohomologyRing.reset()
 
         """
         if self._final_parameters:
             return True
         if len(self._DuflotRegSeq)<(self.PCenterRk or self.pRank):
-            print_protocol("We need to find more Duflot generators", self)
+            coho_logger.info("We need to find more Duflot generators", self)
             return False
         # First approach: take parameters from the subgroup, since this will yield small degrees.
         Par = self.parameters_from_sylow_subgroup()
@@ -2993,7 +2930,7 @@ class MODCOHO(COHO):
         decomposable and if ``rank`` is ``None``, then ``D`` is ``None``,
         indicating that the cohomology ring being studied has no minimal
         generator in degree ``n``. Otherwise, ``D`` is a list of
-        :class:`~sage.groups.modular_cohomology.cochain.MODCOCH` providing a basis for
+        :class:`~pGroupCohomology.cochain.MODCOCH` providing a basis for
         the decomposable subspace of the `n`-th cohomology group.
 
         The list ``R`` provides algebraic relations in degree ``n`` that
@@ -3009,7 +2946,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -3081,19 +3018,18 @@ class MODCOHO(COHO):
         if not self.Gen:
             return [],[]
         # First, get standard monomials
-        if OPTION.opts['timing']:
-            wt = walltime()
+        coho_logger.info("Exploring relations in degree %d"%n, self)
         self._makeStdMon(n,"Mon")
         self.set_ring()
         cdef int nMon = int(singular.eval('size(Mon)'))
         if nMon==0:
-            print_protocol( "There are no standard monomials in degree %d"%n, self)
+            coho_logger.info( "There are no standard monomials in degree %d, thus, no relations"%n, self)
             return [],[]
         tmp_r = singular('basering')
         if nMon>1:
-            print_protocol( "Express %d standard monomials as cocycles"%nMon, self)
+            coho_logger.info( "Express %d standard monomials as cocycles"%nMon, self)
         else:
-            print_protocol( "Express 1 standard monomial as cocycle", self)
+            coho_logger.info( "Express 1 standard monomial as cocycle", self)
         # copy the partially constructed ring of self, but with "safe" names:
         if self._property_dict.get('use_dp'):
             if len(self.degvec)==1:
@@ -3128,11 +3064,9 @@ class MODCOHO(COHO):
         singular.eval('ideal DecGen')
         # without normal form computation, the memory consumption grows insanely high for Alternatinggroup(8) mod 2
         singular.eval('for(int %s_i=%d;%s_i>0;%s_i--){DecGen[%s_i]=NF(Gen(p(%s_i))+p(%s_i),%s);}'%(self.prefix,nMon,self.prefix,self.prefix,self.prefix,self.prefix,self.prefix,PRels.name()))
-        print_protocol( "> Interreduction", self)
-        #singular.eval('dump("MPfile:w dump.mp")')
+        coho_logger.debug( "> Interreduction", self)
         singular.eval('DecGen=interred(DecGen)')
-        #singular.eval('write("DecGen.txt",string(DecGen))')
-        print_protocol( "> Determining decomposable subspace", self)
+        coho_logger.debug( "> Determining decomposable subspace", self)
         rQP.set_ring()
         # This is how the interreduced standard monomials look in self._HP:
         # Values[k]=='0' <=> DecGen[k+1] is a relation
@@ -3158,27 +3092,22 @@ class MODCOHO(COHO):
         if (rank is None) or (self.all_generators_found is None and (nMon-Indicators.count('1')<rank)):
             # If there are new generators or if we really want it (rank = None), compute all values
             # The relations correspond to '1' in the list "Indicators".
-            print_protocol( "> Extracting decomposable cocycles and relations", self)
+            coho_logger.debug( "> Extracting decomposable cocycles and relations", self)
             # This is how the interreduced standard monomials look in self:
             SelfValues = [t.strip() for t in singular.eval('print(%s)'%DG.name()).split(',')]
             Rels = [SelfValues[i] for i in range(nMon) if Indicators[i]=='1']
-            from sage.groups.modular_cohomology.cochain import MODCOCH
+            from pGroupCohomology.cochain import MODCOCH
             DecGen = [MODCOCH(self, PValues[i], deg=n, name=SelfValues[i], S=singular, is_polyrep=True, is_NF=True) for i in range(nMon) if Indicators[i]=='0']
         else:
             # only extract the relations
-            print_protocol( "> Extracting relations", self)
+            coho_logger.debug( "> Extracting relations", self)
             DecGen = None
             Rels = [singular.eval(DG.name()+'[%d]'%(i+1)) for i in range(nMon) if Indicators[i]=='1']
         singular.eval('kill %s_i,%s,%s,%s'%(self.prefix,R.name(),r.name(),tmp_r.name()))
         if br is not None:
             br.set_ring()
             singular.eval('degBound='+dgb)
-        if OPTION.opts['timing']:
-            if DecGen:
-                print "Total time for finding decomposable classes and relations in degree %d:"%n
-            else:
-                print "Total time for finding relations in degree %d:"%n
-            print "   Wall: %.2f"%(walltime(wt))
+        coho_logger.info("Found %d relations in degree %d", self, len(Rels), n)
         return DecGen, Rels
 
     def decomposable_classes(self, int n, forced=False):
@@ -3204,7 +3133,7 @@ class MODCOHO(COHO):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -3257,8 +3186,7 @@ class MODCOHO(COHO):
         if (DecGen is not None) and not forced:
             return DecGen
         self.Triangular[n], R = self.find_relations(n)
-        if R:
-            raise RuntimeError, "Theoretical error: We found a new relation, contradicting the assertion that the ring structure is known in degree %d"%n
+        assert not R, "Theoretical error: We found a new relation, contradicting the assertion that the ring structure is known in degree %d"%n
         return self.Triangular[n]
 
     def stable_to_polynomial(self, c, verify=True):
@@ -3274,7 +3202,7 @@ class MODCOHO(COHO):
 
         OUTPUT:
 
-        An element of ``self`` (type :class:`~sage.groups.modular_cohomology.cochain.MODCOCH`)
+        An element of ``self`` (type :class:`~pGroupCohomology.cochain.MODCOCH`)
         corresponding to ``c``, or ``None`` if ``c`` is not stable and if
         ``verify`` is true. If ``c`` is not stable and ``verify`` is not true,
         then an error is raised.
@@ -3284,7 +3212,7 @@ class MODCOHO(COHO):
         We work with the mod-2 cohomology of the Mathieu group `M_{12}`.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
@@ -3315,25 +3243,21 @@ class MODCOHO(COHO):
             b_3_0*b_3_1+b_6_3+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
 
         By default, it is tested whether the input is stable. If it isn't,
-        it is stated in the protocol output, and ``None`` is returned.
+        it is stated in the log, and ``None`` is returned.
         ::
 
             sage: cS2 = HS('b_2_4^2*b_1_1*b_1_2+b_2_4^2*b_2_5+b_2_4^3+c_4_14*b_1_2^2')
-            sage: H.option('prot')
-            sage: H.stable_to_polynomial(cS2)
-            H^*(192gp1494; GF(2)): Stability condition #0 is violated
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('info')
+            sage: print H.stable_to_polynomial(cS2)
+            None
+            sage: CohomologyRing.global_options('warn')
             sage: cS3 = HS('c_4_14*b_1_0')
-            sage: H.option('prot')
-            sage: H.stable_to_polynomial(cS3)
-            H^*(192gp1494; GF(2)): Input is stable in this ring
-            ...
-            H^*(M12; GF(2)): Stability condition #1 is violated
+            sage: print H.stable_to_polynomial(cS3)
+            None
 
-        According to the protocol, ``cS3`` can be expressed in ``HU``, and indeed::
+        According to the log, ``cS3`` can be expressed in ``HU``, and indeed::
 
             sage: HU.stable_to_polynomial(cS3)
-            H^*(192gp1494; GF(2)): Input is stable in this ring
             c_4_6*b_1_0: 5-Cocycle in H^*(SmallGroup(192,1494); GF(2))
 
         Using the option ``verify=False`` will be a little faster,
@@ -3343,7 +3267,7 @@ class MODCOHO(COHO):
 
             sage: HU.stable_to_polynomial(cS3, verify=False)
             c_4_6*b_1_0: 5-Cocycle in H^*(SmallGroup(192,1494); GF(2))
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
             sage: H.stable_to_polynomial(cS3, verify=False)
             Traceback (most recent call last):
             ...
@@ -3355,6 +3279,7 @@ class MODCOHO(COHO):
         # return a cocycle of self, whose name is a defining polynomial
         if not hasattr(c,'parent'):
             raise ValueError, "Cocycle of a subgroup expected"
+        coho_logger.debug("Try to express a supposedly stable element of %r as a polynomial", self, c.parent())
         singular = self.GenS.parent()
         try:
             br = singular('basering')
@@ -3364,7 +3289,7 @@ class MODCOHO(COHO):
             try:
                 return self.element_as_polynomial(c)
             except ValueError:
-                print_protocol( "Apparently the given cocycle does not belong to this ring", self)
+                coho_logger.debug( "Apparently the given cocycle cannot be expressed by the current generators", self)
                 return None
         if  c.parent() is not self._HP:
             c = self._HP.stable_to_polynomial(c,verify=verify)
@@ -3373,12 +3298,12 @@ class MODCOHO(COHO):
         if verify:
             for i in range(len(self._PtoPcapCPdirect)):
                 if self._PtoPcapCPdirect[i](c) != self._PtoPcapCPtwist[i](c):
-                    print_protocol( "Stability condition #%s is violated"%(i), self)
+                    coho_logger.debug( "Stability condition #%s is violated"%(i), self)
                     if br is not None:
                         br.set_ring()
                     return None
-            print_protocol( "Input is stable in this ring", self)
-        from sage.groups.modular_cohomology.cochain import MODCOCH
+            coho_logger.debug( "Input is indeed stable in this ring", self)
+        from pGroupCohomology.cochain import MODCOCH
         singular(self._HP).set_ring()
         s = repr(singular(c))
         c2 = MODCOCH(self,s,deg=c.deg(), name='tmpcycle',S=singular,rdeg=c.rdeg(),ydeg=c.ydeg(),is_NF=True)
@@ -3388,7 +3313,7 @@ class MODCOHO(COHO):
             return self.element_as_polynomial(c2)
         except ValueError:
             if verify:
-                print_protocol( "Apparently the given cocycle does not belong to this ring", self)
+                coho_logger.debug( "Apparently the given cocycle does not belong to this ring", self)
                 return None
             raise
 
@@ -3398,7 +3323,7 @@ class MODCOHO(COHO):
 
         INPUT:
 
-        ``c`` of type :class:`~sage.groups.modular_cohomology.cochain.MODCOCH`: An element of ``self``
+        ``c`` of type :class:`~pGroupCohomology.cochain.MODCOCH`: An element of ``self``
 
         OUTPUT:
 
@@ -3406,7 +3331,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -3421,7 +3346,7 @@ class MODCOHO(COHO):
             b_3_3+b_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
-        from sage.groups.modular_cohomology.cochain import MODCOCH
+        from pGroupCohomology.cochain import MODCOCH
         if (not isinstance(c,MODCOCH)) or (c.parent() is not self):
             raise TypeError, "element of %s expected"%repr(self)
         if not self.Gen:
@@ -3439,7 +3364,7 @@ class MODCOHO(COHO):
             singular(self._HP).set_ring()
             if outP==c._Svalue:
                 break
-            coef = c.coef(X.lm())#._Svalue)
+            coef = c.coef(X.lm())
             if coef:
                 singular.eval("%s=%s+%d*%s"%(outP.name(),outP.name(),coef,X.value().name()))
                 self.set_ring()
@@ -3466,7 +3391,7 @@ class MODCOHO(COHO):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -3480,7 +3405,7 @@ class MODCOHO(COHO):
             sage: r1 = H.restriction_maps()[2][1]
             sage: r2 = H.restriction_maps()[3][1]
             sage: V = r1.codomain()
-            sage: from sage.groups.modular_cohomology.cochain import MODCOCH
+            sage: from pGroupCohomology.cochain import MODCOCH
             sage: D = MODCOCH(V,'c_1_2^4+c_1_1^2*c_1_2^2+c_1_1^4+c_1_0*c_1_1*c_1_2^2+c_1_0*c_1_1^2*c_1_2+c_1_0^2*c_1_2^2+c_1_0^2*c_1_1*c_1_2+c_1_0^2*c_1_1^2+c_1_0^4',name='D')
             sage: D
             D: 4-Cocycle in H^*(SmallGroup(8,5); GF(2))
@@ -3556,7 +3481,7 @@ class MODCOHO(COHO):
         In order to produce an example, we need to destroy some internal data.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
@@ -3572,13 +3497,16 @@ class MODCOHO(COHO):
 
             sage: H.duflot_regular_sequence()
             ['c_2_3', 'c_2_2', 'c_3_1']
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H._extend_Duflot_reg_seq(3)
-            1 = (2-1)^2 parameter candidates
-            We found a parameter.
-            It is regular.
-            H^*(48gp50; GF(2)): Duflot regular sequence has been extended
-            sage: H.option('noprot')
+            H^*(SmallGroup(48,50); GF(2)):
+                      Try to find new Duflot-regular element in degree 3
+            Singular: 1 = (2-1)^2 parameter candidates
+                      We found a parameter.
+                      > It is regular.
+            H^*(SmallGroup(48,50); GF(2)):
+                      Found extension of the Duflot regular sequence
+            sage: CohomologyRing.global_options('warn')
             sage: H.duflot_regular_sequence()
             ['c_2_3', 'c_2_2', 'c_3_1', 'c_3_7+(c_3_0)']
 
@@ -3591,6 +3519,7 @@ class MODCOHO(COHO):
         d = int(d)
         if d<1:
             raise ValueError, "degree (positive integer) expected"
+        coho_logger.info("Try to find new Duflot-regular element in degree %d"%d, self)
         # find a basis of new Duflot elements in degree d
         NDList = [t.name() for t in self.Gen if not t.rdeg()]+[t.name() for t in self._DuflotRegSeq]
         if NDList:
@@ -3599,7 +3528,6 @@ class MODCOHO(COHO):
             NonDuf = singular.ideal(0)
         B = NonDuf.weightKB(d, singular.intvec(*self.degvec))
         Bstr = [s.strip() for s in singular.eval('print(%s)'%B.name()).split(',')]
-        #L = [self(s).value() for s in Bstr]
         rmap = self.RestrMaps[self.CElPos][1]
         L = [rmap(self(s)).value() for s in Bstr]
         HG = rmap.codomain()
@@ -3616,12 +3544,12 @@ class MODCOHO(COHO):
                 singular.eval('%sRegTest=groebner(%sRegTest)'%(self.prefix,self.prefix))
             else:
                 singular.eval('ideal %sRegTest = std(0)'%self.prefix)
-        from sage.groups.modular_cohomology.cohomology import explore_one_parameter
+        from pGroupCohomology.cohomology import explore_one_parameter
         HGS.set_ring()
         while(1):
             val, Coef = explore_one_parameter(singular('%sRegTest'%self.prefix),L,self._prime,regularity=2)
             if val:
-                print_protocol('Duflot regular sequence has been extended', self)
+                coho_logger.info('Found extension of the Duflot regular sequence', self)
                 self.set_ring()
                 v = singular.eval('+'.join(['(%d)*(%s)'%(Coef[i],Bstr[i]) for i in range(len(L)) if Coef[i]]))
                 self._DuflotRegSeq.append(self(v))
@@ -3629,7 +3557,6 @@ class MODCOHO(COHO):
                     singular.eval('degBound='+dgb)
                     return
                 HGS.set_ring()
-                #singular.eval('%sRegTest=std(%sRegTest,%s)'%(self.prefix,self.prefix,val.name()))
                 singular.eval('%sRegTest=groebner(%sRegTest+ideal(%s))'%(self.prefix,self.prefix,val.name()))
             else:
                 singular.eval('degBound='+dgb)
@@ -3655,11 +3582,10 @@ class MODCOHO(COHO):
         First, we take care that the state of the cohomology rings of
         the elementary abelian subgroups and of the Sylow subgroup are
         in a well defined state, independent of the content of the
-        public database. In this example, we also illustrate the
-        protocol mode.
+        public database. In this example, we also illustrate logging.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(4,2, from_scratch=True)
@@ -3669,77 +3595,80 @@ class MODCOHO(COHO):
             sage: X = CohomologyRing(16,11, from_scratch=True)
             sage: X.make()
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H.next()
-            H^*(720gp763; GF(2)): Determining stable subspace in degree 1
-            H^*(16gp11; GF(2)): Determine degree 1 standard monomials
-            H^*(720gp763; GF(2)): > found 3 monomials for the subgroup
-            H^*(8gp5; GF(2)): Determine degree 1 standard monomials
-            H^*(720gp763; GF(2)): > Conjugator isomorphism 0
-            H^*(4gp2; GF(2)): Determine degree 1 standard monomials
-            H^*(720gp763; GF(2)): > Conjugator isomorphism 1
-                    > Conjugator isomorphism 2
-                    > Conjugator isomorphism 3
-                    Setting up conditions to determine stable elements
-                    Solving equations
-                    > dim H^1 = 1
-                    We have to choose 1 new generator in degree 1
-            H^*(4gp2; GF(2)): Determine degree 1 standard monomials
-            H^*(8gp5; GF(2)): Determine degree 1 standard monomials
-            H^*(720gp763; GF(2)): > There are 0 nilpotent generators in degree 1
-            H^*(4gp2; GF(2)): Express cochain of degree 2 as polynomial
-                    Express cochain of degree 1 as polynomial
-                    Express cochain of degree 1 as polynomial
-                    Express cochain of degree 1 as polynomial
-            H^*(720gp763; GF(2)): > There are 0 "boring" generators in degree 1
-                    > There is 1 Duflot generator in degree 1
-            1 = (2-1)^1 parameter candidates
-            We found a parameter.
-            It is regular.
-                    Duflot regular sequence has been extended
-                    Degree 1 of the visible ring structure is computed!
-                    Saving ring approximation
+            H^*(SmallGroup(720,763); GF(2)):
+                      Computing ring approximation in degree 1
+                      Determining stable subspace in degree 1
+            H^*(D8xC2; GF(2)):
+                      Determine degree 1 standard monomials
+            H^*(SmallGroup(8,5); GF(2)):
+                      Determine degree 1 standard monomials
+            H^*(SmallGroup(4,2); GF(2)):
+                      Determine degree 1 standard monomials
+            H^*(SmallGroup(720,763); GF(2)):
+                      Setting up conditions to determine stable elements
+                      Solving equations
+                      We have to choose 1 new generator in degree 1
+            H^*(SmallGroup(4,2); GF(2)):
+                      Determine degree 1 standard monomials
+            H^*(SmallGroup(8,5); GF(2)):
+                      Determine degree 1 standard monomials
+            H^*(SmallGroup(720,763); GF(2)):
+                      > There are 0 nilpotent generators in degree 1
+                      > There are 0 "boring" generators in degree 1
+                      > There is 1 Duflot generator in degree 1
+                      Try to find new Duflot-regular element in degree 1
+            Singular: 1 = (2-1)^1 parameter candidates
+                      We found a parameter.
+                      > It is regular.
+            H^*(SmallGroup(720,763); GF(2)):
+                      Found extension of the Duflot regular sequence
+                      Degree 1 of the visible ring structure is computed!
+                      Storing ring approximation
             sage: H.next()
-                    Determining stable subspace in degree 2
-            H^*(16gp11; GF(2)): Determine degree 2 standard monomials
-            H^*(720gp763; GF(2)): > found 6 monomials for the subgroup
-            H^*(8gp5; GF(2)): Determine degree 2 standard monomials
-            H^*(720gp763; GF(2)): > Conjugator isomorphism 0
-            H^*(4gp2; GF(2)): Determine degree 2 standard monomials
-            H^*(720gp763; GF(2)): > Conjugator isomorphism 1
-                    > Conjugator isomorphism 2
-                    > Conjugator isomorphism 3
-                    Setting up conditions to determine stable elements
-                    Solving equations
-                    > dim H^2 = 2
-                    Determine degree 2 standard monomials
-                    Express 1 standard monomial as cocycle
-                    > Interreduction
-                    > Determining decomposable subspace
-                    > Extracting decomposable cocycles and relations
-                    There is no new relation in degree 2
-                    We have to choose 1 new generator in degree 2
-            H^*(4gp2; GF(2)): Determine degree 2 standard monomials
-            H^*(8gp5; GF(2)): Determine degree 2 standard monomials
-            H^*(720gp763; GF(2)): > There are 0 nilpotent generators in degree 2
-                    > There are 0 "boring" generators in degree 2
-                    > There is 1 Duflot generator in degree 2
-            1 = (2-1)^1 parameter candidates
-            We found a parameter.
-            It is regular.
-                    Duflot regular sequence has been extended
-                    Degree 2 of the visible ring structure is computed!
-                    Saving ring approximation
+                      Computing ring approximation in degree 2
+                      Determining stable subspace in degree 2
+            H^*(D8xC2; GF(2)):
+                      Determine degree 2 standard monomials
+            H^*(SmallGroup(8,5); GF(2)):
+                      Determine degree 2 standard monomials
+            H^*(SmallGroup(4,2); GF(2)):
+                      Determine degree 2 standard monomials
+            H^*(SmallGroup(720,763); GF(2)):
+                      Setting up conditions to determine stable elements
+                      Solving equations
+                      Exploring relations in degree 2
+                      Determine degree 2 standard monomials
+                      Express 1 standard monomial as cocycle
+                      Found 0 relations in degree 2
+                      We have to choose 1 new generator in degree 2
+            H^*(SmallGroup(4,2); GF(2)):
+                      Determine degree 2 standard monomials
+            H^*(SmallGroup(8,5); GF(2)):
+                      Determine degree 2 standard monomials
+            H^*(SmallGroup(720,763); GF(2)):
+                      > There are 0 nilpotent generators in degree 2
+                      > There are 0 "boring" generators in degree 2
+                      > There is 1 Duflot generator in degree 2
+                      Try to find new Duflot-regular element in degree 2
+            Singular: 1 = (2-1)^1 parameter candidates
+                      We found a parameter.
+                      > It is regular.
+            H^*(SmallGroup(720,763); GF(2)):
+                      Found extension of the Duflot regular sequence
+                      Degree 2 of the visible ring structure is computed!
+                      Storing ring approximation
 
         So, apparently the stable subspace of the cohomology ring of the
         underlying subgroup ``D8xC2`` is computed in each degree, then it
         is determined how much of it is decomposable, and new generators
         are chosen accordingly.
 
-        We continue the computation out to degree 5, turning off the protocol.
+        We continue the computation out to degree 5, turning off the log.
         There is still no relation::
 
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
             sage: H.make(5)
             sage: print H
             Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
@@ -3753,32 +3682,29 @@ class MODCOHO(COHO):
             Minimal list of algebraic relations:
             []
 
-        Returning to the protocol mode, we compute the next degree.
-        Meanwhile the program has tested that it found all generators.
-        Thus, it is not needed to compute the stable subspace in advance,
-        as can be seen in the protocol.
+        Resuming logging, we compute the next degree. Meanwhile the program
+        has tested that it found all generators. Thus, it is not needed to
+        compute the stable subspace in advance, as can be seen in the log.
         ::
 
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: H.next()
-            H^*(720gp763; GF(2)): All stable cocycles are decomposable
-                    Determine degree 6 standard monomials
-                    Express 11 standard monomials as cocycles
-                    > Interreduction
-                    > Determining decomposable subspace
-                    > Extracting relations
-                    There is one new relation in degree 6
-                    There is no new generator in degree 6
-                    Try to lift 1st power of 1st Dickson invariant
-                    Determine degree 6  standard monomials
-                    Express 10 standard monomials as cocycles
-                    > Interreduction
-                    > Determining decomposable subspace
-                    > Extracting decomposable cocycles and relations
-                    Simplification modulo nilpotent generators
-            Computing factors (ignoring relations); it can be interrupted with Ctrl-c
-                    Degree 6 of the visible ring structure is computed!
-                    Saving ring approximation
+            H^*(SmallGroup(720,763); GF(2)):
+                      Computing ring approximation in degree 6
+                      All generators are known
+                      Exploring relations in degree 6
+                      Determine degree 6 standard monomials
+                      Express 11 standard monomials as cocycles
+                      Found 1 relations in degree 6
+                      There is no new generator in degree 6
+                      Try to lift 1st power of 1st Dickson invariant
+                      Exploring relations in degree 6
+                      Determine degree 6 standard monomials
+                      Express 10 standard monomials as cocycles
+                      Found 0 relations in degree 6
+                      Factorising an element; it can be interrupted with Ctrl-c
+                      Degree 6 of the visible ring structure is computed!
+                      Storing ring approximation
 
         There is no completion test performed. But in fact, the
         completion test is successful::
@@ -3786,28 +3712,21 @@ class MODCOHO(COHO):
             sage: H.completed
             False
             sage: H.test_for_completion()
-                    Compute dependent_parameters
-                    Try to find a set of generators over which the cohomology ring is finite.
-                    Computing complete Groebner basis
-                      > Considering 3 elements
-                      > Considering 3 elements
-                      > Considering 3 elements
-                    Trying Symonds' criterion
-                    Successful application of the Symonds criterion
+                      Compute dependent_parameters
+                      Try to find a set of generators over which the cohomology ring is finite.
+                      Computing complete Groebner basis
+                      Trying Symonds' criterion
+                      Successful application of the Symonds criterion
             True
             sage: H.completed
             True
+            sage: CohomologyRing.reset()
 
         """
         cdef RESL R = self.Resl
-        from sage.groups.modular_cohomology.resolution import Ordinals
         from sage.all import add
-        if self.completed and (not Forced): # and (not self.ElAb)::
-            print_protocol("Ring approximation already is complete", self)
+        if self.completed and (not Forced):
             return
-        if OPTION.opts['timing']:
-            TCT=cputime()
-            TWT=walltime()
         if self.SUBGPS:
             self.reconstructSubgroups()
         cdef list NEW_KEYS = []
@@ -3816,16 +3735,20 @@ class MODCOHO(COHO):
         cdef int lenNEW_KEYS
 
         n = self.knownDeg + 1
-        cdef int i,k,m,f,cf
+        cdef int i,k,m,cf
+        cdef FEL f
         cdef int lenDecGen,lenMonExp
         cdef int loopbound
         SHP = singular(self._HP)
+        coho_logger.info("Computing ring approximation in degree %d"%n,self)
 
         ######################################
         ## Main Procedure
         ######################################
         cdef list L, Monomials, StableList, StablePivots
-        cdef MTX Stables, NondecStables
+        cdef MTX Stables, NondecStables, NilNonDec
+        cdef Matrix_t *tmpMatrix_t
+        cdef Matrix_t *tmpProduct
         NewDuflot = None
         # StableList: list of MODCOHO, forming interreduced basis of the stable space
         # StablePivots: list of leading monomials of StableList, used to keep track of computations
@@ -3833,7 +3756,7 @@ class MODCOHO(COHO):
         #
         # Easy case: All generators are allready known.
         if self.all_generators_found:
-            print_protocol("All stable cocycles are decomposable", self)
+            coho_logger.info("All generators are known", self)
             StableList   = []
             Monomials    = []
             StablePivots = []
@@ -3841,9 +3764,9 @@ class MODCOHO(COHO):
             StableList, Monomials, StablePivots = self.stable_space(n)
         Monomials = StablePivots + [X for X in Monomials if X not in StablePivots]
         if not self.all_generators_found:
-            print_protocol ("> dim H^%d = %d"%(n,len(StableList)), self)
-        if (not StableList) and (not self.Gen): # if there are generators, then we are likely to have relations in this degree
-            print_protocol("No cocycles in degree %d"%n, self)
+            coho_logger.debug("> dim H^%d = %d"%(n,len(StableList)), self)
+        if (not StableList) and (not self.Gen):
+            coho_logger.debug("No cocycles in degree %d"%n, self)
             self.knownDeg = self.knownDeg + 1
             if (self.suffDeg > 0) and (self.knownDeg >= self.suffDeg):
                 self.completed = True
@@ -3853,7 +3776,8 @@ class MODCOHO(COHO):
         cdef list DecGen=[]  # will be a triangular basis of the sub space of decomposables of H^n
         cdef list pivot=[] # those pivots (here: Monomials of self._HP as a string)
                            # that have already been used by decomposable classes
-        cdef list StableNonDec, PivotsNilDec
+        cdef list StableNonDec
+        cdef tuple PivotsNilDec
         cdef MTX CandM
 
         cdef list MonExp,lastPiv, newRelations
@@ -3868,7 +3792,7 @@ class MODCOHO(COHO):
                 # At least for J3mod3, it turns out to be better to compute
                 # the complete GB, if there were no relations in the previous
                 # degree.
-                if (self.lastRel < n-1): # and (self.expect_last_relation() < n):
+                if (self.lastRel < n-1):
                     self.make_groebner()
                 else:
                     self.make_groebner(n)
@@ -3888,19 +3812,13 @@ class MODCOHO(COHO):
             SHP.set_ring()
             if DecGen is not None:
                 for Cand in DecGen:
-                    j = Cand.lm()#._Svalue # this is a singular element
+                    j = Cand.lm() # this is a singular element
                     pivot.append(j)
                     StablePivots[StablePivots.index(str(j))] = None
             # The new relations are already added to the relation ideal.
             # This is done in find_relations(n), without passing string
             # representations over the Singular interface
             self.set_ring()
-            if len(newRelations)>1:
-                print_protocol( "There are %d new relations in degree %d"%(len(newRelations),n), self)
-            elif len(newRelations)==1:
-                print_protocol( "There is one new relation in degree %d"%n, self)
-            else:
-                print_protocol( "There is no new relation in degree %d"%n, self)
 
         ###################
         ## RESULT:
@@ -3923,7 +3841,10 @@ class MODCOHO(COHO):
             NrNewGen = m - StablePivots.count(None) # m was defined above == len(StablePivots)
         SHP.set_ring()
         if NrNewGen==0:
-            print_protocol("There is no new generator in degree %d"%(n), self)
+            coho_logger.info("There is no new generator in degree %d"%(n), self)
+        cdef Matrix_t *tmpMTX0
+        cdef Matrix_t *tmpMTX
+        cdef Matrix_t *tmpMTXout
         if NrNewGen>0:  # there are new ring generators.
             self.delprop('completeGroebner')
             self.delprop('_small_last_parameter_attempted')
@@ -3934,11 +3855,11 @@ class MODCOHO(COHO):
                 self.delprop('degbound_for_gens')
             if self.original_parameters: # should only happen if the last parameter was replaced
                 self.Dickson = self.original_parameters
-            from sage.groups.modular_cohomology.cochain import MODCOCH
+            from pGroupCohomology.cochain import MODCOCH
             if NrNewGen==1:
-                print_protocol("We have to choose 1 new generator in degree %d"%(n), self)
+                coho_logger.info("We have to choose 1 new generator in degree %d"%(n), self)
             else:
-                print_protocol("We have to choose %d new generators in degree %d"%(NrNewGen,n), self)
+                coho_logger.info("We have to choose %d new generators in degree %d"%(NrNewGen,n), self)
 
             # Get standard monomials of the subgroups
             for X,Y in self.subgps.items():
@@ -3954,10 +3875,19 @@ class MODCOHO(COHO):
             if self.MaxelPos:
                 # NilDec is a basis in (semi)echelon form of the subspace of decomposable nilpotent classes of degree n
                 if DecGen: # there are decomposables, so let's intersect with the nilpotents:
-                    NilDec = (MTX(self._prime,[add([(self.RestrMaps[mpos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[mpos][0]]) for mpos in self.MaxelPos],[]) for X in DecGen],mutable=False).nullspace() * MTX(R.G_Alg.Data.p, [X.coef_list(Monomials) for X in DecGen])).echelon()
+                    tmpMTX0 = rawMatrix(R.G_Alg.Data.p, [X.coef_list(Monomials) for X in DecGen])
+                    tmpMTX = MatNullSpace__(rawMatrix(self._prime,[add([(self.RestrMaps[mpos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[mpos][0]]) for mpos in self.MaxelPos],[]) for X in DecGen]))
+                    tmpMTXout = MatAlloc(tmpMTX.Field, tmpMTX.Nor, tmpMTX0.Noc)
+                    assert MatMulStrassen(tmpMTXout, tmpMTX, tmpMTX0)!=NULL, "Strassen multiplication failed"
+                    MatFree(tmpMTX)
+                    MatFree(tmpMTX0)
+                    NilDec = makeMTX(tmpMTXout)
+                    NilDec.echelonize()
+                    NilDec.set_immutable()
+                    PivotsNilDec = NilDec.pivots() # these are indices of the list 'Monomials'
                 else:
                     NilDec = MTX('',mutable=False)
-                PivotsNilDec = NilDec.pivots() # these are indices of the list 'Monomials'
+                    PivotsNilDec = ()
                 for i in PivotsNilDec:
                     ZN_comp[Monomials[i]]=0
                     StablePivots[i] = None
@@ -3967,14 +3897,21 @@ class MODCOHO(COHO):
                 # using the basis given by those elements of "StableList" that have
                 # no "decomposable" pivot.
                 SHP.set_ring()
-                StablesNonDec = MTX(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1], mutable=False)
-
-                NilNonDec = (MTX(self._prime,[add([(self.RestrMaps[mpos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[mpos][0]]) for mpos in self.MaxelPos],[]) for X in StableList if ZN_comp.get(X.lm_string(),0)==1],mutable=False).nullspace() * StablesNonDec).echelon()
+                StablesNonDec = makeMTX(rawMatrix(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]))
+                StablesNonDec.set_immutable()
+                tmpMTX = MatNullSpace__(rawMatrix(self._prime,[add([(self.RestrMaps[mpos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[mpos][0]]) for mpos in self.MaxelPos],[]) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]))
+                tmpMTXout = MatAlloc(tmpMTX.Field, tmpMTX.Nor, StablesNonDec.Data.Noc)
+                assert MatMulStrassen(tmpMTXout, tmpMTX, StablesNonDec.Data)!=NULL, "Strassen multiplication failed"
+                NilNonDec = makeMTX(tmpMTXout)
+                NilNonDec.echelonize()
+                MatFree(tmpMTX)
                 # The rows of this matrix yield (ydeg=1,rdeg=0)-generators
                 # (i.e., nilpotent but nondecomposable classes).
                 loopbound = NilNonDec.nrows()
+                FfSetNoc(NilNonDec.Data.Noc)
                 for i from 0 <= i < loopbound:
-                    f,j = NilNonDec[i].lead()
+                    j = FfFindPivot(MatGetPtr(NilNonDec.Data, i), &f)
+                    assert j>=0
                     # a new normalised generator with nilpotent restriction:
                     NewGen.append(MODCOCH(self, '('+'+'.join(['('+str(NilNonDec[i,k])+')*'+Monomials[k] for k in range(lenMonExp) if NilNonDec[i,k]])+')/%d'%f, deg=n, name='a_%d_%d'%(n,j), S=singular, ydeg=1,rdeg=0, is_polyrep=True, is_NF=True))
                     StablePivots[j]=None
@@ -3988,9 +3925,9 @@ class MODCOHO(COHO):
                 if ZN_comp.values().count(2)!=len(NewGen):
                     raise ArithmeticError, "%d==%d -- that seems strange"%(ZN_comp.values().count(2),len(NewGen))
                 if len(NewGen)==1:
-                    print_protocol("> There is 1 nilpotent generator in degree %d"%(n), self)
+                    coho_logger.info("> There is 1 nilpotent generator in degree %d"%(n), self)
                 else:
-                    print_protocol("> There are %d nilpotent generators in degree %d"%(len(NewGen),n), self)
+                    coho_logger.info("> There are %d nilpotent generators in degree %d"%(len(NewGen),n), self)
 
             ## 2. New generators with nilpotent restriction on the
             ## greatest elementary abelian central subgroup
@@ -4000,16 +3937,26 @@ class MODCOHO(COHO):
                 # with those that have nilpotent restriction to the greatest
                 # elementary abelian subgroup in the center of the Sylow group,
                 # using the basis given by StableList
-                StablesNonDec = MTX(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1], mutable=False)
-
-                NilNonDec = (MTX(R.G_Alg.Data.p,[(self.RestrMaps[self.CElPos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[self.CElPos][0]]) for X in StableList if ZN_comp.get(X.lm_string(),0)==1],mutable=False).nullspace() * StablesNonDec).echelon()
+                StablesNonDec = makeMTX(rawMatrix(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]))
+                StablesNonDec.set_immutable()
+                tmpMatrix_t = rawMatrix(R.G_Alg.Data.p,[(self.RestrMaps[self.CElPos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[self.CElPos][0]]) for X in StableList if ZN_comp.get(X.lm_string(),0)==1])
+                assert tmpMatrix_t != NULL, "Could not create matrix"
+                tmpMatrix_t = MatNullSpace__(tmpMatrix_t)
+                assert tmpMatrix_t != NULL, "Could not compute nullspace of a matrix"
+                tmpProduct = MatAlloc(R.G_Alg.Data.p, tmpMatrix_t.Nor, StablesNonDec.Data.Noc)
+                MatMulStrassen(tmpProduct, tmpMatrix_t, StablesNonDec.Data)
+                MatFree(tmpMatrix_t)
+                NilNonDec = makeMTX(tmpProduct)
+                NilNonDec.echelonize()
 
                 # The rows of this matrix yield boring (ydeg=rdeg=0)-generators
                 # (i.e., non-nilpotent indecomposable classes with nilpotent restriction on the
                 # central el.ab subgroups of the Sylow subgroup).
-                loopbound = NilNonDec.nrows()
+                loopbound = NilNonDec.rank()
+                FfSetNoc(NilNonDec.Data.Noc)
                 for i from 0 <= i < loopbound:
-                    f,j = NilNonDec[i].lead()
+                    j = FfFindPivot(MatGetPtr(NilNonDec.Data, i), &f)
+                    assert j>=0
                     # a new normalised generator with nilpotent restriction:
                     NewGen.append(MODCOCH(self, '('+'+'.join(['('+str(NilNonDec[i,k])+')*'+Monomials[k] for k in range(lenMonExp) if NilNonDec[i,k]])+')/%d'%f, deg=n, name='b_%d_%d'%(n,j), S=singular, ydeg=0,rdeg=0, is_polyrep=True, is_NF=True))
                     if StablePivots[j] is None:
@@ -4024,22 +3971,15 @@ class MODCOHO(COHO):
                                              # 3 is nilpotent restriction on CElAb
 
                 if ZN_comp.values().count(3)==1:
-                    print_protocol('> There is 1 "boring" generator in degree %d'%(n), self)
+                    coho_logger.info('> There is 1 "boring" generator in degree %d'%(n), self)
                 else:
-                    print_protocol('> There are %d "boring" generators in degree %d'%(ZN_comp.values().count(3),n), self)
+                    coho_logger.info('> There are %d "boring" generators in degree %d'%(ZN_comp.values().count(3),n), self)
                 NrNewGen = NrNewGen - ZN_comp.values().count(3)
 
             if (NrNewGen != ZN_comp.values().count(1)):
                 raise RuntimeError, "Error in the quest for regular generators"
             NewDuflot = bool(NrNewGen)
             if NrNewGen:
-                #rmap = self.RestrMaps[self.CElPos][1]
-                #HG = rmap.codomain()
-                #HG.set_ring()
-                #dgb = singular.eval('degBound')
-                #singular.eval('degBound = 0')
-                #if singular.eval('defined(%sRegTest)'%self.prefix)=='0':
-                #    singular.eval('ideal %sRegTest = std(0)'%self.prefix)
                 for i from 0 <= i < m:
                     if StablePivots[i] is not None:
                         StableList[i].setname('c_%d_%d'%(n,i))
@@ -4049,21 +3989,13 @@ class MODCOHO(COHO):
                         StableList[i]._NF=True
                         NewGen.append(StableList[i])
                         NrNewGen -= 1
-                        #if len(self._DuflotRegSeq)<(self.PCenterRk or self.pRank):
-                        #    # test if we can extend the regular sequence
-                        #    restval = rmap(StableList[i]).val_str()
-                        #    HG.set_ring()
-                        #    if singular.eval('is_freg(%s,%sRegTest)==intvec(0)'%(restval,self.prefix))=='1':
-                        #        self._DuflotRegSeq.append(StableList[i])
-                        #        singular.eval('%sRegTest=std(%sRegTest,%s)'%(self.prefix,self.prefix,restval))
-                #singular.eval('degBound='+dgb)
                 if NrNewGen!=0:
                     raise RuntimeError, "Error in choosing regular generators"
 
                 if ZN_comp.values().count(1)==1:
-                    print_protocol("> There is 1 Duflot generator in degree %d"%(n), self)
+                    coho_logger.info("> There is 1 Duflot generator in degree %d"%(n), self)
                 else:
-                    print_protocol("> There are %d Duflot generators in degree %d"%(ZN_comp.values().count(1),n), self)
+                    coho_logger.info("> There are %d Duflot generators in degree %d"%(ZN_comp.values().count(1),n), self)
 
         ## Insert the new generators:
         if n%2:
@@ -4086,17 +4018,16 @@ class MODCOHO(COHO):
         SHP.set_ring()
         for Cand in NewGen:
             f = Cand.lc()
-            j = Cand.lm()#._Svalue
+            j = Cand.lm()
             lenDecGen = len(DecGen)
             if f:
                 for k from 0 <= k < lenDecGen:
                     if (j >= pivot[k]):
-                        #print type(Cand.coef(pivot[k]))
                         cf = Cand.coef(pivot[k])
                         if cf:
                             Cand = Cand - (DecGen[k])*cf
                             f = Cand.lc()
-                            j = Cand.lm()#._Svalue
+                            j = Cand.lm()
                 if not f:
                     raise RuntimeError, "New 'Generator' is in fact decomposable"
                 DecGen.append(Cand/f)
@@ -4180,20 +4111,17 @@ class MODCOHO(COHO):
                                 PotentialDicksonLift = self.lift_dickson(i-1,j)
                                 if PotentialDicksonLift is not None:
                                     if self.useFactorization:
-                                        self.Dickson[i-1] = self.small_factor(PotentialDicksonLift)#self.factorise(PotentialDicksonLift)
+                                        self.Dickson[i-1] = self.small_factor(PotentialDicksonLift)
                                     else:
                                         self.set_ring()
                                         self.Dickson[i-1] = singular.eval('print(%s)'%PotentialDicksonLift.name())
                                 break
                             j+=1
 
-        print_protocol("Degree %d of the visible ring structure is computed!"%(n), self)
-        if OPTION.opts['save']:
-            print_protocol("Saving ring approximation", self)
+        coho_logger.info("Degree %d of the visible ring structure is computed!"%(n), self)
+        if coho_options['save']:
+            coho_logger.info("Storing ring approximation", self)
             safe_save(self, self.autosave_name())
-        if OPTION.opts['timing']:
-            print "Total time for computing "+self.__repr__()+" in degree",self.knownDeg
-            print "   CPU:  %.2f\n   Wall: %.2f"%(cputime(TCT),walltime(TWT))
 
     def make(self, max_deg=-1):
         r"""
@@ -4209,7 +4137,7 @@ class MODCOHO(COHO):
         The group we are using in this example is ``MathieuGroup(12)``.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6),(1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
@@ -4373,30 +4301,28 @@ class MODCOHO(COHO):
            (max_deg==0) or (max_deg<-1):
             raise IndexError, "The degree bound must be a positive integer"
         if ((self.suffDeg>-1) and (self.knownDeg >= self.suffDeg)) or self.completed:
-            print_protocol("Computation has already been finished.", self)
+            coho_logger.info("Ring structure is completely known.", self)
             return
         if (max_deg!=-1) and (max_deg <= self.knownDeg):
-            print_protocol( 'Ring approximation is already known up to degree %d'%(self.knownDeg), self)
+            coho_logger.info( 'Ring approximation is known out to degree %d --- enough for now'%(self.knownDeg), self)
             return
         # If self belongs to an abelian group, then degree 2 suffices.
-        if self.group().IsAbelian():
+        if self.group_is_abelian():
             self.suffDeg = 2
         cdef RESL R = self.Resl
         if self.suffDeg == -1:
-            print_protocol("We have no degree bound yet",self)
+            coho_logger.info("We have no degree bound yet",self)
         else:
-            print_protocol("We have the degree bound %d"%(self.suffDeg), self)
+            coho_logger.info("We have the degree bound %d"%(self.suffDeg), self)
         if max_deg>0 and max_deg<self.suffDeg:
-            print_protocol("We will compute at most up to degree %d"%(max_deg), self)
+            coho_logger.info("We will compute at most out to degree %d"%(max_deg), self)
         while (1):
-            print_protocol('Start computation in Degree %d'%(self.knownDeg+1), self)
             self.next()
-            #self.generator_degbound()
             if (self.suffDeg!=-1) and (self.knownDeg >= self.suffDeg):
-                print_protocol("Computation went beyond a previously obtained degree bound",self)
+                coho_logger.info("Computation went beyond a previously obtained degree bound",self)
                 self.completed = True
             else:
-                self.test_for_completion() #self.BensonTest()
+                self.test_for_completion()
             if (self.completed) or ((max_deg!=-1) and (self.knownDeg>=max_deg)):
                 break
         self.set_ring()
@@ -4405,8 +4331,7 @@ class MODCOHO(COHO):
             self.make_groebner() # should be known by Benson's test, but not if other criteria were used
         self.RelG = [s.strip() for s in singular.eval('print(%sI)'%(self.prefix)).split(',')]
         self.SingularTime = singular.cputime(self.SingularTime)
-        print_protocol("Computation of the ring approximation is finished", self)
-        print_protocol('')
+        coho_logger.info("Computation of the ring approximation is finished\n", self)
 
         #####
         ## Verify Benson's strong regularity conjecture
@@ -4434,14 +4359,9 @@ is an error. Please inform the author!"""
                 print "###########################################"
                 print "Please inform the author"
 
-        if OPTION.opts['save']:
-            print_protocol("Saving ring approximation", self)
+        if coho_options['save']:
+            coho_logger.info("Storing ring approximation", self)
             safe_save(self, self.autosave_name())
-
-        if OPTION.opts['timing']:
-            print "Total time for cohomology computation"
-            print "   CPU:  %.2f\n   Wall: %.2f"%(cputime(TCT),walltime(TWT))
-        print_protocol('')
 
 ###########################################################################
 ##
@@ -4461,8 +4381,8 @@ def COHO_from_key(key):
 
     TESTS::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
-        sage: from sage.groups.modular_cohomology.modular_cohomology import COHO_from_key
+        sage: from pGroupCohomology import CohomologyRing
+        sage: from pGroupCohomology.modular_cohomology import COHO_from_key
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -4471,9 +4391,7 @@ def COHO_from_key(key):
     We remove ``H`` from the cache. The cohomology of its underlying
     subgroup is still there, and is returned by ``COHO_from_key``::
 
-        sage: for k,r in CohomologyRing._cache.items():
-        ...     if r is H:
-        ...         CohomologyRing._cache.__delitem__(k)
+        sage: del CohomologyRing._cache[H._key]
         sage: H.subgroup_cohomology() is COHO_from_key(H.subgroup_cohomology()._key)
         True
 
@@ -4510,12 +4428,12 @@ def COHO_from_key(key):
         [b_3_2*b_3_3]
 
     """
-    from sage.groups.modular_cohomology import CohomologyRing
+    from pGroupCohomology import CohomologyRing
     _cache = CohomologyRing._cache
-    from sage.groups.modular_cohomology.resolution import OPTION
+    from pGroupCohomology.resolution import coho_options
     # The p-group case
-    proto = OPTION.opts['prot']
-    OPTION.opts['prot'] = False
+    logging_level = coho_logger.getEffectiveLevel()
+    CohomologyRing.global_options('warn')
     import os
     if len(key)==2: # HP will be COHO
         HProot = os.path.split(os.path.split(os.path.split(key[1])[0])[0])[0]  # this is '/'.join(key[1].split('/')[:-3])
@@ -4525,7 +4443,7 @@ def COHO_from_key(key):
         else:
             HP = CohomologyRing(gap(key[0][0]), GStem=HPstem)
         # This will work in any case, may compute it from scratch
-        OPTION.opts['prot'] = proto
+        coho_logger.setLevel(logging_level)
         if not HP.completed:
             HP.make()
         return HP
@@ -4534,12 +4452,12 @@ def COHO_from_key(key):
     # Cache: The easiest case
     HP = _cache.get(key)
     if HP is not None:
-        OPTION.opts['prot'] = proto
+        coho_logger.setLevel(logging_level)
         return HP
     if len(key[0])==2:
         # SmallGroup is sufficiently easy, the constructor will do the job
         HP = CohomologyRing(key[0][0],key[0][1], prime=key[-1], GStem=key[1])
-        OPTION.opts['prot'] = proto
+        coho_logger.setLevel(logging_level)
         if not HP.completed:
             HP.make()
         return HP
@@ -4547,13 +4465,13 @@ def COHO_from_key(key):
     HN = COHO_from_key(key[2])
     # ... and see if we are lucky enough to find stuff on disk
     from sage.all import load
-    from sage.groups.modular_cohomology.cohomology import COHO
+    from pGroupCohomology.cohomology import COHO
     import os
     try:
         HP = load(os.path.join(COHO.user_db, 'H'+key[1]+'mod%d.sobj'%key[-1]))  # realpath here?
     except:
         HP = CohomologyRing(gap(key[0][0]), prime=key[-1], GStem=key[1],SubgpCohomology=HN)
-    OPTION.opts['prot'] = proto
+    coho_logger.setLevel(logging_level)
     if not HP.completed:
         HP.make()
     return HP
@@ -4564,7 +4482,7 @@ def MODCOHO_unpickle(*L):
 
     TESTS::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
@@ -4582,10 +4500,9 @@ def MODCOHO_unpickle(*L):
         raise ValueError, "wrong number of arguments"
 
     OUT = MODCOHO(None,_prime,None,None) # It is initialised as a ring over GF(_prime), but nothing more.
-    from sage.groups.modular_cohomology.cochain import MODCOCH
-    from sage.groups.modular_cohomology import CohomologyRing
+    from pGroupCohomology.cochain import MODCOCH
+    from pGroupCohomology import CohomologyRing
     _cache = CohomologyRing._cache
-    from sage.groups.modular_cohomology.resolution import OPTION
     OUT._property_dict = dict(unpickle_gap_data(_property_dict, gap))
     OUT._decorator_cache = dict(unpickle_gap_data(cache, gap))
     if _cache.has_key(OUT._key):
@@ -4619,7 +4536,7 @@ def MODCOHO_unpickle(*L):
 
     # Reconstruct data in GAP
     OUT._Subgp = gap(_Subgp)
-    OUT._SylowGp = gap(_SylowGp) #OUT._Subgp.SylowSubgroup(_prime)
+    OUT._SylowGp = gap(_SylowGp)
     OUT._gap_group = gap(_gap_group)
     OUT._SubgpBackup = _Subgp
     OUT._SylowGpBackup = _SylowGp
@@ -4664,7 +4581,7 @@ def MODCOHO_unpickle(*L):
     OUT._PtoPcapCPtwist = []
     OUT._PtoPcapCPdirectSing = []
     OUT._PtoPcapCPtwistSing = []
-    from sage.groups.modular_cohomology.cochain import chmap_unpickle
+    from pGroupCohomology.cochain import chmap_unpickle
     from sage.interfaces.singular import SingularElement
     OUT_S = singular(OUT._HP)
     for i in range(len(SubgroupList)):

@@ -4,9 +4,7 @@
 #
 #    Sage Package "Modular Cohomology Rings of Finite Groups"
 #
-#    Copyright (C) 2009/2010
-#         Simon A. King  <simon.king@uni-jena.de> and
-#         David J. Green <david.green@uni-jena.de>
+#    Copyright (C) 2009, 2010, 2015 Simon A. King  <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -21,12 +19,12 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 r"""
-Modular Cohomology Rings of Finite Groups
+Modular Cohomology Rings of Finite Groups (top level documentation)
 
 AUTHORS:
 
-- Simon King  <simon.king@uni-jena.de>
-- David Green <david.green@uni-jena.de>
+- Simon King  <simon.king@uni-jena.de> (Cython and Python code, porting, maintainance)
+- David Green <david.green@uni-jena.de> (underlying C code)
 
 IMPLEMENTATION:
 
@@ -42,12 +40,12 @@ NOTE:
 
 Modular cohomology rings of a finite group `G` are available via the constructor
 :func:`CohomologyRing`. The real work behind the scenes is done in the modules
-:mod:`~sage.groups.modular_cohomology.factory`,
-:mod:`~sage.groups.modular_cohomology.cohomology`,
-:mod:`~sage.groups.modular_cohomology.modular_cohomology`,
-:mod:`~sage.groups.modular_cohomology.barcode`, :mod:`~sage.groups.modular_cohomology.cochain`,
-:mod:`~sage.groups.modular_cohomology.resolution` and
-:mod:`~sage.groups.modular_cohomology.dickson`.
+:mod:`~pGroupCohomology.factory`,
+:mod:`~pGroupCohomology.cohomology`,
+:mod:`~pGroupCohomology.modular_cohomology`,
+:mod:`~pGroupCohomology.barcode`, :mod:`~pGroupCohomology.cochain`,
+:mod:`~pGroupCohomology.resolution` and
+:mod:`~pGroupCohomology.dickson`.
 
 In the first section of our introduction, we demonstrate the usage of
 our package. After outlining the functionality, we go into more detail
@@ -94,7 +92,7 @@ right away.
 
 The package is shipped with the cohomology rings for all groups of
 order 64; the data are stored in folders and can simply be retrieved
-by calling :func:`~sage.groups.modular_cohomology.cohomologyRing` with appropriate
+by calling :func:`~pGroupCohomology.cohomologyRing` with appropriate
 keys.  These data are provided to *all* users of the Sage installation,
 thus we refer to it as the *public database*.
 
@@ -139,7 +137,7 @@ and stored in the private database.
 
 If all this fails, a new ring is initialized in the current private
 database. So, unless
-:meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.public_db` is used, the
+:meth:`~pGroupCohomology.factory.CohomologyRingFactory.public_db` is used, the
 data for any cohomology ring will eventually be in the current private
 database.
 
@@ -159,13 +157,12 @@ Creating a cohomology ring
 In the following subsections, we explain here how to describe the
 group whose modular cohomology ring shall be computed.
 
-There are also various options that influence the algorithm and the use
-of databases. For example, it might be instructive to use the protocol
-option, providing the optional argument ``options='prot'`` or
-``options=('prot',)``; the protocol gives detailed information on how
-data are computed. If some timings shall be printed as well, one can
-provide ``options=('prot','timing')``. Options can be changed at any
-time using the method :meth:`~sage.groups.modular_cohomology.cohomology.COHO.option`.
+There are also various global options that influence the algorithm and
+the use of databases. For example, it might be instructive to use logging;
+the log gives detailed information on how data are computed (the "debug"
+logging level is of course even more verbous). Global options can be
+changed at any time using the method
+:meth:`~pGroupCohomology.CohomologyRing.global_options`.
 
 Usually, the package attempts to make use of existing data. However,
 if the optional parameter ``from_scratch`` is set to ``True`` then
@@ -175,7 +172,7 @@ ring itself, but not for cohomology rings of certain subgroups that
 might be created during the computation.
 
 Further options are described in the documentation of
-:func:`~sage.groups.modular_cohomology.cohomologyRing`.
+:func:`~pGroupCohomology.cohomologyRing`.
 
 ... using the SmallGroups library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -186,7 +183,7 @@ the databases. We do so in order to avoid a conflict with an existing
 private database.
 ::
 
-    sage: from sage.groups.modular_cohomology import CohomologyRing
+    sage: from pGroupCohomology import CohomologyRing
     sage: CohomologyRing.set_user_db(tmp_dir())
     sage: H0 = CohomologyRing(8,3)
 
@@ -211,7 +208,7 @@ the Dihedral Group of order 8::
     Minimal list of algebraic relations:
     [b_1_0*b_1_1]
 
-The generators are of type :class:`~sage.groups.modular_cohomology.cochain.COCH`.
+The generators are of type :class:`~pGroupCohomology.cochain.COCH`.
 It is also possible to convert the cohomology ring into a quotient
 ring in the Singular interface::
 
@@ -413,9 +410,9 @@ ring of the dihedral group of order 8::
 
 Actually we implemented two essentially different ways of computating
 the Poincaré series. The method
-:meth:`~sage.groups.modular_cohomology.cohomology.COHO.poincare_without_parameters`
+:meth:`~pGroupCohomology.cohomology.COHO.poincare_without_parameters`
 is usually much slower than
-:meth:`~sage.groups.modular_cohomology.cohomology.COHO.poincare_series`, but of
+:meth:`~pGroupCohomology.cohomology.COHO.poincare_series`, but of
 course the results are the same::
 
     sage: H2.poincare_without_parameters()
@@ -424,8 +421,8 @@ course the results are the same::
 After computing the ring structure, generators and relations of the
 cohomology ring are present. Generator number zero is the
 multiplicative unit of the underlying field. The other generators are
-represented by cochains (:class:`~sage.groups.modular_cohomology.cochain.COCH`, or
-:class:`~sage.groups.modular_cohomology.cochain.MODCOCH` for non prime power groups)::
+represented by cochains (:class:`~pGroupCohomology.cochain.COCH`, or
+:class:`~pGroupCohomology.cochain.MODCOCH` for non prime power groups)::
 
     sage: H1.gens()
     [1, c_2_2: 2-Cocycle in H^*(D8; GF(2)), b_1_0: 1-Cocycle in H^*(D8; GF(2)), b_1_1: 1-Cocycle in H^*(D8; GF(2))]
@@ -482,7 +479,7 @@ two groups *equivalent*, if there is a group isomorphism that maps the
 given list of generators of one group to an initial segment of the list
 of generators of the other group.
 
-:meth:`~sage.groups.modular_cohomology.cohomology.COHO.group` returns a permutation
+:meth:`~pGroupCohomology.cohomology.COHO.group` returns a permutation
 group in the gap interface equivalent to the one that was used to set up the
 cohomology ring::
 
@@ -625,22 +622,22 @@ of order 8) that we have defined above. Note that we are transforming
 the returned sets into sorted lists, in order
 to have reproducible doc tests::
 
-    sage: sorted(list(H0.massey_products(H0.2,H0.3,H0.2)), cmp=lambda X,Y:cmp(X.name(),Y.name()))
+    sage: sorted(list(H0.massey_products(H0.2,H0.3,H0.2)))
     [0: 2-Cocycle in H^*(D8; GF(2)), b_1_0^2: 2-Cocycle in H^*(D8; GF(2))]
-    sage: sorted(list(H0.massey_products(H0.2,H0.3,H0.2,H0.3)), cmp=lambda X,Y:cmp(X.name(),Y.name()))
-    [b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
-     b_1_1^2+b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
+    sage: sorted(list(H0.massey_products(H0.2,H0.3,H0.2,H0.3)))
+    [c_2_2: 2-Cocycle in H^*(D8; GF(2)),
      b_1_1^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
-     c_2_2: 2-Cocycle in H^*(D8; GF(2))]
-    sage: sorted(list(H0.massey_products(H0.2*H0.1,H0.3*H0.1,H0.2*H0.1)), cmp=lambda X,Y:cmp(X.name(),Y.name())) # long time
+     b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
+     b_1_1^2+b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2))]
+    sage: sorted(list(H0.massey_products(H0.2*H0.1,H0.3*H0.1,H0.2*H0.1)))
     [0: 8-Cocycle in H^*(D8; GF(2)),
-     c_2_2*b_1_0^6: 8-Cocycle in H^*(D8; GF(2)),
-     c_2_2*b_1_0^6+c_2_2^2*b_1_0^4: 8-Cocycle in H^*(D8; GF(2)),
-     c_2_2*b_1_0^6+c_2_2^2*b_1_0^4+c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2)),
-     c_2_2*b_1_0^6+c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2)),
+     c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2)),
      c_2_2^2*b_1_0^4: 8-Cocycle in H^*(D8; GF(2)),
      c_2_2^2*b_1_0^4+c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2)),
-     c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2))]
+     c_2_2*b_1_0^6: 8-Cocycle in H^*(D8; GF(2)),
+     c_2_2*b_1_0^6+c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2)),
+     c_2_2*b_1_0^6+c_2_2^2*b_1_0^4: 8-Cocycle in H^*(D8; GF(2)),
+     c_2_2*b_1_0^6+c_2_2^2*b_1_0^4+c_2_2^3*b_1_0^2: 8-Cocycle in H^*(D8; GF(2))]
 
 If one is interested in just a single element of the Massey products,
 one can use the option ``all=False``::
@@ -663,9 +660,9 @@ defined, then it is a single cocycle::
     b_2_0^2*a_1_1*a_3_5+b_2_0^2*a_1_0*a_3_4+b_2_0*c_6_8: 8-Cocycle in H^*(E27; GF(3))
 
 It is known that in odd degree and for `p>2` it can be expressed as
-minus the composition of the first Steenrod power with the Bockstein
+the negative of the composition of the first Steenrod power with the Bockstein
 operator. This allows for a verification of the above result, see
-:meth:`~sage.groups.modular_cohomology.cochain.COCH.massey_power` for details.
+:meth:`~pGroupCohomology.cochain.COCH.massey_power` for details.
 
 Massey products allow to distinguish certain isomorphic cohomology
 rings, so, they contain information that go beyond the ring
@@ -808,10 +805,17 @@ associated with the upper central series::
     sage: B160 = H160.bar_code('UpperCentralSeries')
     sage: B158 == B160
     False
+    sage: B158[1]==B160[1]
+    True
+    sage: B158[2]==B160[2]
+    True
+    sage: B158[3]==B160[3]
+    False
+
 
 Indeed, the bar codes differ in degree 3; graphically::
 
-    sage: print B158[3]
+    sage: ascii_art(B158[3])
             *
             *
           *-*
@@ -834,7 +838,7 @@ Indeed, the bar codes differ in degree 3; graphically::
     *
     *
     *
-    sage: print B160[3]
+    sage: ascii_art(B160[3])
             *
             *
           *-*
@@ -915,8 +919,8 @@ The essential ideal of a cohomology ring is formed by all those elements
 whose restrictions to all subgroups vanish. The depth essential ideal
 at rank `r` is formed by all those elements that vanish on the centralisers
 of all `p`-elementary abelian subgroups of rank `r`. These ideals can be
-computed using :meth:`~sage.groups.modular_cohomology.cohomology.COHO.essential_ideal`
-and :meth:`~sage.groups.modular_cohomology.cohomology.COHO.depth_essential_ideal`.
+computed using :meth:`~pGroupCohomology.cohomology.COHO.essential_ideal`
+and :meth:`~pGroupCohomology.cohomology.COHO.depth_essential_ideal`.
 
 If `r` is at most the depth of the cohomology ring, then the depth essential
 ideal vanishes. It is conjectured by J. Carlson that it is non-zero whenever
@@ -943,16 +947,18 @@ The dihedral group and the group of order 720 (which is
 the symmetric group on 6 elements) have no essential
 classes, for different reasons::
 
-    sage: S6.option('prot')
+    sage: CohomologyRing.global_options('info')
     sage: S6.essential_ideal()
-    H^*(720gp763; GF(2)): Compute essential_ideal
-            The group is not of prime power order -- no essential ideal
+    H^*(SmallGroup(720,763); GF(2)):
+              Compute essential_ideal
+              The group is not of prime power order -- there is no essential ideal
     0
     sage: D.essential_ideal()
-    H^*(8gp3; GF(2)): Compute essential_ideal
-            The depth exceeds the Duflot bound -- no essential ideal
+    H^*(D8; GF(2)):
+              Compute essential_ideal
+              The depth exceeds the Duflot bound -- there is no essential ideal
     0
-    sage: D.option('noprot')
+    sage: CohomologyRing.global_options('warn')
 
 It used to be a conjecture that the product of any two essential
 classes vanishes. But then it was found that the cohomology of the
@@ -1022,7 +1028,7 @@ We first describe the situation for prime power groups. We do some new
 computations from scratch, using a temporary directory.
 ::
 
-    sage: from sage.groups.modular_cohomology import CohomologyRing
+    sage: from pGroupCohomology import CohomologyRing
     sage: tmp = tmp_dir()
     sage: CohomologyRing.set_user_db(tmp)
     sage: H = CohomologyRing(8,3,from_scratch=True)
@@ -1100,7 +1106,7 @@ location, you may do so. But please make sure that (in the case of prime power
 groups) ``H.gps_folder`` keeps its name (only the parent directory is allowed
 to change!), and that all files in ``H.gps_folder`` and its sub-folders are
 preserved. Then, by
-:meth:`~sage.groups.modular_cohomology.factory.CohomologyRingFactory.set_user_db`, one can
+:meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_user_db`, one can
 activate the private database in the new location, and reload the ring.  In
 order to demonstrate that it really is the same ring, we provide ``H`` with an
 additional attribute before saving and moving the data::
@@ -1165,7 +1171,7 @@ Computing a minimal projective resolution
 [Green]_ provides an algorithm for the computation of initial segments of a
 minimal projective resolutions for modular group algebras of finite
 `p`-groups, using non-commutative Groebner bases. He implemented it in
-C-programs, and we provide a Cython wrapper in :mod:`sage.groups.modular_cohomology.resolution`.
+C-programs, and we provide a Cython wrapper in :mod:`pGroupCohomology.resolution`.
 
 Chosing generators
 ^^^^^^^^^^^^^^^^^^
@@ -1271,11 +1277,11 @@ criterion is an algorithmic procedure that can decide whether an approximation
 of `R` out to degree `k` actually is isomorphic to `R`, as graded `\mathbb
 F_p`-algebra. Such a criterion must be
 
-- *effective* (there is some `n_0` such that the criterion asserts isomorphy
-  of `\tau_kR` and `R` for all `k\ge n_0`) and
+- *effective* (there is some `N_0` such that the criterion asserts isomorphy
+  of `\tau_kR` and `R` for all `k\ge N_0`) and
 
-- *correct* (if `N_0` is the smallest number such that `\tau_{N_0}R` is
-   isomorphic to `R`, then `k_0\ge N_0`)
+- *correct* (if `n_0` is the smallest number such that `\tau_{n_0}R` is
+   isomorphic to `R`, then `N_0\ge n_0`)
 
 For practical computations, it is important that `N_0-n_0` is small. And of
 course, it is also important that the computations, which the completeness
@@ -1309,17 +1315,17 @@ multiplication map by parameter number `k` on the quotient of `H^*(G)` modulo
 the first `k-1` parameters has finite dimensional kernel. Since they are
 parameters, the quotient of `H^*(G)` by all parameters is finite
 dimensional. The parameters are used to compute the filter degree type of the
-ring approximation, and if this succeeds, and then the degree bound `k_0` is
-obtained from the degree sum of the parameters.
+ring approximation, and if this succeeds, degree bound `N_0` is obtained
+from the degree sum of the parameters.
 
 In the modified Benson criterion, one still needs to construct `p_1,...,p_t`
 such that they form a filter-regular sequence in `R`. But then, one can try to
 show the existence of parameters in *smaller degrees* over a finite extension
-field of `\mathbb F_p`. The degree bound `k_0` is obtained from the degree sum
+field of `\mathbb F_p`. The degree bound `N_0` is obtained from the degree sum
 of the *smaller* parameters, which do not require an explicit construction.
 
 In the Symonds criterion, the parameters need to be constructed explicitly,
-and the degree bound `k_0` is obtained from the degree sum of the
+and the degree bound `N_0` is obtained from the degree sum of the
 parameters. However, it is not needed that the parameters are algebraically
 independent. This additional freedom often allows for a construction of
 parameters in fairly small degrees.
@@ -1440,8 +1446,8 @@ Arbitrary parameters\---The Symonds Criterion
 
 In order to compute the maximal degree `N` of module generators over the
 parametes, it is needed to explicitly know the parameters. Hence, in contrast
-to the Benson criterion, it seems impossible to improve this criterion by an
-existence result for small parameters over an extension field.
+to the Benson criterion, it seems impossible to improve the Symonds criterion
+by an existence result for small parameters over an extension field.
 
 However, for verifying the Symonds criterion, it is not needed to compute the
 filter degree type of the hsop. Actually, it is not even needed to have
@@ -1520,7 +1526,7 @@ Proving surjectivity of a ring approximation in the non prime power case
 
 For applying the previous Theorem, there remains the problem of finding a
 lower bound for the depth, and the problem of deciding whether `\alpha_n` is
-surjective. Here, we need to restrict on the case that `G` is a finite group
+surjective. Here, we need to restrict to the case that `G` is a finite group
 that is not of prime power order. Actually, the criterion is designed for
 being used in the context of the stable element method explained earlier.
 
@@ -1540,7 +1546,7 @@ result.
   approximation out to degree `n`, denote `R_U=H^\ast(U;\mathbb F_p)`, and let
   `\iota: R\to R_U` be the inclusion used in the stable element method.
 
-  If `n` is sufficiently large, then is finite over
+  If `n` is sufficiently large, then `R_U` is finite over
   `A_n=\iota\left(\alpha_n(\tau_nR)\right)`. If `R_U` is generated in degree
   at most `D` as an `A_n` module, and if `n\ge D`, then `\alpha_n` is
   surjective.
@@ -1621,7 +1627,7 @@ cohomology ring of a Sylow 2-subgroup. It is of order 128::
 We set up the computation of its cohomology ring (requesting a computation
 from scratch in a new temporary directory)::
 
-    sage: from sage.groups.modular_cohomology import CohomologyRing
+    sage: from pGroupCohomology import CohomologyRing
     sage: CohomologyRing.set_user_db(tmp_dir())
     sage: HSyl = CohomologyRing(128, 928, from_scratch=True)
 
@@ -1648,8 +1654,7 @@ subgroups have been computed while setting up ``HSyl``. ::
     []
     <BLANKLINE>
     sage: Res = HSyl.resolution(); Res
-    Resolution:
-    0 <- GF(2) <- GF(2)(128gp928)
+    Resolution of GF(2)[Syl2(S8)]
     sage: sorted(HSyl.restriction_maps().items())
     [(1,
       [(2, 1),
@@ -1683,9 +1688,9 @@ We could explicitly request the computation of higher terms of the resolution,
 ::
 
     sage: Res.nextDiff()
-    sage: Res
+    sage: print Res
     Resolution:
-    0 <- GF(2) <- GF(2)(128gp928) <- rank 3
+    0 <- GF(2) <- GF(2)[Syl2(S8)] <- rank 3
 
 but this is done anyway when we compute an approximation of the cohomology
 ring in increasing degrees. We compute the ring out to degree 3 (which could
@@ -1694,9 +1699,9 @@ also be achieved by ``HSyl.make(3)``)::
     sage: HSyl.next()
     sage: HSyl.next()
     sage: HSyl.next()
-    sage: Res
+    sage: print Res
     Resolution:
-    0 <- GF(2) <- GF(2)(128gp928) <- rank 3 <- rank 7 <- rank 13 <- rank 22
+    0 <- GF(2) <- GF(2)[Syl2(S8)] <- rank 3 <- rank 7 <- rank 13 <- rank 22
     sage: print HSyl
     <BLANKLINE>
     Cohomology ring of Sylow 2-subgroup of Symmetric Group S_8 with coefficients in GF(2)
@@ -1727,8 +1732,8 @@ nilpotent. In other words, they have trivial restriction to the central
 elementary abelian subgroup, but non-trivial restriction to at least one
 maximal elementary abelian subgroup. Let us verify this for two of the
 generators. There are different methods to get the restrictions. First, we
-call the restriction map to greatest central elementary abelian subgroup on
-some degree two generator.
+call the restriction map to the greatest central elementary abelian subgroup
+on some degree two generator.
 ::
 
     sage: HSyl.1
@@ -1891,7 +1896,7 @@ When we try to find a subset of the generators of the current ring
 approximation that is a hsop of the cohomology ring, we obtain::
 
     sage: HSyl.dependent_parameters()
-    ['b_1_0', 'b_1_1', 'b_1_2', 'c_4_21', 'b_2_6', 'b_2_5', 'b_2_4']
+    ['b_1_0', 'b_1_1', 'b_1_2', 'c_4_21', 'b_2_4', 'b_2_5', 'b_2_6']
 
 All these hsops are for the cohomology ring, but they are no hsops for the
 current ring approximation::
@@ -1977,7 +1982,7 @@ over one of the previously obtained hsops::
     ''
     sage: I = HSyl.relation_ideal()
     sage: HSyl._parameters_for_criterion
-    ['b_1_0', 'b_1_1', 'b_1_2', 'c_4_21', 'b_2_6', 'b_2_5', 'b_2_4']
+    ['b_1_0', 'b_1_1', 'b_1_2', 'c_4_21', 'b_2_4', 'b_2_5', 'b_2_6']
     sage: (I + singular.ideal(HSyl._parameters_for_criterion)).std().kbase()
     b_3_12,
     b_3_11,
@@ -2038,7 +2043,7 @@ degree one. So, in degree one, we obtain::
 
 We find that the stable subspace in degree two is of dimension 5. The
 decomposable elements form a sub-space of dimension 3 (that is the first
-output of :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.find_relations`),
+output of :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.find_relations`),
 and there are no relations in degree two (that is the second output)::
 
     sage: HU.stable_space(2)
@@ -2109,9 +2114,7 @@ Hence, it seems possible that the ring approximation is complete in degree
 six. What parameters do we find?
 ::
 
-    sage: HU.option('prot')
     sage: HU.parameters_from_sylow_subgroup()
-    sage: HU.option('noprot')
     sage: HU.filter_regular_parameters()
     ['b_1_1^2*b_3_1^2+b_1_1^8+b_1_0^4*b_1_1^4+b_1_0^8+b_2_4*b_1_0^3*b_3_0+b_2_4^2*b_1_0^2*b_1_1^2+b_2_4^2*b_1_0^4+b_2_4^4+b_2_3*b_2_4^2*b_1_0^2+b_2_3^4+c_4_15*b_1_1*b_3_1+c_4_15*b_1_0*b_3_0+c_4_15*b_1_0*b_1_1^3+c_4_15*b_1_0^3*b_1_1+c_4_15*b_1_0^4+b_2_4*c_4_15*b_1_1^2+b_2_4*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^2+c_4_15^2',
      'b_3_9^4+b_3_1^4+b_1_1^6*b_3_1^2+b_1_0^4*b_1_1^8+b_1_0^8*b_1_1^4+b_2_4*b_1_0^2*b_1_1^5*b_3_1+b_2_4*b_1_0^6*b_1_1*b_3_1+b_2_4*b_1_0^7*b_3_0+b_2_4^2*b_1_1^2*b_3_1^2+b_2_4^2*b_1_0^2*b_1_1^6+b_2_4^2*b_1_0^8+b_2_4^4*b_1_1^4+b_2_4^4*b_1_0^2*b_1_1^2+b_2_4^4*b_1_0^4+b_2_3*b_2_4^2*b_1_0^6+b_2_3^2*b_2_4*b_1_0^3*b_3_0+b_2_3^2*b_2_4^2*b_1_0^4+b_2_3^2*b_2_4^4+b_2_3^3*b_2_4^2*b_1_0^2+b_2_3^4*b_1_0^4+c_4_15*b_1_1^2*b_3_1^2+c_4_15*b_1_1^5*b_3_1+c_4_15*b_1_0*b_1_1^4*b_3_1+c_4_15*b_1_0*b_1_1^7+c_4_15*b_1_0^2*b_1_1^6+c_4_15*b_1_0^5*b_3_1+c_4_15*b_1_0^5*b_3_0+c_4_15*b_1_0^6*b_1_1^2+c_4_15*b_1_0^7*b_1_1+c_4_15*b_1_0^8+b_2_4*c_4_15*b_1_1^3*b_3_1+b_2_4*c_4_15*b_1_1^6+b_2_4*c_4_15*b_1_0*b_1_1^5+b_2_4^2*c_4_15*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_4^3*c_4_15*b_1_1^2+b_2_4^3*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^3*b_3_0+b_2_3*c_4_15*b_1_0^6+b_2_3*b_2_4*c_4_15*b_1_0^4+b_2_3^2*c_4_15*b_1_0*b_3_0+b_2_3^2*c_4_15*b_1_0^4+b_2_3^3*c_4_15*b_1_0^2+c_4_15^2*b_1_1*b_3_1+c_4_15^2*b_1_0*b_3_0+c_4_15^2*b_1_0^2*b_1_1^2+b_2_4*c_4_15^2*b_1_0*b_1_1+b_2_4*c_4_15^2*b_1_0^2+b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2',
@@ -2164,15 +2167,16 @@ dependent hsop in degrees 1, 1, 4, 3, 3, 2, 2, so that again the criterion
 could only apply in degrees strictly greater than `0+0+3+2+2+1+1=9`.
 Nevertheless, let us test for completion now::
 
-    sage: HU.option('prot')
+    sage: CohomologyRing.global_options('info')
     sage: HU.test_for_completion()
-    H^*(384gp5602; GF(2)): We found parameters, but they would not allow for an application of Symonds' criterion.
-            Try to find better parameters in a more costly way.
-            The Symonds criterion is inconclusive.
-            Attempt application of the Hilbert-Poincare criterion
-            We expect that the Hilbert-Poincare criterion will not apply before degree 7
-            No conclusion on the completeness of this cohomology ring.
-    sage: HU.option('noprot')
+    H^*(SmallGroup(384,5602); GF(2)):
+              We found parameters, but they would not allow for an application of Symonds' criterion.
+              Trying to find better parameters in a more costly way.
+              The Symonds criterion is inconclusive.
+              Trying the Hilbert-Poincare criterion
+              We expect that the Hilbert-Poincare criterion will not apply before degree 7
+              No conclusion on the completeness of this cohomology ring.
+    sage: CohomologyRing.global_options('warn')
 
 Since it seems possible to apply the Hilbert\--Poincaré criterion in degree 7,
 we compute the ring out to the next degree (but we do not find new relations
@@ -2233,8 +2237,8 @@ a name to it when defining the cohomology ring::
     sage: H
     H^*(SymmetricGroup(8); GF(2))
 
-As we have promised, the same intermediate subgroups is used that we have
-studied in the previous subsection.
+As we have announced above, the group studied in the previous subsection
+is used as intermediate subgroup.
 ::
 
     sage: H.subgroup_cohomology() is HU
@@ -2306,45 +2310,41 @@ The maximal degree of a module generator is 8 (namely the degree of
 we still compute the stable subspace.
 ::
 
-    sage: H.option('prot')
+    sage: CohomologyRing.global_options('info')
     sage: H.make(8)
-    H^*(SymmetricGroup_8_; GF(2)): We have no degree bound yet
-            Start computation in Degree 8
-            Determining stable subspace in degree 8
-    H^*(384gp5602; GF(2)): Determine degree 8 standard monomials
-    H^*(SymmetricGroup_8_; GF(2)): > found 72 monomials for the subgroup
-    H^*(32gp46; GF(2)): Determine degree 8 standard monomials
-    H^*(SymmetricGroup_8_; GF(2)): > Conjugator isomorphism 0
-    H^*(32gp27; GF(2)): Determine degree 8 standard monomials
-    H^*(SymmetricGroup_8_; GF(2)): > Conjugator isomorphism 1
-    H^*(8gp3; GF(2)): Determine degree 8 standard monomials
-    H^*(SymmetricGroup_8_; GF(2)): > Conjugator isomorphism 2
-            Setting up conditions to determine stable elements
-            Solving equations
-            > dim H^8 = 25
-            Computing Groebner basis up to degree 8
-            Determine degree 8 standard monomials
-            Express 27 standard monomials as cocycles
-            > Interreduction
-            > Determining decomposable subspace
-            > Extracting relations
-            There are 2 new relations in degree 8
-            There is no new generator in degree 8
-            Try to lift 1st power of 0th Dickson invariant
-            Determine degree 8 standard monomials
-            Express 25 standard monomials as cocycles
-            > Interreduction
-            > Determining decomposable subspace
-            > Extracting decomposable cocycles and relations
-            Simplification modulo nilpotent generators
-    Computing factors (ignoring relations); it can be interrupted with Ctrl-c
-            Degree 8 of the visible ring structure is computed!
-            Saving ring approximation
-            We expect a relation in degree at least 14
-            Computation of the ring approximation is finished
+    H^*(SymmetricGroup(8); GF(2)):
+              We have no degree bound yet
+              Computing ring approximation in degree 8
+              Determining stable subspace in degree 8
+    H^*(SmallGroup(384,5602); GF(2)):
+              Determine degree 8 standard monomials
+    H^*(D8xV4; GF(2)):
+              Determine degree 8 standard monomials
+    H^*(SmallGroup(32,27); GF(2)):
+              Determine degree 8 standard monomials
+    H^*(D8; GF(2)):
+              Determine degree 8 standard monomials
+    H^*(SymmetricGroup(8); GF(2)):
+              Setting up conditions to determine stable elements
+              Solving equations
+              Computing Groebner basis up to degree 8
+              Exploring relations in degree 8
+              Determine degree 8 standard monomials
+              Express 27 standard monomials as cocycles
+              Found 2 relations in degree 8
+              There is no new generator in degree 8
+              Try to lift 1st power of 0th Dickson invariant
+              Exploring relations in degree 8
+              Determine degree 8 standard monomials
+              Express 25 standard monomials as cocycles
+              Found 0 relations in degree 8
+              Factorising an element; it can be interrupted with Ctrl-c
+              Degree 8 of the visible ring structure is computed!
+              Storing ring approximation
+              We expect a relation in degree at least 14
+              Computation of the ring approximation is finished
     <BLANKLINE>
-            Saving ring approximation
-    <BLANKLINE>
+              Storing ring approximation
 
 Hence, we did actually not find another generator in degree 8, and we have
 just proved that there will be no generators in higher degrees. So, starting
@@ -2354,31 +2354,28 @@ simplified, as there is no need to compute the stable subspace::
     sage: H.all_generators_found
     True
     sage: H.make(9)
-            We have no degree bound yet
-            Start computation in Degree 9
-            All stable cocycles are decomposable
-            Computing Groebner basis up to degree 9
-            Determine degree 9 standard monomials
-            Express 35 standard monomials as cocycles
-            > Interreduction
-            > Determining decomposable subspace
-            > Extracting relations
-            There are 2 new relations in degree 9
-            There is no new generator in degree 9
-            Degree 9 of the visible ring structure is computed!
-            Saving ring approximation
-            We expect a relation in degree at least 14
-            Computation of the ring approximation is finished
+              We have no degree bound yet
+              Computing ring approximation in degree 9
+              All generators are known
+              Computing Groebner basis up to degree 9
+              Exploring relations in degree 9
+              Determine degree 9 standard monomials
+              Express 35 standard monomials as cocycles
+              Found 2 relations in degree 9
+              There is no new generator in degree 9
+              Degree 9 of the visible ring structure is computed!
+              Storing ring approximation
+              We expect a relation in degree at least 14
+              Computation of the ring approximation is finished
     <BLANKLINE>
-            Saving ring approximation
-    <BLANKLINE>
+              Storing ring approximation
 
 As we see, the last relations are expected in degree 14, which is actually too
 high (the last relation is in degree 12), but let us compute out to degree 14
 anyway.
 ::
 
-    sage: H.option('noprot')
+    sage: CohomologyRing.global_options('warn')
     sage: H.make(14)
     sage: H.knownDeg
     14
@@ -2463,6 +2460,6 @@ References
 
 """
 
-from sage.groups.modular_cohomology import barcode, factory
-from sage.groups.modular_cohomology.factory import CohomologyRing
-from sage.groups.modular_cohomology.resolution import gap, singular
+#~ from pGroupCohomology import barcode, factory
+from pGroupCohomology.factory import CohomologyRing
+#~ from pGroupCohomology.resolution import gap, singular

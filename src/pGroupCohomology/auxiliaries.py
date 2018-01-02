@@ -2,7 +2,7 @@
 #
 #    Auxiliar functions for computations in modular group cohomology
 #
-#    Copyright (C) 2015 Simon A. King  <simon.king@uni-jena.de> and
+#    Copyright (C) 2015 Simon A. King  <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -17,7 +17,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-Auxiliary functions for the optional sage.groups.modular_cohomology package.
+Auxiliary functions for the optional pGroupCohomology package.
 
 AUTHORS:
 
@@ -26,7 +26,7 @@ AUTHORS:
 """
 
 import os
-from sage.env import SAGE_ROOT
+from sage.env import SAGE_ROOT, DOT_SAGE
 
 ##########
 ## Save data without following soft links
@@ -37,7 +37,7 @@ def safe_save(obj, path):
 
     EXAMPLES::
 
-        sage: from sage.groups.modular_cohomology.auxiliaries import safe_save
+        sage: from pGroupCohomology.auxiliaries import safe_save
         sage: d = tmp_dir()
         sage: save(1, os.path.join(d, 'orig'))
         sage: os.symlink(os.path.join(d, 'orig.sobj'), os.path.join(d, 'copy.sobj'))
@@ -69,251 +69,236 @@ def safe_save(obj, path):
     save (obj, path)
 
 ###################################
-## Auxiliary class managing options
+## Helper for unpickling old data
 
-class OPTION:
+class unpickle_old_mtx:
+    """Helper for old pickles of MTX matrices
+
+    It unpickles what was pickled with the old-style
+    ``p_group_cohomology`` spkg. This holds, for example, for the
+    data found in the database that is shipped with this optional
+    package.
     """
-    Set/unset global options fro cohomology computations.
-
-    INPUT:
-
-    Either ``opt`` (string) or no input.
-
-    OUTPUT:
-
-    - If no input is given, the value of all options is displayed.
-    - An option is set if ``opt`` is one of
-       * 'prot' [not default], display protocol
-       * 'timing' [not default], display timing
-       * 'useMTX' [default], use MTX matrices for linear algebra
-       * 'reload' [default], reload differentials from file
-       * 'save' [default], save intermediate results
-       * 'sparse' [default], automatic export of lifts, if Urbild GB is loaded
-       * 'liftlist' [not default], try to lift a whole bunch of cochains (often not faster)
-       * 'use_web_in_doctest' [not default], allow web access during doctests
-    - If ``opt`` is ``'no'+X``, where ``X`` is one of the above strings, the
-      corresponding option is unset.
-
-    NOTE:
-
-    The options are stored in the attribute OPTION.opts, a dictionary.
-    If option 'prot' is set, some information about the progress of
-    computation is displayed.
-    If option 'timing' is set, timings for various critical steps
-    of the computation are displayed (CPU and Wall times).
-    See :mod:`sage.groups.modular_cohomology`, :mod:`~sage.groups.modular_cohomology.cohomology` and
-    :class:`sage.groups.modular_cohomology.resolution.RESL` for use cases and further
-    details.
-
-    EXAMPLES::
-
-        sage: from sage.groups.modular_cohomology.auxiliaries import OPTION
-        sage: sorted(OPTION.opts.items())
-        [('SingularCutoff', 70),
-         ('liftlist', False),
-         ('prot', False),
-         ('reload', True),
-         ('save', True),
-         ('sparse', True),
-         ('timing', False),
-         ('useMTX', True),
-         ('use_web_in_doctest', False)]
-        sage: OPTION('nosave')
-        sage: OPTION('timing')
-        sage: sorted(OPTION.opts.items())
-        [('SingularCutoff', 70),
-         ('liftlist', False),
-         ('prot', False),
-         ('reload', True),
-         ('save', False),
-         ('sparse', True),
-         ('timing', True),
-         ('useMTX', True),
-         ('use_web_in_doctest', False)]
-
-    We return to the original options, in order to not break
-    the other doc tests.
-    ::
-
-        sage: OPTION('save')
-        sage: OPTION('notiming')
-
-    """
-    opts = {'prot':False, 'timing':False, 'useMTX':True, 'reload':True,'save':True,'sparse':True, 'liftlist':False, 'SingularCutoff':70, 'use_web_in_doctest':False}
-    def __init__(self, opt=''):
+    def __call__(self, *args, **kwds):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.auxiliaries import OPTION
-            sage: sorted(OPTION.opts.items())
-            [('SingularCutoff', 70),
-             ('liftlist', False),
-             ('prot', False),
-             ('reload', True),
-             ('save', True),
-             ('sparse', True),
-             ('timing', False),
-             ('useMTX', True),
-             ('use_web_in_doctest', False)]
-            sage: OPTION('nosave')   # indirect doctest
-            sage: OPTION('timing')
-            sage: sorted(OPTION.opts.items())
-            [('SingularCutoff', 70),
-             ('liftlist', False),
-             ('prot', False),
-             ('reload', True),
-             ('save', False),
-             ('sparse', True),
-             ('timing', True),
-             ('useMTX', True),
-             ('use_web_in_doctest', False)]
-
-        We return to the original options, in order to not break
-        the other doc tests.
-        ::
-
-            sage: OPTION('save')
-            sage: OPTION('notiming')
+            sage: from pGroupCohomology import CohomologyRing
+            sage: print CohomologyRing(64,12)  # indirect doctest
+            Cohomology ring of Small Group number 12 of order 64 with coefficients in GF(2)
+            <BLANKLINE>
+            Computation complete
+            Minimal list of generators:
+            [b_2_1: 2-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             c_2_2: 2-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             c_2_3: 2-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             a_1_0: 1-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             b_1_1: 1-Cocycle in H^*(SmallGroup(64,12); GF(2))]
+            Minimal list of algebraic relations:
+            [a_1_0^2,
+             a_1_0*b_1_1,
+             b_2_1*a_1_0,
+             b_2_1*b_1_1^2+b_2_1^2]
 
         """
-        if isinstance(opt, str):
-            if opt=='':
-                for X in OPTION.opts.items():
-                    print str(X[0])+': '+str(X[1])
-                return
-            if len(opt)>1 and opt[:2]=='no':
-                self.__class__.opts[opt[2:]] = False
+        from sage.matrix.matrix_gfpn_dense import mtx_unpickle
+        return mtx_unpickle(*args, **kwds)
+
+class unpickle_old_resl:
+    """Helper for old pickles of :class:`~pGroupCohomology.resolution.RESL`
+
+    It unpickles what was pickled with the old-style
+    ``p_group_cohomology`` spkg.
+    """
+    def __call__(self, *args, **kwds):
+        """
+        TESTS::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: print CohomologyRing(64,12)  # indirect doctest
+            Cohomology ring of Small Group number 12 of order 64 with coefficients in GF(2)
+            <BLANKLINE>
+            Computation complete
+            Minimal list of generators:
+            [b_2_1: 2-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             c_2_2: 2-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             c_2_3: 2-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             a_1_0: 1-Cocycle in H^*(SmallGroup(64,12); GF(2)),
+             b_1_1: 1-Cocycle in H^*(SmallGroup(64,12); GF(2))]
+            Minimal list of algebraic relations:
+            [a_1_0^2,
+             a_1_0*b_1_1,
+             b_2_1*a_1_0,
+             b_2_1*b_1_1^2+b_2_1^2]
+
+        """
+        from pGroupCohomology.resolution import resl_sparse_unpickle
+        return resl_sparse_unpickle(*args, **kwds)
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('pGroupCohomology.mtx', 'MTX_unpickle_class', unpickle_old_mtx)
+register_unpickle_override('pGroupCohomology.resolution', 'RESL_sparse_unpickle_class', unpickle_old_resl)
+
+#######################################
+## Options for cohomology computations
+#######################################
+
+default_options = (('useMTX',True),
+                   ('reload',True),
+                   ('save',True),
+                   ('sparse',False),
+                   ('liftlist',False),
+                   ('autolift',1),
+                   ('autoliftElAb',0),
+                   ('SingularCutoff',70),
+                   ('NrCandidates',1000),
+                   ('use_web_in_doctest',False),
+                   ('use_web',True))
+
+coho_options = dict(default_options)
+
+################################################
+##   Logging
+################################################
+
+import logging, weakref
+_previous_slf = None
+coho_logger = logging.getLogger("pGroupCohomology")
+stream_handler = logging.StreamHandler()
+
+class CohoFormatter(logging.Formatter):
+    """Formatter that groups log messages
+
+    EXAMPLE::
+
+        sage: from pGroupCohomology.auxiliaries import coho_logger
+        sage: from pGroupCohomology import CohomologyRing
+        sage: L = [ZZ, ZZ, ZZ['x'], ZZ['x'], ZZ['x'], ZZ, ZZ]
+        sage: CohomologyRing.reset()
+        sage: for i,P in enumerate(L):
+        ....:     coho_logger.warn('warning %d', P, i)
+        ....:
+        Integer Ring:
+                  warning 0
+                  warning 1
+        Univariate Polynomial Ring in x over Integer Ring:
+                  warning 2
+                  warning 3
+                  warning 4
+        Integer Ring:
+                  warning 5
+                  warning 6
+
+    """
+    def __init__(self, fmt=None, datefmt=None):
+        """
+        See :class:`logging.Formatter`.
+        """
+        logging.Formatter.__init__(self, fmt, datefmt)
+        self._orig_fmt = self._fmt
+        self.obj = weakref.ref(CohoFormatter)
+
+    def reset(self):
+        """
+        Reset the formatter
+
+        By resetting, the next log message is guaranteed to be prepended
+        by the string representation of the first argument of the
+        log record.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology.auxiliaries import coho_logger
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
+            sage: coho_logger.warn('message 1', ZZ)
+            Integer Ring:
+                      message 1
+
+        When we now log a message that is associated to the integer ring
+        as well, then we just see the message, not the integer ring::
+
+            sage: coho_logger.warn('message 2', ZZ)
+                      message 2
+
+        But sometimes (in particular when other output has happened after
+        logging the previous event), we want to see what object the log
+        message belongs to::
+
+            sage: CohomologyRing.reset()    # indirect doctest
+            sage: coho_logger.warn('message 3', ZZ)
+            Integer Ring:
+                      message 3
+
+        """
+        self.obj = weakref.ref(CohoFormatter)
+
+    def format(self, record):
+        """
+        INPUT:
+
+        record, an instance of :class:`logging.LogRecord`.
+
+        This formatter accesses ``obj=record.args[0]`` (the args
+        must thus be non-empty) and tests whether it coincides with
+        with the ``obj`` obtained from the previously obtained log
+        record. If the differ, then the string representation is
+        prepended to the log message, which also will be indented.
+
+        In that way, the log messages are grouped in blocks, so that
+        the human eye can more easily grasp what log message is
+        associated with what object.
+
+        ASSUMPTION:
+
+        ``record.args[0]`` allows a weak reference.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology.auxiliaries import coho_logger
+            sage: from pGroupCohomology import CohomologyRing
+            sage: L = [ZZ, ZZ, ZZ['x'], ZZ['x'], ZZ['x'], ZZ, ZZ]
+            sage: CohomologyRing.reset()
+            sage: for i,P in enumerate(L):
+            ....:     coho_logger.warn('warning %d', P, i)  # indirect doctest
+            ....:
+            Integer Ring:
+                      warning 0
+                      warning 1
+            Univariate Polynomial Ring in x over Integer Ring:
+                      warning 2
+                      warning 3
+                      warning 4
+            Integer Ring:
+                      warning 5
+                      warning 6
+
+        """
+        # record.args[0] is the object (resolution, map cohomology ring)
+        # that this log record belongs to.
+        obj = record.args[0]
+        if obj is None:
+            self.obj = weakref.ref(CohoFormatter)
+            self.objstr = ""
+            objstr = ""
+        else:
+            if self.obj() is not obj:
+                objstr = "{}: ".format(repr(obj))
+                self.obj = weakref.ref(obj)
+                if len(objstr)>10:
+                    objstr = objstr+os.linesep+10*" "
+                    self.objstr = "          "
+                else:
+                    self.objstr = " "*len(objstr)
             else:
-                self.__class__.opts[opt] = True
-        else:
-            raise TypeError, "option must be of type <str>"
-        if opt=='noprot':
-            global _previous_label
-            _previous_label = ''
+                objstr = self.objstr
+        self._fmt = objstr + self._orig_fmt
+        record.args = record.args[1:]
+        return logging.Formatter.format(self, record)
 
-    def __repr__(self):
-        """
-        TESTS::
-
-            sage: from sage.groups.modular_cohomology.auxiliaries import OPTION
-            sage: sorted(OPTION.opts.items())
-            [('SingularCutoff', 70),
-             ('liftlist', False),
-             ('prot', False),
-             ('reload', True),
-             ('save', True),
-             ('sparse', True),
-             ('timing', False),
-             ('useMTX', True),
-             ('use_web_in_doctest', False)]
-            sage: OPTION('nosave') # indirect doctest
-            sage: OPTION('timing') # indirect doctest
-            sage: sorted(OPTION.opts.items())
-            [('SingularCutoff', 70),
-             ('liftlist', False),
-             ('prot', False),
-             ('reload', True),
-             ('save', False),
-             ('sparse', True),
-             ('timing', True),
-             ('useMTX', True),
-             ('use_web_in_doctest', False)]
-
-        We return to the original options, in order to not break
-        the other doc tests.
-        ::
-
-            sage: OPTION('save')
-            sage: OPTION('notiming')
-
-        """
-        return ''
-
-################################################
-##   Auxiliary function: Print protocol
-################################################
-
-_previous_label = ''
-
-def print_protocol(txt, slf=None):
-    """
-    Print a text (if protocol mode is used).
-
-    INPUT:
-
-    - ``txt``, some string which must not contain a line break
-    - ``slf``, some object
-
-    OUTPUT:
-
-    If the verbosity is at least 2, or if the Cohomology option ``'prot'`` is
-    used, then ``slf.label()`` followed by ": " and ``txt`` is printed, unless
-    the same label has been used in the previous usage of this function, in
-    which case the text is just indented. If ``slf`` is ``None`` then
-    there is no indentation.
-
-    EXAMPLES::
-
-        sage: from sage.groups.modular_cohomology.auxiliaries import print_protocol, OPTION
-        sage: def foo(n):
-        ...     print_protocol('Some text')
-        ...     if not n:
-        ...         return True
-        ...     return foo(n-1)
-        ...
-        sage: foo(8)
-        True
-        sage: OPTION('prot')
-        <BLANKLINE>
-        sage: foo(8)
-          Some text
-            Some text
-              Some text
-                Some text
-                  Some text
-                    Some text
-                      Some text
-                        Some text
-                          Some text
-        True
-        sage: OPTION('noprot')
-        <BLANKLINE>
-        sage: set_verbose(2)
-        sage: foo(8)
-          Some text
-            Some text
-              Some text
-                Some text
-                  Some text
-                    Some text
-                      Some text
-                        Some text
-                          Some text
-        True
-        sage: set_verbose(0)
-        sage: foo(8)
-        True
-
-    """
-    from sage.all import get_verbose
-    global _previous_label
-    if OPTION.opts['prot'] or (get_verbose()>=2):
-        if '\n' in txt:
-            raise RuntimeError,txt
-        if slf is None:
-            print txt
-            return
-        try:
-            label = slf.label()
-        except AttributeError:
-            label = repr(slf)
-        if label == _previous_label:
-            label = " "*min(8, len(label)+2)
-        else:
-            _previous_label = label
-            label = label + ': '
-        print label + txt
-
+stream_handler.setFormatter(CohoFormatter())
+coho_logger.addHandler(stream_handler)
+coho_logger.setLevel(logging.WARN)
 
 ########################
 ## Initialisation of Gap
@@ -328,7 +313,7 @@ class GAP_INIT:
     loaded.  Hence, the GAP functions and global variables are
     available right after the import statement::
 
-        sage: from sage.groups.modular_cohomology.auxiliaries import _gap_init
+        sage: from pGroupCohomology.auxiliaries import _gap_init
         sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
         True
 
@@ -367,7 +352,7 @@ class GAP_INIT:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.auxiliaries import GAP_INIT
+            sage: from pGroupCohomology.auxiliaries import GAP_INIT
             sage: g = GAP_INIT()  # indirect doctest
             sage: gap.eval('List([1..10],i->Random(1,100000))')
             '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
@@ -391,7 +376,7 @@ class GAP_INIT:
 
         EXAMPLE::
 
-            sage: from sage.groups.modular_cohomology.auxiliaries import _gap_init
+            sage: from pGroupCohomology.auxiliaries import _gap_init
             sage: _gap_init()
             sage: gap.eval('List([1..10],i->Random(1,100000))')
             '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
@@ -436,14 +421,12 @@ class GAP_INIT:
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.auxiliaries import _gap_init
+            sage: from pGroupCohomology.auxiliaries import _gap_init
             sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
             True
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
             sage: _gap_init()
             sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
+            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
             sage: G2 = sage.interfaces.gap.Gap()
             sage: G2.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
             Traceback (most recent call last):
@@ -456,7 +439,7 @@ class GAP_INIT:
             sage: G2.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
             True
             sage: G2.eval('List([1..10],i->Random(1,100000))')
-            '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
+            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
 
         """
         from sage.all import gap as G0
@@ -466,10 +449,10 @@ class GAP_INIT:
             gap = G
         # Read the library, if it deems needed
         if not gap('IsBoundGlobal("exportMTXLIB")'):
-            gap.eval('Read("%s/local/pGroupCohomology/GapMaxels");'%(SAGE_ROOT))
-            gap.eval('Read("%s/local/pGroupCohomology/GapMB");'%(SAGE_ROOT))
-            gap.eval('Read("%s/local/pGroupCohomology/GapSgs");'%(SAGE_ROOT))
-            gap.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%os.environ['MTXLIB'])
+            gap.eval('Read("%s/src/ext/gap/modular_cohomology/GapMaxels.g");'%(SAGE_ROOT))
+            gap.eval('Read("%s/src/ext/gap/modular_cohomology/GapMB.g");'%(SAGE_ROOT))
+            gap.eval('Read("%s/src/ext/gap/modular_cohomology/GapSgs.g");'%(SAGE_ROOT))
+            gap.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
         # Reset the random generator
         try:
             self.mersenne._check_valid()
@@ -486,55 +469,3 @@ class GAP_INIT:
 
 _gap_init = GAP_INIT()
 _gap_init()
-
-####################
-## String repr. of ordinals
-
-def Ordinals(n):
-    """
-    Return an ordinal number in string form
-
-    INPUT:
-
-    n -- a non-negative integer
-
-    OUTPUT:
-
-    A string representation for the n-th ordinal number
-
-    EXAMPLES::
-
-        sage: from sage.groups.modular_cohomology.auxiliaries import Ordinals
-        sage: Ordinals(1)
-        '1st'
-        sage: Ordinals(2)
-        '2nd'
-        sage: Ordinals(3)
-        '3rd'
-        sage: Ordinals(4)
-        '4th'
-        sage: Ordinals(10)
-        '10th'
-        sage: Ordinals(11)
-        '11th'
-        sage: Ordinals(12)
-        '12th'
-        sage: Ordinals(21)
-        '21st'
-
-    """
-    i = n%10
-    if i==1:
-        if n%100==11:
-            return '%dth'%(n)
-        return '%dst'%(n)
-    if i==2:
-        if n%100==12:
-            return '%dth'%(n)
-        return '%dnd'%(n)
-    if i==3:
-        if n%100==13:
-            return '%dth'%(n)
-        return '%drd'%(n)
-    return '%dth'%(n)
-

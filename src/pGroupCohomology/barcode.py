@@ -4,7 +4,7 @@
 #
 #    Bar Codes -- a tool for persistent group cohomology
 #
-#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de> and
+#    Copyright (C) 2009, 2015, 2016 Simon A. King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 r"""
-Bar codes
+Bar codes --- a cohomological group invariant
 
 AUTHORS:
 
@@ -49,7 +49,8 @@ We work here with groups of order 64, that are part of the cohomology data base
 shipped with this package.
 ::
 
-    sage: from sage.groups.modular_cohomology import CohomologyRing
+    sage: from pGroupCohomology import CohomologyRing
+    sage: CohomologyRing.reset()
     sage: H158 = CohomologyRing(64,158)
     sage: H160 = CohomologyRing(64,160)
 
@@ -102,7 +103,7 @@ the upper central series::
 
 Indeed, the bar codes differ in degree 3; graphically::
 
-    sage: print B158[3]
+    sage: ascii_art(B158[3])
             *
             *
           *-*
@@ -125,7 +126,7 @@ Indeed, the bar codes differ in degree 3; graphically::
     *
     *
     *
-    sage: print B160[3]
+    sage: ascii_art(B160[3])
             *
             *
           *-*
@@ -187,10 +188,13 @@ look in position ``(2,4)``::
 
 """
 
+from sage.typeset.ascii_art import AsciiArt
+from sage.structure.sage_object import SageObject
+
 ##################
 # 2d bar codes
-class BarCode2d:
-    """
+class BarCode2d(SageObject):
+    r"""
     Integer valued bar codes (bar code in a single degree)
 
     A bar code in a fixed degree is encoded by an upper triangular
@@ -201,11 +205,11 @@ class BarCode2d:
 
     This class was designed for use in persistent group cohomology.
     So, we take an example from this context.
-    See :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code` for the
+    See :meth:`~pGroupCohomology.cohomology.COHO.bar_code` for the
     theoretical background.
     ::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
@@ -215,7 +219,7 @@ class BarCode2d:
         Persistence data for H^*(D8; GF(2)) associated with UpperCentralSeries
         sage: B[3]
         Barcode of degree 3 for H^*(D8; GF(2)) associated with UpperCentralSeries
-        sage: print B[3]
+        sage: ascii_art(B[3])
             *
             *
           *-*
@@ -231,13 +235,13 @@ class BarCode2d:
     """
 
     def __init__(self, L, **MetaData):
-        """
+        r"""
         NOTE:
 
         An instance of ``BarCode2d`` should not be directly constructed.
         Usually, it is obtained as output of
-        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code`, or as a slice
-        of an instance of :class:`~sage.groups.modular_cohomology.barcode.BarCode`.
+        :meth:`~pGroupCohomology.cohomology.COHO.bar_code`, or as a slice
+        of an instance of :class:`~pGroupCohomology.barcode.BarCode`.
 
         INPUT:
 
@@ -269,12 +273,12 @@ class BarCode2d:
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology.barcode import BarCode2d
+            sage: from pGroupCohomology.barcode import BarCode2d
             sage: L = [((-2,-2),2),((-2,-1),2),((-2,0),1),((-2,1),1),((-2,2),0),((-1,-1),3),((-1,0),1),((-1,1),1),((-1,2),0),((0,0),3),((0,1),2),((0,2),1),((1,1),2),((1,2),1),((2,2),2)]
             sage: B = BarCode2d(L, ring='some ring', degree=3, command='my favourite GAP command') # indirect doctest
             sage: B
             Barcode of degree 3 for some ring associated with my favourite GAP command
-            sage: print B
+            sage: ascii_art(B)
                     *
                 *-*-*
                 *
@@ -308,10 +312,10 @@ class BarCode2d:
         self._bars = bars
 
     def __cmp__(self,other):
-        """
+        r"""
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.barcode import BarCode2d
+            sage: from pGroupCohomology.barcode import BarCode2d
             sage: L = [((-2,-2),2),((-2,-1),2),((-2,0),1),((-2,1),1),((-2,2),0),((-1,-1),3),((-1,0),1),((-1,1),1),((-1,2),0),((0,0),3),((0,1),2),((0,2),1),((1,1),2),((1,2),1),((2,2),2)]
             sage: B = BarCode2d(L, ring='some ring', degree=3, command='my favourite GAP command')
             sage: B==loads(dumps(B))   # indirect doctest
@@ -323,12 +327,12 @@ class BarCode2d:
         return cmp(self._D, other._D)
 
     def data(self):
-        """
+        r"""
         Return the defining data of self as a sorted list
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -350,12 +354,12 @@ class BarCode2d:
         return OUT
 
     def matrix(self):
-        """
+        r"""
         Return the persistence matrix of self
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -376,10 +380,10 @@ class BarCode2d:
         return M
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -398,17 +402,17 @@ class BarCode2d:
             s += " associated with "+self._Meta['command']
         return s
 
-    def __str__(self):
-        """
+    def _ascii_art_(self):
+        r"""
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
-            sage: print B        #indirect doctest
+            sage: ascii_art(B)        #indirect doctest
                 *
                 *
               *-*
@@ -419,10 +423,10 @@ class BarCode2d:
 
         """
         L = [('  '*(self._length+X[0]) + '*' + '-*'*((X[1]-X[0]))) for X in self._bars]
-        return '\n'.join(L)
+        return AsciiArt(L)
 
     def add_metadata(self, key, datum):
-        """
+        r"""
         Add further information on the bar code
 
         NOTE:
@@ -432,7 +436,7 @@ class BarCode2d:
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology.barcode import BarCode2d
+            sage: from pGroupCohomology.barcode import BarCode2d
             sage: B = BarCode2d([((0,0),1)])
             sage: B
             Barcode
@@ -449,31 +453,20 @@ class BarCode2d:
         """
         self._Meta[key] = datum
 
-    def show(self,*args,**kwds):
-        """
-        Produce a picture of the bar code, similar to the ascii art
-        obtained by the print command
+    def plot(self,*args,**kwds):
+        r"""
+        Produce a picture of the bar code
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
-            sage: show(B)
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\begin{array}{l}
-            \phantom{\verb!xxxx!}\verb|*|\\
-            \phantom{\verb!xxxx!}\verb|*|\\
-            \phantom{\verb!xx!}\verb|*-*|\\
-            \phantom{\verb!xx!}\verb|*-*|\\
-            \phantom{\verb!xx!}\verb|*|\\
-            \phantom{\verb!xx!}\verb|*|\\
-            \verb|*|
-            \end{array}</script></html>
-
-        For seeing a nice picture, you should instead do ``B.show()``.
+            sage: plot(B)     # render
+            Graphics object consisting of 7 graphics primitives
 
         """
         from sage.plot.plot import circle, line
@@ -481,7 +474,7 @@ class BarCode2d:
         G = line([(X,l+1) for X in range(self._bars[0][0],self._bars[0][1]+1)], thickness=2, marker='.', markersize=15)
         for B in range(1,l):
             G += line([(X,l+1-B) for X in range(self._bars[B][0],self._bars[B][1]+1)], thickness=2, marker='.', markersize=15)
-        G.show(*args,**kwds)
+        return G
 
 
 ##################
@@ -502,11 +495,11 @@ class BarCode:
 
     This class was designed for use in persistent group cohomology.
     So, we take an example from this context.
-    See :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code` for the
+    See :meth:`~pGroupCohomology.cohomology.COHO.bar_code` for the
     theoretical background.
     ::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
@@ -527,7 +520,7 @@ class BarCode:
 
         sage: B[1]
         Barcode of degree 1 for H^*(D8; GF(2)) associated with UpperCentralSeries
-        sage: print B[2]
+        sage: ascii_art(B[2])
             *
           *-*
           *-*
@@ -549,7 +542,7 @@ class BarCode:
 
         An instance of ``BarCode`` should not be directly constructed.
         Usually, it is obtained as output of
-        :meth:`~sage.groups.modular_cohomology.cohomology.COHO.bar_code`
+        :meth:`~pGroupCohomology.cohomology.COHO.bar_code`
 
         INPUT:
 
@@ -577,13 +570,13 @@ class BarCode:
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.barcode import BarCode
+            sage: from pGroupCohomology.barcode import BarCode
             sage: R.<t> = ZZ[]
             sage: L = [((-1, -1), -1/(t - 1)), ((-1, 0), -1/(t^2 - 1)), ((-1, 1), 1), ((0, 0), 1/(t^2 - 2*t + 1)), ((0, 1), (-t - 1)/(t - 1)), ((1, 1), 1/(t^2 - 2*t + 1))]
             sage: B = BarCode(L,ring='some ring')    # indirect doctest
             sage: B
             Persistence data for some ring
-            sage: print B[3]
+            sage: ascii_art(B[3])
                 *
                 *
               *-*
@@ -599,10 +592,10 @@ class BarCode:
         self._length = max([X[1] for X in self._L.keys()])
 
     def __cmp__(self,other):
-        """
+        r"""
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -617,12 +610,12 @@ class BarCode:
         return cmp(self._L, other._L)
 
     def data(self):
-        """
+        r"""
         Return the defining data of self as a sorted list
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -644,12 +637,12 @@ class BarCode:
         return OUT
 
     def matrix(self):
-        """
+        r"""
         Return the persistence matrix of self
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -670,10 +663,10 @@ class BarCode:
         return M
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
@@ -691,12 +684,12 @@ class BarCode:
         return s
 
     def __getitem__(self, d):
-        """
+        r"""
         Return the degree ``d`` bar code
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
@@ -704,7 +697,7 @@ class BarCode:
             sage: B = H.bar_code('LowerCentralSeries')
             sage: B[3]       #indirect doctest
             Barcode of degree 3 for H^*(SmallGroup(16,3); GF(2)) associated with LowerCentralSeries
-            sage: print B[3]
+            sage: ascii_art(B[3])
                 *
               *-*
               *-*
@@ -736,7 +729,7 @@ class BarCode:
         return OUT
 
     def show(self, *args,**kwds):
-        """
+        r"""
         Show a 3D picture of self.
 
         INPUT:
@@ -752,7 +745,7 @@ class BarCode:
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
@@ -781,8 +774,8 @@ class BarCode:
         from sage.all import copy
         KWDS = copy(kwds)
         if KWDS.has_key('dmin'):
-            KWDS.__delitem__('dmin')
+            del KWDS['dmin']
         if KWDS.has_key('dmax'):
-            KWDS.__delitem__('dmax')
+            del KWDS['dmax']
         G.show(*args,**KWDS)
 

@@ -2,7 +2,7 @@
 #
 #    Cohomology Ring Elements and Maps
 #
-#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2009, 2015 Simon A. King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -23,9 +23,9 @@
 
 from sage.libs.modular_resolution cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
-from sage.groups.modular_cohomology.resolution cimport RESL
-from sage.structure.element import RingElement, ModuleElement
-from sage.structure.element cimport RingElement, ModuleElement
+from sage.libs.meataxe cimport *
+from pGroupCohomology.resolution cimport *
+from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.rings.morphism cimport RingHomomorphism
 
 ####################################################################
@@ -44,6 +44,8 @@ cdef class COCH(RingElement):
     cdef object _latex
     cdef object _sing_val
     cdef object _polyrep # tells whether "Name" provides a polynomial representation
+    cdef void isubmul(self, COCH other, FEL c)
+    cdef inline void set_mtx_globals(self)
 
 cdef class YCOCH:
     cdef RESL _R

@@ -3,7 +3,7 @@
 #    Computing Minimal Free Resolutions of Finite p-Groups,
 #    wrapping David J. Green's C-code
 #
-#    Copyright (C) 2009 Simon A. King  <simon.king@uni-jena.de>
+#    Copyright (C) 2009, 2015 Simon A. King  <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -18,6 +18,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.libs.meataxe cimport *
 from sage.libs.modular_resolution cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 
@@ -28,6 +29,7 @@ from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 cdef class G_ALG:
     cdef group_t *Data
     cdef object gstem
+    cdef object groupname
     cdef object dependent
 
 cdef class LIFTcontainer:
@@ -35,17 +37,21 @@ cdef class LIFTcontainer:
     cdef dict Data
 
 cdef class RESL:
+    cdef __weakref__
     cdef resol_t *Data
     cdef list Diff   # list of differentials
     cdef G_ALG G_Alg
     cdef LIFTcontainer Lifts  # in order to make doc tests
     cpdef list ToBeLifted      # in order to make doc tests
-    cdef dict Autolift #cdef list Autolift
+    cdef dict Autolift
     cdef list Action
     cdef int _Action_saved
     cdef nRgs_t *nRgs  # points to Urbild Groebner basis
     cdef int ugb_deg   # if non-zero: What Urbild Groebner basis is loaded?
-    cdef object gstem  # group name
+    cdef object gstem  # group identifier
     cdef object rstem  # resolution name
     cdef object gps_folder # folder for group data...
     cdef object res_folder # ... and resolution data
+    cpdef tuple CochainToChainmap(self, long n, MTX Coc)
+
+cdef MTX makeMTX(Matrix_t *Data)

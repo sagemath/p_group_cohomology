@@ -2,7 +2,7 @@
 #
 #    Computation of Dickson Invariants
 #
-#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2009, 2015 Simon A. King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -81,12 +81,12 @@ class DICKSON:
     A factory for computing Dickson invariants.
 
     Let `p` be a prime number. Then, ``DICKSON(p)`` can compute the Dickson
-    invariants over `\\mathbb F_p`. See :mod:`~sage.groups.modular_cohomology.dickson` for
+    invariants over `\\mathbb F_p`. See :mod:`~pGroupCohomology.dickson` for
     the theoretical background.
 
     EXAMPLES::
 
-        sage: from sage.groups.modular_cohomology.dickson import DICKSON
+        sage: from pGroupCohomology.dickson import DICKSON
         sage: D = DICKSON(3)
         sage: d_3_1 = D(3,1)
         sage: d_3_1
@@ -104,7 +104,7 @@ class DICKSON:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.dickson import DICKSON
+            sage: from pGroupCohomology.dickson import DICKSON
             sage: D = DICKSON(2)      # indirect doctest
             sage: D(3,2)
             y0^4 + y0^2*y1^2 + y1^4 + y0^2*y1*y2 + y0*y1^2*y2 + y0^2*y2^2 + y0*y1*y2^2 + y1^2*y2^2 + y2^4
@@ -112,8 +112,6 @@ class DICKSON:
             y0^4*y1^2 + y0^2*y1^4 + y0^4*y1*y2 + y0*y1^4*y2 + y0^4*y2^2 + y0^2*y1^2*y2^2 + y1^4*y2^2 + y0^2*y2^4 + y0*y1*y2^4 + y1^2*y2^4
 
         """
-        #if not Integer(p).is_prime():
-        #    raise ValueError, "We expected a prime number"
         self.K = GF(p)
         self.p = p
         self._cache_ = {}
@@ -122,7 +120,7 @@ class DICKSON:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.dickson import DICKSON
+            sage: from pGroupCohomology.dickson import DICKSON
             sage: D = DICKSON(5)
             sage: E = DICKSON(2)
             sage: D == loads(dumps(D))   # indirect doctest
@@ -139,7 +137,7 @@ class DICKSON:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.dickson import DICKSON
+            sage: from pGroupCohomology.dickson import DICKSON
             sage: D = DICKSON(5)
             sage: D(3,2)  # indirect doctest
             y0^100 + y0^80*y1^20 + y0^60*y1^40 + y0^40*y1^60 + y0^20*y1^80 + y1^100 + y0^80*y1^16*y2^4 - y0^76*y1^20*y2^4 + 2*y0^60*y1^36*y2^4 - 2*y0^56*y1^40*y2^4 - 2*y0^40*y1^56*y2^4 + 2*y0^36*y1^60*y2^4 - y0^20*y1^76*y2^4 + y0^16*y1^80*y2^4 + y0^80*y1^12*y2^8 - y0^76*y1^16*y2^8 - 2*y0^60*y1^32*y2^8 + y0^56*y1^36*y2^8 + y0^52*y1^40*y2^8 + y0^40*y1^52*y2^8 + y0^36*y1^56*y2^8 - 2*y0^32*y1^60*y2^8 - y0^16*y1^76*y2^8 + y0^12*y1^80*y2^8 + y0^80*y1^8*y2^12 - y0^76*y1^12*y2^12 - y0^60*y1^28*y2^12 - y0^56*y1^32*y2^12 + 2*y0^52*y1^36*y2^12 + 2*y0^36*y1^52*y2^12 - y0^32*y1^56*y2^12 - y0^28*y1^60*y2^12 - y0^12*y1^76*y2^12 + y0^8*y1^80*y2^12 + y0^80*y1^4*y2^16 - y0^76*y1^8*y2^16 + 2*y0^56*y1^28*y2^16 - 2*y0^52*y1^32*y2^16 - 2*y0^32*y1^52*y2^16 + 2*y0^28*y1^56*y2^16 - y0^8*y1^76*y2^16 + y0^4*y1^80*y2^16 + y0^80*y2^20 - y0^76*y1^4*y2^20 + y0^60*y1^20*y2^20 - y0^52*y1^28*y2^20 + y0^40*y1^40*y2^20 - y0^28*y1^52*y2^20 + y0^20*y1^60*y2^20 - y0^4*y1^76*y2^20 + y1^80*y2^20 - y0^60*y1^12*y2^28 + 2*y0^56*y1^16*y2^28 - y0^52*y1^20*y2^28 + 2*y0^40*y1^32*y2^28 + y0^36*y1^36*y2^28 + 2*y0^32*y1^40*y2^28 - y0^20*y1^52*y2^28 + 2*y0^16*y1^56*y2^28 - y0^12*y1^60*y2^28 - 2*y0^60*y1^8*y2^32 - y0^56*y1^12*y2^32 - 2*y0^52*y1^16*y2^32 + 2*y0^40*y1^28*y2^32 - 2*y0^36*y1^32*y2^32 - 2*y0^32*y1^36*y2^32 + 2*y0^28*y1^40*y2^32 - 2*y0^16*y1^52*y2^32 - y0^12*y1^56*y2^32 - 2*y0^8*y1^60*y2^32 + 2*y0^60*y1^4*y2^36 + y0^56*y1^8*y2^36 + 2*y0^52*y1^12*y2^36 + y0^36*y1^28*y2^36 - 2*y0^32*y1^32*y2^36 + y0^28*y1^36*y2^36 + 2*y0^12*y1^52*y2^36 + y0^8*y1^56*y2^36 + 2*y0^4*y1^60*y2^36 + y0^60*y2^40 - 2*y0^56*y1^4*y2^40 + y0^52*y1^8*y2^40 + y0^40*y1^20*y2^40 + 2*y0^32*y1^28*y2^40 + 2*y0^28*y1^32*y2^40 + y0^20*y1^40*y2^40 + y0^8*y1^52*y2^40 - 2*y0^4*y1^56*y2^40 + y1^60*y2^40 + y0^40*y1^8*y2^52 + 2*y0^36*y1^12*y2^52 - 2*y0^32*y1^16*y2^52 - y0^28*y1^20*y2^52 - y0^20*y1^28*y2^52 - 2*y0^16*y1^32*y2^52 + 2*y0^12*y1^36*y2^52 + y0^8*y1^40*y2^52 - 2*y0^40*y1^4*y2^56 + y0^36*y1^8*y2^56 - y0^32*y1^12*y2^56 + 2*y0^28*y1^16*y2^56 + 2*y0^16*y1^28*y2^56 - y0^12*y1^32*y2^56 + y0^8*y1^36*y2^56 - 2*y0^4*y1^40*y2^56 + y0^40*y2^60 + 2*y0^36*y1^4*y2^60 - 2*y0^32*y1^8*y2^60 - y0^28*y1^12*y2^60 + y0^20*y1^20*y2^60 - y0^12*y1^28*y2^60 - 2*y0^8*y1^32*y2^60 + 2*y0^4*y1^36*y2^60 + y1^40*y2^60 - y0^20*y1^4*y2^76 - y0^16*y1^8*y2^76 - y0^12*y1^12*y2^76 - y0^8*y1^16*y2^76 - y0^4*y1^20*y2^76 + y0^20*y2^80 + y0^16*y1^4*y2^80 + y0^12*y1^8*y2^80 + y0^8*y1^12*y2^80 + y0^4*y1^16*y2^80 + y1^20*y2^80 + y2^100
@@ -147,7 +145,6 @@ class DICKSON:
             y0^100*y1^20 + y0^80*y1^40 + y0^60*y1^60 + y0^40*y1^80 + y0^20*y1^100 + y0^100*y1^16*y2^4 + 2*y0^80*y1^36*y2^4 - y0^76*y1^40*y2^4 - 2*y0^60*y1^56*y2^4 - 2*y0^56*y1^60*y2^4 - y0^40*y1^76*y2^4 + 2*y0^36*y1^80*y2^4 + y0^16*y1^100*y2^4 + y0^100*y1^12*y2^8 - 2*y0^80*y1^32*y2^8 - 2*y0^76*y1^36*y2^8 + y0^60*y1^52*y2^8 - y0^56*y1^56*y2^8 + y0^52*y1^60*y2^8 - 2*y0^36*y1^76*y2^8 - 2*y0^32*y1^80*y2^8 + y0^12*y1^100*y2^8 + y0^100*y1^8*y2^12 - y0^80*y1^28*y2^12 + 2*y0^76*y1^32*y2^12 - 2*y0^56*y1^52*y2^12 - 2*y0^52*y1^56*y2^12 + 2*y0^32*y1^76*y2^12 - y0^28*y1^80*y2^12 + y0^8*y1^100*y2^12 + y0^100*y1^4*y2^16 + y0^76*y1^28*y2^16 + y0^52*y1^52*y2^16 + y0^28*y1^76*y2^16 + y0^4*y1^100*y2^16 + y0^100*y2^20 + y0^80*y1^20*y2^20 + y0^60*y1^40*y2^20 + y0^40*y1^60*y2^20 + y0^20*y1^80*y2^20 + y1^100*y2^20 - y0^80*y1^12*y2^28 + y0^76*y1^16*y2^28 + 2*y0^60*y1^32*y2^28 - y0^56*y1^36*y2^28 - y0^52*y1^40*y2^28 - y0^40*y1^52*y2^28 - y0^36*y1^56*y2^28 + 2*y0^32*y1^60*y2^28 + y0^16*y1^76*y2^28 - y0^12*y1^80*y2^28 - 2*y0^80*y1^8*y2^32 + 2*y0^76*y1^12*y2^32 + 2*y0^60*y1^28*y2^32 + 2*y0^56*y1^32*y2^32 + y0^52*y1^36*y2^32 + y0^36*y1^52*y2^32 + 2*y0^32*y1^56*y2^32 + 2*y0^28*y1^60*y2^32 + 2*y0^12*y1^76*y2^32 - 2*y0^8*y1^80*y2^32 + 2*y0^80*y1^4*y2^36 - 2*y0^76*y1^8*y2^36 - y0^56*y1^28*y2^36 + y0^52*y1^32*y2^36 + y0^32*y1^52*y2^36 - y0^28*y1^56*y2^36 - 2*y0^8*y1^76*y2^36 + 2*y0^4*y1^80*y2^36 + y0^80*y2^40 - y0^76*y1^4*y2^40 + y0^60*y1^20*y2^40 - y0^52*y1^28*y2^40 + y0^40*y1^40*y2^40 - y0^28*y1^52*y2^40 + y0^20*y1^60*y2^40 - y0^4*y1^76*y2^40 + y1^80*y2^40 + y0^60*y1^8*y2^52 - 2*y0^56*y1^12*y2^52 + y0^52*y1^16*y2^52 - y0^40*y1^28*y2^52 + y0^36*y1^32*y2^52 + y0^32*y1^36*y2^52 - y0^28*y1^40*y2^52 + y0^16*y1^52*y2^52 - 2*y0^12*y1^56*y2^52 + y0^8*y1^60*y2^52 - 2*y0^60*y1^4*y2^56 - y0^56*y1^8*y2^56 - 2*y0^52*y1^12*y2^56 - y0^36*y1^28*y2^56 + 2*y0^32*y1^32*y2^56 - y0^28*y1^36*y2^56 - 2*y0^12*y1^52*y2^56 - y0^8*y1^56*y2^56 - 2*y0^4*y1^60*y2^56 + y0^60*y2^60 - 2*y0^56*y1^4*y2^60 + y0^52*y1^8*y2^60 + y0^40*y1^20*y2^60 + 2*y0^32*y1^28*y2^60 + 2*y0^28*y1^32*y2^60 + y0^20*y1^40*y2^60 + y0^8*y1^52*y2^60 - 2*y0^4*y1^56*y2^60 + y1^60*y2^60 - y0^40*y1^4*y2^76 - 2*y0^36*y1^8*y2^76 + 2*y0^32*y1^12*y2^76 + y0^28*y1^16*y2^76 + y0^16*y1^28*y2^76 + 2*y0^12*y1^32*y2^76 - 2*y0^8*y1^36*y2^76 - y0^4*y1^40*y2^76 + y0^40*y2^80 + 2*y0^36*y1^4*y2^80 - 2*y0^32*y1^8*y2^80 - y0^28*y1^12*y2^80 + y0^20*y1^20*y2^80 - y0^12*y1^28*y2^80 - 2*y0^8*y1^32*y2^80 + 2*y0^4*y1^36*y2^80 + y1^40*y2^80 + y0^20*y2^100 + y0^16*y1^4*y2^100 + y0^12*y1^8*y2^100 + y0^8*y1^12*y2^100 + y0^4*y1^16*y2^100 + y1^20*y2^100
 
         """
-        # print "Dickson", n,s
         if not ((isinstance(n,int) or isinstance(n,Integer)) and (isinstance(s,int) or isinstance(n,Integer))):
             raise TypeError, "Arguments must be integers"
         if (n<1):
@@ -173,11 +170,11 @@ class DICKSON:
         self._cache_[(n,s)] = Q
         return Q
 
-    def V(self,k,P):
+    def V(self, k, P):
         """
         Compute [Pham]_'s `V_k` polynomials
 
-        See :mod:`~sage.groups.modular_cohomology.dickson` for the theoretical background.
+        See :mod:`~pGroupCohomology.dickson` for the theoretical background.
 
         INPUT:
 
@@ -186,7 +183,7 @@ class DICKSON:
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology.dickson import DICKSON
+            sage: from pGroupCohomology.dickson import DICKSON
             sage: D3 = DICKSON(3)
             sage: D5 = DICKSON(5)
             sage: P = PolynomialRing(GF(3), 4, 'y')
@@ -210,4 +207,3 @@ class DICKSON:
             return P.gen(0)
         p = P.characteristic()
         return (P.gen(k-1))**(p**(k-1)) + add([P((-1)**(k-s-1)) * (P.gen(k-1))**(p**s)*self(k-1,s) for s in range(k-1)],P(0))
-

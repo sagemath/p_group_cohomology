@@ -4,7 +4,7 @@
 #
 #    Cohomology Ring Elements, Yoneda Cochains, and Induced Maps
 #
-#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2009, 2015 Simon A. King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 """
-Elements of Cohomology Rings and Induced Homomorphisms
+Elements of Modular Cohomology Rings and their Induced Homomorphisms
 
 AUTHORS:
 
@@ -37,7 +37,7 @@ three classes are vital for cohomology computations.
 
 The class :class:`COCH` provides elements of the mod-`p` cohomology of
 a finite `p`-group `P`. It is based on a minimal free resolutions of
-`F_pP` provided by the class :class:`~sage.groups.modular_cohomology.resolution.RESL`.
+`F_pP` provided by the class :class:`~pGroupCohomology.resolution.RESL`.
 The cup product is computed by standard constructions from homological
 algebra.
 
@@ -65,7 +65,7 @@ compute their cohomology rings, using temporary files that are
 deleted when sage is closed.
 ::
 
-    sage: from sage.groups.modular_cohomology import CohomologyRing
+    sage: from pGroupCohomology import CohomologyRing
     sage: tmp = tmp_dir()
     sage: CohomologyRing.set_user_db(tmp)
     sage: S = gap('SymmetricGroup(6)')
@@ -111,11 +111,11 @@ Note that the generators of ``HD`` are :class:`COCH`, while those of
 formed by :class:`MODCOCH`::
 
     sage: type(HD.1)
-    <type 'sage.groups.modular_cohomology.cochain.COCH'>
+    <type 'pGroupCohomology.cochain.COCH'>
     sage: type(HS.1)
-    <class 'sage.groups.modular_cohomology.cochain.MODCOCH'>
+    <class 'pGroupCohomology.cochain.MODCOCH'>
     sage: type(resS_D(HS.1))
-    <class 'sage.groups.modular_cohomology.cochain.MODCOCH'>
+    <class 'pGroupCohomology.cochain.MODCOCH'>
 
 It is possible to mix both classes in arithmetic expressions::
 
@@ -137,8 +137,6 @@ from sage.all import walltime
 from sage.all import copy
 from sage.all import deepcopy
 from sage.all import load
-from sage.all import SAGE_DB
-from sage.all import SAGE_ROOT
 from sage.all import tmp_filename
 from sage.all import Infinity
 
@@ -149,12 +147,18 @@ from sage.all import Matrix
 from sage.all import MatrixSpace
 from sage.structure.element cimport RingElement
 from sage.rings.homset import RingHomset_generic
-#from sage.rings.morphism import RingHomomorphism
 
-# auxiliary class from sage.groups.modular_cohomology (the Cython classes are imported in cochain.pxd
-from sage.groups.modular_cohomology.auxiliaries import OPTION, print_protocol, safe_save, _gap_init
+# auxiliary class from pGroupCohomology (the Cython classes are imported in cochain.pxd
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
 
-include "interrupt.pxi"
+from libc.string cimport memcpy
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
+####################
+## Meataxe is a static library, hence, we need to define some internals
+## consistent with other modules that are using meataxe.
+
+meataxe_init()
 
 #####################################################################
 #####################################################################
@@ -173,13 +177,13 @@ class COCH_unpickle_class:
     ::
 
         sage: tmp_root = tmp_dir()
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
-        sage: H=CohomologyRing(8,3)
+        sage: H = CohomologyRing(8,3, from_scratch=True)
         sage: H.make()
         sage: C=H.2
         sage: type(C)
-        <type 'sage.groups.modular_cohomology.cochain.COCH'>
+        <type 'pGroupCohomology.cochain.COCH'>
         sage: D=loads(dumps(C))   #indirect doctest
         sage: print C
         1-Cocycle in H^*(D8; GF(2)),
@@ -209,9 +213,9 @@ class COCH_unpickle_class:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.cochain import COCH_unpickle_class
+            sage: from pGroupCohomology.cochain import COCH_unpickle_class
             sage: CU = COCH_unpickle_class()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,2, from_scratch=True)
@@ -232,9 +236,9 @@ class COCH_unpickle_class:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology.cochain import COCH_unpickle_class
+            sage: from pGroupCohomology.cochain import COCH_unpickle_class
             sage: CU = COCH_unpickle_class()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
@@ -262,7 +266,7 @@ cdef class COCH(RingElement):
 
     INPUT:
 
-    - ``H`` -- a cohomology ring (:class:`~sage.groups.modular_cohomology.cohomology.COHO`)
+    - ``H`` -- a cohomology ring (:class:`~pGroupCohomology.cohomology.COHO`)
     - ``n`` -- the degree of the cochain (integer)
     - ``s`` -- name of the `n`-cochain (string)
     - ``M`` -- data describing the cochain. Either
@@ -282,7 +286,7 @@ cdef class COCH(RingElement):
 
     - Usually, a cochain will be created by doing algebra with the generators
       of a cohomology ring.
-    - In our application (see :mod:`sage.groups.modular_cohomology`), ``rdeg==1`` if and only if
+    - In our application (see :mod:`pGroupCohomology`), ``rdeg==1`` if and only if
       the cochain is a Duflot regular generator of a cohomology
       ring; ``ydeg==1`` if and only if the cochain is a generator
       of a cohomology ring that is neither nilpotent nor Duflot
@@ -301,7 +305,7 @@ cdef class COCH(RingElement):
     First, we show how one would usually create a cochain::
 
         sage: tmp_root = tmp_dir()
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
@@ -328,22 +332,22 @@ cdef class COCH(RingElement):
     we create the cochains more directly::
 
         sage: H = CohomologyRing(27,3, from_scratch=True)
-        sage: H.resolution()
+        sage: print H.resolution()
         Resolution:
-        0 <- GF(3) <- GF(3)(27gp3)
+        0 <- GF(3) <- GF(3)[E27]
 
     Incidentally, we know that the projective rank of the second term
     of the resolution is four. So, we can define::
 
-        sage: from sage.groups.modular_cohomology.cochain import COCH
+        sage: from pGroupCohomology.cochain import COCH
         sage: C = COCH(H,2,'first',(1,0,1,2))
 
     Now, the resolution is computed out to the second term, and the
     cochain ``C`` has the name 'first'::
 
-        sage: H.resolution()
+        sage: print H.resolution()
         Resolution:
-        0 <- GF(3) <- GF(3)(27gp3) <- rank 2 <- rank 4
+        0 <- GF(3) <- GF(3)[E27] <- rank 2 <- rank 4
         sage: C
         first: 2-Cocycle  in H^*(E27; GF(3))
         sage: print C
@@ -356,7 +360,7 @@ cdef class COCH(RingElement):
     be immutable::
 
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-        sage: D = COCH(H,2,'second',MTX(3,[[0,1,0,1]],mutable=False))
+        sage: D = COCH(H,2,'second', MTX(MatrixSpace(GF(3),1,4), [[0,1,0,1]], mutable=False))
 
     Now, we can add or subtract the cochains::
 
@@ -385,9 +389,9 @@ cdef class COCH(RingElement):
 
         sage: C*D
         (first)*(second): 4-Cocycle in H^*(E27; GF(3))
-        sage: H.resolution()
+        sage: print H.resolution()
         Resolution:
-        0 <- GF(3) <- GF(3)(27gp3) <- rank 2 <- rank 4 <- rank 6 <- rank 7
+        0 <- GF(3) <- GF(3)[E27] <- rank 2 <- rank 4 <- rank 6 <- rank 7
         sage: E = C^2
         sage: E = C^2+D*C*2
         sage: E
@@ -426,7 +430,7 @@ cdef class COCH(RingElement):
         """
         INPUT:
 
-        - ``PARENT`` -- a cohomology ring (:class:`~sage.groups.modular_cohomology.cohomology.COHO`)
+        - ``PARENT`` -- a cohomology ring (:class:`~pGroupCohomology.cohomology.COHO`)
         - ``n`` -- integer, the degree of this cohomology ring element
         - ``Nick`` -- string, the name used to display this element
         - ``L`` -- list of ``r`` marks (integers), where ``r`` is the
@@ -440,8 +444,8 @@ cdef class COCH(RingElement):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import COCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import COCH
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -468,33 +472,37 @@ cdef class COCH(RingElement):
             'b_1_1^5+c_2_2*b_1_1^3+c_2_2^2*b_1_1'
 
         """
-        from sage.groups.modular_cohomology.cohomology import COHO
+        from pGroupCohomology.cohomology import COHO
         if not isinstance(PARENT, COHO):
             raise TypeError, "The parent of a cochain must be a cohomology ring (type %s)"%repr(COHO)
         cdef RESL R = PARENT.Resl
         self._sing_val = None
-        if (n<0): # or (n>len(R.Diff)):
+        if (n<0):
             raise IndexError, "Degree out of range"
         while n>R.deg():
             R.nextDiff()
-        if isinstance(L,tuple) or isinstance(L,list):
+        cdef MTX LMTX
+        if isinstance(L, tuple):
+            L = list(L)
+        if isinstance(L,list):
             if (len(L)!=R.Data.projrank[n]):
                 raise IndexError, "Last parameter must be of length %d"%(R.Data.projrank[n])
             self.Resl = R
             self.Deg = n
             self.Name = str(Nick)
-            self.Data = MTX(R.G_Alg.Data.p, [L], mutable=False)
+            self.Data = makeMTX(rawMatrix(R.G_Alg.Data.p, [L]))
+            self.Data.set_immutable()
         elif isinstance(L,MTX):
-            if (L.base()!=R.G_Alg.Data.p):
+            LMTX = L
+            if (LMTX.Data.Field != R.G_Alg.Data.p):
                 raise TypeError, "MTX matrix must be defined over GF(%d)"%(R.G_Alg.Data.p)
-            if (L.is_mutable()):
-                raise ValueError, "MTX matrix must be immutable"
-            if (L.nrows()!=1) or (L.ncols()!=R.Data.projrank[n]):
+            LMTX.set_immutable()
+            if (LMTX._nrows != 1) or (LMTX._ncols != R.Data.projrank[n]):
                 raise TypeError, "(1 x %d) MTX matrix expected"%(R.Data.projrank[n])
             self.Resl = R
             self.Deg = n
             self.Name = Nick
-            self.Data = L
+            self.Data = LMTX
         else:
             raise TypeError, "Last parameter must be a list/tuple of integers or an MTX matrix"
         self.Ydeg = ydeg
@@ -513,7 +521,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -536,9 +544,9 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
-            sage: H = CohomologyRing(8,3)
+            sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: C = H.2+H.3
             sage: C == loads(dumps(C))     # indirect doctest
@@ -549,7 +557,7 @@ cdef class COCH(RingElement):
         """
         return coch_unpickle, (self._parent, self.Deg, self.Name, self.Data, self.Ydeg, self.Rdeg, self._polyrep)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a brief description of the cochain
 
@@ -559,7 +567,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -580,7 +588,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -605,7 +613,7 @@ cdef class COCH(RingElement):
         TESTS::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -639,7 +647,7 @@ cdef class COCH(RingElement):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(32,4)
@@ -647,10 +655,10 @@ cdef class COCH(RingElement):
             sage: c = H.1+H.3*H.4; c
             c_2_1+(a_1_0)*(a_1_1): 2-Cocycle in H^*(SmallGroup(32,4); GF(2))
             sage: type(c)
-            <type 'sage.groups.modular_cohomology.cochain.COCH'>
+            <type 'pGroupCohomology.cochain.COCH'>
             sage: C = c._MODCOCH_()
             sage: type(C)
-            <class 'sage.groups.modular_cohomology.cochain.MODCOCH'>
+            <class 'pGroupCohomology.cochain.MODCOCH'>
             sage: c == C
             True
             sage: c*H.2 == C*H.2
@@ -658,12 +666,13 @@ cdef class COCH(RingElement):
 
         """
         if S is None:
-            from sage.groups.modular_cohomology import singular
+            from pGroupCohomology import singular
             S = singular
         try:
             br = S('basering')
         except:
             br = None
+        S(self.parent()).set_ring()
         s = S(self)
         # parent, value, deg=None, name=None, S=None, rdeg=None, ydeg=None, is_polyrep=False, is_NF=None
         out = MODCOCH(self.parent(), s, deg=self.deg(), name=repr(s), S=S, rdeg=self.rdeg(), ydeg=self.ydeg(), is_polyrep=True)
@@ -681,7 +690,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -703,7 +712,7 @@ cdef class COCH(RingElement):
         TESTS::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -713,7 +722,7 @@ cdef class COCH(RingElement):
         """
         if self._latex is not None:
             return self._latex
-        from sage.groups.modular_cohomology.factory import _name2latex
+        from pGroupCohomology.factory import _name2latex
         self._latex = _name2latex(self.name())
         return self._latex
 
@@ -730,18 +739,18 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
-            sage: from sage.groups.modular_cohomology.cochain import COCH
+            sage: from pGroupCohomology.cochain import COCH
             sage: C=COCH(H,2,'foo',(1,1,0))
 
         Note that the needed terms of the resolution are automatically
         computed::
 
-            sage: C.resolution()
+            sage: print C.resolution()
             Resolution:
-            0 <- GF(2) <- GF(2)(8gp3) <- rank 2 <- rank 3
+            0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3
             sage: C.resolution() is H.resolution()
             True
 
@@ -758,7 +767,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -779,7 +788,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -800,7 +809,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -824,8 +833,8 @@ cdef class COCH(RingElement):
 
         NOTE:
 
-        When a :class:`~sage.groups.modular_cohomology.cochain.COCH` instance is created by invoking
-        the init method, a name must be given. When further :class:`~sage.groups.modular_cohomology.cochain.COCH`
+        When a :class:`~pGroupCohomology.cochain.COCH` instance is created by invoking
+        the init method, a name must be given. When further :class:`~pGroupCohomology.cochain.COCH`
         instances are created by arithmetic operations, the name of the result describes its
         construction.
 
@@ -835,7 +844,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -874,7 +883,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -902,7 +911,7 @@ cdef class COCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3)
@@ -942,7 +951,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -972,7 +981,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
@@ -1012,7 +1021,7 @@ cdef class COCH(RingElement):
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
 
         An example in even characteristic::
@@ -1093,7 +1102,7 @@ cdef class COCH(RingElement):
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(64,18)
             sage: H.make()
@@ -1147,20 +1156,18 @@ cdef class COCH(RingElement):
 
 ################
 # !=,==, dictionary etc.
-    def __richcmp__(COCH self, C,x):
+    cpdef _richcmp_(self, C, int x):
         """
         Compare cochains
 
         NOTE:
 
-        First, it is checked whether the underlying
-        resolutions are identical. If they are not, "False"
-        is returned for "<", "<=", "==", ">" and ">=".
-        Then, for "<", "<=", ">" and ">=", the degrees
-        of the cochains are compared. For "==", the answer
-        is true if and only if the resolutions are identical
-        and both the degrees and defining matrices are
-        equivalent.
+        By Sage's coercion model, both arguments are elements of the same
+        parent. But it is possible that they are of different type.
+        If both are of type :class:`~pGroupCohomology.cochain.COCH`,
+        the degree and the underlying matrices are compared. If the second
+        argument is of type :class:`~pGroupCohomology.cochain.MODCOCH`,
+        the elements are compared in Singular.
 
         TESTS:
 
@@ -1168,7 +1175,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -1184,79 +1191,54 @@ cdef class COCH(RingElement):
             [0 0 0]
             sage: H.2*H.3 == H.1*0
             True
+            sage: print H.2*H.2
+            2-Cocycle in H^*(D8; GF(2)),
+            represented by
+            [1 0 0]
+            sage: print H.3*H.3
+            2-Cocycle in H^*(D8; GF(2)),
+            represented by
+            [0 1 0]
+            sage: H.2*H.2 > H.3*H.3
+            True
+            sage: H.2*H.2 < H.3*H.3
+            False
 
         """
+        assert isinstance(C,COCH) or isinstance(C,MODCOCH)
         cdef COCH C2
         # < 0, <= 1, == 2, != 3, > 4, >= 5
         if (x==0):
-            if not (isinstance(C,COCH) or isinstance(C,MODCOCH)):
-                return True
-            return (self.parent() == C.parent()) and (self.Deg<C.deg())
-        if (x==1):
-            if not (isinstance(C,COCH) or isinstance(C,MODCOCH)):
-                return True
-            return (self.parent() == C.parent()) and (self.Deg<=C.deg())
-        if (x==2):
-            # A more general definition would be: Test whether
-            # C.Resl and self.Resl are equal (not identical) up
-            # to degree self.Deg
-            # But we want unique parent structures anyway.
             if isinstance(C,COCH):
                 C2 = C
-                return (self.parent() is C.parent()) and (self.Deg==C.deg()) and (self.Data==C2.Data)
-            elif isinstance(C,MODCOCH):
-                singular = C._Svalue.parent()
-                P = self.parent()
-                if P is not C.parent():
-                    return False
-                try:
-                    br = singular('basering')
-                except:
-                    br = None
-                singular(P).set_ring()
-                s = singular(self)
-                dgb = singular.eval('degBound')
-                singular.eval('degBound=0')
-                out = singular.eval('NF(%s-%s,std(0))'%(s.name(),C.value().name()))=='0'
-                singular.eval('degBound='+dgb)
-                if br is not None:
-                    br.set_ring()
-                return out
-            else:
-                return False
+                return (self.Deg < C2.Deg) or ((self.Deg == C2.Deg) and (self.Data < C2.Data))
+            return self._MODCOCH_() < C
+        if (x==1):
+            if isinstance(C,COCH):
+                C2 = C
+                return (self.Deg < C2.Deg) or ((self.Deg == C2.Deg) and (self.Data <= C2.Data))
+            return self._MODCOCH_() <= C
+        if (x==2):
+            if isinstance(C,COCH):
+                C2 = C
+                return (self.Deg == C2.Deg) and (self.Data == C2.Data)
+            return self._MODCOCH_() == C
         if (x==3):
             if isinstance(C,COCH):
                 C2 = C
-                return (self.parent() is not C.parent()) or (self.Deg!=C2.Deg) or (self.Data!=C2.Data)
-            elif isinstance(C,MODCOCH):
-                singular = C._Svalue.parent()
-                P = self.parent()
-                if P is not C.parent():
-                    return True
-                try:
-                    br = singular('basering')
-                except:
-                    br = None
-                singular(P).set_ring()
-                s = singular(self)
-                dgb = singular('degBound')
-                singular.eval('degBound=0')
-                out = singular.eval('NF(%s-%s,std(0))'%(s.name(),C.value().name()))!='0'
-                singular.eval('degBound='+dgb)
-                if br is not None:
-                    br.set_ring()
-                return out
-            else:
-                return True
+                return (self.Deg != C2.Deg) or (self.Data != C2.Data)
+            return self._MODCOCH_() != C
         if (x==4):
-            if not (isinstance(C,COCH) or isinstance(C,MODCOCH)):
-                return False
-            return self.parent() is C.parent() and (self.Deg>C.deg())
+            if isinstance(C,COCH):
+                C2 = C
+                return (self.Deg > C2.Deg) or ((self.Deg == C2.Deg) and (self.Data > C2.Data))
+            return self._MODCOCH_() > C
         if (x==5):
-            if not (isinstance(C,COCH) or isinstance(C,MODCOCH)):
-                return False
-            return self.parent() is C.parent() and (self.Deg>=C.deg())
-        raise NotImplementedError, "Last argument must range from 0 to 5"
+            if isinstance(C,COCH):
+                C2 = C
+                return (self.Deg > C2.Deg) or ((self.Deg == C2.Deg) and (self.Data >= C2.Data))
+            return self._MODCOCH_() >= C
+        return NotImplemented
 
     def __hash__(COCH self):
         r"""
@@ -1268,14 +1250,14 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
-            sage: H = CohomologyRing(8,3)
+            sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: C = H.2
-            sage: hash(C)==hash(copy(C))   # indirect doctest
+            sage: hash(C) == hash(copy(C))   # indirect doctest
             True
-            sage: hash(C)==hash(loads(dumps(C)))
+            sage: hash(C) == hash(loads(dumps(C)))
             True
             sage: D = {C:1, C^2:2}
             sage: D[copy(C)]
@@ -1289,11 +1271,11 @@ cdef class COCH(RingElement):
 
 ################
 # Arithmetic
-    def __nonzero__(COCH self):
+    def __nonzero__(self):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(32,4)
@@ -1304,9 +1286,12 @@ cdef class COCH(RingElement):
             True
 
         """
-        return self.Data.lead()[0]!=0
+        cdef FEL f
+        FfSetField((<COCH>self).Data.Data.Field)
+        FfSetNoc((<COCH>self).Data.Data.Noc)
+        return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cdef _add_(self, other):
         r"""
         Sum of cochains of the same degree
 
@@ -1316,7 +1301,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -1336,15 +1321,15 @@ cdef class COCH(RingElement):
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
             sage: type(X.sylow_cohomology()('c_2_5*b_1_1'))
-            <type 'sage.groups.modular_cohomology.cochain.COCH'>
+            <type 'pGroupCohomology.cochain.COCH'>
             sage: type(X.4.as_cocycle_in_sylow())
-            <class 'sage.groups.modular_cohomology.cochain.MODCOCH'>
+            <class 'pGroupCohomology.cochain.MODCOCH'>
             sage: print X.sylow_cohomology()('c_2_5*b_1_1')+X.4.as_cocycle_in_sylow()
             c_2_5*b_1_1+(c_2_5*b_1_1): 3-Cocycle in H^*(D8xC2; GF(2))
             defined by
             0
             sage: type(X.sylow_cohomology()('c_2_5*b_1_1')+X.4.as_cocycle_in_sylow())
-            <class 'sage.groups.modular_cohomology.cochain.MODCOCH'>
+            <class 'pGroupCohomology.cochain.MODCOCH'>
 
         """
         if isinstance(other,MODCOCH):
@@ -1362,7 +1347,7 @@ cdef class COCH(RingElement):
         else:
             raise TypeError, "Cochains must be defined over a common resolution"
 
-    cpdef ModuleElement _sub_(self, ModuleElement other):
+    cpdef _sub_(self, other):
         """
         Difference of two cochains of the same degree
 
@@ -1372,7 +1357,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -1413,7 +1398,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1433,14 +1418,39 @@ cdef class COCH(RingElement):
         """
         return COCH(self._parent, self.Deg, '(-('+self.Name+'))', -self.Data, is_polyrep=self._polyrep)
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cdef inline void set_mtx_globals(self):
+        "Define MeatAxe's global variables compatible with self's data"
+        FfSetField(self.Data.Data.Field)
+        FfSetNoc(self.Data.Data.Noc)
+
+    cdef void isubmul(self, COCH other, FEL c):
+        """self -> self - other*c
+
+        ASSUMPTIONS:
+
+        It is assumed that self and other have the same rank, and that
+        MeatAxe's FfField and FfCurrentRowSize are compatible with the
+        data of the cochains.
+        """
+        if c == FF_ZERO:
+            return
+        elif c != FF_ONE:
+            FfAddMulRow(self.Data.Data.Data, other.Data.Data.Data, <FEL>mtx_taddinv[<int><unsigned char>c])
+            self.Name = self.Name + '-({})*('.format(<int><unsigned char>c) + other.Name +')'
+            self._polyrep = self._polyrep and other._polyrep
+        else:
+            FfSubRow(self.Data.Data.Data, other.Data.Data.Data)
+            self.Name = self.Name + '-('+ other.Name +')'
+            self._polyrep = self._polyrep and other._polyrep
+
+    cpdef _lmul_(self, Element right):
         """
         Scalar multiplication from the right side.
 
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1452,16 +1462,16 @@ cdef class COCH(RingElement):
         if Right==1:
             return self
         else:
-            return COCH(self._parent, self.Deg, '('+self.Name+')*'+str(Right%self.Data.Data.fl), self.Data._mulInt_(Right), is_polyrep=self._polyrep)
+            return COCH(self._parent, self.Deg, '('+self.Name+')*'+str(Right%self.Data.Data.Field), self.Data._mul_long(Right), is_polyrep=self._polyrep)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Scalar multiplication from the left side.
 
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1473,16 +1483,16 @@ cdef class COCH(RingElement):
         if Right==1:
             return self
         else:
-            return COCH(self._parent, self.Deg, str(Right%self.Data.Data.fl) + '*('+self.Name+')', self.Data._mulInt_(Right), is_polyrep=self._polyrep)
+            return COCH(self._parent, self.Deg, str(Right%self.Data.Data.Field) + '*('+self.Name+')', self.Data._mul_long(Right), is_polyrep=self._polyrep)
 
-    cdef ModuleElement _mul_long(self, long n):
+    cdef _mul_long(self, long n):
         """
         Multiplication with a Python int or long
 
         EXAMPLES::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1501,16 +1511,16 @@ cdef class COCH(RingElement):
         if n==0:
             return COCH(self._parent, self.Deg,
                     '0',
-                    self.Data._mulInt_(0), is_polyrep=True)
+                    self.Data._mul_long(0), is_polyrep=True)
         if n==-1:
             return COCH(self._parent, self.Deg,
                     '-('+self.Name+')',
-                    self.Data._mulInt_(n), is_polyrep=self._polyrep)
+                    self.Data._mul_long(n), is_polyrep=self._polyrep)
         return COCH(self._parent, self.Deg,
-                    '('+self.Name+')*'+str(n%self.Data.Data.fl),
-                    self.Data._mulInt_(n), is_polyrep=self._polyrep)
+                    '('+self.Name+')*'+str(n%self.Data.Data.Field),
+                    self.Data._mul_long(n), is_polyrep=self._polyrep)
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cdef _mul_(self, right):
         """
         Cup product of two cochains, or scalar multiplication
 
@@ -1538,7 +1548,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1571,40 +1581,34 @@ cdef class COCH(RingElement):
             2*(b_2_2): 2-Cocycle in H^*(E27; GF(3))
 
         """
-        #cdef COCH self
         cdef COCH C
-        #if not isinstance(left, COCH):  # can be switched -- a little Cython oddity...
-        #    return right._mul_(left)
-
-        #self = left    # now, left is a cochain
         if isinstance(right,MODCOCH):
             return self._MODCOCH_(right._Svalue.parent())*right
         C = right  # now, right is supposed to be a cochain
+        coho_logger.debug("Compute %s*%s",self.Resl, self.Name, C.Name)
         if C.Deg == 0:
             right = C.Data[0,0]
             if right==1:
                 return self
             else:
-                return COCH(self._parent, self.Deg, '('+self.Name+')*'+str(right%self.Data.Data.fl), self.Data._mulInt_(right), is_polyrep=self._polyrep and C._polyrep)
+                return COCH(self._parent, self.Deg, '('+self.Name+')*'+str(right%self.Data.Data.Field), self.Data._mul_long(right), is_polyrep=self._polyrep and C._polyrep)
         if self.Deg == 0:
             left = self.Data[0,0]
             if left==1:
                 return C
             else:
-                return COCH(C._parent, C.Deg, '('+C.Name+')*'+str(left%C.Data.Data.fl), C.Data._mulInt_(left), is_polyrep=self._polyrep and C._polyrep)
+                return COCH(C._parent, C.Deg, '('+C.Name+')*'+str(left%C.Data.Data.Field), C.Data._mul_long(left), is_polyrep=self._polyrep and C._polyrep)
         cdef RESL R
         cdef MTX CM, CM1,CM2,OUT
         cdef int n,n_old,n_oldmax,Cdeg,nontips
         cdef int i,j, rk, RK, n_orig
-        cdef list L
+        cdef FEL self_f
         # cdef PTR src,dest
         if isinstance(C,COCH):
             if not (self.Resl is C.resolution()):
                 raise TypeError, "Cochains must be defined over a common resolution"
             CM = C.MTX()
             n_orig = C.deg()
-            #if (self.deg()+C.deg())>len(self.Resl.Diff):
-            #    raise IndexError, "Resolution only known up to degree %d"%(len(self.Resl.Diff))
             while (self.deg()+C.deg())>len(self.Resl.Diff):
                 self.Resl.nextDiff()
             R = self.Resl
@@ -1612,24 +1616,17 @@ cdef class COCH(RingElement):
             Cdeg = C.deg()
             n = self.deg()+Cdeg
             # lift to chain maps -> kG=P_0:
-            # print 'starting product'
             (n1,d1,CM1) = R.CochainToChainmap(self.Deg,self.Data)
-            # (n2,d2,CM2) = R.CochainToChainmap(Cdeg,CM)
 
             ###########
             # the lift of the second chain map
             # is likely to be known; otherwise it is computed now.
-            # if OPTION.opts['keeplifts']:
-            #if R.Lifts.has_key(1):
-            #    R.importLifts()
             TryLift = R.Lifts[(n,n_orig,CM)]
             if TryLift is None:
-                print_protocol('We need more lifts!', R)
                 for n_oldmax from n > n_oldmax >= Cdeg:
                     TryLift = R.Lifts[(n_oldmax,n_orig,CM)]
                     if TryLift != None:
                         break
-                #TryLift = R.Lifts[(n_oldmax,n_orig,CM)]
                 if TryLift is None:
                     ((n2,d2,CM2),n_max) = (R.CochainToChainmap(Cdeg,CM), 2*Cdeg)
                     R.setLift(C,2*Cdeg)
@@ -1643,20 +1640,18 @@ cdef class COCH(RingElement):
             # compose self with the lift of C
             # OUT = R.composeChainMaps(CM2,CM1,self.deg()+C.deg(),self.deg(),0)
             # the following should be MUCH faster:
-            OUT = MTX(self.Data.Data.fl, R.Data.projrank[self.deg()+Cdeg], nontips,mutable=False)
-            FfSetField(self.Data.Data.fl)
-            FfSetNoc(nontips)
-            L = self.Data._rowlist_(0)
+            OUT = self.Data._new(R.Data.projrank[self.deg()+Cdeg], nontips)
+            OUT.Data = MatAlloc(self.Data.Data.Field, R.Data.projrank[self.deg()+Cdeg], nontips)
+            OUT.set_immutable()
             rk = R.Data.projrank[self.deg()]
             RK = R.Data.projrank[self.deg()+Cdeg]
             # CM2 should have rk*RK rows
             # print 'Compose Chainmaps'
             for i from 0 <= i < rk: # loop through the rows of OUT
-                if L[i]:
+                self_f = FfExtract(self.Data.Data.Data, i)
+                if self_f != FF_ZERO:
                     for j from 0 <= j < RK: # loop through the entries of the lift of C
-                        # print CM2[i+rk*j],i
-                        if not (FfAddMulRow(FfGetPtr(OUT.Data.d,j),FfGetPtr(CM2.Data.d,i+rk*j), FfFromInt(L[i]))):
-                            raise ArithmeticError, "Something went wrong"
+                        FfAddMulRow(MatGetPtr(OUT.Data, j), MatGetPtr(CM2.Data, i+rk*j), self_f)
             return COCH(self._parent, self.Deg+Cdeg, '('+self.Name+')*('+C.name()+')', \
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
         else:
@@ -1673,7 +1668,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1692,7 +1687,7 @@ cdef class COCH(RingElement):
         if c == 1:
             return self
         else:
-            return COCH(self._parent, self.Deg, '('+self.Name+')/'+str(c%self.Data.Data.fl), self.Data/c, is_polyrep=self._polyrep)
+            return COCH(self._parent, self.Deg, '('+self.Name+')/'+str(c%self.Data.Data.Field), self.Data/c, is_polyrep=self._polyrep)
 
     def __pow__(COCH self, int n, x):
         """
@@ -1710,7 +1705,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -1726,8 +1721,6 @@ cdef class COCH(RingElement):
             raise ArithmeticError, "Exponent must be non-negative integer"
         if n==0:
             return int(1)
-        #if (self.Deg*n>len(self.Resl.Diff)):
-        #    raise ArithmeticError, "Resolution only known up to degree %d"%(len(self.Resl.Diff))
         while (self.Deg*n>len(self.Resl.Diff)):
             self.Resl.nextDiff()
         s=self.Name
@@ -1750,7 +1743,7 @@ cdef class COCH(RingElement):
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -1783,7 +1776,8 @@ cdef class COCH(RingElement):
         cdef RESL R = self.Resl
         nt = R.G_Alg.Data.nontips
         fd = R.G_Alg.Data.p
-        I = MTX(fd,nt,"id")
+        I = makeMTX(MatId(fd,nt))
+        I.set_immutable()
         M = R.CochainToChainmap(self.Deg,self.Data)[2]
         name = '(.*%s)'%(self.Name)
         f = self.parent().hom(I,self.parent(),M,-self.Deg)
@@ -1805,7 +1799,7 @@ cdef class COCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
@@ -1828,11 +1822,15 @@ cdef class COCH(RingElement):
             0*(b_2_1): 2-Cocycle in H^*(E27; GF(3))
 
         """
-        f,i = self.Data.lead()
-        if f:
-            if f!=1:
-                FfSetField(self.Data.Data.fl)
-                MatMulScalar(self.Data.Data,mtx_tmultinv[FfFromInt(f)])
+        cdef FEL f
+        FfSetField(self.Data.Data.Field)
+        FfSetNoc(self.Data.Data.Noc)
+        cdef int i = FfFindPivot(self.Data.Data.Data, &f)
+        if i>=0:
+            if f!=FF_ONE:
+                FfMulRow(self.Data.Data.Data, mtx_tmultinv[f])
+                if self.Data._is_immutable:
+                    self.Data._cache.clear()
                 self.Name = '('+self.Name+')/%d'%(f)
             return None
         else:
@@ -1875,7 +1873,7 @@ cdef class COCH(RingElement):
         ::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(9,2)
             sage: H.make()
@@ -2010,10 +2008,10 @@ cdef class COCH(RingElement):
 
         We verify that the result is consistent with the set-valued non-restricted Massey products::
 
-            sage: sorted(list(H.massey_products(c,c,c,c)), cmp=lambda X,Y:cmp(X.name(),Y.name()))
+            sage: sorted(list(H.massey_products(c,c,c,c)))
             [c_2_1: 2-Cocycle in H^*(SmallGroup(16,2); GF(2)),
              c_2_1+c_1_0*c_1_1: 2-Cocycle in H^*(SmallGroup(16,2); GF(2))]
-            sage: sorted(list(H.massey_products(d,d,d,d)), cmp=lambda X,Y:cmp(X.name(),Y.name()))
+            sage: sorted(list(H.massey_products(d,d,d,d)))
             [c_2_2: 2-Cocycle in H^*(SmallGroup(16,2); GF(2)),
              c_2_2+c_1_0*c_1_1: 2-Cocycle in H^*(SmallGroup(16,2); GF(2))]
 
@@ -2035,9 +2033,9 @@ cdef class COCH(RingElement):
                 Value = L[0]*L[-1]
             for j from 0 < j < l:
                 if L[j].deg()%2:
-                    Value = Value - L[j]*L[-j-1] #R.composeChainMaps(L[j][L[-j-1].deg()], L[-j-1][0], d,L[-j-1].deg(),0)
+                    Value = Value - L[j]*L[-j-1]
                 else:
-                    Value = Value + L[j]*L[-j-1] #R.composeChainMaps(L[j][L[-j-1].deg()], L[-j-1][0], d,L[-j-1].deg(),0)
+                    Value = Value + L[j]*L[-j-1]
             l += 1
             if l == fl**i:
                 return COCH(self.parent(), Value.deg(), '<%s; %d>'%(self.name(),i), R.ChainmapToCochain((Value.deg(),0,Value[0])))
@@ -2050,34 +2048,13 @@ cdef class COCH(RingElement):
 ## Elements of modular cohomology rings of finite groups
 ################################################################
 
-## class MODCOCH_Terminator:
-##     def __init__(self,S,name,br):
-##         "S: singular, name of a poly in singular, br: name of a ring containing the poly"
-##         self._S = S
-##         self._name = name
-##         self._br = br
-
-##     def __del__(self):
-##         return
-##         try:
-##             singular = self._S
-##             br = singular('basering')
-##             singular.eval('setring '+self._br)
-##             singular.eval('kill '+self._name)
-##             f = file("killings","a")
-##             f.write(self._name+'\n')
-##             f.close()
-##             br.set_ring()
-##         except:
-##             pass
-
 def MODCOCH_unpickle(L0,L1,L2,L3,L4,L5,L6=False,L7=None):
     """
     Auxiliary function for unpickling :class:`MODCOCH`
 
     TESTS::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(720,763,prime=2)
@@ -2089,22 +2066,17 @@ def MODCOCH_unpickle(L0,L1,L2,L3,L4,L5,L6=False,L7=None):
 
     """
     return MODCOCH(L0,L1,deg=L2,name=L3,rdeg=L4,ydeg=L5, is_polyrep=L6, is_NF=L7)
-##    if len(L)==8:
-##        return MODCOCH(L[0],L[1],deg=L[2],name=L[3],rdeg=L[4],ydeg=L[5], is_polyrep=L[6], is_NF=L[7])
-##    elif len(L)==7:
-##        return MODCOCH(L[0],L[1],deg=L[2],name=L[3],rdeg=L[4],ydeg=L[5], is_polyrep=L[6])
-##    return MODCOCH(L[0],L[1],deg=L[2],name=L[3],rdeg=L[4],ydeg=L[5])
 
 class MODCOCH(RingElement):
     """
     Elements of modular cohomology rings of finite groups
 
-    See :mod:`sage.groups.modular_cohomology` or :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`
+    See :mod:`pGroupCohomology` or :class:`~pGroupCohomology.modular_cohomology.MODCOHO`
     for examples of cohomology computations.
 
     EXAMPLES::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp)
         sage: H = CohomologyRing(720,763,prime=2)
@@ -2122,8 +2094,8 @@ class MODCOCH(RingElement):
         INPUT:
 
         - ``parent``: a cohomology ring
-          (:class:`~sage.groups.modular_cohomology.cohomology.COHO` or
-          :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`).
+          (:class:`~pGroupCohomology.cohomology.COHO` or
+          :class:`~pGroupCohomology.modular_cohomology.MODCOHO`).
         - ``value``: a string, or a singular element. This is a
           polynomial representation of an element of ``parent._HP``
           if ``parent`` is the cohomology ring of a non prime power group,
@@ -2144,19 +2116,19 @@ class MODCOCH(RingElement):
         - ``is_polyrep`` (optional boolean): If ``True``, the user asserts
           that ``name`` provides a polynomial representation of self as an
           element of ``parent``. Note that a polynomial representation can
-          always be computed using :meth:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO.element_as_polynomial`.
+          always be computed using :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.element_as_polynomial`.
         - ``NF`` (optional boolean): If ``True``, the user asserts that
           ``value`` is a normal form in ``parent._HP`` respectively ``parent``.
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: H = CohomologyRing(8,3)
             sage: H.1
             c_2_2: 2-Cocycle in H^*(D8; GF(2))
             sage: type(H.1)
-            <type 'sage.groups.modular_cohomology.cochain.COCH'>
-            sage: from sage.groups.modular_cohomology.cochain import MODCOCH
+            <type 'pGroupCohomology.cochain.COCH'>
+            sage: from pGroupCohomology.cochain import MODCOCH
             sage: c = MODCOCH(H, singular(H.1), name='foo')   # indirect doctest
             sage: c
             foo: 2-Cocycle in H^*(D8; GF(2))
@@ -2166,7 +2138,7 @@ class MODCOCH(RingElement):
             True
 
         """
-        from sage.groups.modular_cohomology import singular
+        from pGroupCohomology import singular
         if S is None:
             if hasattr(value,'parent'):
                 singular = value.parent()
@@ -2197,8 +2169,6 @@ class MODCOCH(RingElement):
         else:
             if value.parent() is not singular:
                 raise ValueError, "parent of %s is not singular"%value
-            #if singular.eval('defined(%s)'%value.name())=='0':
-            #    raise ValueError, "The given value is not contained in singular(%s)"%repr(parent._HP or parent)
             # We want a copy anyway, an the following line tests whether
             # value is defined.
             self._Svalue = singular.poly(value.name())
@@ -2220,7 +2190,7 @@ class MODCOCH(RingElement):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2232,7 +2202,7 @@ class MODCOCH(RingElement):
         """
         return MODCOCH_unpickle, (self.parent(), self.val_str(), self.Deg, self._name, self._rdeg, self._ydeg, self._polyrep,self._NF)
 
-    def __cmp__(self,other):
+    def _richcmp_(self, C, int x):
         """
         Comparison of cohomology elements
 
@@ -2250,7 +2220,7 @@ class MODCOCH(RingElement):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2304,48 +2274,79 @@ class MODCOCH(RingElement):
             b_1_0^6+b_1_0^5*c_1_2+c_2_5*b_1_0^4+c_2_5^2*b_1_0^2+b_1_0^3*c_1_2^3+c_2_5*b_1_0^2*c_1_2^2+c_2_5^2*b_1_0*c_1_2+c_2_5^3+c_2_5^2*c_1_2^2+b_1_0*c_1_2^5+c_2_5*c_1_2^4+c_1_2^6
 
         """
+        assert isinstance(C,COCH) or isinstance(C,MODCOCH)
+        if isinstance(C, MODCOCH):
+            other = C
+        else:
+            other = C._MODCOCH_()
+        cdef bint out
         singular = self._Svalue.parent()
-        from sage.groups.modular_cohomology.cochain import COCH
-        if not (isinstance(other,self.__class__) or isinstance(other,COCH)):
-            return -1
-        if other.parent() is not self.parent():
-            return -1
-        if isinstance(other,self.__class__):
-            if singular is not other._Svalue.parent():
-                return -1
-            c = cmp(self.deg(),other.deg())
-            if c:
-                return c
-            try:
-                br = singular('basering')
-            except:
-                br = None
-            self._NF_()
-            other._NF_()
-            self._Svalue.parent()(self.parent()._HP or self.parent()).set_ring()
-            out = cmp(self.value(),other.value())
-            if br is not None:
-                br.set_ring()
-            return out
-        # by now, other is COCH, not MODCOCH
-        c = cmp(self.deg(),other.deg())
-        if c:
-            return c
         try:
             br = singular('basering')
         except:
             br = None
-        singular(self.parent()).set_ring()
-        c = cmp(self.value(),singular(other))
-        if br is not None:
-            br.set_ring()
-        return c
+        dgb = singular.eval('degBound')
+        # < 0, <= 1, == 2, != 3, > 4, >= 5
+        try:
+            if x==0:
+                if self.deg() < other.deg():
+                    return True
+                self._NF_()
+                other._NF_()
+                singular(self.parent()._HP or self.parent()).set_ring()
+                out = (self.deg()==other.deg()) and (self.value()<other.value())
+                return out
+            if x==1:
+                if self.deg() < other.deg():
+                    return True
+                self._NF_()
+                other._NF_()
+                singular(self.parent()._HP or self.parent()).set_ring()
+                out = (self.deg()==other.deg()) and (self.value()<=other.value())
+                return out
+            if x==2:
+                if self.deg() != other.deg():
+                    return False
+                self._NF_()
+                other._NF_()
+                singular(self.parent()._HP or self.parent()).set_ring()
+                out = (self.value()==other.value())
+                return out
+            if x==3:
+                if self.deg() != other.deg():
+                    return True
+                self._NF_()
+                other._NF_()
+                singular(self.parent()._HP or self.parent()).set_ring()
+                out = (self.value()!=other.value())
+                return out
+            if x==4:
+                if self.deg() > other.deg():
+                    return True
+                self._NF_()
+                other._NF_()
+                singular(self.parent()._HP or self.parent()).set_ring()
+                out = (self.deg()==other.deg()) and (self.value()>other.value())
+                return out
+            if x==5:
+                if self.deg() > other.deg():
+                    return True
+                self._NF_()
+                other._NF_()
+                singular(self.parent()._HP or self.parent()).set_ring()
+                out = (self.deg()==other.deg()) and (self.value()>=other.value())
+                return out
+            return NotImplemented
+        finally:
+            if br is not None:
+                br.set_ring()
+            singular.eval('degBound='+dgb)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2362,7 +2363,7 @@ class MODCOCH(RingElement):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2401,7 +2402,7 @@ class MODCOCH(RingElement):
         in a temporary directory; it will be removed as soon as Sage is quit::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
@@ -2423,7 +2424,7 @@ class MODCOCH(RingElement):
         TESTS::
 
             sage: tmp_root = tmp_dir()
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
@@ -2438,7 +2439,7 @@ class MODCOCH(RingElement):
             br = singular('basering')
         except TypeError:
             br = None
-        from sage.groups.modular_cohomology.factory import _name2latex
+        from pGroupCohomology.factory import _name2latex
         singular(self.parent()).set_ring()
         self._latex = _name2latex(repr(singular(self)))
         if br is not None:
@@ -2449,7 +2450,7 @@ class MODCOCH(RingElement):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2473,7 +2474,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2485,7 +2486,7 @@ class MODCOCH(RingElement):
         cohomology ring element, even if it is not clear from its given
         value::
 
-            sage: from sage.groups.modular_cohomology.cochain import MODCOCH
+            sage: from pGroupCohomology.cochain import MODCOCH
             sage: c = MODCOCH(H, '0', deg=15)
             sage: c.deg()
             15
@@ -2503,7 +2504,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2545,7 +2546,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=3)
@@ -2581,7 +2582,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2619,7 +2620,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2646,7 +2647,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2686,7 +2687,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2705,11 +2706,12 @@ class MODCOCH(RingElement):
             sage: c.val_str()
             'b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3'
             sage: singular.quit()
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: c.value()
-            H^*(16gp11; GF(2)): Reconstructing data in the Singular interface
+            H^*(D8xC2; GF(2)):
+                      Reconstructing data in the Singular interface
             b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
 
         """
         singular = self._Svalue.parent()
@@ -2736,7 +2738,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2762,7 +2764,7 @@ class MODCOCH(RingElement):
         if self._NF is not None:
             singular.eval('%s=NF(%s,std(0))'%(self.value().name(),self.value().name()))
         self._NF = True
-        cdef int SizePieces = OPTION.opts.get('SingularCutoff',50)
+        cdef int SizePieces = coho_options.get('SingularCutoff',50)
         cdef list L = []
         cdef int j
         cdef int a = int(singular.eval('size(%s)'%self.value().name()))
@@ -2775,22 +2777,10 @@ class MODCOCH(RingElement):
             L.append(singular.eval('print(%s[%d..%d])'%(self.value().name(),nr*SizePieces+1,a)))
             if len(L)>1 and (L[-1][0] not in ['-','+']):
                 L.insert(-1,'+')
-        self._str_value = ''.join(L) if L else '0' # singular.eval(self.value())
+        self._str_value = ''.join(L) if L else '0'
         if br is not None:
             br.set_ring()
         return self._str_value
-
-##     def _cochain_(self):
-##         "return COCH corresponding to self"
-##         from sage.groups.modular_cohomology.cochain import COCH
-##         if self._COCH is not None:
-##             return self._COCH
-##         if self.parent()._HP is None:
-##             M = self.parent()(self.val_str()).MTX()
-##         else:
-##             M = self.parent()._HP(self.val_str()).MTX()
-##         self._COCH = COCH(self.parent(),self.Deg,self._name,M, is_polyrep=self._polyrep)
-##         return self._COCH
 
     def _singular_(self, S):
         """
@@ -2798,7 +2788,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -2826,7 +2816,7 @@ class MODCOCH(RingElement):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -2837,21 +2827,21 @@ class MODCOCH(RingElement):
             2*c_2_1^5*c_2_2^5*a_1_0*a_1_1
 
         After quitting singular, the data are reconstructed (which is
-        visible in the protocol), so that the computation can be
-        recovered::
+        visible in the log), so that the computation can be recovered::
 
             sage: singular.quit()
-            sage: H.option('prot')
+            sage: CohomologyRing.global_options('info')
             sage: print H.6*H.8   # indirect doctest
-            H^*(25gp2; GF(5)): Reconstructing data in the Singular interface
+            H^*(SmallGroup(25,2); GF(5)):
+                      Reconstructing data in the Singular interface
             (a_7_1)*(a_15_3): 22-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             2*c_2_1^5*c_2_2^5*a_1_0*a_1_1
-            sage: H.option('noprot')
+            sage: CohomologyRing.global_options('warn')
 
         """
         if S is None:
-            from sage.groups.modular_cohomology import singular
+            from pGroupCohomology import singular
             S = singular
         try:
             br = S('basering')
@@ -2888,7 +2878,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('AlternatingGroup(8)')
@@ -2931,13 +2921,13 @@ class MODCOCH(RingElement):
 
         OUTPUT:
 
-        The element (:class:`~sage.groups.modular_cohomology.cochain.MODCOCH`)
+        The element (:class:`~pGroupCohomology.cochain.MODCOCH`)
         of ``self.parent().sylow_cohomology()`` that corresponds
         to ``self``.
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('AlternatingGroup(8)')
@@ -2965,7 +2955,7 @@ class MODCOCH(RingElement):
 
         TESTS:
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3002,7 +2992,7 @@ class MODCOCH(RingElement):
 
         TESTS:
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3039,7 +3029,7 @@ class MODCOCH(RingElement):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(252,10,prime=2)
@@ -3060,7 +3050,7 @@ class MODCOCH(RingElement):
 
         TESTS:
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -3084,8 +3074,6 @@ class MODCOCH(RingElement):
             if other!=0:
                 raise TypeError, "Second summand must not be of type %s"%type(other)
             return self
-        #if self.parent() is not other.parent():
-        #    raise ValueError, "The summands must have the same parent"
         if self.Deg != other.deg():
             raise ValueError, "The summands must be in the same degree"
         try:
@@ -3111,7 +3099,7 @@ class MODCOCH(RingElement):
 
         TESTS:
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3136,8 +3124,6 @@ class MODCOCH(RingElement):
             if other!=0:
                 raise TypeError, "Second summand must not be of type %s"%type(other)
             return self
-        #if self.parent() is not other.parent():
-        #    raise ValueError, "The summands must have the same parent"
         if self.Deg != other.deg():
             raise ValueError, "The summands must be in the same degree"
         try:
@@ -3163,7 +3149,7 @@ class MODCOCH(RingElement):
 
         EXAMPLE::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3176,7 +3162,7 @@ class MODCOCH(RingElement):
             return self
         try:
             return MODCOCH(self.parent(), '('+self.val_str()+')*('+repr(other)+')', deg=self.Deg, name='('+self._name+')*('+repr(other)+')', is_polyrep=self._polyrep)
-        except TypeError: # singular crashed, for example
+        except TypeError: # this happens, for instance, if singular crashes
             try:
                 br = self._Svalue.parent()('basering')
             except:
@@ -3199,7 +3185,7 @@ class MODCOCH(RingElement):
 
         TESTS:
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3231,7 +3217,7 @@ class MODCOCH(RingElement):
         except: # singular crashed
             self._reconstruct_singular_()
             other._reconstruct_singular_()
-        from sage.groups.modular_cohomology.cochain import COCH
+        from pGroupCohomology.cochain import COCH
         if isinstance(other,COCH):
             return self*other._MODCOCH_(self._Svalue.parent())
         try:
@@ -3259,7 +3245,7 @@ class MODCOCH(RingElement):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3279,7 +3265,7 @@ class MODCOCH(RingElement):
             sage: H.2/H.1
             Traceback (most recent call last):
             ...
-            TypeError: Can not divide by <class 'sage.groups.modular_cohomology.cochain.MODCOCH'>
+            TypeError: Can not divide by <class 'pGroupCohomology.cochain.MODCOCH'>
 
         """
         try:
@@ -3302,7 +3288,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(60,3,prime=2)
@@ -3363,7 +3349,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(60,3,prime=2)
@@ -3430,7 +3416,7 @@ class MODCOCH(RingElement):
         A cocycle ``C`` is expressed as a (stable) element of the
         cohomology of the Sylow subgroup. The Massey power is computed
         there (see
-        :meth:`~sage.groups.modular_cohomology.cochain.COCH.massey_power`).
+        :meth:`~pGroupCohomology.cochain.COCH.massey_power`).
 
         NOTE:
 
@@ -3440,7 +3426,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(432,234,prime=3)
@@ -3486,7 +3472,7 @@ class MODCOCH(RingElement):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -3561,7 +3547,7 @@ class MODCOCH(RingElement):
         database.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(81,8, from_scratch=True)
@@ -3616,7 +3602,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3638,8 +3624,6 @@ class MODCOCH(RingElement):
         self._lc = int(singular.eval('leadcoef(%s)'%self._Svalue.name()))
         if br is not None:
             br.set_ring()
-##        self._NF_()
-##        self._lc = int(self._Svalue.parent().eval('leadcoef(%s)'%self._Svalue.name()))
         return self._lc
 
     def lm_string(self):
@@ -3656,7 +3640,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(72,40,prime=3)
@@ -3677,8 +3661,6 @@ class MODCOCH(RingElement):
         self._lmstr = singular.eval('leadmonom(%s)'%self._Svalue.name())
         if br is not None:
             br.set_ring()
-##        self._NF_()
-##        self._lmstr = self._Svalue.parent().eval('leadmonom(%s)'%self._Svalue.name())
         return self._lmstr
 
     def lm(self):
@@ -3695,7 +3677,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(72,40,prime=3)
@@ -3739,7 +3721,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3783,7 +3765,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3843,7 +3825,7 @@ class MODCOCH(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
@@ -3886,31 +3868,6 @@ class MODCOCH(RingElement):
         if br is not None:
             br.set_ring()
         return [int(COEFS.get(s,'0')) for s in M]
-##         p = self.val_str()
-##         cdef list NegTerms = p.split('-')
-##         cdef list Terms = NegTerms.pop(0).split('+')
-##         if Terms == ['']:
-##             Terms = []
-##         while NegTerms:
-##             Terms.extend( ('-' + NegTerms.pop(0)).split('+'))
-##         if Terms!=['0']:
-##             while Terms:
-##                 tm = Terms.pop(0)
-##                 if (tm[0]=='-'):
-##                     if tm[1].isdigit():
-##                         cf,mn = tm.split('*',1)
-##                     else:
-##                         cf = -1
-##                         mn = tm[1:]
-##                 else:
-##                     if tm[0].isdigit():
-##                         cf,mn = tm.split('*',1)
-##                     else:
-##                         cf = 1
-##                         mn = tm
-##                 COEFS[mn] = int(cf)
-##         return [COEFS.get(X,int(0)) for X in M]
-
 
 ################################################
 ## Yoneda cocomplex
@@ -3941,7 +3898,7 @@ cdef class YCOCH:
 
     INPUT:
 
-    * ``R``: a resolution (:class:`~sage.groups.modular_cohomology.resolution.RESL`)
+    * ``R``: a resolution (:class:`~pGroupCohomology.resolution.RESL`)
     * ``n``: the degree of the Yoneda cochain (non-negative integer)
     * ``M_0,M_1,...,M_i,...``: a list of :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrices defining maps from the
       `(n+i)`-th to the `i`-th term of ``R``.
@@ -3968,8 +3925,8 @@ cdef class YCOCH:
     The example produces files. For safety reasons, we choose files
     in a temporary directory; it will be removed as soon as Sage is quit::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
-        sage: from sage.groups.modular_cohomology.cochain import YCOCH
+        sage: from pGroupCohomology import CohomologyRing
+        sage: from pGroupCohomology.cochain import YCOCH
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
@@ -3977,9 +3934,8 @@ cdef class YCOCH:
         sage: H.make()
         sage: R = H.resolution()
         sage: R
-        Resolution:
-        0 <- GF(2) <- GF(2)(8gp3) <- rank 2 <- rank 3 <- rank 4
-        sage: Y = YCOCH(R,1,MTX(2,[[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]))
+        Resolution of GF(2)[D8]
+        sage: Y = YCOCH(R,1, MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]))
         sage: len(Y)
         1
 
@@ -3988,7 +3944,7 @@ cdef class YCOCH:
     so that its coboundary is zero.
     ::
 
-        sage: print Y[1]
+        sage: Y[1]
         [1 0 0 0 0 0 0 0]
         [0 1 0 0 0 1 0 0]
         [0 0 0 0 0 0 0 0]
@@ -3997,34 +3953,36 @@ cdef class YCOCH:
         [0 0 0 1 0 1 0 0]
         sage: len(Y)
         2
-        sage: print Y[0]
+        sage: Y[0]
         [1 0 1 0 1 0 1 0]
         [1 0 1 0 1 0 1 0]
-        sage: print Y.coboundary()[0]
+        sage: Y.coboundary()[0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
 
     Next, we provide all terms explicitly, yielding a Yoneda cochain that is not a cocycle::
 
-        sage: Y = YCOCH(R,1,MTX(2,[[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]),MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]]))
+        sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+        sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+        sage: Y = YCOCH(R,1,tmpM1,tmpM2)
         sage: Y
-        Yoneda 1-cochain on a resolution of GF(2)(8gp3)
-        sage: print Y[0]
+        Yoneda 1-cochain on a resolution of GF(2)[D8]
+        sage: Y[0]
         [1 0 1 0 1 0 1 0]
         [1 0 1 0 1 0 1 0]
-        sage: print Y[1]
+        sage: Y[1]
         [0 1 1 0 0 1 1 0]
         [1 1 0 0 1 1 0 0]
         [1 0 1 0 1 0 1 0]
         [0 1 1 0 0 1 1 0]
         [1 1 0 0 1 1 0 0]
         [1 0 1 0 1 0 1 0]
-        sage: print Y.coboundary()[0]
+        sage: Y.coboundary()[0]
         [0 1 1 1 0 0 0 1]
         [0 1 1 1 1 1 1 0]
         [0 1 1 0 0 0 1 1]
-        sage: print Y.coboundary()[1]
+        sage: Y.coboundary()[1]
         [0 0 0 0 1 0 0 0]
         [0 1 0 0 0 0 0 0]
         [0 0 1 0 0 0 0 0]
@@ -4036,12 +3994,12 @@ cdef class YCOCH:
 
     Of course, the coboundary of the coboundary vanishes::
 
-        sage: print Y.coboundary().coboundary()[0]
+        sage: Y.coboundary().coboundary()[0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
-        sage: print Y.coboundary().coboundary()[1]
+        sage: Y.coboundary().coboundary()[1]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
@@ -4056,11 +4014,11 @@ cdef class YCOCH:
     Here is what happens internally when defining the composition of ``Y`` with itself::
 
         sage: YY = YCOCH(R, 2, construction=['*',Y,Y])
-        sage: print YY[0]
+        sage: YY[0]
         [1 0 0 0 0 0 1 1]
         [1 1 1 0 1 1 1 1]
         [0 1 1 0 1 1 0 0]
-        sage: print YY[1]
+        sage: YY[1]
         [0 1 0 0 0 0 0 0]
         [0 1 0 0 1 0 0 1]
         [1 1 1 1 1 1 1 1]
@@ -4073,11 +4031,11 @@ cdef class YCOCH:
     However, usually one would define the composition like that::
 
         sage: YY = Y*Y
-        sage: print YY[0]
+        sage: YY[0]
         [1 0 0 0 0 0 1 1]
         [1 1 1 0 1 1 1 1]
         [0 1 1 0 1 1 0 0]
-        sage: print YY[1]
+        sage: YY[1]
         [0 1 0 0 0 0 0 0]
         [0 1 0 0 1 0 0 1]
         [1 1 1 1 1 1 1 1]
@@ -4090,12 +4048,12 @@ cdef class YCOCH:
     Internally, the coboundary of ``YY`` would be constructed like that::
 
         sage: DYY = YCOCH(YY.resolution(), YY.deg()+1, construction=['D',YY])
-        sage: print DYY[0]
+        sage: DYY[0]
         [0 1 0 0 1 0 0 1]
         [0 1 0 0 0 1 1 0]
         [0 0 1 1 1 1 1 1]
         [0 0 1 1 1 1 0 1]
-        sage: print DYY[1]
+        sage: DYY[1]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 1 1 0 0 1 1]
@@ -4111,7 +4069,7 @@ cdef class YCOCH:
     ::
 
         sage: DYY = YY.coboundary()
-        sage: print DYY[0]
+        sage: DYY[0]
         [0 1 0 0 1 0 0 1]
         [0 1 0 0 0 1 1 0]
         [0 0 1 1 1 1 1 1]
@@ -4122,18 +4080,18 @@ cdef class YCOCH:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH, COCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH, COCH
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.2
             b_1_0: 1-Cocycle in H^*(D8; GF(2))
             sage: Y = YCOCH(H.resolution(),1,H.resolution().CochainToChainmap(1,H.2.MTX())[2])   # indirect doctest
             sage: Y
-            Yoneda 1-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 1-cochain on a resolution of GF(2)[D8]
             sage: Y2 = Y*Y
             sage: Y2
-            Yoneda 2-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 2-cochain on a resolution of GF(2)[D8], defined as a product
             sage: C2 = H.element_as_polynomial(COCH(H,2,'Y2',H.resolution().ChainmapToCochain((2,0,Y2[0]))))
             sage: C2
             b_1_0^2: 2-Cocycle in H^*(D8; GF(2))
@@ -4176,39 +4134,53 @@ cdef class YCOCH:
                 self._Cob = coboundary or YCOCH(R, n+1, R.yoneda_coboundary(L[0],L[1],n,n))
                 # it is self-standing, since it has only one input datum
 
-
     def __repr__(self):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH, COCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH, COCH
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.2
             b_1_0: 1-Cocycle in H^*(D8; GF(2))
             sage: Y = YCOCH(H.resolution(),1,H.resolution().CochainToChainmap(1,H.2.MTX())[2])
             sage: Y      # indirect doctest
-            Yoneda 1-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 1-cochain on a resolution of GF(2)[D8]
             sage: Y2 = Y*Y
             sage: Y2
-            Yoneda 2-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 2-cochain on a resolution of GF(2)[D8], defined as a product
 
         """
-        return "Yoneda %d-cochain on a resolution of %s"%(self._deg,self._R.G_ALG())
+        out = "Yoneda %d-cochain on a resolution of %s"%(self._deg,self._R.G_ALG())
+        if not self._Constr:
+            return out
+        if self._Constr[0] == 'D':
+            return out+", defined as a coboundary"
+        if self._Constr[0] == '+':
+            return out+", defined as a sum"
+        if self._Constr[0] == '-':
+            if len(self._Constr)==2:
+                return out+", defined by negation"
+            return out+", defined as a difference"
+        if self._Constr[0] == '*':
+            return out+", defined as a product"
+        return out+", definition unknown"
 
     def __getitem__(self, i):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: Y = YCOCH(H.resolution(),1,MTX(2,[[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]),MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]]))
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
             sage: print Y[0]   # indirect doctest
             [1 0 1 0 1 0 1 0]
             [1 0 1 0 1 0 1 0]
@@ -4247,8 +4219,8 @@ cdef class YCOCH:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
@@ -4270,16 +4242,16 @@ cdef class YCOCH:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y = YCOCH(H.resolution(),2,H.resolution().CochainToChainmap(2,H.1.MTX())[2])
-            sage: Y.resolution()
+            sage: print Y.resolution()
             Resolution:
-            0 <- GF(2) <- GF(2)(8gp3) <- rank 2 <- rank 3 <- rank 4
+            0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3 <- rank 4
 
         """
         return self._R
@@ -4288,8 +4260,8 @@ cdef class YCOCH:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
@@ -4305,7 +4277,7 @@ cdef class YCOCH:
         """
         return len(self._Data)
 
-    def append(self,M):
+    def append(self, MTX M):
         """
         append further terms to self
 
@@ -4326,15 +4298,17 @@ cdef class YCOCH:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: Y = YCOCH(H.resolution(),1,MTX(2,[[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]),MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]]))
-            sage: M = MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
+            sage: M = MTX(MatrixSpace(GF(2),12,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y.append(M)
             sage: Y[2]==M
             True
@@ -4344,7 +4318,7 @@ cdef class YCOCH:
             raise TypeError, "MTX matrix expected"
         while self._R.deg()<len(self._Data):
             self._R.nextDiff()
-        if M.base() != self._R.coef():
+        if M.Data.Field != self._R.coef():
             raise ValueError, "Matrix must be defined over GF(%d)"%(self._R.coef())
         if M.ncols() != self._R.grouporder():
             raise ValueError, "Matrix must have %d columns"%(self._R.grouporder())
@@ -4380,17 +4354,19 @@ cdef class YCOCH:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: Y = YCOCH(H.resolution(),1,MTX(2,[[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]),MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]]),MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]]))
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: Y = YCOCH(H.resolution(),1,tmpM1, tmpM2)
             sage: YC = Y.coboundary()
             sage: YC
-            Yoneda 2-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 2-cochain on a resolution of GF(2)[D8]
             sage: print YC[0]
             [0 1 1 1 0 0 0 1]
             [0 1 1 1 1 1 1 0]
@@ -4444,8 +4420,6 @@ cdef class YCOCH:
         """
         if self._Cob is None:
             return YCOCH(self._R,self._deg+1,construction=['D',self])
-        #while len(self._Cob) < len(self._Data)-1: # this is only relevant if the coboundary depends on self
-        #    self._Cob.lift()
         return self._Cob
 
     def find_cobounding_yoneda_cochains (YCOCH self, all=True):
@@ -4471,7 +4445,7 @@ cdef class YCOCH:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -4487,10 +4461,10 @@ cdef class YCOCH:
             sage: Y2 = H.3.yoneda_cocycle()
             sage: Y12 = Y1*Y2
             sage: Y12.find_cobounding_yoneda_cochains()
-            [Yoneda 1-cochain on a resolution of GF(2)(8gp3),
-             Yoneda 1-cochain on a resolution of GF(2)(8gp3),
-             Yoneda 1-cochain on a resolution of GF(2)(8gp3),
-             Yoneda 1-cochain on a resolution of GF(2)(8gp3)]
+            [Yoneda 1-cochain on a resolution of GF(2)[D8],
+             Yoneda 1-cochain on a resolution of GF(2)[D8],
+             Yoneda 1-cochain on a resolution of GF(2)[D8],
+             Yoneda 1-cochain on a resolution of GF(2)[D8]]
             sage: C1, C2, C3, C4 = _
 
         Indeed, the pairwise differences are no coboundaries::
@@ -4558,12 +4532,12 @@ cdef class YCOCH:
         cdef long fl  = R.G_Alg.Data.p
         cdef long nt  = R.G_Alg.Data.nontips
         cdef MTX X = self[0]
-        if X.nrows()!=RK or X.ncols()!=nt or X.base()!=fl:
+        if X._nrows != RK or X._ncols != nt or X.Data.Field != fl:
             raise ValueError, "Theoretical error, please inform the author"
-        cdef MTX Y = MTX(fl, Rk, nt)
-        cdef MTX Z = MTX(fl, RK*rk, nt)
+        cdef MTX Y = makeMTX(MatAlloc(fl, Rk, nt))
+        cdef MTX Z = makeMTX(MatAlloc(fl, RK*rk, nt))
         cdef int i, m
-        print_protocol( "Trying to find a cobounding Yoneda cochain", self)
+        coho_logger.info( "Try to find a cobounding Yoneda cochain for %r", self._R, self)
         for i in P: # these are the pivots of the "autolift" data
             m = X[i/nt, i%nt]
             if m:
@@ -4574,7 +4548,7 @@ cdef class YCOCH:
                     Y += D[i][0]
                     Z += D[i][1]
 
-        print_protocol("> Verifying the result", self)
+        coho_logger.info("> Verifying the result", self._R)
         if X != R.yoneda_coboundary(Y,Z, n-1,n-1):
             return []
         Y.set_immutable()
@@ -4589,7 +4563,7 @@ cdef class YCOCH:
         cdef int k
         cdef MTX Yall,Zall
         cdef YCOCH YC
-        print_protocol( "Constructing all relevant cobounding Yoneda cochains", self)
+        coho_logger.info( "Constructing all relevant cobounding Yoneda cochains", self._R)
         for Y0,Z0 in K: # these define Yoneda cocycles, hence, we can add them to our special solution Y,Z
             Lnew = []
             for YC in L:
@@ -4617,7 +4591,7 @@ cdef class YCOCH:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(9,2)
@@ -4665,7 +4639,7 @@ cdef class YCOCH:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(9,2)
@@ -4698,7 +4672,7 @@ cdef class YCOCH:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(9,2)
@@ -4733,18 +4707,18 @@ cdef class YCOCH:
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH, COCH
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import YCOCH, COCH
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.2
             b_1_0: 1-Cocycle in H^*(D8; GF(2))
             sage: Y = H.2.yoneda_cocycle()
             sage: Y
-            Yoneda 1-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 1-cochain on a resolution of GF(2)[D8]
             sage: Y2 = Y*Y   # indirect doctest
             sage: Y2
-            Yoneda 2-cochain on a resolution of GF(2)(8gp3)
+            Yoneda 2-cochain on a resolution of GF(2)[D8], defined as a product
             sage: print Y2[0]
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4760,7 +4734,7 @@ cdef class YCOCH:
             d = 0
         return YCOCH(self._R, d+self._deg, construction=['*',self,other])
 
-    def lift(self):
+    def lift(self, check=False):
         """
         Compute the next term of self
 
@@ -4778,14 +4752,16 @@ cdef class YCOCH:
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: from sage.groups.modular_cohomology.cochain import YCOCH
+            sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: Y = YCOCH(H.resolution(),1,MTX(2,[[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]),MTX(2,[[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]]))
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
             sage: YC = Y.coboundary()
             sage: len(YC)
             1
@@ -4828,6 +4804,7 @@ cdef class YCOCH:
         cdef int rk
         cdef int i,n,N
         cdef list L
+        cdef MTX ToBeLifted
         while R.deg() < len(self)+self.deg():
             R.nextDiff()
 
@@ -4862,27 +4839,37 @@ cdef class YCOCH:
                 self._Data.append(self._Constr[1][len(self)]*self._Constr[2])
             return
 
-        # Final case: Lifting of self is defined by lifting its coboundary (which might defined externally!)
+        # Final case: Lifting of self is defined by lifting its coboundary (which might be defined externally!)
         n = len(self)-1 # this is where the last known part of self points to.
         N = n + self._deg + 1 # The lift shall point from N to n+1
         # The lift is done by taking into account term n of the coboundary, which points from N to n
         # and which is assumed to be zero if it is None
         if self._deg%2:
             if self._Cob is None:
-                ToBeLifted = ( -R.composeChainMaps(R[N],self[n],N,N-1,n))
+                ToBeLifted = -R.composeChainMaps(R[N],self[n],N,N-1,n)
             else:
-                ToBeLifted = (self._Cob[n] - R.composeChainMaps(R[N],self[n],N,N-1,n))
+                ToBeLifted = self._Cob[n] - R.composeChainMaps(R[N],self[n],N,N-1,n)
         else:
             if self._Cob is None:
-                ToBeLifted = (R.composeChainMaps(R[N],self[n],N,N-1,n))
+                ToBeLifted = R.composeChainMaps(R[N],self[n],N,N-1,n)
             else:
-                ToBeLifted = (R.composeChainMaps(R[N],self[n],N,N-1,n) - self._Cob[n])
+                ToBeLifted = R.composeChainMaps(R[N],self[n],N,N-1,n) - self._Cob[n]
         RK = R.Data.projrank[N]
         rk = R.Data.projrank[n]
         n = n+1
-        L = [R.find_bounding_chain(n, ToBeLifted[i*rk:(i+1)*rk], check=True) for i in range(RK)]
-        OUT1 = L.pop(0)
-        self._Data.append(OUT1.stack(*L))
+        L = [R.find_bounding_chain(n, ToBeLifted.get_slice(i*rk, (i+1)*rk), check=check) for i in range(RK)]
+        cdef MTX OUT1 = L[0]
+        cdef MTX tmp
+        fl = OUT1.Data.Field
+        OUT1 = OUT1._new(sum([M.nrows() for M in L]), OUT1._ncols)
+        OUT1.Data = MatAlloc(fl, OUT1._nrows, OUT1._ncols)
+        cdef Py_ssize_t row = 0
+        FfSetField(fl)
+        FfSetNoc(OUT1.Data.Noc)
+        for tmp in L:
+            memcpy(FfGetPtr(OUT1.Data.Data, row), tmp.Data.Data, FfCurrentRowSize*tmp.Data.Nor)
+            row += tmp.Data.Nor
+        self._Data.append(OUT1)
 
 
 #####################################################################
@@ -4901,7 +4888,7 @@ class CohomologyHomset(RingHomset_generic):
     in a temporary directory; it will be removed as soon as Sage is quit::
 
         sage: tmp_root = tmp_dir()
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.set_user_db(tmp_root)
 
     We consider the dihedral group of order 8 and will study the restriction
@@ -4914,13 +4901,13 @@ class CohomologyHomset(RingHomset_generic):
         sage: SubG = [X.RepresentativeSmallest() for X in G.ConjugacyClassesSubgroups()]
         sage: SubG = [X.MinimalGeneratingSet().Group() for X in SubG if X.Order()>1]
         sage: for i in range(len(SubG)):
-        ...       SubG[i].SetName('"U%d"'%(i+1))
+        ....:     SubG[i].SetName('"U%d"'%(i+1))
         sage: HSubG = [CohomologyRing(X, from_scratch=True) for X in SubG]
         sage: for X in HSubG:
-        ...       X.make()
+        ....:     X.make()
         sage: IncG = [X.GroupHomomorphismByImages(G,X.GeneratorsOfGroup(),X.GeneratorsOfGroup()) for X in SubG]
         sage: for i in range(len(IncG)):
-        ...       IncG[i].SetName('"i_%d"'%(i+1))
+        ....:     IncG[i].SetName('"i_%d"'%(i+1))
         sage: ResG = [H.hom(IncG[i], HSubG[i]) for i in range(len(HSubG))]   # indirect doctest
 
     Now, we can apply the maps to elements of ``H``::
@@ -4941,7 +4928,7 @@ class CohomologyHomset(RingHomset_generic):
     rings of the subgroups::
 
         sage: for f in ResG:
-        ...       print [f.codomain().element_as_polynomial(f(X)).name() for X in H.gens()[1:]]
+        ....:     print [f.codomain().element_as_polynomial(f(X)).name() for X in H.gens()[1:]]
         ['c_1_0^2', '0', '0']
         ['0', 'c_1_0', '0']
         ['c_1_0^2', 'c_1_0', 'c_1_0']
@@ -4952,24 +4939,24 @@ class CohomologyHomset(RingHomset_generic):
 
     """
     # it inherits _domain and _codomain
-    # -- option cat is not supported yet
-    def __init__(self, X, Y, category=None): #, check=True):
+    # -- option category is not supported yet
+    def __init__(self, X, Y, category=None):
         """
         INPUT:
 
-        - ``X``, ``Y`` -- two cohomology rings (:class:`~sage.groups.modular_cohomology.cohomology.COHO`
-          or :class:`~sage.groups.modular_cohomology.modular_cohomology.MODCOHO`).
+        - ``X``, ``Y`` -- two cohomology rings (:class:`~pGroupCohomology.cohomology.COHO`
+          or :class:`~pGroupCohomology.modular_cohomology.MODCOHO`).
 
         TEST::
 
-            sage: from sage.groups.modular_cohomology.cochain import CohomologyHomset
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology.cochain import CohomologyHomset
+            sage: from pGroupCohomology import CohomologyRing
             sage: H = CohomologyRing(8,3)
             sage: CohomologyHomset(H,H)      # indirect doctest
             Set of Homomorphisms from H^*(D8; GF(2)) to H^*(D8; GF(2))
 
         """
-        from sage.groups.modular_cohomology.cohomology import COHO
+        from pGroupCohomology.cohomology import COHO
         if not isinstance(X,COHO):
             raise TypeError, "Domain must be a cohomology ring"
         if not isinstance(Y,COHO):
@@ -4977,7 +4964,7 @@ class CohomologyHomset(RingHomset_generic):
         if (X.Resl.coef()<>Y.Resl.coef()):
             raise TypeError, "Domain and Codomain must be defined over the same base field"
         self._cache = {}  # caches different maps between the same rings
-        self._H0Map = MTX(X.Resl.coef(), 1, X.Resl.G_ALG().order())
+        self._H0Map = makeMTX(MatAlloc(X.Resl.coef(), 1, X.Resl.G_ALG().order()))
         self._H0Map[0,0] = 1
         self._H0Map.set_immutable()
         RingHomset_generic.__init__(self, X, Y, category=category)
@@ -5006,7 +4993,7 @@ class CohomologyHomset(RingHomset_generic):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5051,7 +5038,7 @@ class CohomologyHomset(RingHomset_generic):
                 GAP = GMap.parent()
                 if repr(GAP)!='Gap':
                     raise RuntimeError, "The parent must be Gap, not %s"%GAP
-                _gap_init(GAP) #GAP.RestoreStateRandom(0)
+                _gap_init(GAP)
                 if GAP.eval('HasName(%s)'%(GMap.name())) == 'true':
                     Name = GAP.eval('Name(%s)'%(GMap.name()))[1:-1]
                 if not (GAP == Src.group().parent() == Tgt.group().parent()):
@@ -5140,9 +5127,11 @@ class CohomologyHomset(RingHomset_generic):
             OUT = ChMap(self, GMap, H0Map, d)
             self._cache[GMap,H0Map,d] = OUT
         if GMapmutable:
-            GMap.set_mutable()
+            if GMap.is_immutable():
+                GMap = GMap.__copy__()
         if H0Mapmutable:
-            H0Map.set_mutable()
+            if H0Map.is_immutable():
+                H0Map = H0Map.__copy__()
         if Name is not None:
             OUT.set_name(Name+'^*')
         return OUT
@@ -5151,7 +5140,7 @@ class CohomologyHomset(RingHomset_generic):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -5164,13 +5153,13 @@ class CohomologyHomset(RingHomset_generic):
 
 class ChMap_unpickle_class:
     """
-    Unpickling an instance of :class:`~sage.groups.modular_cohomology.cochain.ChMap`, representing an induced homomorphism
+    Unpickling an instance of :class:`~pGroupCohomology.cochain.ChMap`, representing an induced homomorphism
 
     EXAMPLES:
 
     Usually, an induced homomorphism is created by defining two groups and
     a homomorphism between them, computing the cohomology rings of the groups,
-    and then invoking the :meth:`~sage.groups.modular_cohomology.cohomology.COHO.hom` method
+    and then invoking the :meth:`~pGroupCohomology.cohomology.COHO.hom` method
     of cohomology rings.
 
     We first create the cohomology rings for two different presentations of the
@@ -5178,7 +5167,7 @@ class ChMap_unpickle_class:
     will be removed as soon as Sage is quit.
     ::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: G1 = gap('SmallGroup(8,3)')
@@ -5202,7 +5191,7 @@ class ChMap_unpickle_class:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -5213,7 +5202,7 @@ class ChMap_unpickle_class:
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
             sage: phi_star = H2.hom(phi,H1)
-            sage: from sage.groups.modular_cohomology.cochain import ChMap_unpickle_class
+            sage: from pGroupCohomology.cochain import ChMap_unpickle_class
             sage: CU = ChMap_unpickle_class()   # indirect doctest
             sage: phi_star2 = CU(H2,H1,phi_star.G_map(),[phi_star[0]],0)
             sage: phi_star2 is phi_star
@@ -5226,7 +5215,7 @@ class ChMap_unpickle_class:
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -5237,7 +5226,7 @@ class ChMap_unpickle_class:
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
             sage: phi_star = H2.hom(phi,H1)
-            sage: from sage.groups.modular_cohomology.cochain import ChMap_unpickle_class
+            sage: from pGroupCohomology.cochain import ChMap_unpickle_class
             sage: CU = ChMap_unpickle_class()
             sage: phi_star2 = CU(H2,H1,phi_star.G_map(),[phi_star[0]],0)   # indirect doctest
             sage: phi_star2 is phi_star
@@ -5245,8 +5234,6 @@ class ChMap_unpickle_class:
 
         """
         cdef ChMap OUT
-        #print "chmap_unpickle for ",type(Src),type(Tgt)
-        #OUT = Tgt.hom(GMap,Src,Data[0], Deg)
         OUT = Src.hom(GMap,Tgt,Data[0], Deg)
         OUT._name = name
         OUT.Data = Data
@@ -5262,7 +5249,7 @@ cdef class ChMap(RingHomomorphism):
 
     Usually, an induced homomorphism is created by defining two groups and
     a homomorphism between them, computing the cohomology rings of the groups,
-    and then invoking the :meth:`~sage.groups.modular_cohomology.cohomology.COHO.hom`` method
+    and then invoking the :meth:`~pGroupCohomology.cohomology.COHO.hom`` method
     of cohomology rings.
 
     We first create the cohomology rings for two different presentations of the
@@ -5270,7 +5257,7 @@ cdef class ChMap(RingHomomorphism):
     will be removed as soon as Sage is quit.
     ::
 
-        sage: from sage.groups.modular_cohomology import CohomologyRing
+        sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: G1 = gap('SmallGroup(8,3)')
@@ -5287,8 +5274,11 @@ cdef class ChMap(RingHomomorphism):
         sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
         sage: H1.group()==phi.Source()
         True
-        sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
-        True
+        sage: H2.group().canonicalIsomorphism(phi.Range())
+        GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8),
+        (1,4)(2,6)(3,7)(5,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ),
+        [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8), (1,4)(2,6)(3,7)(5,8) ],
+        [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8), (1,2)(3,4)(5,6)(7,8) ] )
         sage: phi.IsInjective()
         true
         sage: phi.IsSurjective()
@@ -5309,7 +5299,10 @@ cdef class ChMap(RingHomomorphism):
 
     Similarly, we get the induced map of the inverse map::
 
-        sage: phi_inv = phi.InverseGeneralMapping()
+        sage: Src = phi.Source()
+        sage: Rng = phi.Range()
+        sage: Gens = Rng.GeneratorsOfGroup()
+        sage: phi_inv = Rng.GroupHomomorphismByImages(Src, Gens, [phi.PreImagesRepresentative(g) for g in Gens])
         sage: phi_star_inv = H1.hom(phi_inv,H2)
         sage: print [H2.element_as_polynomial(phi_star_inv(X)) for X in H1.gens()]
         [1: 0-Cocycle in H^*(DihedralGroup(8); GF(2)), b_1_0*b_1_1+c_2_2: 2-Cocycle in H^*(DihedralGroup(8); GF(2)), b_1_1: 1-Cocycle in H^*(DihedralGroup(8); GF(2)), b_1_1+b_1_0: 1-Cocycle in H^*(DihedralGroup(8); GF(2))]
@@ -5364,7 +5357,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G = gap('Group([(3,4,5,6,7,8,9,10),(1,2)])')
@@ -5396,7 +5389,7 @@ cdef class ChMap(RingHomomorphism):
         self._sing_val = None
         self._sing_domain = ''
         self._sing_codomain = ''
-        self._elim_cache = {}#None
+        self._elim_cache = {}
         # self will be induced by a chain map
         # Here, Src denotes the source of the chain map, hence,
         # it corresponds to the codomain of the induced map.
@@ -5408,18 +5401,18 @@ cdef class ChMap(RingHomomorphism):
         cdef RESL S = Src.Resl
         cdef RESL T = Tgt.Resl
         if (d>0):
-            if (M.nrows() <> S.rank(0)*T.rank(d)):
+            if (M._nrows <> S.rank(0)*T.rank(d)):
                 raise TypeError, "Second matrix must have %d rows"%(S.rank(0)*T.rank(d))
         else:
-            if (M.nrows() <> T.rank(0)*S.rank(-d)):
+            if (M._nrows <> T.rank(0)*S.rank(-d)):
                 raise TypeError, "Second matrix must have %d rows"%(T.rank(0)*S.rank(-d))
-        if (M.ncols() <> T.G_Alg.Data.nontips):
+        if (M._ncols <> T.G_Alg.Data.nontips):
             raise TypeError, "Second matrix must have |G|=%d colums"%T.G_Alg.Data.nontips
-        if (m.ncols() <> T.G_Alg.Data.nontips):
+        if (m._ncols <> T.G_Alg.Data.nontips):
             raise TypeError, "First matrix must have |G|=%d colums"%T.G_Alg.Data.nontips
-        if (m.nrows() <> S.G_Alg.Data.nontips):
+        if (m._nrows <> S.G_Alg.Data.nontips):
             raise TypeError, "First matrix must have |H|=%d rows"%S.G_Alg.Data.nontips
-        if (M.base()!=S.coef() or (m.base()!=S.coef())):
+        if (M.Data.Field != S.coef() or (m.Data.Field != S.coef())):
             raise TypeError, "Matrices must be defined over GF(%d)"%S.coef()
         # self.HSrc = Src # this would be an unnecessary reference
         # self.HTgt = Tgt # to an object that is already determined
@@ -5441,7 +5434,7 @@ cdef class ChMap(RingHomomorphism):
 
         TEST::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: H = CohomologyRing(8,3,websource=False)
             sage: r = H.restriction_maps()[1][1]
             sage: r is loads(dumps(r))
@@ -5459,7 +5452,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5475,11 +5468,11 @@ cdef class ChMap(RingHomomorphism):
         """
         return chmap_unpickle, (self.domain(),self.codomain(),self.GMap,self.Data,self.Deg,self._name)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5506,7 +5499,7 @@ cdef class ChMap(RingHomomorphism):
 
         EXAMPLES::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5539,7 +5532,7 @@ cdef class ChMap(RingHomomorphism):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5570,7 +5563,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5608,12 +5601,12 @@ cdef class ChMap(RingHomomorphism):
             br = None
         C = self.codomain()
         D = self.domain()
-        RD = S(D) #D._singular_(S)
-        RC = S(C) #C._singular_(S)
+        RD = S(D)
+        RC = S(C)
         if RD.name() == self._sing_domain and RC.name() == self._sing_codomain and self._sing_val is not None:
             return self._sing_val
         from sage.interfaces.singular import SingularElement
-        from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
+        from pGroupCohomology.modular_cohomology import MODCOHO
         if isinstance(D,MODCOHO):
             dgb = S.eval('degBound')
             S.eval('degBound=0')
@@ -5621,38 +5614,20 @@ cdef class ChMap(RingHomomorphism):
             D = D._HSyl or D
             # Now, Gen provides cocycles in singular(D), D = self.domain()._HSyl
             CSyl = C._HSyl or C
-            tmpPhi = S(D.hom(self.GMap, CSyl))  # D.hom(self.GMap, CSyl)
+            tmpPhi = S(D.hom(self.GMap, CSyl))
             S(CSyl).set_ring()
             try:
                 GenIm = [tmpPhi(X).NF('std(0)') for X in Gen]
             except:
                 S.eval('degBound='+dgb)
                 raise
-            GenIm = [MODCOCH(CSyl,GenIm[i], S=S, is_polyrep=True,deg=self.domain().degvec[i],is_NF=True) for i in range(len(GenIm))] # in C._HSyl resp. in C
+            GenIm = [MODCOCH(CSyl,GenIm[i], S=S, is_polyrep=True,deg=self.domain().degvec[i],is_NF=True) for i in range(len(GenIm))]
             if C is CSyl:
                 Images = [X.name() for X in GenIm]
             else:
                 try:
-                    #Images = [C.stable_to_polyomial(X,verify=True).name() for X in GenIm]
-                    Images = [C.stable_to_polynomial(X).name() for X in GenIm]
+                    Images = [C.stable_to_polynomial(X, verify=False).name() for X in GenIm]
                 except BaseException,msg:
-                #    if self.domain().check is not None:
-                #        print "Checking domain",repr(self.domain())
-                #        print self.domain().check()
-                #    if self.codomain().check is not None:
-                #        print "Checking codomain",repr(self.codomain())
-                #        print self.codomain().check()
-                #    S(D).set_ring()
-                #    D1 = [repr(t) for t in Gen]
-                #    print "got D1"
-                #    S(CSyl).set_ring()
-                #    D2 = [repr(t) for t in GenIm]
-                #    print "got D2"
-                #    #D3 = [repr(C.stable_to_polynomial(X)) for X in GenIm]
-                #    #print "got D3"
-                #    save([repr(self.domain()),repr(self.codomain()),self.GMap,D1,D2,Images],'bugdump')
-                #    S.eval('degBound='+dgb)
-                #    print msg
                     if 'None' in repr(msg):
                         raise RuntimeError, "Theoretical error: One of the generator images is not stable"
                     raise
@@ -5690,7 +5665,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -5723,13 +5698,12 @@ cdef class ChMap(RingHomomorphism):
             Data_i = self.Data[i]
             if isinstance(Data_i,basestring):
                 if Data_i != f+str(i):
-                    print_protocol('export data', self)
-                    #save(load(self.Data[i]), f+str(i))
+                    coho_logger.debug('export data', self)
                     Data_i = self[i]
                     safe_save(Data_i, f+str(i))
                     self.Data[i] = f+str(i)
             else:
-                print_protocol ('export data', self)
+                coho_logger.debug('export data', self)
                 safe_save(Data_i, f+str(i))
                 self.Data[i] = f+str(i)
 
@@ -5737,7 +5711,7 @@ cdef class ChMap(RingHomomorphism):
 ## structural parts
     def src(self):
         """
-        Return the source of the underlying chain map (type :class:`~sage.groups.modular_cohomology.resolution.RESL`)
+        Return the source of the underlying chain map (type :class:`~pGroupCohomology.resolution.RESL`)
 
         NOTE:
 
@@ -5751,7 +5725,7 @@ cdef class ChMap(RingHomomorphism):
         will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -5762,9 +5736,9 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
             sage: phi_star = H2.hom(phi,H1)
-            sage: phi_star.src()
+            sage: print phi_star.src()
             Resolution:
-            0 <- GF(2) <- GF(2)(8gp3) <- rank 2 <- rank 3 <- rank 4
+            0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3 <- rank 4
             sage: phi_star.src() is phi_star.codomain().resolution()
             True
 
@@ -5773,7 +5747,7 @@ cdef class ChMap(RingHomomorphism):
 
     def tgt(self):
         """
-        Return the codomain of the underlying chain map (type :class:`~sage.groups.modular_cohomology.resolution.RESL`)
+        Return the codomain of the underlying chain map (type :class:`~pGroupCohomology.resolution.RESL`)
 
         NOTE:
 
@@ -5787,9 +5761,8 @@ cdef class ChMap(RingHomomorphism):
         will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.set_user_db(tmp_dir())
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5798,9 +5771,9 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
             sage: phi_star = H2.hom(phi,H1)
-            sage: phi_star.tgt()
+            sage: print phi_star.tgt()
             Resolution:
-            0 <- GF(2) <- GF(2)(DihedralGroup_8_) <- rank 2 <- rank 3 <- rank 4
+            0 <- GF(2) <- GF(2)[DihedralGroup(8)] <- rank 2 <- rank 3 <- rank 4
             sage: phi_star.tgt() is phi_star.domain().resolution()
             True
 
@@ -5819,7 +5792,7 @@ cdef class ChMap(RingHomomorphism):
         removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: G1 = gap('SmallGroup(8,3)')
             sage: G2 = gap('DihedralGroup(8)')
             sage: tmp_root = tmp_dir()
@@ -5863,7 +5836,7 @@ cdef class ChMap(RingHomomorphism):
         NOTE:
 
         An induced homomorphism always is of degree zero. We provide this method since
-        :class:`~sage.groups.modular_cohomology.cochain.ChMap` in principle also works for more
+        :class:`~pGroupCohomology.cochain.ChMap` in principle also works for more
         general maps so that the image has a different degree from the source.
 
         EXAMPLES:
@@ -5873,7 +5846,7 @@ cdef class ChMap(RingHomomorphism):
         will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -5901,7 +5874,7 @@ cdef class ChMap(RingHomomorphism):
         will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -5953,7 +5926,7 @@ cdef class ChMap(RingHomomorphism):
         will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -5978,7 +5951,7 @@ cdef class ChMap(RingHomomorphism):
         NOTE:
 
         Since induced homomorphisms are cached, there can not be two equal induced
-        homomorphisms with a different name. If the :meth:`~sage.groups.modular_cohomology.cohomology.COHO.hom`
+        homomorphisms with a different name. If the :meth:`~pGroupCohomology.cohomology.COHO.hom`
         method is called, the name will be reset.
 
         EXAMPLES:
@@ -5988,7 +5961,7 @@ cdef class ChMap(RingHomomorphism):
         will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -6025,7 +5998,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -6062,7 +6035,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -6106,9 +6079,7 @@ cdef class ChMap(RingHomomorphism):
                 rawData,fname1 = os.path.split(rawData)
                 rawData,fname2 = os.path.split(rawData)
                 rawData,fname3 = os.path.split(rawData)
-#                print_protocol( "Can not find data at %s"%self.Data[key], self)
                 newData = os.path.join(root,fname3,fname2,fname1)
-#                print_protocol("Trying new location "+newData+sobj, self)
                 try:
                     return load(newData+sobj)  # realpath here?
                 except (OSError, IOError):
@@ -6135,7 +6106,7 @@ cdef class ChMap(RingHomomorphism):
 
         TEST::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: H = CohomologyRing(8,3,websource=False)
             sage: r1 = H.restriction_maps()[1][1]
             sage: r1.knownDeg()
@@ -6170,7 +6141,7 @@ cdef class ChMap(RingHomomorphism):
 
 #########################
 ## ==, <, >
-    def __richcmp__(ChMap self, ChMap S,x):
+    cpdef _richcmp_(self, other, int x):
         """
         M==N <=> M and N are the same chain maps
 
@@ -6180,15 +6151,10 @@ cdef class ChMap(RingHomomorphism):
         source and target rings, have the same degree shift, and are
         described by the same matrix in the lowest degree.
 
-        NOTE:
-
-        ``M<N`` returns ``None``, since the ``<``-relation makes
-        no sense for chain maps.
-
         EXAMPLES::
 
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: H = CohomologyRing(8,3,websource=False)
             sage: r = H.restriction_maps()[1][1]
             sage: r is copy(r)
@@ -6196,22 +6162,25 @@ cdef class ChMap(RingHomomorphism):
             sage: r == copy(r)    #indirect doctest
             True
             sage: r < copy(r)
+            False
             sage: r <= copy(r)
             True
 
         """
         # < 0, <= 1, == 2, != 3, > 4, >= 5
+        cdef ChMap S = other
         if (x==0) or (x==4):
-            return None
+            return NotImplemented
         if (x==1) or (x==2) or (x==5):
             if self is S:
                 return True
-            if (self.Tgt==S.Tgt) and (self.Src==S.Src) and (self.Deg==S.Deg) and (self.__getitem__(0)==S.__getitem__(0)) and (self.GMap==S.GMap):
+            if (self.Tgt==S.Tgt) and (self.Src==S.Src) and (self.Deg==S.Deg) and (self[0]==S[0]) and (self.GMap==S.GMap):
                 return True
-            else:
+            if x==2:
                 return False
+            return NotImplemented
         ## otherwise: x==3
-        if (self.Tgt==S.Tgt) and (self.Src==S.Src) and (self.Deg==S.Deg) and (self.__getitem__(0)==S.__getitem__(0)) and (self.GMap==S.GMap):
+        if (self.Tgt==S.Tgt) and (self.Src==S.Src) and (self.Deg==S.Deg) and (self[0]==S[0]) and (self.GMap==S.GMap):
             return False
         else:
             return True
@@ -6234,14 +6203,14 @@ cdef class ChMap(RingHomomorphism):
         The example produces files. For safety reasons, we choose files
         in a temporary directory; it will be removed as soon as Sage is quit::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: f = H.2.right_multiplication()
-            sage: print f.apply_to_chain(1, MTX(2,[[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]))
+            sage: print f.apply_to_chain(1, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]))
             [0 1 0 1 0 1 0 1]
 
         """
@@ -6269,11 +6238,16 @@ cdef class ChMap(RingHomomorphism):
             raise ValueError, "A chain must be represented by a matrix with %d columns"%Snontips
         if C.nrows()!=RK:
             raise ValueError, "A %d-chain must be represented by a matrix with %d rows"%(d,RK)
-        cdef MTX OUT = MTX(T.G_Alg.Data.p, rk, Tnontips, mutable=False)
+        cdef MTX OUT = makeMTX(MatAlloc(T.G_Alg.Data.p, rk, Tnontips))
         cdef int i
+        cdef MTX row = makeMTX(MatAlloc(OUT.Data.Field, 1, self.GMap.Data.Noc))
+        FfSetField(OUT.Data.Field)
         for i from 0 <= i < RK:
-            T_rightaction = T.G_Alg.r_action(C[i]*self.GMap)
-            OUT += selfMTX[i*rk:(i+1)*rk] * T_rightaction
+            FfSetNoc(row.Data.Noc)
+            FfMapRow(FfGetPtr(C.Data.Data, i), self.GMap.Data.Data, self.GMap.Data.Nor, row.Data.Data)
+            T_rightaction = T.G_Alg.r_action(row)
+            OUT += selfMTX.get_slice(i*rk, (i+1)*rk)._multiply_strassen(T_rightaction)
+        OUT.set_immutable
         return OUT
 
     def __mul__(ChMap self, x):
@@ -6288,7 +6262,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -6311,9 +6285,8 @@ cdef class ChMap(RingHomomorphism):
         cdef int i,j, t_rk,s_rk,cf,xLj, i_trk
         cdef long X
         cdef list L=[]
-        #cdef int d = len(self.Data)
         cdef int RK, Rk, rk
-        cdef int nt#, NT, Nt
+        cdef int nt
         if isinstance(x, MODCOCH): # the output will be a MODCOCH
             if self.domain() != x.parent():
                 raise ValueError, "Argument must be contained in the domain of the map"
@@ -6325,10 +6298,6 @@ cdef class ChMap(RingHomomorphism):
             Sself = singular(Pself)
             Sx = x._Svalue
             singular(self.codomain()._HSyl or self.codomain()).set_ring()
-##             if self.name():
-##                 outname = self.name()+'('+x.name()+')'
-##             else:
-##                 outname = '('+x.name()+')_'
             if self.codomain()._HSyl is not None:
                 return self.codomain().stable_to_polynomial(MODCOCH(self.codomain()._HSyl, singular('NF(%s(%s),std(0))'%(Sself.name(),Sx.name())), deg=x.deg(), S=singular, is_NF=True, is_polyrep=True))
             else:
@@ -6341,8 +6310,6 @@ cdef class ChMap(RingHomomorphism):
             # Notational convention: Double uppercase means stuff in the source of the underlying chain map
             # of self; upper-lowercase means stuff in the middle resolution; double lowercase denotes the
             # target resolution, the image of the underlying chain map of x. base_deg is the degree in the middle.
-            #NT = self.G_map().nrows()
-            #Nt = self.G_map().ncols() # == x.G_map().nrows()
             nt = x.G_map().ncols()
             # Will have a map of degree self.Deg+x.deg(), first self then x.
             # We must distinguish five cases:
@@ -6356,8 +6323,6 @@ cdef class ChMap(RingHomomorphism):
                 RK = selfMTX.nrows()/Rk
                 base_deg = -x.deg()
             if (x.deg() > 0) and (self.deg()<0):
-                #xMTX = x[0]
-                #selfMTX = self[0]
                 raise ValueError, "We can't compose a map of negative degree with a map of positive degree"
             if (self.Deg > 0) and (x.deg()>0):
                 while(x.knownDeg() <= self.deg()):
@@ -6387,9 +6352,9 @@ cdef class ChMap(RingHomomorphism):
                     Rk = xMTX.nrows()
                     rk = selfMTX.nrows()/Rk
                     base_deg = self.deg()
-            OUT_M = MTX(self.Tgt.G_Alg.Data.p, RK*rk, nt)
+            OUT_M = makeMTX(MatAlloc(self.Tgt.G_Alg.Data.p, RK*rk, nt))
             for i from 0 <= i < RK:
-                OUT_M[i*rk] = x.apply_to_chain(base_deg, selfMTX[i*Rk:(i+1)*Rk])
+                OUT_M[i*rk] = x.apply_to_chain(base_deg, selfMTX.get_slice(i*Rk, (i+1)*Rk))
             OUT = x.domain().hom(self.G_map()*x.G_map(), self.codomain(),OUT_M,self.Deg+x.deg())
             if self.name() is not None and x.name() is not None:
                 OUT.set_name(self.name()+'('+x.name()+')')
@@ -6401,7 +6366,7 @@ cdef class ChMap(RingHomomorphism):
                 raise IndexError, "Degree of second factor (%s) must be at least %d"%(repr(COCH),self.Deg)
 
             # If the codomain belongs to a non prime power group, we have to return MODCOCH
-            from sage.groups.modular_cohomology.modular_cohomology import MODCOHO
+            from pGroupCohomology.modular_cohomology import MODCOHO
             if isinstance(self.codomain(), MODCOHO):
                 Pself = (self.domain()).hom(self.G_map(), self.codomain()._HP)
                 singular = self.codomain().GenS.parent()
@@ -6424,18 +6389,18 @@ cdef class ChMap(RingHomomorphism):
             xMTX = x.MTX()
             s_rk = self.Src.rank(x.deg()-self.Deg)
             t_rk = self.Tgt.rank(x.deg())
-            if (selfMTX.Data.nor<>s_rk*t_rk):
+            if (selfMTX.Data.Nor<>s_rk*t_rk):
                 raise ArithmeticError, "Theoretical Error"
-            if (xMTX.Data.noc<>t_rk):
+            if (xMTX.Data.Noc<>t_rk):
                 raise ArithmeticError, "Theoretical Error"
-            OUT_M = MTX(self.Src.coef(), 1,s_rk)
+            OUT_M = makeMTX(MatAlloc(self.Src.coef(), 1,s_rk))
             for i from 0 <= i < s_rk:
                 cf = 0
                 i_trk = i*t_rk
                 for j from 0 <= j < t_rk:
-                    xLj = xMTX[0,j]
+                    xLj = xMTX.get_unsafe_int(0,j)
                     if xLj:
-                        cf = cf + xLj*int(selfMTX[i_trk,0])
+                        cf = cf + xLj*selfMTX.get_unsafe_int(i_trk,0)
                     i_trk+=1
                 OUT_M[0,i]=cf
             OUT_M.set_immutable()
@@ -6449,7 +6414,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H1 = CohomologyRing(8,3)
@@ -6459,12 +6424,15 @@ cdef class ChMap(RingHomomorphism):
             sage: phi12 = G1.IsomorphismGroups(G2)
             sage: phi12.SetName('"phi12"')
             sage: Phi21 = H2.hom(phi12,H1)
-            sage: phi21 = phi12.InverseGeneralMapping()
+            sage: Src = phi12.Source()
+            sage: Rng = phi12.Range()
+            sage: Gens = Rng.GeneratorsOfGroup()
+            sage: phi21 = Rng.GroupHomomorphismByImages(Src, Gens, [phi12.PreImagesRepresentative(g) for g in Gens])
             sage: phi21.SetName('"phi21"')
             sage: Phi12 = H1.hom(phi21,H2)
             sage: Phi12
             phi21^*
-            sage: Phi12 is Phi21^(-1)   # indirect doctest
+            sage: Phi12 is Phi21^-1   # indirect doctest
             True
             sage: Phi12
             (phi12^*)^(-1)
@@ -6483,7 +6451,7 @@ cdef class ChMap(RingHomomorphism):
         """
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(576,7443,prime=2)
@@ -6542,7 +6510,7 @@ cdef class ChMap(RingHomomorphism):
 
         TESTS::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -6581,7 +6549,7 @@ cdef class ChMap(RingHomomorphism):
         cdef int j, t_rk,s_rk
         cdef MTX tmpM
         cdef list L=[]
-        from sage.groups.modular_cohomology.cochain import COCH
+        from pGroupCohomology.cochain import COCH
         if isinstance(X,tuple) or isinstance(X,list):
             if not((isinstance(X[0],int) or isinstance(X[0],Integer)) and (isinstance(X[1],int) or isinstance(X[1],Integer))):
                 raise TypeError, "pair of integers expected"
@@ -6615,7 +6583,7 @@ cdef class ChMap(RingHomomorphism):
         saving data; it will be removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
@@ -6643,8 +6611,6 @@ cdef class ChMap(RingHomomorphism):
             sage: phi_star.knownDeg()
             1
             sage: phi_star[1]
-            (4 x 8) MTX matrix over GF(2)
-            sage: print phi_star[1]
             [1 0 0 0 0 0 0 0]
             [1 1 1 1 1 1 0 0]
             [1 0 0 0 0 0 0 0]
@@ -6664,86 +6630,70 @@ cdef class ChMap(RingHomomorphism):
             self.Src.nextDiff()
         ## AIM: construct matrix describing map from Src[SrcDeg] -> Tgt[TgtDeg]
         ## 1. compose with the next differential
-        print_protocol('lift in the source resolution', self)
+        coho_logger.info('lift in the source resolution', self)
         ct=cputime()
         wt=walltime()
         cdef MTX M1
         cdef MTX M2
         cdef int i,j,k
         M1 = self.Src[SrcDeg]*self.GMap # TgtNontips columns
-        M2 = self.__getitem__(-1) # self.Data[-1]              # TgtNontips columns
+        M2 = self[-1]                   # TgtNontips columns
         cdef MTX Compos
         cdef long SrcNontips = self.Src.G_Alg.Data.nontips
         cdef long TgtNontips = self.Tgt.G_Alg.Data.nontips
         FfSetField(self.Src.coef())
         FfSetNoc(TgtNontips)
         sig_on()
-        Compos = MTX(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips,mutable=False)
+        Compos = makeMTX(MatAlloc(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips))
         sig_off()
-        cdef MTX tmp
-        tmp = MTX(self.Src.G_Alg.Data.p, 1, TgtNontips,mutable=False)
         cdef Matrix_t *L
         cdef int RK = self.Src.Data.projrank[SrcDeg]
         cdef int Rk = self.Src.Data.projrank[SrcDeg-1]
         cdef int rk = self.Tgt.Data.projrank[TgtDeg-1]
-        for i from 0 <= i < rk:
-            for j from 0 <= j < Rk:
+        cdef PTR M2_ji = M2.Data.Data
+        for j from 0 <= j < Rk:
+            for i from 0 <= i < rk:
                 sig_on()
-                L = leftActionMatrix(self.Tgt.G_Alg.Data, FfGetPtr(M2.Data.d,j*rk+i))
-                sig_off()
+                L = leftActionMatrix(self.Tgt.G_Alg.Data, M2_ji)
                 for k from 0 <= k < RK:
-                    sig_on()
-                    if not (FfMapRow(FfGetPtr(M1.Data.d,k*Rk+j), L.d, TgtNontips, tmp.Data.d)):
-                        sig_off()
-                        raise ArithmeticError, "multiplication failed"
-                    if not (FfAddRow(FfGetPtr(Compos.Data.d,k*rk+i), tmp.Data.d)):
-                        sig_off()
-                        raise ArithmeticError, "addition of rows failed"
-                    sig_off()
+                    FfAddMapRow(FfGetPtr(M1.Data.Data, k*Rk+j), L.Data, TgtNontips, FfGetPtr(Compos.Data.Data,k*rk+i))
                 MatFree(L)
+                sig_off()
+                M2_ji += FfCurrentRowSize
+        Compos.set_immutable()
 
-        print_protocol('lift in the target resolution to degree %d'%(TgtDeg), self)
+        coho_logger.info('lift in the target resolution to degree %d', self, TgtDeg)
         rk   = self.Tgt.Data.projrank[TgtDeg]
         cdef rk_1 = self.Tgt.Data.projrank[TgtDeg-1]
         cdef long fl = self.Src.G_Alg.Data.p
         cdef long nt = TgtNontips
         d = TgtDeg # will lift to that degree in the target resolution
         cdef MTX OUT
-        OUT = MTX(fl, RK*rk, nt)
+        OUT = makeMTX(MatAlloc(fl, RK*rk, nt))
         cdef MTX TMP, DUMMY
-        cdef list Piv, Z
+        cdef tuple Piv
+        cdef list Z
         cdef dict Autolift = self.Tgt.Autolift.get(d,{})
         if Autolift:
-            print_protocol('> use autolift method', self)
-            Piv = Autolift['Piv']
+            coho_logger.debug('> use autolift method', self)
+            Piv = tuple(Autolift['Piv'])
             ##########################
             # Lift each "long row"
             for i from 0 <= i < RK:
-                # print 'lift long row ',i
+                # 'lift long row ',i
                 Z = Compos._rowlist_(i*rk_1, (i+1)*rk_1-1)
-                TMP = MTX(fl, rk, nt)
+                TMP = makeMTX(MatAlloc(fl, rk, nt))
                 for J in Piv:
                     if Z[J]:
                         DUMMY = Autolift[J][Z[J]]
                         MatAdd(TMP.Data, DUMMY.Data)
-                #for j from 0 <= j < rk:
-                    #OUT[i*rk+j] = TMP._rowlist_(j)
-                OUT[i*rk] = TMP
+                memcpy(MatGetPtr(OUT.Data, i*rk), TMP.Data.Data, FfCurrentRowSize*rk)
             OUT.set_immutable()
             self.Data.append(OUT)
-            if OPTION.opts['timing']:
-                ct=cputime(ct)
-                wt=walltime(wt)
-                print "Time for lifting chain map:"
-                print "   CPU:  %.2f\n   Wall: %.2f"%(ct,wt)
-            # print 'accomplished'
-            #if OPTION.opts['prot']:
-            #    print ""
             return
 
         ## otherwise: use Urbild GB
-        print_protocol('> use Urbild Groebner basis', self)
-        #cdef nRgs_t *nRgs
+        coho_logger.debug('> use Urbild Groebner basis', self)
         self.Tgt.load_ugb(d)
         if (self.Tgt.nRgs.ngs.r!=rk_1) or (self.Tgt.nRgs.ngs.s != rk):
             print "Tgt.nRgs.r =", self.Tgt.nRgs.ngs.r
@@ -6752,19 +6702,9 @@ cdef class ChMap(RingHomomorphism):
             print rk
             raise ArithmeticError, "Theoretical error"
         sig_on()
-        innerPreimages(self.Tgt.nRgs, Compos.Data.d, RK, self.Tgt.G_Alg.Data, OUT.Data.d)
+        innerPreimages(self.Tgt.nRgs, Compos.Data.Data, RK, self.Tgt.G_Alg.Data, OUT.Data.Data)
         sig_off()
-        # freeNRgs(nRgs)
         self.Data.append(OUT)
-        if OPTION.opts['timing']:
-            ct=cputime(ct)
-            wt=walltime(wt)
-            print "Time for lifting chain map:"
-            print "   CPU:  %.2f\n   Wall: %.2f"%(ct,wt)
-
-#    def urbild_gb(self):
-#        "return the elimination ring and a groebner basis used to compute preimage"
-#        return self._elim_cache
 
     #################################################################################
     ## Preimages
@@ -6803,7 +6743,7 @@ cdef class ChMap(RingHomomorphism):
 
         EXAMPLE::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(16,3)
@@ -6920,7 +6860,8 @@ cdef class ChMap(RingHomomorphism):
 
         Do = self.domain()
         Co = self.codomain()
-        p = self.GMap.characteristic()
+        p = self.GMap.Data.Field  # should rather be the characteristc,
+                                  # but for now we only work over prime fields.
 
         # These are the rings we have:
         dgb = singular.eval('degBound')
@@ -6951,7 +6892,6 @@ cdef class ChMap(RingHomomorphism):
         CoRel = Co_flat.fetch(Co.relation_ideal())
         if Id is not None:
             IdS_new = CoS.fetch(IdS)
-        #CoSNew = singular(CoRel.name(),'qring')
         if Item is not None:
             Item = CoS.fetch(Item)
         CoSNewI = singular.maxideal(1)
@@ -7005,13 +6945,11 @@ cdef class ChMap(RingHomomorphism):
             Item = CoSNew_flat.imap(Item)
         if (G is None):
             DoRel = Do_flat.imap(Do.relation_ideal())
-            print_protocol('Compute preimages by elimination', self)
+            coho_logger.info('Compute preimages by elimination', self)
             if Id is not None:
                 G = ( (ImITotal.matrix()-DoS.imap(IDo).matrix()).ideal() + CoSNew_flat.imap(IdS_new) ).groebner()
-                #G = ((CoSNew_flat.imap(CoRel) + CoSNew_flat.imap(IdS_new) + DoRel).groebner().std((ImITotal.matrix()-DoS.imap(IDo).matrix()).ideal()) + (ImITotal.matrix()-DoS.imap(IDo).matrix()).ideal()).groebner()
                 self._elim_cache[key] = (RTotal,G,Do.knownDeg)
             else:
-                #G = ((ImITotal.matrix()-DoS.imap(IDo).matrix()).ideal()+CoSNew_flat.imap(CoRel)+DoRel).groebner()
                 G = ((ImITotal.matrix()-DoS.imap(IDo).matrix()).ideal()).groebner()
                 self._elim_cache[key] = (RTotal,G,Do.knownDeg)
             # so, we cached the difficult part.
@@ -7019,8 +6957,6 @@ cdef class ChMap(RingHomomorphism):
             # we know G for None and have Id != None
             G = (G + CoSNew_flat.imap(IdS_new)).groebner()
             self._elim_cache[key] = (RTotal,G,Do.knownDeg)
-#        if (Item is not None) and singular.eval('typeof(%s)'%Item.name())=='ideal':
-#            G = (G+Item).groebner()
 
         # We are interested in those elements of G that do not contain
         # variables from CoSNew_flat, saved in CoSNewI.
@@ -7028,7 +6964,6 @@ cdef class ChMap(RingHomomorphism):
         # Since everything is homogeneous, it is not possible
         # that we have 1 = x*y-...
         if tuple([int(x) for x in singular.eval('system("version")')])>=(3,1,1):
-        #if good_singular:
             Filter = CoSNew_flat.imap(CoSNewI)
             singular.eval('attrib(%s,"isSB",1)'%Filter.name())
             Out = [p for p in G if singular.eval('%s==NF(%s,%s)'%(p.name(),p.name(),Filter.name()))=='1']
@@ -7039,17 +6974,12 @@ cdef class ChMap(RingHomomorphism):
             Ggg = DoS.imap(Gg)
             l = int(singular.eval('ncols(%s)'%Ggg.name()))
             Out = [G[i] for i in range(1,l+1) if G[i]==Ggg[i]]
-            #Out = [p for p in G if '@' not in repr(p)]
         # Moreover, if we want to lift one element, we apply G
         # and see if the result is in the domain.
         if (Item is not None):
             OutItem = Item.NF(G)
             # This time, "Filter" could be a problem, since
             # "1=x*y..." might occur.
-            #if good_singular:
-            #    if singular.eval('%s==NF(%s,%s)'%(OutItem.name(),OutItem.name(),Filter.name()))!='1':
-            #        OutItem = False  # indicating that there is no preimage
-            #else:
             DoS.set_ring()
             OutOutItem = RTotal.imap(OutItem)
             RTotal.set_ring()
@@ -7059,7 +6989,7 @@ cdef class ChMap(RingHomomorphism):
             OutItem = None
         DoS.set_ring()
         if Out:
-            PreIm = singular.ideal([RTotal.imap(p) for p in Out]).interred() #groebner()
+            PreIm = singular.ideal([RTotal.imap(p) for p in Out]).interred()
         else:
             PreIm = singular.ideal(0)
         singular.eval('degBound='+dgb)
@@ -7086,7 +7016,7 @@ cdef class ChMap(RingHomomorphism):
         removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -7121,11 +7051,11 @@ cdef class ChMap(RingHomomorphism):
         :meth:`rank_of_image`
 
         """
-        from sage.groups.modular_cohomology import singular
+        from pGroupCohomology import singular
         from sage.all import PolynomialRing
         from sage.all import ZZ
         from sage.all import mul
-        from sage.groups.modular_cohomology.cohomology import MonomialHilbert
+        from pGroupCohomology.cohomology import MonomialHilbert
 
         R = PolynomialRing(ZZ,'t')
         t = R('t')
@@ -7149,7 +7079,6 @@ cdef class ChMap(RingHomomorphism):
         tmpI = L[4]
         tmpR = singular('ring(list(%s[1..3],ideal(0)))'%(L.name()))
         tmpR.set_ring()
-        #HP = MonomialHilbert(singular('lead(fetch(%s,%s)+fetch(%s,%s))'%(DS.name(),K.name(),DS.name(),tmpI.name()))) #K.name(),DS.name(),tmpI.name())))
         HP = MonomialHilbert('lead(fetch(%s,%s)+fetch(%s,%s))'%(DS.name(),K.name(),DS.name(),tmpI.name()))
         HS = HP/mul([(1-t**X) for X in self.domain().degvec])
         singular.eval('degBound = '+dgb)
@@ -7172,7 +7101,7 @@ cdef class ChMap(RingHomomorphism):
         removed as soon as Sage is quit.
         ::
 
-            sage: from sage.groups.modular_cohomology import CohomologyRing
+            sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -7219,8 +7148,8 @@ cdef class ChMap(RingHomomorphism):
             rk = Tgt.rank(d)
         if M.nrows() != RK*rk:
             raise RuntimeError, "wrong implementation"
-        cdef MTX N = MTX(Tgt.coef(), rk, RK)
+        cdef MTX N = makeMTX(MatAlloc(Tgt.coef(), rk, RK))
         for i from 0 <= i < rk:
             for j from 0 <= j < RK:
                 N[i,j] = M[j*rk+i,0]
-        return N.echelon().nrows()
+        return N.rank()
