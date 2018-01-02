@@ -90,12 +90,6 @@ from pGroupCohomology.resolution cimport *
 from weakref import WeakValueDictionary
 from weakref import ref
 
-####################
-## Meataxe is a static library, hence, we need to define some internals
-## consistent with other modules that are using meataxe.
-
-meataxe_init()
-
 ##########################################################################
 ##########################################################################
 ###                                                                    ###

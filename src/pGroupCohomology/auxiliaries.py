@@ -29,6 +29,14 @@ import os
 from __future__ import print_function, absolute_import
 from sage.env import SAGE_ROOT, DOT_SAGE
 
+####################
+## The SharedMeatAxe library needs initialisation, which is
+## automatically done when importing from sage.libs.meataxe.
+## Since the library is shared, it is enough to do this once
+## per session, not in each individual module linked against
+## libmtx.
+import sage.libs.meataxe
+
 ##########
 ## Save data without following soft links
 from sage.all import save

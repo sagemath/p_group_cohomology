@@ -155,12 +155,6 @@ from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _
 from libc.string cimport memcpy
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
-####################
-## Meataxe is a static library, hence, we need to define some internals
-## consistent with other modules that are using meataxe.
-
-meataxe_init()
-
 #####################################################################
 #####################################################################
 ## Cochain extension type

@@ -63,12 +63,6 @@ from pGroupCohomology.cohomology import singular, unpickle_gap_data, pickle_gap_
 from pGroupCohomology.resolution cimport *
 from pGroupCohomology.cochain cimport COCH, ChMap
 
-####################
-## Meataxe is a static library, hence, we need to define some internals
-## consistent with other modules that are using meataxe.
-
-meataxe_init()
-
 #############################
 ##                         ##
 ##   Auxiliary functions   ##

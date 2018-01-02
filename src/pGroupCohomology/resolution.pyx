@@ -60,12 +60,6 @@ from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX, FieldConver
 from sage.matrix.matrix0 cimport Matrix as Matrix0
 
 ####################
-## Meataxe is a static library, hence, we need to define some internals
-## consistent with other modules that are using meataxe.
-
-meataxe_init()
-
-####################
 ## MTX related auxiliary functions
 cdef MTX makeMTX(Matrix_t *Data):
     """
