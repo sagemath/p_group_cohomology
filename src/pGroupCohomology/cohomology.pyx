@@ -40,6 +40,7 @@ AUTHORS:
 ###########################################################
 ## Imports
 
+from __future__ import print_function, absolute_import
 import os
 from libc.string cimport memcpy
 
@@ -1054,7 +1055,7 @@ class COHO_Terminator:
         sage: T = COHO_Terminator(singular(1), 'MyPrefix')
         sage: singular.eval('ring MyPrefixR = 0,(a,b,c),dp')
         ''
-        sage: print singular.eval('MyPrefixR')
+        sage: print(singular.eval('MyPrefixR'))
         //   characteristic : 0
         //   number of vars : 3
         //        block   1 : ordering dp
@@ -1062,7 +1063,7 @@ class COHO_Terminator:
         //        block   2 : ordering C
         sage: singular.eval('ideal MyPrefixI = a^2,b^2,c')
         ''
-        sage: print singular.eval('MyPrefixI')
+        sage: print(singular.eval('MyPrefixI'))
         MyPrefixI[1]=a2
         MyPrefixI[2]=b2
         MyPrefixI[3]=c
@@ -1102,7 +1103,7 @@ class COHO_Terminator:
             sage: T = COHO_Terminator(singular(1), 'MyPrefix')
             sage: singular.eval('ring MyPrefixR = 0,(a,b,c),dp')
             ''
-            sage: print singular.eval('MyPrefixR')
+            sage: print(singular.eval('MyPrefixR'))
             //   characteristic : 0
             //   number of vars : 3
             //        block   1 : ordering dp
@@ -1110,7 +1111,7 @@ class COHO_Terminator:
             //        block   2 : ordering C
             sage: singular.eval('ideal MyPrefixI = a^2,b^2,c')
             ''
-            sage: print singular.eval('MyPrefixI')
+            sage: print(singular.eval('MyPrefixI'))
             MyPrefixI[1]=a2
             MyPrefixI[2]=b2
             MyPrefixI[3]=c
@@ -1219,14 +1220,14 @@ class permanent_result(object):
         ....:       Here is documentation
         ....:       '''
         ....:       singular(self).set_ring()
-        ....:       print 'Group of order',G.Order()
+        ....:       print('Group of order',G.Order())
         ....:       return singular.maxideal(G.Order())
         sage: R.<x,y> = QQ[]
         sage: f = FOO(R)
         sage: G2 = gap('Group( [ (1,2) ] )')
         sage: G3 = gap('Group( [ (1,2,3) ] )')
 
-    It can be seen from the print statement that the actual
+    It can be seen from the printed statement that the actual
     computation is only done when the method is called first.
     ::
 
@@ -1255,7 +1256,7 @@ class permanent_result(object):
 
     The point is that even when both GAP and Singular crash,
     the data can be reconstructed without a new computation
-    (note that the print statement does not appear)::
+    (note that the printed statement does not appear)::
 
         sage: gap.quit()
         sage: singular.quit()
@@ -1271,7 +1272,7 @@ class permanent_result(object):
     Note, moreover, that the given doc string is modified by
     the decorator::
 
-        sage: print f.bar.__doc__
+        sage: print(f.bar.__doc__)
         Permanently cached method:
                  Here is documentation
         <BLANKLINE>
@@ -1283,7 +1284,7 @@ class permanent_result(object):
         sage: try:
         ....:     f.bar(G2)
         ....: except KeyboardInterrupt, msg:
-        ....:     print msg
+        ....:     print(msg)
         simulation
         sage: f.bar(G2, forced=True)
         Group of order 2
@@ -1311,7 +1312,7 @@ class permanent_result(object):
         sage: try:
         ....:     f.foo(1)
         ....: except KeyboardInterrupt, msg:
-        ....:     print msg
+        ....:     print(msg)
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
 
@@ -1323,14 +1324,14 @@ class permanent_result(object):
         sage: try:
         ....:     f.bar(1)
         ....: except KeyboardInterrupt, msg:
-        ....:     print msg
+        ....:     print(msg)
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         sage: f.bar(1, forced=True)
         3
         sage: try:
         ....:     f.foo(1)
         ....: except KeyboardInterrupt, msg:
-        ....:     print msg
+        ....:     print(msg)
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         sage: f.foo(1,forced=True)
@@ -1415,11 +1416,11 @@ class permanent_result(object):
             ....:         Here is documentation
             ....:         '''
             ....:         singular(self).set_ring()
-            ....:         print 'Group of order',G.Order()
+            ....:         print('Group of order',G.Order())
             ....:         return singular.maxideal(G.Order())
             sage: R.<x,y> = QQ[]
             sage: f = FOO(R)
-            sage: print f.bar.__doc__   #indirect doctest
+            sage: print(f.bar.__doc__)   #indirect doctest
             Permanently cached method:
                      Here is documentation
             <BLANKLINE>
@@ -1455,7 +1456,7 @@ class permanent_result(object):
             sage: try:
             ....:     f.foo(3)
             ....: except KeyboardInterrupt, msg:
-            ....:     print msg
+            ....:     print(msg)
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
 
         This results in creating a cache for ``f``. Note that
@@ -1626,7 +1627,7 @@ class permanent_result(object):
             sage: try:
             ....:     f.foo(1)
             ....: except KeyboardInterrupt, msg:
-            ....:     print msg
+            ....:     print(msg)
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
 
@@ -1638,14 +1639,14 @@ class permanent_result(object):
             sage: try:
             ....:     f.bar(1)    # indirect doctest
             ....: except KeyboardInterrupt, msg:
-            ....:     print msg
+            ....:     print(msg)
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             sage: f.bar(1, forced=True)
             3
             sage: try:
             ....:     f.foo(1)
             ....: except KeyboardInterrupt, msg:
-            ....:     print msg
+            ....:     print(msg)
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             sage: f.foo(1,forced=True)
@@ -1727,7 +1728,7 @@ class temporary_result(permanent_result):
         sage: try:
         ....:     H.poincare_series()
         ....: except KeyboardInterrupt, msg:
-        ....:     print msg
+        ....:     print(msg)
         bla
 
     We can use the optional argument ``forced`` for restoring the
@@ -1761,7 +1762,7 @@ class temporary_result(permanent_result):
             sage: from pGroupCohomology import CohomologyRing
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: print H.poincare_series.__doc__    #indirect doctest
+            sage: print(H.poincare_series.__doc__)    #indirect doctest
             Temporarily cached method: COHO.poincare_series(self, test_duality=False)
             File: pGroupCohomology/cohomology.pyx (starting at line ...)
             <BLANKLINE>
@@ -2081,7 +2082,7 @@ class COHO(Ring):
                   Finished computation of the ring structure
                   Storing approximation data
         sage: CohomologyRing.global_options('warn')
-        sage: print H
+        sage: print(H)
         Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
         <BLANKLINE>
         Computation complete
@@ -2111,7 +2112,7 @@ class COHO(Ring):
         sage: H2
         H^*(OtherName; GF(2))
         sage: H2.make()
-        sage: print H2
+        sage: print(H2)
         Cohomology ring of OtherName with coefficients in GF(2)
         <BLANKLINE>
         Computation complete
@@ -2162,15 +2163,15 @@ class COHO(Ring):
          a_1_1: 1-Cocycle in H^*(E27; GF(3)),
          a_3_4: 3-Cocycle in H^*(E27; GF(3)),
          a_3_5: 3-Cocycle in H^*(E27; GF(3))]
-        sage: print R('a_1_0*a_3_4')
+        sage: print(R('a_1_0*a_3_4'))
         4-Cocycle in H^*(E27; GF(3)),
         represented by
         [1 0 0 0 0 0 0]
-        sage: print R('a_3_4*a_1_0')
+        sage: print(R('a_3_4*a_1_0'))
         4-Cocycle in H^*(E27; GF(3)),
         represented by
         [2 0 0 0 0 0 0]
-        sage: print R.6*R.8
+        sage: print(R.6*R.8)
         4-Cocycle in H^*(E27; GF(3)),
         represented by
         [1 0 0 0 0 0 0]
@@ -2260,7 +2261,7 @@ class COHO(Ring):
     In the Singular interface, a graded commutative polynomial ring is
     defined and can be addressed as follows::
 
-        sage: print singular.eval('%sr(%d)'%(H.prefix,H.knownDeg))
+        sage: print(singular.eval('%sr(%d)'%(H.prefix,H.knownDeg)))
         //   characteristic : 2
         //   number of vars : 3
         //        block   1 : ordering M
@@ -2321,7 +2322,7 @@ class COHO(Ring):
         Traceback (most recent call last):
         ...
         AttributeError: 'COHO' object has no attribute '_foobar_'
-        sage: print H.Status  # not defined at that point, hence "None"
+        sage: print(H.Status)  # not defined at that point, hence "None"
         None
         sage: 'Status' in dir(H)
         False
@@ -2362,7 +2363,7 @@ class COHO(Ring):
     ::
 
         sage: H.delprop('Status')
-        sage: print H.Status
+        sage: print(H.Status)
         None
         sage: 'Status' in dir(H)
         False
@@ -2653,7 +2654,7 @@ class COHO(Ring):
         sage: H2
         H^*(OtherName; GF(2))
         sage: H2.make()
-        sage: print H2
+        sage: print(H2)
         Cohomology ring of OtherName with coefficients in GF(2)
         <BLANKLINE>
         Computation complete
@@ -2964,15 +2965,15 @@ class COHO(Ring):
             [c_2_2: 2-Cocycle in H^*(D8; GF(2)),
              b_1_0: 1-Cocycle in H^*(D8; GF(2)),
              b_1_1: 1-Cocycle in H^*(D8; GF(2))]
-            sage: print H('b_1_1+b_1_0')    # indirect doctest
+            sage: print(H('b_1_1+b_1_0'))    # indirect doctest
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
-            sage: print H.2+H.3
+            sage: print(H.2+H.3)
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
-            sage: print H(H.2+H.3)
+            sage: print(H(H.2+H.3))
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
@@ -3166,8 +3167,11 @@ class COHO(Ring):
             H^*(DihedralGroup(8); GF(2))
             sage: phi_star.codomain()
             H^*(D8; GF(2))
-            sage: print [H1.element_as_polynomial(phi_star(X)) for X in H2.gens()]
-            [1: 0-Cocycle in H^*(D8; GF(2)), b_1_1^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)), b_1_1+b_1_0: 1-Cocycle in H^*(D8; GF(2)), b_1_1: 1-Cocycle in H^*(D8; GF(2))]
+            sage: [H1.element_as_polynomial(phi_star(X)) for X in H2.gens()]
+            [1: 0-Cocycle in H^*(D8; GF(2)),
+             b_1_1^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
+             b_1_1+b_1_0: 1-Cocycle in H^*(D8; GF(2)),
+             b_1_1: 1-Cocycle in H^*(D8; GF(2))]
 
         The induced maps are cached::
 
@@ -3285,7 +3289,7 @@ class COHO(Ring):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -3301,13 +3305,13 @@ class COHO(Ring):
         Now, we initialize a cohomology ring "without properties"::
 
             sage: K = COHO()
-            sage: print K.knownDeg
+            sage: print(K.knownDeg)
             None
 
         We change ``K`` into the same state as ``H``, making ``K`` a copy of ``H``::
 
             sage: K.__setstate__(H.__getstate__())
-            sage: print K
+            sage: print(K)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -3430,7 +3434,7 @@ class COHO(Ring):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -3444,13 +3448,13 @@ class COHO(Ring):
         Now, we initialize a cohomology ring "without properties"::
 
             sage: K = COHO()
-            sage: print K.knownDeg
+            sage: print(K.knownDeg)
             None
 
         We change ``K`` into the same state as ``H``, making ``K`` a copy of ``H``::
 
             sage: K.__setstate__(H.__getstate__())
-            sage: print K
+            sage: print(K)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -3644,11 +3648,11 @@ class COHO(Ring):
                     q,n = [Integer(nb) for nb in GStem.split('gp')]
                     self.setprop('_key', ((q,n),os.path.join(self.dat_folder,'State')))
                 except (TypeError, ValueError):
-                    print 'WARNING: No good group key found'
-                    print 'Please choose a string ``s`` that provides a'
-                    print 'definition of a finite p-Group in Gap and do'
-                    print "    sage: H.setprop('_key',(s,%s))"%(os.path.join(self.dat_folder,'State'))
-                    print 'where ``H`` denotes the name of this cohomology ring.'
+                    print('WARNING: No good group key found')
+                    print('Please choose a string ``s`` that provides a')
+                    print('definition of a finite p-Group in Gap and do')
+                    print("    sage: H.setprop('_key',(s,%s))"%(os.path.join(self.dat_folder,'State')))
+                    print('where ``H`` denotes the name of this cohomology ring.')
                     self.setprop('_key', ((GStem,),os.path.join(dat_folder,'State')))
             # use the updated _key for inserting self into the cache
             from pGroupCohomology import CohomologyRing
@@ -3731,7 +3735,7 @@ class COHO(Ring):
             sage: K=load(H.autosave_name())
             WARNING: Files on disk have been moved or are not writeable.
             > Will try to recover later.
-            sage: print K
+            sage: print(K)
             8gp3: Files on disk have been moved - trying to get things right
             H^*(D8; GF(2)):
                       Try to update cohomology data on disk
@@ -3937,8 +3941,8 @@ class COHO(Ring):
                                 try:
                                     singular.eval(DGstr+trm)
                                 except:
-                                    print ComL
-                                    print Cand.name()
+                                    print(ComL)
+                                    print(Cand.name())
                                     raise
                             singular.eval('%sDGtmp[%d]=%sDGtmp[%d]/%d'%(self.prefix,len(DecGen),self.prefix,len(DecGen),f))
                         if not IsMonomial:
@@ -4220,7 +4224,7 @@ class COHO(Ring):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: print H       # indirect doctest
+            sage: print(H)       # indirect doctest
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -4404,11 +4408,11 @@ Minimal list of algebraic relations:
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
-            sage: print H.foobar
+            sage: print(H.foobar)
             None
-            sage: print H._foobar
+            sage: print(H._foobar)
             None
-            sage: print H.foobar_
+            sage: print(H.foobar_)
             None
 
         Note that if an attribute hasn't been defined, ``None`` is returned.
@@ -4423,7 +4427,7 @@ Minimal list of algebraic relations:
         Now, we provide ``_foobar_`` with a meaning, and then it works::
 
             sage: H.setprop('_foobar_', 'It works!')
-            sage: print H._foobar_
+            sage: print(H._foobar_)
             It works!
 
         """
@@ -4517,11 +4521,11 @@ Minimal list of algebraic relations:
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
-            sage: print H.foobar      # indirect doctest
+            sage: print(H.foobar)      # indirect doctest
             None
-            sage: print H._foobar
+            sage: print(H._foobar)
             None
-            sage: print H.foobar_
+            sage: print(H.foobar_)
             None
             sage: '_foobar_' in dir(H)
             False
@@ -4553,7 +4557,7 @@ Minimal list of algebraic relations:
         Now, we provide ``_foobar_`` with a meaning, and then it works::
 
             sage: H.setprop('_foobar_', 'It works!')
-            sage: print H._foobar_
+            sage: print(H._foobar_)
             It works!
             sage: '_foobar_' in dir(H)
             True
@@ -4647,7 +4651,7 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.setprop('_foobar_', 'It works!')
-            sage: print H._foobar_
+            sage: print(H._foobar_)
             It works!
             sage: H.delprop('_foobar_')
             sage: H._foobar_
@@ -4773,7 +4777,7 @@ Minimal list of algebraic relations:
             c_2_2: 2-Cocycle in H^*(D8; GF(2))
             sage: H.2
             b_1_0: 1-Cocycle in H^*(D8; GF(2))
-            sage: print H.1*H.2
+            sage: print(H.1*H.2)
             3-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 0 1 0]
@@ -5042,7 +5046,7 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: H.last_interesting_degree()
             10
-            sage: print H
+            sage: print(H)
             Cohomology ring of M11 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -5514,11 +5518,11 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(16,5, from_scratch=True)
             sage: H
             H^*(SmallGroup(16,5); GF(2))
-            sage: print H.resolution()
+            sage: print(H.resolution())
             Resolution:
             0 <- GF(2) <- GF(2)[SmallGroup(16,5)]
             sage: H.make()
-            sage: print H.resolution()
+            sage: print(H.resolution())
             Resolution:
             0 <- GF(2) <- GF(2)[SmallGroup(16,5)] <- rank 2 <- rank 3 <- rank 4
 
@@ -5599,7 +5603,7 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: H.htmlpage()
             sage: import os
-            sage: print open(os.path.join(H.root,'%dweb'%H.group().Order(),H.GStem+'.html')).read()
+            sage: print(open(os.path.join(H.root,'%dweb'%H.group().Order(),H.GStem+'.html')).read())
             <html>
             <head>
             <title>Cohomology of Group number 3 of Order 8
@@ -6730,7 +6734,7 @@ Minimal list of algebraic relations:
             sage: c=H.standardCochain(3,2,rdeg=1,ydeg=0,name='X')
             sage: c
             X_3_2: 3-Cocycle in H^*(D8; GF(2))
-            sage: print c
+            sage: print(c)
             3-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 0 1 0]
@@ -7023,12 +7027,12 @@ Minimal list of algebraic relations:
         the inclusions are, of course, different::
 
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: print MTX(os.path.join(H.inc_folder,H.GStem+'sg2.ima'))
+            sage: print(MTX(os.path.join(H.inc_folder,H.GStem+'sg2.ima')))
             [1 0 0 0 0 0 0 0]
             [0 0 0 1 1 1 1 1]
             [0 0 1 0 0 0 0 0]
             [0 0 0 0 0 0 1 1]
-            sage: print MTX(os.path.join(H.inc_folder,H.GStem+'sg3.ima'))
+            sage: print(MTX(os.path.join(H.inc_folder,H.GStem+'sg3.ima')))
             [1 0 0 0 0 0 0 0]
             [0 0 0 1 1 1 1 1]
             [0 1 0 0 0 0 0 0]
@@ -7043,7 +7047,7 @@ Minimal list of algebraic relations:
             sage: H.setprop('useElimination',True)
             sage: CohomologyRing.global_options('warn')
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -7134,7 +7138,7 @@ Minimal list of algebraic relations:
         Finally, we show location and content of the GAP-readable
         file that defines the subgroup structure::
 
-            sage: print open(os.path.join(H.inc_folder,H.GStem+'.sgs')).read()
+            sage: print(open(os.path.join(H.inc_folder,H.GStem+'.sgs')).read())
             # Subgroup information for 8gp3
             local numSpecialSubgps, specialSubgpId, CrankPos, numMaxels,
               maxelRankPos, numBoltons, Bolton;
@@ -7452,19 +7456,19 @@ Minimal list of algebraic relations:
             sage: H.nil_radical()
             b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1,
             b_1_0*b_1_2+b_1_0^2
-            sage: print H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1')
+            sage: print(H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1'))
             2-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [0 1 1 1 0 0 0 0]
-            sage: print H('b_1_0*b_1_2+b_1_0^2')
+            sage: print(H('b_1_0*b_1_2+b_1_0^2'))
             2-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [1 0 1 0 0 0 0 0]
-            sage: print H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1')^2
+            sage: print(H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1')^2)
             4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-            sage: print H('b_1_0*b_1_2+b_1_0^2')^2
+            sage: print(H('b_1_0*b_1_2+b_1_0^2')^2)
             4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -7477,7 +7481,7 @@ Minimal list of algebraic relations:
             sage: H.nil_radical()
             c_1_0,
             c_1_1
-            sage: print H
+            sage: print(H)
             <BLANKLINE>
             Cohomology ring of Small Group number 2 of order 16 with coefficients in GF(2)
             <BLANKLINE>
@@ -7748,9 +7752,9 @@ Minimal list of algebraic relations:
             sage: m1 = M.standardCochain(2,0)
             sage: m2 = M.standardCochain(2,1)
             sage: m3 = M.standardCochain(2,2)
-            sage: print H.PrescribedRestrictions([[1,c],[2,m2]])
+            sage: print(H.PrescribedRestrictions([[1,c],[2,m2]]))
             None
-            sage: print H.PrescribedRestrictions([[1,c],[2,m1+m2]])
+            sage: print(H.PrescribedRestrictions([[1,c],[2,m1+m2]]))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 0 1]
@@ -7760,7 +7764,7 @@ Minimal list of algebraic relations:
         of ``[1,c]`` and ``[2,m1+m2]``, but a different
         lift::
 
-            sage: print H.PrescribedRestrictions([[1,c],[2,m1+m2],[3,m1+m2+m3]])
+            sage: print(H.PrescribedRestrictions([[1,c],[2,m1+m2],[3,m1+m2+m3]]))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 1 1]
@@ -7998,11 +8002,11 @@ Minimal list of algebraic relations:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
-            sage: print H.lift_dickson(0,0)
+            sage: print(H.lift_dickson(0,0))
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
-            sage: print H.lift_dickson(0,1)
+            sage: print(H.lift_dickson(0,1))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1 0]
@@ -8457,7 +8461,7 @@ Minimal list of algebraic relations:
             sage: H.make(1)
             sage: H.duflot_regular_sequence()
             []
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 1
@@ -8524,7 +8528,7 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 1
@@ -8620,14 +8624,14 @@ Minimal list of algebraic relations:
             sage: R = H._parameter_restrictions(['c_2_8', 'c_4_21'])
             sage: for (cod, phi, I) in R:
             ....:    cod.set_ring()
-            ....:    print list(I)
+            ....:    print(list(I))
             [c_1_0^2, c_1_1^2*c_1_2^2+c_1_1^4]
             [c_1_0^2, c_1_1^2*c_1_2^2+c_1_1^4]
             [c_1_0^2, c_1_2^4+c_1_1^2*c_1_2^2+c_1_1^4]
             sage: R = H._parameter_restrictions(['c_2_8', 'c_4_21'], radical=True)
             sage: for (cod, phi, I) in R:
             ....:    cod.set_ring()
-            ....:    print list(I)
+            ....:    print(list(I))
             [c_1_0, c_1_1*c_1_2+c_1_1^2]
             [c_1_0, c_1_1*c_1_2+c_1_1^2]
             [c_1_0, c_1_2^2+c_1_1*c_1_2+c_1_1^2]
@@ -8908,7 +8912,7 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 1
@@ -8935,7 +8939,7 @@ Minimal list of algebraic relations:
         parameter::
 
             sage: P = ['b_1_0 + b_1_1', None]
-            sage: print H.find_small_last_parameter(P)
+            sage: print(H.find_small_last_parameter(P))
             None
 
         Computing one degree further, we have success::
@@ -9360,7 +9364,7 @@ Minimal list of algebraic relations:
 
             sage: H('b_2_2 - b_2_1')*H('-b_2_1') == c
             False
-            sage: print (H('b_2_2 - b_2_1')*H('-b_2_1')-c)^2
+            sage: print((H('b_2_2 - b_2_1')*H('-b_2_1')-c)^2)
             8-Cocycle in H^*(E27; GF(3)),
             represented by
             [0 0 0 0 0 0 0 0 0 0 0 0]
@@ -9625,7 +9629,7 @@ Minimal list of algebraic relations:
 
             sage: H.verify_parameters_exist()
             False
-            sage: print H.dependent_parameters()
+            sage: print(H.dependent_parameters())
             None
 
         In degree 4, at last we find that the cohomology ring
@@ -9638,7 +9642,7 @@ Minimal list of algebraic relations:
             True
             sage: H.dependent_parameters()
             ['a_1_0', 'a_1_1', 'a_1_2', 'c_4_4', 'c_4_5']
-            sage: print H
+            sage: print(H)
             Cohomology ring of Small Group number 32 of order 32 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 4
@@ -9749,7 +9753,7 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.subgroups()[4,2].set_ring()
-            sage: print singular.eval('basering')
+            sage: print(singular.eval('basering'))
             //   characteristic : 2
             //   number of vars : 2
             //        block   1 : ordering M
@@ -9758,7 +9762,7 @@ Minimal list of algebraic relations:
             //                  : weights     -1     0
             //        block   2 : ordering C
             sage: H.set_ring()
-            sage: print singular.eval('basering')
+            sage: print(singular.eval('basering'))
             //   characteristic : 2
             //   number of vars : 3
             //        block   1 : ordering M
@@ -9823,7 +9827,7 @@ Minimal list of algebraic relations:
             sage: H.parameters()
             ['c_1_0', 'c_2_1', 'b_3_3+b_3_2']
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -10289,7 +10293,7 @@ Minimal list of algebraic relations:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
-            sage: print H.filter_degree_type()
+            sage: print(H.filter_degree_type())
             None
             sage: H.make()
 
@@ -10297,7 +10301,7 @@ Minimal list of algebraic relations:
         filter degree type (which in some cases is a very long computation!),
         the stored data are updated::
 
-            sage: print H.filter_degree_type()
+            sage: print(H.filter_degree_type())
             H^*(D8; GF(2)):
                       Updating stored data after computation of filter degree type
             [-1, -2, -2]
@@ -10693,14 +10697,14 @@ Minimal list of algebraic relations:
             ....:     H = CohomologyRing(64, n)
             ....:     H.make()
             ....:     if H.poincare_series() != H._poincare_series_old_implementation(): # indirect doctest
-            ....:         print n
+            ....:         print(n)
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: for n in range(1,16):
             ....:     H = CohomologyRing(81, n)
             ....:     H.make()
             ....:     if H.poincare_series() != H._poincare_series_old_implementation():
-            ....:         print n
+            ....:         print(n)
 
         """
         R = PolynomialRing(QQ,'t')
@@ -11969,7 +11973,7 @@ Minimal list of algebraic relations:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 0
@@ -11978,7 +11982,7 @@ Minimal list of algebraic relations:
             Minimal list of algebraic relations:
             []
             sage: H.next()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 1
@@ -11988,7 +11992,7 @@ Minimal list of algebraic relations:
             Minimal list of algebraic relations:
             []
             sage: H.next()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 2
@@ -12515,7 +12519,7 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(32,5, from_scratch=True)
             sage: H.make(2)
-            sage: print H
+            sage: print(H)
             Cohomology ring of Small Group number 5 of order 32 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 2
@@ -12529,7 +12533,7 @@ Minimal list of algebraic relations:
             [a_1_0^2,
              a_1_0*b_1_1]
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Small Group number 5 of order 32 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -12614,11 +12618,11 @@ of Benson's regularity conjecture, that
 was proved by Peter Symonds. So, there
 is an error. Please inform the author!"""
             if alpha:
-                print "###########################################"
-                print "## COUNTEREXAMPLE FOR THE STRONG FORM OF ##"
-                print "## BENSON'S REGULARITY CONJECTURE!!!     ##"
-                print "###########################################"
-                print "Please inform the author"
+                print("###########################################")
+                print("## COUNTEREXAMPLE FOR THE STRONG FORM OF ##")
+                print("## BENSON'S REGULARITY CONJECTURE!!!     ##")
+                print("###########################################")
+                print("Please inform the author")
 
         if coho_options['save']:
             coho_logger.info("Storing approximation data", self)

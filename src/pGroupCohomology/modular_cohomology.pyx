@@ -39,6 +39,7 @@ AUTHORS:
 
 """
 
+from __future__ import print_function, absolute_import
 import sys, os
 from pGroupCohomology import CohomologyRing
 from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
@@ -256,7 +257,7 @@ class MODCOHO(COHO):
 
         sage: H1 is H2
         True
-        sage: print H2
+        sage: print(H2)
         Cohomology ring of SomeGroup with coefficients in GF(2)
         <BLANKLINE>
         Computation complete
@@ -314,7 +315,7 @@ class MODCOHO(COHO):
             sage: H1.make()
             sage: H1
             H^*(Sym6; GF(3))
-            sage: print H1
+            sage: print(H1)
             Cohomology ring of Sym6 with coefficients in GF(3)
             <BLANKLINE>
             Computation complete
@@ -327,7 +328,7 @@ class MODCOHO(COHO):
              []
             sage: H2 = MODCOHO(G,3,HP._HSyl,S,GroupName='Sym6',GStem='S6b')
             sage: H2.make()
-            sage: print H2
+            sage: print(H2)
             Cohomology ring of Sym6 with coefficients in GF(3)
             <BLANKLINE>
             Computation complete
@@ -725,20 +726,6 @@ class MODCOHO(COHO):
         # But this is part of self._key, thus, is in self._property_dict
         return MODCOHO_unpickle, (self._prime, GEN, self.Rel, self.RelG, self.lastRel, self.lastRelevantDeg, self.knownDeg, self.suffDeg, self.completed, self.Dickson, DuflotRegSeq, self.alpha, Triangular, StdMon, DG, self._gapBackup, self._SubgpBackup, self._SylowGpBackup, SubgroupList, PtoPcapCPdirect, PtoPcapCPtwist, PtoPcapCPdirectSing, PtoPcapCPtwistSing, self._Order, self._POrder, sgpDickson, pickle_gap_data(self._property_dict.items()), self.SingularTime, pickle_gap_data(self._decorator_cache.items()))
 
-##     def check(self):
-##         phiP = self._HP.group().canonicalIsomorphism(self.subgroup())
-##         if repr(phiP)=='fail':
-##             print "Grand desaster for %s: inconsistent subgroup"%repr(self)
-##             return
-##         SylowGen = [t for t in self.sylow_subgroup().GeneratorsOfGroup()]
-##         SubSylowGen = [phiP.Image(t) for t in (self._HP.sylow_subgroup or self._HP.group)().GeneratorsOfGroup()]
-##         if SylowGen!=SubSylowGen:
-##             print "Desaster for %s: Inconsistent Sylow"%repr(self)
-##             return
-##         print repr(self), "is fine"
-##         if isinstance(self._HP,MODCOHO):
-##             self._HP.check()
-
     def set_ring(self):
         """
         Set the underlying ring in the Singular interface
@@ -1113,7 +1100,7 @@ class MODCOHO(COHO):
             4
             sage: len(H.Rel)
             0
-            sage: print H._HP
+            sage: print(H._HP)
             Cohomology ring of Small Group number 14 of order 16 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -1124,7 +1111,7 @@ class MODCOHO(COHO):
              c_1_3: 1-Cocycle in H^*(SmallGroup(16,14); GF(2))]
             Minimal list of algebraic relations:
             []
-            sage: print H
+            sage: print(H)
             Cohomology ring of SmallGroup(48,50) with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -2027,7 +2014,7 @@ class MODCOHO(COHO):
             sage: CohomologyRing.global_options('warn')
             sage: H.degbound_for_gens
             5
-            sage: print H.all_generators_found
+            sage: print(H.all_generators_found)
             None
 
         So, there may be further generators in degree 5. Indeed, there are::
@@ -3248,11 +3235,11 @@ class MODCOHO(COHO):
 
             sage: cS2 = HS('b_2_4^2*b_1_1*b_1_2+b_2_4^2*b_2_5+b_2_4^3+c_4_14*b_1_2^2')
             sage: CohomologyRing.global_options('info')
-            sage: print H.stable_to_polynomial(cS2)
+            sage: print(H.stable_to_polynomial(cS2))
             None
             sage: CohomologyRing.global_options('warn')
             sage: cS3 = HS('c_4_14*b_1_0')
-            sage: print H.stable_to_polynomial(cS3)
+            sage: print(H.stable_to_polynomial(cS3))
             None
 
         According to the log, ``cS3`` can be expressed in ``HU``, and indeed::
@@ -3670,7 +3657,7 @@ class MODCOHO(COHO):
 
             sage: CohomologyRing.global_options('warn')
             sage: H.make(5)
-            sage: print H
+            sage: print(H)
             Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 5
@@ -4223,7 +4210,7 @@ class MODCOHO(COHO):
             sage: H.make()
             sage: H.knownDeg
             19
-            sage: print H
+            sage: print(H)
             <BLANKLINE>
             Cohomology ring of SmallGroup(1620,244) with coefficients in GF(3)
             <BLANKLINE>
@@ -4353,11 +4340,11 @@ of Benson's regularity conjecture, that
 was proved by Peter Symonds. So, there
 is an error. Please inform the author!"""
             if alpha:
-                print "###########################################"
-                print "## COUNTEREXAMPLE FOR THE STRONG FORM OF ##"
-                print "## BENSON'S REGULARITY CONJECTURE!!!     ##"
-                print "###########################################"
-                print "Please inform the author"
+                print("###########################################")
+                print("## COUNTEREXAMPLE FOR THE STRONG FORM OF ##")
+                print("## BENSON'S REGULARITY CONJECTURE!!!     ##")
+                print("###########################################")
+                print("Please inform the author")
 
         if coho_options['save']:
             coho_logger.info("Storing ring approximation", self)
@@ -4404,7 +4391,7 @@ def COHO_from_key(key):
     In fact, it is not only reloaded, but it is completely computed,
     in contrast to ``H``::
 
-        sage: print H
+        sage: print(H)
         Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
         <BLANKLINE>
         Computed up to degree 3
@@ -4415,7 +4402,7 @@ def COHO_from_key(key):
          b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
         Minimal list of algebraic relations:
         []
-        sage: print COHO_from_key(H._key)
+        sage: print(COHO_from_key(H._key))
         Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
         <BLANKLINE>
         Computation complete

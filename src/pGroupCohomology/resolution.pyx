@@ -27,6 +27,8 @@ AUTHORS:
 
 """
 
+from __future__ import print_function, absolute_import
+
 import sage
 import sage.all
 import inspect
@@ -90,7 +92,7 @@ cdef MTX makeMTX(Matrix_t *Data):
         sage: R.firstDiff()   # indirect doctest
         sage: R
         Resolution of GF(2)[8gp3]
-        sage: print R
+        sage: print(R)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2
 
@@ -203,7 +205,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     It looks like this::
 
         sage: f = open(os.path.join(tmp_root,'8gp3','8gp3.nontips'))
-        sage: print f.read()
+        sage: print(f.read())
         2 8 4 3 2 R
         (1);
         a;
@@ -215,7 +217,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         baba;
         sage: f.close()
         sage: f = open(os.path.join(tmp_root,'4gp2','4gp2.nontips'))
-        sage: print f.read()
+        sage: print(f.read())
         2 4 2 3 2 R
         (1);
         a;
@@ -233,7 +235,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
 
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: M = MTX(os.path.join(tmp_root,'8gp3','sgp','8gp3sg3.ima'))
-        sage: print M
+        sage: print(M)
         [1 0 0 0 0 0 0 0]
         [0 0 0 1 1 1 1 1]
         [0 1 0 0 0 0 0 0]
@@ -375,7 +377,7 @@ def makeSpecialGroupData(H, GStem, folder):
     :func:`~pGroupCohomology.resolution.makeGroupData`::
 
         sage: f = open(os.path.join(tmp_root,GStem,GStem+'.nontips'))
-        sage: print f.read()
+        sage: print(f.read())
         2 8 4 3 2 R
         (1);
         a;
@@ -396,7 +398,7 @@ def makeSpecialGroupData(H, GStem, folder):
          'DihedralGroupsg3.irg']
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: M = MTX(os.path.join(tmp_root,GStem,'sgp',GStem+'sg3.ima'))
-        sage: print M
+        sage: print(M)
         [1 0 0 0 0 0 0 0]
         [0 0 0 0 1 0 0 0]
         [0 1 1 1 0 0 0 0]
@@ -506,7 +508,7 @@ class RESL_sparse_unpickle_class:
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: R = H.resolution()
-        sage: print R
+        sage: print(R)
         Resolution:
         0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3 <- rank 4
         sage: R == loads(dumps(R))   # indirect doctest
@@ -688,7 +690,7 @@ cdef class RESL:
         sage: R=RESL(gstem,gps_folder,res_folder)
         sage: R
         Resolution of GF(2)[8gp3]
-        sage: print R
+        sage: print(R)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3]
 
@@ -727,7 +729,7 @@ cdef class RESL:
         sage: R.nextDiff()
                   Differential reloaded
                   > rk P_04 =   5
-        sage: print R
+        sage: print(R)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
 
@@ -735,7 +737,7 @@ cdef class RESL:
     and load RESL objects::
 
         sage: S = copy(R)
-        sage: print S
+        sage: print(S)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
         sage: S = loads(dumps(R))
@@ -746,7 +748,7 @@ cdef class RESL:
                   > rk P_03 =   4
                   Differential reloaded
                   > rk P_04 =   5
-        sage: print S
+        sage: print(S)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
 
@@ -812,7 +814,7 @@ cdef class RESL:
     If sufficiently many terms of the resolution are computed (using
     :meth:`nextDiff`), the differentials can be easily requested::
 
-        sage: print R
+        sage: print(R)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
         sage: R[2]
@@ -974,7 +976,7 @@ cdef class RESL:
         sage: C = COCH(H,2,'C',[1,0,1])
         sage: C*C
         (C)*(C): 4-Cocycle in H^*(D8; GF(2))
-        sage: print C*C
+        sage: print(C*C)
         4-Cocycle in H^*(D8; GF(2)),
         represented by
         [1 0 0 0 1]
@@ -1124,7 +1126,7 @@ cdef class RESL:
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: print R
+            sage: print(R)
             Resolution:
             0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3
             sage: del R   # indirect doctest
@@ -1159,7 +1161,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: S=copy(R)   # indirect doctest
-            sage: print S
+            sage: print(S)
             Resolution:
             0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3
             sage: S==R
@@ -1251,7 +1253,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: print R   # indirect doctest
+            sage: print(R)   # indirect doctest
             Resolution:
             0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4
         """
@@ -1371,7 +1373,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: print R[3]   # indirect doctest
+            sage: print(R[3])   # indirect doctest
             [0 1 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -1496,7 +1498,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: print R
+            sage: print(R)
             Resolution:
             0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4
             sage: R.rank()
@@ -1614,7 +1616,7 @@ cdef class RESL:
             sage: C = COCH(H,1,'C',[0,1])
             sage: R.getLifts()
             {}
-            sage: print C*C
+            sage: print(C*C)
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 1 0]
@@ -1849,7 +1851,7 @@ cdef class RESL:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True, options='sparse')
             sage: C = COCH(H,1,'C',[0,1])
-            sage: print C*C
+            sage: print(C*C)
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 1 0]
@@ -2076,7 +2078,7 @@ cdef class RESL:
             sage: res_folder=os.path.join(gps_folder,'dat')
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.firstDiff()
-            sage: print R
+            sage: print(R)
             Resolution:
             0 <- GF(2) <- GF(2)[8gp3] <- rank 2
 
@@ -2126,7 +2128,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: print R
+            sage: print(R)
             Resolution:
             0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
             sage: R[3]
@@ -2348,20 +2350,20 @@ cdef class RESL:
 
             sage: P
             [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
-            sage: print K[0][0]
+            sage: print(K[0][0])
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print K[0][1]
+            sage: print(K[0][1])
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 1 0 0 0 0]
-            sage: print D[12][0]
+            sage: print(D[12][0])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print D[12][1]
+            sage: print(D[12][1])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -2604,17 +2606,17 @@ cdef class RESL:
             sage: H.make()
             sage: R = H.resolution()
             sage: M1 = R.find_bounding_chain(1, MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,1,1,0,1]]))
-            sage: print M1
+            sage: print(M1)
             [1 0 0 0 1 0 0 0]
             [1 1 0 0 0 1 0 0]
-            sage: print R.applyDiff(1,M1)
+            sage: print(R.applyDiff(1,M1))
             [0 1 1 0 1 1 0 1]
             sage: M2 = R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,0,1,0],[0,0,0,0,0,1,0,0]]))
-            sage: print M2
+            sage: print(M2)
             [1 0 1 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-            sage: print R.applyDiff(2,M2)
+            sage: print(R.applyDiff(2,M2))
             [0 1 0 1 0 0 1 0]
             [0 0 0 0 0 1 0 0]
 
@@ -2624,14 +2626,14 @@ cdef class RESL:
         use the optional parameter ``check``::
 
             sage: FOO =  R.find_bounding_chain(2, MTX(MatrixSpace(GF(2), 2,8), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]))
-            sage: print FOO
+            sage: print(FOO)
             [1 0 1 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-            sage: print R.applyDiff(2,FOO)
+            sage: print(R.applyDiff(2,FOO))
             [0 1 0 1 0 0 1 0]
             [0 0 1 0 0 1 0 0]
-            sage: print R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]), check=True)
+            sage: print(R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]), check=True))
             Traceback (most recent call last):
             ...
             ValueError: The given chain is no cycle
@@ -2723,11 +2725,11 @@ cdef class RESL:
 
         We verify that the composition of two differentials vanishes::
 
-            sage: print R.composeChainMaps(R[2],R[1],2,1,0)
+            sage: print(R.composeChainMaps(R[2],R[1],2,1,0))
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print R.composeChainMaps(R[3],R[2],3,2,1)
+            sage: print(R.composeChainMaps(R[3],R[2],3,2,1))
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -3367,7 +3369,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
-            sage: print R.ChainmapToCochain(R.CochainToChainmap(2,C))
+            sage: print(R.ChainmapToCochain(R.CochainToChainmap(2,C)))
             [1 0 1]
 
         """
@@ -3604,7 +3606,7 @@ cdef class LIFTcontainer:
               [0 0 0 1 0 0 0 0]
               [0 0 0 0 0 0 0 0]
               [1 0 0 0 0 0 0 0]}}
-            sage: print L[3,2,C]   # indirect doctest
+            sage: print(L[3,2,C])   # indirect doctest
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4279,7 +4281,7 @@ cdef class G_ALG:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
-            sage: print G.r_action(MTX(MatrixSpace(GF(2),1,8), [[1,0,0,1,0,1,1,0]]))
+            sage: print(G.r_action(MTX(MatrixSpace(GF(2),1,8), [[1,0,0,1,0,1,1,0]])))
             [1 0 0 1 0 1 1 0]
             [0 1 0 0 0 0 0 1]
             [0 0 1 0 0 0 1 1]
@@ -4484,11 +4486,11 @@ class MasseyDefiningSystems:
         sage: P = M.values()
         sage: len(P)
         16
-        sage: print P[0][0]
+        sage: print(P[0][0])
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 1 0 0 0 0 0]
-        sage: print P[0][1]
+        sage: print(P[0][1])
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
@@ -4497,11 +4499,11 @@ class MasseyDefiningSystems:
         [0 1 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
-        sage: print P[1][0]
+        sage: print(P[1][0])
         [1 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 1 0 0 0 0 0]
-        sage: print P[1][1]
+        sage: print(P[1][1])
         [1 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0]
@@ -4530,11 +4532,11 @@ class MasseyDefiningSystems:
             sage: P = M.values()
             sage: len(P)
             16
-            sage: print P[0][0]
+            sage: print(P[0][0])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 1 0 0 0 0 0]
-            sage: print P[0][1]
+            sage: print(P[0][1])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4543,11 +4545,11 @@ class MasseyDefiningSystems:
             [0 1 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print P[1][0]
+            sage: print(P[1][0])
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 1 0 0 0 0 0]
-            sage: print P[1][1]
+            sage: print(P[1][1])
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4685,15 +4687,15 @@ class MasseyDefiningSystems:
             sage: P = M.values()
             sage: len(P)
             81
-            sage: print P[0][0]
+            sage: print(P[0][0])
             [0 0 0 0 0 0 0 0 0]
             [2 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
-            sage: print P[1][0]
+            sage: print(P[1][0])
             [0 0 0 0 0 0 0 0 0]
             [2 1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
-            sage: print P[2][0]
+            sage: print(P[2][0])
             [0 0 0 0 0 0 0 0 0]
             [2 2 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]

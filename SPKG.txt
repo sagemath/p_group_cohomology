@@ -1,14 +1,15 @@
-= p_group_cohomology-2.1.5 =
+= p_group_cohomology-3.0 =
 
 == Description ==
 
 Modular Cohomology Rings of Finite Groups
 
-The documentation of the package is provided at 
+The documentation of the package is provided at
 http://users.minet.uni-jena.de/cohomology/documentation/
 
 == License ==
 
+Copyright (C) 2018 Simon A. King  <simon.king@uni-jena.de>
 Copyright (C) 2011 Simon A. King  <simon.king@uni-jena.de>
 Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
                    David J. Green <david.green@uni-jena.de>
@@ -27,10 +28,10 @@ The full text of the GPL is available at:
 
 The package includes a data base of cohomology rings of the groups of
 order 64 and provides access to a data base of cohomology rings of the
-groups of order 128 and 243, located at 
+groups of order 128 and 243, located at
   http://cohomology.uni-jena.de/db/
-These data bases are distributed under the Creative Commons 
-Attribution-Share Alike 3.0 License. The full text of this licence is 
+These data bases are distributed under the Creative Commons
+Attribution-Share Alike 3.0 License. The full text of this licence is
 available at
   http://creativecommons.org/licenses/by-sa/3.0/
 
@@ -46,8 +47,8 @@ David J. Green <david.green@uni-jena.de>
 == Acknowledgements ==
 
 The development of the initial version of this SPKG was funded by
-the German Science Foundation, DFG project GR 1585/4.1, and was  
-accomplished at the Friedrich Schiller University Jena. 
+the German Science Foundation, DFG project GR 1585/4.1, and was
+accomplished at the Friedrich Schiller University Jena.
 
 Since version 1.0.1, the further work on this SPKG was funded
 by Marie Curie grant MTKD-CT-2006-042685 and was pursued at
@@ -56,7 +57,7 @@ it is moved back to Jena.
 
 We thank William Stein for giving us access to various computers
 on which we could build test the SPKG and on which some huge computations
-could be completed, and acknowledge the support by National Science 
+could be completed, and acknowledge the support by National Science
 Foundation Grant No. DMS-0821725.
 
 We thank Mathieu Dutour Sikitic for hints on how to use GAP
@@ -67,27 +68,16 @@ rather efficient completeness criterion.
 
 == Dependencies ==
 
-- The SmallGroups library needs to be installed in GAP.
-- For p-groups with a prime p>2, we require Singular at least in version 3-1-0.
-
-== Special Update/Build Instructions ==
-
-Since version 2.1, the package builds on both little and big endian
-machines.
-
-The package includes a modified version of the Aachen C-MeatAxe. Since the
-changes are major, we included the modified sources into the Mercurial
-repository. A MeatAxe version that comes closest to what we started with
-is provided in the folder mtxoriginal, that is not under revision control.
-
-Note that most of the code is original. Therefore we included the files from
-src into the Mercurial repository.
+- The SmallGroups library needs to be installed in GAP, as a runtime dependency
+  This can be met by installing the database_gap spkg
+- The SharedMeatAxe needs to be installed, as a build time dependency.
+  This can be met by installing the meataxe spkg
 
 == Testing ==
 
-Our package does not provide a separate test suite for the MeatAxe C-library or 
-David Green's routines for the computation of minimal projective resolutions.
-But it is of course equipped with extensive doc tests in the Cython code. In
+Our package provides a very short test suite for David Green's routines
+for the computation of minimal projective resolutions. The majority of
+this package's tests is formed by doc tests in the Cython code. In
 fact, any class, method and function is covered by tests.
 
 Note that internet access is required for these tests, as it is attempted to
@@ -96,7 +86,7 @@ download cohomology rings from a public data base in the web.
 The script ``spkg-check`` walks through all public methods of all classes
 in all modules of our package and perform the respective doc test. The
 test script is executed right after installation of the package, if the
-environment variable SAGE_CHECK is yes (do "export SAGE_CHECK=yes" on 
+environment variable SAGE_CHECK is yes (do "export SAGE_CHECK=yes" on
 the command line before installation). Should a test fail, details are
 displayed on screen and can also be find in SAGEROOT/install.log.
 
@@ -215,13 +205,13 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
   * 1.2.p0 (Dima Pasechnik and Simon King, March 2010):
     Adding .hgignore (ignoring src/db and mtxoriginal).
     Adding a robuster test for the existence of the SmallGroups library.
-  * 1.2 (Simon King, October 2009): 
+  * 1.2 (Simon King, October 2009):
     - Modified printing for cocycles
     - Minor bug fixes and code improvements.
     - The data base at sage.math has moved.
-    - New: Persistent Group Cohomology (bar codes), based on ideas of Graham 
+    - New: Persistent Group Cohomology (bar codes), based on ideas of Graham
       Ellis and Simon King.
-  * 1.1 (Simon King August 2009): 
+  * 1.1 (Simon King August 2009):
     - Yoneda cocomplex
     - Restricted Massey powers and general Massey products.
   * 1.0.2 (Simon King, July 2009):

@@ -26,6 +26,7 @@ AUTHORS:
 """
 
 import os
+from __future__ import print_function, absolute_import
 from sage.env import SAGE_ROOT, DOT_SAGE
 
 ##########
@@ -84,7 +85,7 @@ class unpickle_old_mtx:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: print CohomologyRing(64,12)  # indirect doctest
+            sage: print(CohomologyRing(64,12))  # indirect doctest
             Cohomology ring of Small Group number 12 of order 64 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -115,7 +116,7 @@ class unpickle_old_resl:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: print CohomologyRing(64,12)  # indirect doctest
+            sage: print(CohomologyRing(64,12))  # indirect doctest
             Cohomology ring of Small Group number 12 of order 64 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete

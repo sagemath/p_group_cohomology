@@ -33,6 +33,8 @@ instance :func:`~pGroupCohomology.cohomologyRing` of the class
 
 """
 
+from __future__ import print_function, absolute_import
+
 from sage.all import SAGE_ROOT, DOT_SAGE, load
 from sage.all import Integer
 from sage.all import singular
@@ -144,25 +146,25 @@ def unit_test_64(**kwds):
         H.make()
         H_db = CohomologyRing(64,i)
         if H.degvec!=H_db.degvec or H.poincare_series() != H_db.poincare_series():
-            print "Example",i,"fails"
+            print("Example",i,"fails")
             L.append(i)
         if H.knownDeg < H_db.knownDeg:
-            print "###########################################"
-            print "####### Improvement:",i
-            print "###########################################"
+            print("###########################################")
+            print("####### Improvement:",i)
+            print("###########################################")
         elif H.knownDeg > H_db.knownDeg:
-            print "###########################################"
-            print "####### Regression:",i
-            print "###########################################"
+            print("###########################################")
+            print("####### Regression:",i)
+            print("###########################################")
         wt = walltime(wt0)
         ct = cputime(ct0)
-        print "#%3d: Walltime %3d:%02d.%02d min"%(i, int(wt/60), int(wt%60),int((wt%1)*100))
-        print  "      CPU-time %3d:%02d.%02d min"%(int(ct/60), int(ct%60),int((ct%1)*100))
+        print("#%3d: Walltime %3d:%02d.%02d min"%(i, int(wt/60), int(wt%60),int((wt%1)*100)))
+        print("      CPU-time %3d:%02d.%02d min"%(int(ct/60), int(ct%60),int((ct%1)*100)))
         ST = (int(singular.eval('timer'))-st)/1000.0
-        print  "      Singular %3d:%02d.%02d min"%(int(ST/60), int(ST%60),int((ST%1)*100))
+        print("      Singular %3d:%02d.%02d min"%(int(ST/60), int(ST%60),int((ST%1)*100)))
         GT = (int(gap.eval('Runtime()'))-gt)/1000.0
-        print  "      Gap-time %3d:%02d.%02d min"%(int(GT/60), int(GT%60),int((GT%1)*100))
-        print
+        print("      Gap-time %3d:%02d.%02d min"%(int(GT/60), int(GT%60),int((GT%1)*100)))
+        print()
     return L,[wt,ct,ST,GT]
 
 ############
@@ -264,7 +266,7 @@ class CohomologyRingFactory:
         sage: CohomologyRing.reset()
         sage: CohomologyRing.set_user_db(tmp_dir())
         sage: H0 = CohomologyRing(8,3)   #indirect doctest
-        sage: print H0
+        sage: print(H0)
         Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
         <BLANKLINE>
         Computation complete
@@ -284,7 +286,7 @@ class CohomologyRingFactory:
             sage: CR = CohomologyRingFactory()   #indirect doctest
             sage: CR.set_user_db(tmp_dir())
             sage: H = CR(8,3)
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -1283,7 +1285,7 @@ class CohomologyRingFactory:
             sage: H2 = CohomologyRing(18,4,prime=2,from_scratch=True, options='nosave')
             sage: H2.make(); H2
             H^*(SmallGroup(18,4); GF(2))
-            sage: print CohomologyRing._get_non_p_group_from_db('18gp4',2)
+            sage: print(CohomologyRing._get_non_p_group_from_db('18gp4',2))
             None
 
         """
@@ -1375,7 +1377,7 @@ class CohomologyRingFactory:
         part of the public database, the ring is complete::
 
             sage: H0 = CohomologyRing(8,3) # indirect doctest
-            sage: print H0
+            sage: print(H0)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -1711,10 +1713,10 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                 similarity = _IsKeyEquivalent(CacheKey,OUT._key)
                 if similarity:
                     if similarity == 1:
-                        print 'Warning: Stored cohomology data have a different group description, but they seem to be equivalent'
+                        print('Warning: Stored cohomology data have a different group description, but they seem to be equivalent')
                     return OUT
                 else:
-                    raise ValueError, "Cohomology ring cache is broken for %s"%repr(OUT)
+                    raise ValueError("Cohomology ring cache is broken for %s"%repr(OUT))
             else:
                 return OUT
         # If we have no GroupId, we have already computed permutation representations
@@ -1831,7 +1833,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing.user_db(8,3, from_scratch=True)
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computed up to degree 0
@@ -1881,7 +1883,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
             sage: CohomologyRing.global_options('use_web_in_doctest')
             sage: H=CohomologyRing.web_db('8gp3') # needs internet access
             sage: CohomologyRing.global_options('nouse_web_in_doctest')
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -1968,7 +1970,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
             H^*(D8; GF(2)):
                       Import monomials
             sage: CohomologyRing.global_options('nouse_web_in_doctest')
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete

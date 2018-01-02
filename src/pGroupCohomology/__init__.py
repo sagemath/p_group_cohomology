@@ -197,7 +197,7 @@ the Dihedral Group of order 8::
 
     sage: H0
     H^*(D8; GF(2))
-    sage: print H0
+    sage: print(H0)
     Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
     <BLANKLINE>
     Computation complete
@@ -267,7 +267,7 @@ case, we need to provide the modulus by the optional parameter
 
     sage: HS6a = CohomologyRing(720,763,prime=2)
     sage: HS6a.make()
-    sage: print HS6a
+    sage: print(HS6a)
     <BLANKLINE>
     Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
     <BLANKLINE>
@@ -328,7 +328,7 @@ essentially different::
 
 Indeed, the minimal relations of ``H1`` and ``H2`` look different::
 
-    sage: print H1
+    sage: print(H1)
     Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
     <BLANKLINE>
     Computation complete
@@ -338,7 +338,7 @@ Indeed, the minimal relations of ``H1`` and ``H2`` look different::
      b_1_1: 1-Cocycle in H^*(D8; GF(2))]
     Minimal list of algebraic relations:
     [b_1_0*b_1_1]
-    sage: print H2
+    sage: print(H2)
     Cohomology ring of DihedralA with coefficients in GF(2)
     <BLANKLINE>
     Computation complete
@@ -357,7 +357,7 @@ in fact a symmetric group::
     sage: G = gap('SymmetricGroup(6)')
     sage: HS6b = CohomologyRing(G, prime=2, GroupName='SymmetricGroup(6)', from_scratch=True)
     sage: HS6b.make()
-    sage: print HS6b
+    sage: print(HS6b)
     <BLANKLINE>
     Cohomology ring of SymmetricGroup(6) with coefficients in GF(2)
     <BLANKLINE>
@@ -435,7 +435,7 @@ The relations are given as strings::
 The relations can be interpreted as elements of the cohomology ring,
 and indeed they vanish::
 
-    sage: print H1(H1.rels()[0])
+    sage: print(H1(H1.rels()[0]))
     2-Cocycle in H^*(D8; GF(2)),
     represented by
     [0 0 0]
@@ -518,7 +518,7 @@ in ``H1``::
     ['b_1_1^2+b_1_0*b_1_1']
     sage: phi_star(H2('b_1_1'))^2 + phi_star(H2('b_1_0'))*phi_star(H2('b_1_1'))
     (phi^*(b_1_1))**2+(phi^*(b_1_0))*(phi^*(b_1_1)): 2-Cocycle in H^*(D8; GF(2))
-    sage: print phi_star(H2('b_1_1'))^2 + phi_star(H2('b_1_0'))*phi_star(H2('b_1_1'))
+    sage: print(phi_star(H2('b_1_1'))^2 + phi_star(H2('b_1_0'))*phi_star(H2('b_1_1')))
     2-Cocycle in H^*(D8; GF(2)),
     represented by
     [0 0 0]
@@ -674,7 +674,7 @@ cyclic groups of order 3 and order 9. The rings are isomorphic.
     sage: HC3.make()
     sage: HC9 = CohomologyRing(9,1)
     sage: HC9.make()
-    sage: print HC3
+    sage: print(HC3)
     Cohomology ring of Small Group number 1 of order 3 with coefficients in GF(3)
     <BLANKLINE>
     Computation complete
@@ -683,7 +683,7 @@ cyclic groups of order 3 and order 9. The rings are isomorphic.
      a_1_0: 1-Cocycle in H^*(SmallGroup(3,1); GF(3))]
     Minimal list of algebraic relations:
     []
-    sage: print HC9
+    sage: print(HC9)
     Cohomology ring of Small Group number 1 of order 9 with coefficients in GF(3)
     <BLANKLINE>
     Computation complete
@@ -1120,7 +1120,7 @@ additional attribute before saving and moving the data::
     sage: M = CohomologyRing(8,3)
     sage: M is H
     False
-    sage: print M
+    sage: print(M)
     Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
     <BLANKLINE>
     Computation complete
@@ -1643,7 +1643,7 @@ present: The lowest term of a minimal projective resolution, together with the
 restriction maps on the special subgroups. The cohomology rings of the special
 subgroups have been computed while setting up ``HSyl``. ::
 
-    sage: print HSyl
+    sage: print(HSyl)
     <BLANKLINE>
     Cohomology ring of Sylow 2-subgroup of Symmetric Group S_8 with coefficients in GF(2)
     <BLANKLINE>
@@ -1688,7 +1688,7 @@ We could explicitly request the computation of higher terms of the resolution,
 ::
 
     sage: Res.nextDiff()
-    sage: print Res
+    sage: print(Res)
     Resolution:
     0 <- GF(2) <- GF(2)[Syl2(S8)] <- rank 3
 
@@ -1699,10 +1699,10 @@ also be achieved by ``HSyl.make(3)``)::
     sage: HSyl.next()
     sage: HSyl.next()
     sage: HSyl.next()
-    sage: print Res
+    sage: print(Res)
     Resolution:
     0 <- GF(2) <- GF(2)[Syl2(S8)] <- rank 3 <- rank 7 <- rank 13 <- rank 22
-    sage: print HSyl
+    sage: print(HSyl)
     <BLANKLINE>
     Cohomology ring of Sylow 2-subgroup of Symmetric Group S_8 with coefficients in GF(2)
     <BLANKLINE>
@@ -1821,7 +1821,7 @@ Note that none of the generators is Duflot. Hence, the current ring
 approximation does not contain parameters for the cohomology ring and is thus
 incomplete::
 
-    sage: print HSyl.parameters()
+    sage: print(HSyl.parameters())
     None
 
 In the next degree, we finally find a Duflot generator (there is only one,
@@ -2064,7 +2064,7 @@ Hence, we find two cohomology generators in degree two, and obtain
 ::
 
     sage: HU.next()
-    sage: print HU
+    sage: print(HU)
     <BLANKLINE>
     Cohomology ring of SmallGroup(384,5602) with coefficients in GF(2)
     <BLANKLINE>
@@ -2264,7 +2264,7 @@ to degree four::
     sage: H.duflot_regular_sequence()
     ['c_4_3']
     sage: H.generator_degbound() # this has no output, but may set some attributes
-    sage: print H.degbound_for_gens
+    sage: print(H.degbound_for_gens)
     None
 
 So, a Duflot regular sequence is available, but we can't determine a bound for

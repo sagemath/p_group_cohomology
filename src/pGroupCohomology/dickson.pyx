@@ -65,6 +65,7 @@ a convenient computation of the Dickson invariants: One computes
 
 """
 
+from __future__ import print_function, absolute_import
 import sage
 import sage.all
 from sage.all import prod

@@ -188,6 +188,7 @@ look in position ``(2,4)``::
 
 """
 
+from __future__ import print_function, absolute_import
 from sage.typeset.ascii_art import AsciiArt
 from sage.structure.sage_object import SageObject
 

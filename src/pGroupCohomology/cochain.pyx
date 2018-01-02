@@ -126,6 +126,7 @@ It is possible to mix both classes in arithmetic expressions::
 
 """
 
+from __future__ import print_function, absolute_import
 import sys
 import os
 
@@ -185,13 +186,13 @@ class COCH_unpickle_class:
         sage: type(C)
         <type 'pGroupCohomology.cochain.COCH'>
         sage: D=loads(dumps(C))   #indirect doctest
-        sage: print C
+        sage: print(C)
         1-Cocycle in H^*(D8; GF(2)),
         represented by
         [1 0]
         rdeg = 0
         ydeg = 0
-        sage: print D
+        sage: print(D)
         1-Cocycle in H^*(D8; GF(2)),
         represented by
         [1 0]
@@ -222,7 +223,7 @@ class COCH_unpickle_class:
             sage: C = CU(H,2,'foo',[0,1,1],0,1)      # indirect doctest
             sage: C
             foo: 2-Cocycle in H^*(SmallGroup(8,2); GF(2))
-            sage: print C
+            sage: print(C)
             2-Cocycle in H^*(SmallGroup(8,2); GF(2)),
             represented by
             [0 1 1]
@@ -245,7 +246,7 @@ class COCH_unpickle_class:
             sage: C = CU(H,2,'foo',[0,1,1],0,1)   # indirect doctest
             sage: C
             foo: 2-Cocycle in H^*(D8; GF(2))
-            sage: print C
+            sage: print(C)
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 1 1]
@@ -319,11 +320,11 @@ cdef class COCH(RingElement):
         b_1_0+b_1_1: 1-Cocycle in H^*(D8; GF(2))
         sage: C*D
         (b_1_0)*(b_1_1): 2-Cocycle in H^*(D8; GF(2))
-        sage: print C^3
+        sage: print(C^3)
         3-Cocycle in H^*(D8; GF(2)),
         represented by
         [1 0 0 0]
-        sage: print D^3
+        sage: print(D^3)
         3-Cocycle in H^*(D8; GF(2)),
         represented by
         [0 1 0 0]
@@ -332,7 +333,7 @@ cdef class COCH(RingElement):
     we create the cochains more directly::
 
         sage: H = CohomologyRing(27,3, from_scratch=True)
-        sage: print H.resolution()
+        sage: print(H.resolution())
         Resolution:
         0 <- GF(3) <- GF(3)[E27]
 
@@ -345,12 +346,12 @@ cdef class COCH(RingElement):
     Now, the resolution is computed out to the second term, and the
     cochain ``C`` has the name 'first'::
 
-        sage: print H.resolution()
+        sage: print(H.resolution())
         Resolution:
         0 <- GF(3) <- GF(3)[E27] <- rank 2 <- rank 4
         sage: C
         first: 2-Cocycle  in H^*(E27; GF(3))
-        sage: print C
+        sage: print(C)
         2-Cocycle in  H^*(E27; GF(3)),
         represented by
         [1 0 1 2]
@@ -366,11 +367,11 @@ cdef class COCH(RingElement):
 
         sage: C+D
         first+second: 2-Cocycle in H^*(E27; GF(3))
-        sage: print C+D
+        sage: print(C+D)
         2-Cocycle in H^*(E27; GF(3)),
         represented by
         [1 1 1 0]
-        sage: print C-D
+        sage: print(C-D)
         2-Cocycle in H^*(E27; GF(3)),
         represented by
         [1 2 1 1]
@@ -379,7 +380,7 @@ cdef class COCH(RingElement):
 
         sage: 2*C
         2*(first): 2-Cocycle in H^*(E27; GF(3))
-        sage: print C*2
+        sage: print(C*2)
         2-Cocycle in H^*(E27; GF(3)),
         represented by
         [2 0 2 1]
@@ -389,14 +390,14 @@ cdef class COCH(RingElement):
 
         sage: C*D
         (first)*(second): 4-Cocycle in H^*(E27; GF(3))
-        sage: print H.resolution()
+        sage: print(H.resolution())
         Resolution:
         0 <- GF(3) <- GF(3)[E27] <- rank 2 <- rank 4 <- rank 6 <- rank 7
         sage: E = C^2
         sage: E = C^2+D*C*2
         sage: E
         (first)**2+((second)*(first))*2: 4-Cocycle in H^*(E27; GF(3))
-        sage: print E
+        sage: print(E)
         4-Cocycle in H^*(E27; GF(3)),
         represented by
         [2 2 0 1 0 0 2]
@@ -405,11 +406,11 @@ cdef class COCH(RingElement):
 
         sage: X = COCH(H,3,'X',(1,1,1,0,0,0))
         sage: Y = COCH(H,3,'Y',(0,0,0,1,1,1))
-        sage: print X*Y
+        sage: print(X*Y)
         6-Cocycle in H^*(E27; GF(3)),
         represented by
         [2 1 1 0 0 0 0 0 0]
-        sage: print Y*X
+        sage: print(Y*X)
         6-Cocycle in H^*(E27; GF(3)),
         represented by
         [1 2 2 0 0 0 0 0 0]
@@ -593,7 +594,7 @@ cdef class COCH(RingElement):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C = H.2+H.3
-            sage: print C # indirect doctest
+            sage: print(C) # indirect doctest
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
@@ -748,7 +749,7 @@ cdef class COCH(RingElement):
         Note that the needed terms of the resolution are automatically
         computed::
 
-            sage: print C.resolution()
+            sage: print(C.resolution())
             Resolution:
             0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3
             sage: C.resolution() is H.resolution()
@@ -793,7 +794,7 @@ cdef class COCH(RingElement):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C=H.2*H.1
-            sage: print C.MTX()
+            sage: print(C.MTX())
             [0 0 1 0]
 
         """
@@ -849,7 +850,7 @@ cdef class COCH(RingElement):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C=H.2*H.1
-            sage: print C.name()
+            sage: print(C.name())
             (b_1_0)*(c_2_2)
             sage: H(C.name()) == C
             True
@@ -859,7 +860,7 @@ cdef class COCH(RingElement):
 
             sage: (C*2).name()
             '((b_1_0)*(c_2_2))*0'
-            sage: print C*2
+            sage: print(C*2)
             3-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 0 0 0]
@@ -985,7 +986,7 @@ cdef class COCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Small Group number 3 of order 16 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -1185,17 +1186,17 @@ cdef class COCH(RingElement):
             1
             sage: H.1>H.2         # indirect doctest
             True
-            sage: print H.2*H.3
+            sage: print(H.2*H.3)
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 0 0]
             sage: H.2*H.3 == H.1*0
             True
-            sage: print H.2*H.2
+            sage: print(H.2*H.2)
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 0]
-            sage: print H.3*H.3
+            sage: print(H.3*H.3)
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 1 0]
@@ -1311,7 +1312,7 @@ cdef class COCH(RingElement):
             IndexError: cochains must be of the same degree
             sage: H.2+H.3        # indirect doctest
             b_1_0+b_1_1: 1-Cocycle in H^*(D8; GF(2))
-            sage: print H.3+H.2
+            sage: print(H.3+H.2)
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
@@ -1324,7 +1325,7 @@ cdef class COCH(RingElement):
             <type 'pGroupCohomology.cochain.COCH'>
             sage: type(X.4.as_cocycle_in_sylow())
             <class 'pGroupCohomology.cochain.MODCOCH'>
-            sage: print X.sylow_cohomology()('c_2_5*b_1_1')+X.4.as_cocycle_in_sylow()
+            sage: print(X.sylow_cohomology()('c_2_5*b_1_1')+X.4.as_cocycle_in_sylow())
             c_2_5*b_1_1+(c_2_5*b_1_1): 3-Cocycle in H^*(D8xC2; GF(2))
             defined by
             0
@@ -1367,7 +1368,7 @@ cdef class COCH(RingElement):
             IndexError: cochains must be of the same degree
             sage: H.2-H.3   # indirect doctest
             b_1_0-(b_1_1): 1-Cocycle in H^*(D8; GF(2))
-            sage: print H.3+H.2
+            sage: print(H.3+H.2)
             1-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 1]
@@ -1404,13 +1405,13 @@ cdef class COCH(RingElement):
             sage: H.make()
             sage: - H.1    # indirect doctest
             (-(b_2_0)): 2-Cocycle in H^*(E27; GF(3))
-            sage: print H.1
+            sage: print(H.1)
             2-Cocycle in H^*(E27; GF(3)),
             represented by
             [1 0 0 0]
             rdeg = 0
             ydeg = 0
-            sage: print -H.1
+            sage: print(-H.1)
             2-Cocycle in H^*(E27; GF(3)),
             represented by
             [2 0 0 0]
@@ -1567,11 +1568,11 @@ cdef class COCH(RingElement):
             (b_2_1)*(b_2_2): 4-Cocycle in H^*(E27; GF(3))
             sage: H.2*H.3 == H.3*H.2
             True
-            sage: print H.7*H.9
+            sage: print(H.7*H.9)
             4-Cocycle in H^*(E27; GF(3)),
             represented by
             [1 2 1 0 0 0 0]
-            sage: print H.9*H.7
+            sage: print(H.9*H.7)
             4-Cocycle in H^*(E27; GF(3)),
             represented by
             [2 1 2 0 0 0 0]
@@ -1646,7 +1647,7 @@ cdef class COCH(RingElement):
             rk = R.Data.projrank[self.deg()]
             RK = R.Data.projrank[self.deg()+Cdeg]
             # CM2 should have rk*RK rows
-            # print 'Compose Chainmaps'
+            # print('Compose Chainmaps')
             for i from 0 <= i < rk: # loop through the rows of OUT
                 self_f = FfExtract(self.Data.Data.Data, i)
                 if self_f != FF_ZERO:
@@ -1672,13 +1673,13 @@ cdef class COCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
-            sage: print H.2
+            sage: print(H.2)
             2-Cocycle in H^*(E27; GF(3)),
             represented by
             [0 1 0 0]
             rdeg = 0
             ydeg = 0
-            sage: print H.2/2      # indirect doctest
+            sage: print(H.2/2)      # indirect doctest
             2-Cocycle in H^*(E27; GF(3)),
             represented by
             [0 2 0 0]
@@ -1711,7 +1712,7 @@ cdef class COCH(RingElement):
             sage: H.make()
             sage: H.3^4     # indirect doctest
             (b_1_1)**4: 4-Cocycle in H^*(D8; GF(2))
-            sage: print H.3^4
+            sage: print(H.3^4)
             4-Cocycle in H^*(D8; GF(2)),
             represented by
             [0 1 0 0 0]
@@ -1748,7 +1749,7 @@ cdef class COCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -1804,12 +1805,12 @@ cdef class COCH(RingElement):
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: C=2*H.1+H.2
-            sage: print C
+            sage: print(C)
             2-Cocycle in H^*(E27; GF(3)),
             represented by
             [2 1 0 0]
             sage: C.normalize()
-            sage: print C
+            sage: print(C)
             2-Cocycle in H^*(E27; GF(3)),
             represented by
             [1 2 0 0]
@@ -1889,7 +1890,7 @@ cdef class COCH(RingElement):
         power, as they are not nilpotent.
         ::
 
-            sage: print H.1.massey_power()
+            sage: print(H.1.massey_power())
             None
             sage: H.element_as_polynomial(H.3.massey_power())
             -c_2_1: 2-Cocycle in H^*(SmallGroup(9,2); GF(3))
@@ -2083,7 +2084,7 @@ class MODCOCH(RingElement):
         sage: H.make()
         sage: H.2
         c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
-        sage: print H('b_3_3*b_3_2+c_2_1^2*c_1_0^2')   #indirect doctest
+        sage: print(H('b_3_3*b_3_2+c_2_1^2*c_1_0^2'))   #indirect doctest
         (b_3_3)*(b_3_2)+(((c_2_1)^2)*((c_1_0)^2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
         defined by
         b_1_0^6+c_2_5^2*b_1_1^2+c_2_5^2*b_1_0^2+b_1_1^2*c_1_2^4+c_2_5^2*c_1_2^2+c_1_2^6
@@ -2225,7 +2226,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
-            sage: print H
+            sage: print(H)
             Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -2368,11 +2369,11 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
-            sage: print H.2     # indirect doctest
+            sage: print(H.2)     # indirect doctest
             c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
             b_1_1+b_1_0+c_1_2
-            sage: print H('b_3_2^2+b_3_2*b_3_3+c_2_1*c_1_0*b_3_2')
+            sage: print(H('b_3_2^2+b_3_2*b_3_3+c_2_1*c_1_0*b_3_2'))
             (b_3_2)^2+((b_3_2)*(b_3_3))+(((c_2_1)*(c_1_0))*(b_3_2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
             b_1_0^5*c_1_2+c_2_5*b_1_0^4+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0*c_1_2+b_1_0*c_1_2^5
@@ -2380,11 +2381,11 @@ class MODCOCH(RingElement):
         Note that, when printing the value that the element takes in a subgroup,
         it is not necessarily in normal form::
 
-            sage: print H.2*H.4
+            sage: print(H.2*H.4)
             (c_1_0)*(b_3_3): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
             c_2_5*b_1_1^2+c_2_5*b_1_0*b_1_1+c_2_5*b_1_1*c_1_2
-            sage: print (H.2*H.4)._NF_()
+            sage: print((H.2*H.4)._NF_())
             (c_1_0)*(b_3_3): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
             c_2_5*b_1_1^2+c_2_5*b_1_1*c_1_2
@@ -2518,19 +2519,19 @@ class MODCOCH(RingElement):
             sage: r = H.restriction_maps()[1][1]
             sage: r
             Induced homomorphism of degree 0 from H^*(SmallGroup(720,763); GF(2)) to H^*(SmallGroup(4,2); GF(2))
-            sage: print r(H.1)._NF_()
+            sage: print(r(H.1)._NF_())
             c_1_1^2+c_1_0^2: 2-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
             c_1_1^2+c_1_0^2
-            sage: print r(H.2)._NF_()
+            sage: print(r(H.2)._NF_())
             c_1_0: 1-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
             c_1_0
-            sage: print r(H.3)._NF_()
+            sage: print(r(H.3)._NF_())
             0: 3-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
             0
-            sage: print r(H.4)._NF_()
+            sage: print(r(H.4)._NF_())
             0: 3-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
             0
@@ -2556,11 +2557,11 @@ class MODCOCH(RingElement):
 
         Indeed, the last two generators are nilpotent::
 
-            sage: print H.3**2
+            sage: print(H.3**2)
             (a_3_0)^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(3))
             defined by
             0
-            sage: print H.4**2
+            sage: print(H.4**2)
             (a_7_1)^2: 14-Cocycle in H^*(SmallGroup(720,763); GF(3))
             defined by
             0
@@ -2821,7 +2822,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
-            sage: print H.6*H.8
+            sage: print(H.6*H.8)
             (a_7_1)*(a_15_3): 22-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             2*c_2_1^5*c_2_2^5*a_1_0*a_1_1
@@ -2831,7 +2832,7 @@ class MODCOCH(RingElement):
 
             sage: singular.quit()
             sage: CohomologyRing.global_options('info')
-            sage: print H.6*H.8   # indirect doctest
+            sage: print(H.6*H.8)   # indirect doctest
             H^*(SmallGroup(25,2); GF(5)):
                       Reconstructing data in the Singular interface
             (a_7_1)*(a_15_3): 22-Cocycle in H^*(SmallGroup(400,206); GF(5))
@@ -2960,11 +2961,11 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
-            sage: print H.2
+            sage: print(H.2)
             c_8_0: 8-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_2^4+c_2_1^4
-            sage: print -H.2 #indirect doctest
+            sage: print(-H.2) #indirect doctest
             -(c_8_0): 8-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             -c_2_2^4-c_2_1^4
@@ -2997,11 +2998,11 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
-            sage: print H.2
+            sage: print(H.2)
             c_8_0: 8-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_2^4+c_2_1^4
-            sage: print H.2^3   # indirect doctest
+            sage: print(H.2^3)   # indirect doctest
             (c_8_0)^3: 24-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_2^12-2*c_2_1^4*c_2_2^8-2*c_2_1^8*c_2_2^4+c_2_1^12
@@ -3055,14 +3056,14 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
-            sage: print X.3+X.4 #indirect doctest
+            sage: print(X.3+X.4) #indirect doctest
             b_3_2+(b_3_3): 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
             b_1_0^2*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_0*c_1_2^2
 
         It is possible to add :class:`MODCOCH` with :class:`COCH`::
 
-            sage: print X.4.as_cocycle_in_sylow()+X.sylow_cohomology()('c_2_5*b_1_1') #indirect doctest
+            sage: print(X.4.as_cocycle_in_sylow()+X.sylow_cohomology()('c_2_5*b_1_1')) #indirect doctest
             c_2_5*b_1_1+(c_2_5*b_1_1): 3-Cocycle in H^*(D8xC2; GF(2))
             defined by
             0
@@ -3104,15 +3105,15 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
-            sage: print H.5
+            sage: print(H.5)
             a_7_0: 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_2^3*a_1_1+c_2_1^3*a_1_0
-            sage: print H.6
+            sage: print(H.6)
             a_7_1: 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_1*c_2_2^2*a_1_0-c_2_1^2*c_2_2*a_1_1
-            sage: print H.5-H.6 #indirect doctest
+            sage: print(H.5-H.6) #indirect doctest
             a_7_0-(a_7_1): 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_2^3*a_1_1-c_2_1*c_2_2^2*a_1_0+c_2_1^2*c_2_2*a_1_1+c_2_1^3*a_1_0
@@ -3190,23 +3191,23 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
-            sage: print H.5
+            sage: print(H.5)
             a_7_0: 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_2^3*a_1_1+c_2_1^3*a_1_0
-            sage: print H.6
+            sage: print(H.6)
             a_7_1: 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_1*c_2_2^2*a_1_0-c_2_1^2*c_2_2*a_1_1
-            sage: print H.5*H.6 #indirect doctest
+            sage: print(H.5*H.6) #indirect doctest
             (a_7_0)*(a_7_1): 14-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             -c_2_1*c_2_2^5*a_1_0*a_1_1-c_2_1^5*c_2_2*a_1_0*a_1_1
-            sage: print 3*H.5 #indirect doctest
+            sage: print(3*H.5) #indirect doctest
             (a_7_0)*(3): 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             -2*c_2_2^3*a_1_1-2*c_2_1^3*a_1_0
-            sage: print H.6*3 #indirect doctest
+            sage: print(H.6*3) #indirect doctest
             (a_7_1)*(3): 7-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             -2*c_2_1*c_2_2^2*a_1_0+2*c_2_1^2*c_2_2*a_1_1
@@ -3250,11 +3251,11 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
-            sage: print H.1
+            sage: print(H.1)
             a_6_0: 6-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_1*c_2_2*a_1_0*a_1_1
-            sage: print H.1/3 #indirect doctest
+            sage: print(H.1/3) #indirect doctest
             (a_6_0)/(3): 6-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             2*c_2_1*c_2_2*a_1_0*a_1_1
@@ -3771,7 +3772,7 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: c = H.2*H.3*H.1
-            sage: print c
+            sage: print(c)
             ((c_8_0)*(c_16_1))*(a_6_0): 30-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_1^3*c_2_2^11*a_1_0*a_1_1-c_2_1^11*c_2_2^3*a_1_0*a_1_1
@@ -3831,7 +3832,7 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: c = H.2*H.3*H.1
-            sage: print c
+            sage: print(c)
             ((c_8_0)*(c_16_1))*(a_6_0): 30-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             c_2_1^3*c_2_2^11*a_1_0*a_1_1-c_2_1^11*c_2_2^3*a_1_0*a_1_1
@@ -4181,17 +4182,17 @@ cdef class YCOCH:
             sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
             sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
-            sage: print Y[0]   # indirect doctest
+            sage: print(Y[0])   # indirect doctest
             [1 0 1 0 1 0 1 0]
             [1 0 1 0 1 0 1 0]
-            sage: print Y[1]
+            sage: print(Y[1])
             [0 1 1 0 0 1 1 0]
             [1 1 0 0 1 1 0 0]
             [1 0 1 0 1 0 1 0]
             [0 1 1 0 0 1 1 0]
             [1 1 0 0 1 1 0 0]
             [1 0 1 0 1 0 1 0]
-            sage: print Y[2]
+            sage: print(Y[2])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 1 0 0 0 0 0 0]
@@ -4249,7 +4250,7 @@ cdef class YCOCH:
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y = YCOCH(H.resolution(),2,H.resolution().CochainToChainmap(2,H.1.MTX())[2])
-            sage: print Y.resolution()
+            sage: print(Y.resolution())
             Resolution:
             0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3 <- rank 4
 
@@ -4367,11 +4368,11 @@ cdef class YCOCH:
             sage: YC = Y.coboundary()
             sage: YC
             Yoneda 2-cochain on a resolution of GF(2)[D8]
-            sage: print YC[0]
+            sage: print(YC[0])
             [0 1 1 1 0 0 0 1]
             [0 1 1 1 1 1 1 0]
             [0 1 1 0 0 0 1 1]
-            sage: print YC[1]
+            sage: print(YC[1])
             [0 0 0 0 1 0 0 0]
             [0 1 0 0 0 0 0 0]
             [0 0 1 0 0 0 0 0]
@@ -4380,7 +4381,7 @@ cdef class YCOCH:
             [0 1 0 0 0 0 0 0]
             [0 0 1 0 0 0 0 0]
             [0 0 0 0 0 1 0 0]
-            sage: print YC[2]
+            sage: print(YC[2])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4400,12 +4401,12 @@ cdef class YCOCH:
         The coboundary of the coboundary vanishes::
 
             sage: YCC = YC.coboundary()
-            sage: print YCC[0]
+            sage: print(YCC[0])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print YCC[1]
+            sage: print(YCC[1])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4469,22 +4470,22 @@ cdef class YCOCH:
 
         Indeed, the pairwise differences are no coboundaries::
 
-            sage: print C1[0]
+            sage: print(C1[0])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print C2[0]
+            sage: print(C2[0])
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
-            sage: print C3[0]
+            sage: print(C3[0])
             [0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
-            sage: print C4[0]
+            sage: print(C4[0])
             [1 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
 
         But the coboundary of ``C1,...,C4`` is ``Y12``::
 
-            sage: print C1.coboundary()[1]
+            sage: print(C1.coboundary()[1])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4606,7 +4607,7 @@ cdef class YCOCH:
             True
             sage: Y[3] == - (X[3])
             True
-            sage: print Y[2]
+            sage: print(Y[2])
             [2 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
@@ -4622,7 +4623,7 @@ cdef class YCOCH:
             [0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
-            sage: print Y[1]
+            sage: print(Y[1])
             [2 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0]
@@ -4653,7 +4654,7 @@ cdef class YCOCH:
             True
             sage: D[2] == Y[2]-X[2]
             True
-            sage: print D[1]
+            sage: print(D[1])
             [1 0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0 0]
             [0 1 0 0 0 0 0 0 0]
@@ -4686,7 +4687,7 @@ cdef class YCOCH:
             True
             sage: D[2] == Y[2]+X[2]
             True
-            sage: print D[1]
+            sage: print(D[1])
             [1 0 0 0 0 0 0 0 0]
             [2 0 0 0 0 0 0 0 0]
             [0 2 0 0 0 0 0 0 0]
@@ -4719,7 +4720,7 @@ cdef class YCOCH:
             sage: Y2 = Y*Y   # indirect doctest
             sage: Y2
             Yoneda 2-cochain on a resolution of GF(2)[D8], defined as a product
-            sage: print Y2[0]
+            sage: print(Y2[0])
             [1 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4771,7 +4772,7 @@ cdef class YCOCH:
         that has not been computed yet (e.g., ``YC[2]``) then lifting is done automatically.
         ::
 
-            sage: print YC[2]
+            sage: print(YC[2])
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -4928,7 +4929,7 @@ class CohomologyHomset(RingHomset_generic):
     rings of the subgroups::
 
         sage: for f in ResG:
-        ....:     print [f.codomain().element_as_polynomial(f(X)).name() for X in H.gens()[1:]]
+        ....:     print([f.codomain().element_as_polynomial(f(X)).name() for X in H.gens()[1:]])
         ['c_1_0^2', '0', '0']
         ['0', 'c_1_0', '0']
         ['c_1_0^2', 'c_1_0', 'c_1_0']
@@ -5108,10 +5109,10 @@ class CohomologyHomset(RingHomset_generic):
                     GAP.eval(command)
                     # The following warning occurs when computing the mod-3 cohomology of SmallGroup(44100,1)
                     if not os.path.exists(IStem+'.ima'):
-                        print "WARNING"
-                        print "   ",command
-                        print "did not result in a file"
-                        print "If this persists, hit <Ctrl-c> and inform the author"
+                        print("WARNING")
+                        print("   ",command)
+                        print("did not result in a file")
+                        print("If this persists, hit <Ctrl-c> and inform the author")
                     else:
                         break
                 GMap = MTX(IStem+'.ima')
@@ -5120,7 +5121,7 @@ class CohomologyHomset(RingHomset_generic):
                 GMap.set_immutable()
                 GMapmutable = False
             else:
-                raise TypeError, "First argument must be an MTX matrix or some data defined in Gap"
+                raise TypeError("First argument must be an MTX matrix or some data defined in Gap")
         try:
             OUT = self._cache[GMap,H0Map,d]
         except KeyError:
@@ -5294,7 +5295,7 @@ cdef class ChMap(RingHomomorphism):
         H^*(DihedralGroup(8); GF(2))
         sage: phi_star.codomain()
         H^*(D8; GF(2))
-        sage: print [H1.element_as_polynomial(phi_star(X)) for X in H2.gens()]
+        sage: print([H1.element_as_polynomial(phi_star(X)) for X in H2.gens()])
         [1: 0-Cocycle in H^*(D8; GF(2)), b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)), b_1_1+b_1_0: 1-Cocycle in H^*(D8; GF(2)), b_1_0: 1-Cocycle in H^*(D8; GF(2))]
 
     Similarly, we get the induced map of the inverse map::
@@ -5304,7 +5305,7 @@ cdef class ChMap(RingHomomorphism):
         sage: Gens = Rng.GeneratorsOfGroup()
         sage: phi_inv = Rng.GroupHomomorphismByImages(Src, Gens, [phi.PreImagesRepresentative(g) for g in Gens])
         sage: phi_star_inv = H1.hom(phi_inv,H2)
-        sage: print [H2.element_as_polynomial(phi_star_inv(X)) for X in H1.gens()]
+        sage: print([H2.element_as_polynomial(phi_star_inv(X)) for X in H1.gens()])
         [1: 0-Cocycle in H^*(DihedralGroup(8); GF(2)), b_1_0*b_1_1+c_2_2: 2-Cocycle in H^*(DihedralGroup(8); GF(2)), b_1_1: 1-Cocycle in H^*(DihedralGroup(8); GF(2)), b_1_1+b_1_0: 1-Cocycle in H^*(DihedralGroup(8); GF(2))]
 
     One can compose induced maps by multiplication respectively by applying one map to the other.
@@ -5542,12 +5543,12 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star    # indirect doctest
+            sage: print(phi_star)    # indirect doctest
             Induced homomorphism of degree 0 from H^*(DihedralGroup(8); GF(2)) to H^*(D8; GF(2))
             defined by
             [1 0 0 0 0 0 0 0]
             sage: phi_star.set_name('phi^*')
-            sage: print phi_star
+            sage: print(phi_star)
             phi^*
             defined by
             [1 0 0 0 0 0 0 0]
@@ -5675,11 +5676,11 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star(H2.1)
+            sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 1]
-            sage: print phi_star.__getitem_name__(1)
+            sage: print(phi_star.__getitem_name__(1))
             [1 0 0 0 0 0 0 0]
             [1 1 1 1 1 1 0 0]
             [1 0 0 0 0 0 0 0]
@@ -5736,7 +5737,7 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star.src()
+            sage: print(phi_star.src())
             Resolution:
             0 <- GF(2) <- GF(2)[D8] <- rank 2 <- rank 3 <- rank 4
             sage: phi_star.src() is phi_star.codomain().resolution()
@@ -5771,7 +5772,7 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star.tgt()
+            sage: print(phi_star.tgt())
             Resolution:
             0 <- GF(2) <- GF(2)[DihedralGroup(8)] <- rank 2 <- rank 3 <- rank 4
             sage: phi_star.tgt() is phi_star.domain().resolution()
@@ -5816,7 +5817,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi.IsSurjective()
             true
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star.G_map()
+            sage: print(phi_star.G_map())
             [1 0 0 0 0 0 0 0]
             [0 1 1 1 1 1 1 1]
             [0 1 0 0 1 1 0 0]
@@ -5900,7 +5901,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star.knownDeg()
             0
-            sage: print phi_star(H2.1)
+            sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 1]
@@ -6008,11 +6009,11 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star(H2.1)
+            sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 1]
-            sage: print phi_star.__getitem_name__(1)
+            sage: print(phi_star.__getitem_name__(1))
             [1 0 0 0 0 0 0 0]
             [1 1 1 1 1 1 0 0]
             [1 0 0 0 0 0 0 0]
@@ -6045,11 +6046,11 @@ cdef class ChMap(RingHomomorphism):
             sage: H2.make()
             sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
-            sage: print phi_star(H2.1)
+            sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 1]
-            sage: print phi_star[1] # indirect doctest
+            sage: print(phi_star[1]) # indirect doctest
             [1 0 0 0 0 0 0 0]
             [1 1 1 1 1 1 0 0]
             [1 0 0 0 0 0 0 0]
@@ -6058,7 +6059,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi_star.exportData(f)
             sage: phi_star.__getitem_name__(1) == f+'1'
             True
-            sage: print phi_star[1] # indirect doctest
+            sage: print(phi_star[1]) # indirect doctest
             [1 0 0 0 0 0 0 0]
             [1 1 1 1 1 1 0 0]
             [1 0 0 0 0 0 0 0]
@@ -6210,7 +6211,7 @@ cdef class ChMap(RingHomomorphism):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: f = H.2.right_multiplication()
-            sage: print f.apply_to_chain(1, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]))
+            sage: print(f.apply_to_chain(1, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]])))
             [0 1 0 1 0 1 0 1]
 
         """
@@ -6536,11 +6537,11 @@ cdef class ChMap(RingHomomorphism):
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star.lift()
             sage: phi_star.lift()
-            sage: print phi_star((2,2))   #indirect doctest
+            sage: print(phi_star((2,2)))   #indirect doctest
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 1]
-            sage: print phi_star(H2.1)
+            sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
             represented by
             [1 0 1]
@@ -6696,11 +6697,11 @@ cdef class ChMap(RingHomomorphism):
         coho_logger.debug('> use Urbild Groebner basis', self)
         self.Tgt.load_ugb(d)
         if (self.Tgt.nRgs.ngs.r!=rk_1) or (self.Tgt.nRgs.ngs.s != rk):
-            print "Tgt.nRgs.r =", self.Tgt.nRgs.ngs.r
-            print rk_1
-            print "Tgt.nRgs.s =", self.Tgt.nRgs.ngs.s
-            print rk
-            raise ArithmeticError, "Theoretical error"
+            print("Tgt.nRgs.r =", self.Tgt.nRgs.ngs.r)
+            print(rk_1)
+            print("Tgt.nRgs.s =", self.Tgt.nRgs.ngs.s)
+            print(rk)
+            raise ArithmeticError("Theoretical error")
         sig_on()
         innerPreimages(self.Tgt.nRgs, Compos.Data.Data, RK, self.Tgt.G_Alg.Data, OUT.Data.Data)
         sig_off()
