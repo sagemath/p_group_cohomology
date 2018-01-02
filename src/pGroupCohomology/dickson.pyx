@@ -147,13 +147,13 @@ class DICKSON:
 
         """
         if not ((isinstance(n,int) or isinstance(n,Integer)) and (isinstance(s,int) or isinstance(n,Integer))):
-            raise TypeError, "Arguments must be integers"
+            raise TypeError("Arguments must be integers")
         if (n<1):
-            raise TypeError, "The first argument must be at least 1"
+            raise ValueError("The first argument must be at least 1")
         if (s<0):
-            raise ValueError, "The second argument must be non-negative"
+            raise ValueError("The second argument must be non-negative")
         if s>n:
-            raise ValueError, "Second argument must not exceed the first argument"
+            raise ValueError("Second argument must not exceed the first argument")
         if self._cache_.has_key((n,s)):
             return self._cache_[(n,s)]
         if n>1:
@@ -201,9 +201,9 @@ class DICKSON:
 
         """
         if k>P.ngens():
-            raise ValueError, "The first argument must not exceed the number of generators of the second argument"
+            raise ValueError("The first argument must not exceed the number of generators of the second argument")
         if self.K != P.base_ring():
-            raise ValueError, "The base ring of the second argument does not match %s over which self is defined"%self.K
+            raise ValueError("The base ring of the second argument does not match %s over which self is defined"%self.K)
         if k==1:
             return P.gen(0)
         p = P.characteristic()

@@ -373,7 +373,7 @@ def pickle_gap_data(G):
             if G == G.parent()(repr(G)):
                 return GapPickler(repr(G))
         except:
-            raise TypeError, "Can not pickle '%s'"%G
+            raise TypeError("Can not pickle '%s'"%G)
     if isinstance(G, SingularElement):
         # In previous Sage versions, most Singular elements pickled
         # as invalid objects. Our spkg could deal with these invalid
@@ -426,9 +426,9 @@ def FilterDegreeType(dv, rt):
     """
     cdef int i,j
     if not (isinstance(dv,list) and isinstance(rt,list)):
-        raise TypeError, "arguments must be lists of integers"
+        raise TypeError("arguments must be lists of integers")
     if not (len(rt)==len(dv)+1):
-        raise TypeError, "length of second arguments must be length of first argument plus one"
+        raise ValuError("length of second arguments must be length of first argument plus one")
     # start with the smallest possible sequence
     ft = [-k for k in range(1,len(rt)+1)]
     i = 0
@@ -892,7 +892,7 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
     Field = imC.Data.Data.Field
     cdef Matrix_t *Images = MatAlloc(Field, len(Cochains)+1, LongRowSize*MPB)
     if Images == NULL:
-        raise MemoryError, "Error allocating a matrix"
+        raise MemoryError("Error allocating a matrix")
     cdef PTR col_head
     cdef PTR p_imC = Images.Data
     # Create matrix given by the images
@@ -1573,7 +1573,7 @@ class permanent_result(object):
             if inst.completed:
                 val.pop(-1)
             else:
-                raise KeyError, "The saved data were not permanent"
+                raise KeyError("The saved data were not permanent")
         if len(val)==1:
             return val[0]
         # The value is defined in some interface. Test if it is valid
@@ -1655,7 +1655,7 @@ class permanent_result(object):
         """
         inst = self._inst() if self._inst is not None else None
         if inst is None:
-            raise ValueError, '%s instance can not be called unboundedly'%repr(self.__class__)
+            raise ValueError('%s instance can not be called unboundedly'%repr(self.__class__))
         if kwds.get('forced'):
             del kwds['forced']
             coho_logger.info('Forced recomputation of %s', inst, self._name)
@@ -1869,7 +1869,7 @@ class temporary_result(permanent_result):
             return
         val = inst._decorator_cache[key]
         if val[-1] != inst.last_interesting_degree():
-            raise KeyError, 'The saved data belong to a previous stage of the computation'
+            raise KeyError('The saved data belong to a previous stage of the computation')
         if len(val)==2:
             return val[0]
         # The value is defined in some interface. Test if it is valid
@@ -2679,7 +2679,7 @@ class COHO(Ring):
         Hfinal = None
         if len(args) == 1:
             if not (hasattr(args[0],'parent') and repr(args[0].parent())=='Gap'):
-                raise ValueError, "The group must be given in the gap interface"
+                raise ValueError("The group must be given in the gap interface")
             gap = args[0].parent()
         else:
             from pGroupCohomology.resolution import gap
@@ -2690,11 +2690,11 @@ class COHO(Ring):
             q = Integer(q)
             n = Integer(n)
             if q == 1:
-                raise ValueError, "We don't consider the trivial group"
+                raise ValueError("We don't consider the trivial group")
             if (n<0) or (n<=0 and q>0): #(0,0) is for eating very old pickles...
-                raise ValueError, "SmallGroup number must be positive"
+                raise ValueError("SmallGroup number must be positive")
             if (q>0) and (n > Integer(gap.eval('NumberSmallGroups(%d)'%q))): # will raise another error if SmallGroups is not installed
-                raise ValueError, "(%d,%d) is not in the SmallGroups library"%(q,n)
+                raise ValueError("(%d,%d) is not in the SmallGroups library"%(q,n))
 
             ####
             ## make up (stem) name and unique group key
@@ -2733,7 +2733,7 @@ class COHO(Ring):
             else:
                 H0 = args[0]
                 if not hasattr(H0,'parent'):
-                    raise TypeError, "We expected a group defined in Gap"
+                    raise TypeError("We expected a group defined in Gap")
                 GAP = H0.parent()
                 _gap_init(GAP)
 
@@ -2746,9 +2746,9 @@ class COHO(Ring):
                 GroupName = kwds.get('GroupName', GroupName)
                 GStem = kwds.get('GStem', GroupName)
                 if (GStem is None):
-                    raise ValueError, "Either 'GroupName' or 'GStem' must be provided"
+                    raise ValueError("Either 'GroupName' or 'GStem' must be provided")
                 if not (isinstance(GStem, basestring) and GStem.isalnum()):
-                    raise TypeError, "'GroupName' must be an alphanumeric string"
+                    raise TypeError("'GroupName' must be an alphanumeric string")
                 if GroupName is None:
                     GroupName = GStem
 
@@ -2760,7 +2760,7 @@ class COHO(Ring):
                 #   3. transform into permutation group
                 q = Integer(GAP.eval('Order(%s)'%(H0.name())))
                 if not q.is_prime_power():
-                    raise ValueError, "The group must be of prime power order"
+                    raise ValueError("The group must be of prime power order")
                 n = -1
 
                 ## Try to make up minimal generators
@@ -2784,10 +2784,10 @@ class COHO(Ring):
                         GroupKey = 'Group('+repr(Hfinal.GeneratorsOfGroup())+')'
                     GroupKey = ''.join([t.strip() for t in GroupKey.split()])
         else:
-            raise TypeError, "COHO initialisation requires between 0 and 2 arguments (%d given)"%(len(args))
+            raise TypeError("COHO initialisation requires between 0 and 2 arguments (%d given)"%(len(args)))
 
         if not isinstance(GStem, basestring):
-            raise TypeError, "Group stem name must be a string"
+            raise TypeError("Group stem name must be a string")
 
         self.GenS = singular(0)
         singular.eval('option(redSB,redTail,redThrough)')
@@ -2798,7 +2798,7 @@ class COHO(Ring):
             self.completed = False
             return
         if not ((q>0) and Integer(q).is_prime_power()):
-            raise TypeError, "The group order must be a prime power"
+            raise ValueError("The group order must be a prime power")
 
         ##################################
         ##################################
@@ -2832,7 +2832,7 @@ class COHO(Ring):
         # store the key for this ring and insert itself to the cache
         if kwds.has_key('key'):
             if not kwds['key'][1].startswith(self.dat_folder):
-                raise ValueError, 'Invalid location %s of State descriptor'%(kwds['key'][1])
+                raise ValueError('Invalid location %s of State descriptor'%(kwds['key'][1]))
             self.setprop('_key', kwds['key'])
         else:
             self.setprop('_key', (GroupKey, os.path.join(self.dat_folder,'State')))
@@ -2852,7 +2852,7 @@ class COHO(Ring):
         if Hfinal is None:
             if not os.access(os.path.join(self.gps_folder,GStem+'.nontips'),os.R_OK):
                 if q==1:
-                    raise ValueError, "The group data for %s are not present in folder %s, and we don't know how to create them"%(GStem,gps_folder)
+                    raise ValueError("The group data for %s are not present in folder %s, and we don't know how to create them"%(GStem,gps_folder))
                 makeGroupData(q,n,folder=root)
         else:
             makeSpecialGroupData(Hfinal,GStem,folder=root)
@@ -2989,7 +2989,7 @@ class COHO(Ring):
             if s.parent() is self:
                 return s
             else:
-                raise TypeError, "Cochain belongs to a different cohomology ring, namely %s"%(repr(s.parent()))
+                raise ValueError("Cochain belongs to a different cohomology ring, namely %s"%(repr(s.parent())))
         try:
             s = self.base_ring()(s)
         except TypeError:
@@ -2998,7 +2998,7 @@ class COHO(Ring):
             # The following is necessary, since by some oddity the above might
             # return a tuple of an error with an error message!
             if not s in self.base_ring():
-                raise TypeError, "We don't know how to interprete %s"%(s)
+                raise TypeError("We don't know how to interprete %s"%(s))
             if isinstance(self, MODCOHO):
                 return MODCOCH(self, singular(s), deg=0, name=repr(s), S=singular, is_polyrep=True)
             return COCH(self, 0, repr(s), [s], is_polyrep=True)
@@ -3088,7 +3088,7 @@ class COHO(Ring):
 
         """
         if not isinstance(other, COHO):
-            raise TypeError, "The codomain must be %s, not %s"%(type(COHO),type(other))
+            raise TypeError("The codomain must be %s, not %s"%(type(COHO),type(other)))
         try:
             return self._HomsetCache[other._key, category]
         except KeyError:
@@ -3506,7 +3506,7 @@ class COHO(Ring):
         elif len(s)==35:
             RestrMaps,degvec,CElPos,CenterRk,gps_folder,Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,lastRel,MaxelPos,MaxelRk,pRank,knownDeg,RelG,Gen,StdMon,NilBasis,SingularTime,completed,Monomials,suffDeg,Automatic,RelGName,NumSubgps,GStem,Resl,firstOdd,DG,Dickson,alpha, Dict, cache = s
         else:
-            raise ValueError, "wrong number of arguments"
+            raise ValueError("wrong number of arguments")
         opts = dict(coho_options)
         coho_options['autolift']=False
         coho_options['save']=False
@@ -3582,7 +3582,7 @@ class COHO(Ring):
                     else:
                         self.Resl = load(os.path.join(root,Resl+'.sobj'))  # realpath here?
                 except (OSError, IOError, RuntimeError):
-                    raise IOError, "Unable to read resolution saved at "+os.path.join(root,Resl)
+                    raise IOError("Unable to read resolution saved at "+os.path.join(root,Resl))
                 try:
                     del coho_options['@newroot@']
                 except KeyError:
@@ -3677,7 +3677,7 @@ class COHO(Ring):
                 if singular.eval('typeof(i)')!='int':
                     coho_options.clear()
                     coho_options.update(opts)
-                    raise RuntimeError, "Singular has defined that i is not an integer - but we need i as integer!"
+                    raise RuntimeError("Singular has defined that i is not an integer - but we need i as integer!")
             if Gen:
                 if self._property_dict.get('use_dp'):
                     if len(self.degvec)==1:
@@ -3951,7 +3951,7 @@ class COHO(Ring):
                         VSGen[j]=0
                     else: ## We found a relation in degree n -- this must not happen,
                           ## since we assume that the ring structure is known out to degree at least n
-                        raise RuntimeError, "We found an unexpected relation %s for %r"%(Cand.Name, self)
+                        raise RuntimeError("We found an unexpected relation %s for %r"%(Cand.Name, self))
         singular.eval('kill %sDGtmp'%self.prefix)
         self.Triangular[n] = DecGen
         return DecGen
@@ -4577,7 +4577,7 @@ Minimal list of algebraic relations:
         # file and hence the ring data are located!
         import os
         if key == '_default_filename': # This ought to be a *proper* attribute, no fake attribute!
-            raise AttributeError, "'pGroupCohomology.cohomology.COHO' object has no attribute '_default_filename'"
+            raise AttributeError("'pGroupCohomology.cohomology.COHO' object has no attribute '_default_filename'")
         if key == '__members__':
             return self._property_dict.keys()
         if self._property_dict.get('_need_new_root'):
@@ -4631,9 +4631,9 @@ Minimal list of algebraic relations:
             return self._property_dict[key]
         except KeyError:
             if key[0]==key[-1]=='_':
-                raise AttributeError, "'COHO' object has no attribute '%s'"%(key)
+                raise AttributeError("'COHO' object has no attribute '%s'"%(key))
             if key.startswith('_cached'):
-                raise AttributeError, "'COHO' object has no attribute '%s'"%(key)
+                raise AttributeError("'COHO' object has no attribute '%s'"%(key))
             return None
 
     def delprop(self,key):
@@ -5303,7 +5303,7 @@ Minimal list of algebraic relations:
 
         """
         if not self.completed:
-            raise RuntimeError, "The ring structure may be incomplete"
+            raise RuntimeError("The ring structure may be incomplete")
         selfS = singular(self)
         selfS.set_ring()
         gap = self.group().parent()
@@ -5567,7 +5567,7 @@ Minimal list of algebraic relations:
         from pGroupCohomology.cochain import MODCOCH
         if isinstance(x,COCH) or isinstance(x,MODCOCH):
             if not (x.parent() is self):
-                raise TypeError, "The cocycle belongs to a different cohomology ring"
+                raise ValueError("The cocycle belongs to a different cohomology ring")
             L=[str2html(str(singular.eval(x.name())))]
             if x.rdeg():
                 L.append(', a Duflot ')
@@ -6635,9 +6635,9 @@ Minimal list of algebraic relations:
 
         """
         if not (isinstance(n, int) or isinstance(n,Integer)):
-            raise TypeError, "degree (first argument) must be an integer"
+            raise TypeError("degree (first argument) must be an integer")
         if not (isinstance(s,str)):
-            raise TypeError, "second argument must be a string"
+            raise TypeError("second argument must be a string")
         coho_logger.info( "Determine degree %d standard monomials",self, n)
         try:
             self.StdMon[0]['1']._check_valid()
@@ -6798,7 +6798,7 @@ Minimal list of algebraic relations:
         if n==0:
             return ['1']
         if (n>self.knownDeg) and not self.completed:
-            raise ValueError, "The cohomology ring is not known out to degree %d"%n
+            raise ValueError("The cohomology ring is not known out to degree %d"%n)
         if not self.Gen:
             return []
         self.set_ring()
@@ -6817,7 +6817,7 @@ Minimal list of algebraic relations:
                 if Monomials == ['0']:
                     Monomials = []
                 if not Monomials:
-                    raise RuntimeError, "The cohomology of a prime power group must have standard monomials in degree %d, but there were none found"%n
+                    raise RuntimeError("The cohomology of a prime power group must have standard monomials in degree %d, but there were none found"%n)
         Monomials.reverse()
         return Monomials
 
@@ -6872,7 +6872,7 @@ Minimal list of algebraic relations:
         from pGroupCohomology.cochain import MODCOCH
         if isinstance(c,MODCOCH):
             if c.parent() is not self:
-                raise ValueError, "The given cochain does not belong to "+repr(self)
+                raise ValueError("The given cochain does not belong to "+repr(self))
             ## the group is a p-group, hence, c._Svalue belongs to singular(self)
             c._NF_()
             c.setname(c.val_str(), is_polyrep=True)
@@ -6904,7 +6904,7 @@ Minimal list of algebraic relations:
             if j>=0:
                 pivot.append(j)
             else:
-                raise ArithmeticError, "One of the basis elements is zero"
+                raise ArithmeticError("One of the basis elements is zero")
         Cand = -C          # Cand is the negative of C...
         Cand.setname('0')  # ... and has the name '0'. We will subtract decomposable generators until
                            # the value of Cand is zero -- and then, its name is a polynomial expression
@@ -6923,7 +6923,7 @@ Minimal list of algebraic relations:
                         if j<0:
                             break
         if j>=0:
-            raise ArithmeticError, "The set of generators of %s in degree %d is incomplete"%(repr(self), n)
+            raise ArithmeticError("The set of generators of %s in degree %d is incomplete"%(repr(self), n))
         self.set_ring()
         C.setname(singular.eval(Cand.name()), is_polyrep=True)
         if not (br is None):
@@ -7061,7 +7061,7 @@ Minimal list of algebraic relations:
         """
         from pGroupCohomology import CohomologyRing
         if not ((isinstance(q,int) or isinstance(q,Integer)) and (isinstance(nr,int) or isinstance(nr,Integer)) and (isinstance(n,int) or isinstance(n,Integer))):
-            raise TypeError, "Subgroup and imbedding have to be defined by three integers"
+            raise TypeError("Subgroup and imbedding have to be defined by three integers")
         if self.subgps.has_key((q,nr)): # that isomorphism type is known
             M = MTX(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
             ch = self.hom(M, self.subgps[(q,nr)])
@@ -7497,7 +7497,7 @@ Minimal list of algebraic relations:
 
         """
         if not self.completed:
-            raise ValueError, "The cohomology computation is not complete, yet"
+            raise ValueError("The cohomology computation is not complete, yet")
         from sage.all import singular
         singular(self).set_ring()
         if self.NILRADICAL:
@@ -7785,17 +7785,17 @@ Minimal list of algebraic relations:
         cdef int p = self.Resl.coef()
         cdef MTX tmpM
         if not (isinstance(L,list) or isinstance(L,tuple)):
-            raise TypeError, "list or tuple expected"
+            raise TypeError("list or tuple expected")
         d = L[0][1].deg()
         for X in L:
             if not ((isinstance(X, list) or isinstance(X,tuple)) and (len(X)==2)):
-                raise TypeError, "argument must be a list/tuple of lists/tuple of length 2"
+                raise TypeError("argument must be a list/tuple of lists/tuple of length 2")
             if not ((isinstance(X[0],int) or isinstance(X[0],Integer)) and (isinstance(X[1],COCH))):
-                raise TypeError, "Pairs (integer, COCH) expected"
+                raise TypeError("Pairs (integer, COCH) expected")
             if not (X[1].deg()==d):
-                raise TypeError, "Cochains must all have the same degree"
+                raise TypeError("Cochains must all have the same degree")
             if not (self.RestrMaps[X[0]][1].src() is X[1].resolution()):
-                raise TypeError, "Cochain (2nd list element) must belong to the specified subgroup (1st list element)"
+                raise TypeError("Cochain (2nd list element) must belong to the specified subgroup (1st list element)")
         coho_logger.info("Simultaneously lifting subgroup cochains of degree %d", self, d)
         cdef int RK = self.Resl.rank(d)
         for X in L:
@@ -7941,7 +7941,7 @@ Minimal list of algebraic relations:
         else:
             t = len(self.subgps[id].Gen)/2 - z
         if t<0:
-            raise RuntimeError, "The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup"
+            raise RuntimeError("The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup")
         if t==0:
             return
         coho_logger.info("Computing Dickson invariants in elementary abelian subgroup of rank %d", self, t+z)
@@ -8764,7 +8764,7 @@ Minimal list of algebraic relations:
         restrictions = []
         par_res = self._parameter_restrictions(Par,radical=ch==2)
         if not par_res:
-            raise ValueError, "Par=%s does not need to be extended"%repr(Par)
+            raise ValueError("Par=%s does not need to be extended"%repr(Par))
         try:
             par_res[0][0]._check_valid()
         except ValueError:
@@ -8775,7 +8775,7 @@ Minimal list of algebraic relations:
                 raise ValueError("The input can not be extended to a hsop")
             restrictions.append((cod_s,phi_s,IR_s, IR_s.kbase(deg)))
         if not restrictions:
-            raise ValueError, "Par=%s does not need to be extended"%repr(Par)
+            raise ValueError("Par=%s does not need to be extended"%repr(Par))
         S = self.standard_monomials(deg)
         self_s = singular(self)
         self_s.set_ring()
@@ -9019,7 +9019,7 @@ Minimal list of algebraic relations:
         ParamSet = frozenset(Par[:-1])
 
         if (ParamSet,-1) in cache:
-            raise ValueError, "The input can not be extended to a hsop"
+            raise ValueError("The input can not be extended to a hsop")
 
         cdef int j,k, lenL
         # Some computational options
@@ -9045,7 +9045,7 @@ Minimal list of algebraic relations:
             for cod_s,phi_s,I_s in restrictions:
                 cod_s.set_ring()
                 if Integer(singular.eval('%s(%s)'%('dim' if p==2 else 'GKdim', I_s.name()))) > 1:
-                    raise ValueError, "The input can not be extended to a hsop"
+                    raise ValueError("The input can not be extended to a hsop")
 
             # Will the cohomology eventually be finite over a given ideal I in self_s
             def test_dim0(I):
@@ -9394,7 +9394,7 @@ Minimal list of algebraic relations:
             else:
                 s = str(singular("NF(%s,%sI)"%(s,self.prefix)))
         else:
-            raise TypeError, "Cochain expected"
+            raise TypeError("Cochain expected")
         singular.eval('degBound = '+dgb)
         if s=='0':
             br.set_ring()
@@ -9524,7 +9524,7 @@ Minimal list of algebraic relations:
             self.set_ring()
             poly = singular.poly(s)
         else:
-            raise TypeError, "Cochain expected"
+            raise TypeError("Cochain expected")
 
         cdef int BreakPoint = coho_options['NrCandidates']
         self.set_ring()
@@ -9920,7 +9920,7 @@ Minimal list of algebraic relations:
             singular.eval('int i')
         else:
             if singular.eval('typeof(i)')!='int':
-                raise RuntimeError, "Singular has defined that i is not an integer - but we need i as integer!"
+                raise RuntimeError("Singular has defined that i is not an integer - but we need i as integer!")
         if self.Gen:
             if self._property_dict.get('use_dp'):
                 if len(self.degvec)==1:
@@ -9959,7 +9959,7 @@ Minimal list of algebraic relations:
                 try:
                     g._Svalue = singular(g.val_str())
                 except:
-                    raise RuntimeError, "Sorry, the value in Singular of some generator could not be reconstructed"
+                    raise RuntimeError("Sorry, the value in Singular of some generator could not be reconstructed")
             for L in self.Triangular.values():
                 for x in L:
                     x._reconstruct_singular_(singular)
@@ -10013,9 +10013,9 @@ Minimal list of algebraic relations:
 
         """
         if not self.Gen:
-            raise ValueError, "We don't know any generator of %s yet"%repr(self)
+            raise ValueError("We don't know any generator of %s yet"%repr(self))
         if not (S is self.GenS.parent()):
-            raise TypeError, "This singular session is not the one which is used in %s"%(repr(self))
+            raise TypeError("This singular session is not the one which is used in %s"%(repr(self)))
         if hasattr(self,'_SINGULAR_'):
             R,d = self._SINGULAR_
             if d == self.last_interesting_degree():
@@ -10216,7 +10216,7 @@ Minimal list of algebraic relations:
 
         """
         if not self.completed:
-            raise ValueError, "The ring structure is not completely known yet"
+            raise ValueError("The ring structure is not completely known yet")
         # see if there is cached data
         for a,b in self._decorator_cache.iteritems():
             if a[0] == 'raw_filter_degree_type':
@@ -10325,7 +10325,7 @@ Minimal list of algebraic relations:
                 if isinstance(RAW,KeyboardInterrupt) or RAW is None:
                     P = self.filter_regular_parameters()
                     if isinstance(P,KeyboardInterrupt):
-                        raise RuntimeError,"Computation of filter regular parameters failed\n"+repr(P)
+                        raise RuntimeError("Computation of filter regular parameters failed\n"+repr(P))
                     RAW = self.raw_filter_degree_type(P)
                     if isinstance(RAW,KeyboardInterrupt):#RAW is NotImplemented:
                         coho_logger.warn('Computation of filter degree type was interrupted.', self)
@@ -10388,9 +10388,9 @@ Minimal list of algebraic relations:
         cdef int m,n
         RAW = self.raw_filter_degree_type(PAR)
         if not RAW:
-            raise RuntimeError, "The given parameters are not filter regular"
-        if isinstance(RAW,KeyboardInterrupt):#RAW is NotImplemented:
-            raise RAW #KeyboardInterrupt, 'raw_filter_degree_type was interrupted'
+            raise ValueError("The given parameters are not filter regular")
+        if isinstance(RAW,KeyboardInterrupt):
+            raise RAW
         rfdt, HV, ParDeg = RAW
         Expos = [1]*len(ParDeg)
         # H_m shall be H modulo the first m parameters
@@ -10633,7 +10633,7 @@ Minimal list of algebraic relations:
         OUT = PS/Xtra
         if test_duality and self._lower_bound_depth()==self.dimension(): # the poincare series has to satisfy Benson-Carlson duality
             if OUT(t.__invert__())!=(-t)**self.dimension()*OUT:
-                raise RuntimeError, "Theoretical Error: The cohomology ring is Cohen-Macaulay, but Benson-Carlson duality fails to hold."
+                raise RuntimeError("Theoretical Error: The cohomology ring is Cohen-Macaulay, but Benson-Carlson duality fails to hold.")
         if Xtra.leading_coefficient() < 0:
             return (-PS)/(-Xtra)
         return OUT
@@ -10948,12 +10948,12 @@ Minimal list of algebraic relations:
         """
         cdef int i,j,l
         if not isinstance(command,basestring):
-            raise ValueError, "The Gap command must be given as a string"
+            raise TypeError("The Gap command must be given as a string")
         gap = self.group().parent()
         try:
             C = gap(command)
         except TypeError:
-            raise ValueError, 'The given command "%s" is not known to Gap'%command
+            raise ValueError('The given command "%s" is not known to Gap'%command)
         _gap_init(gap)
         O = self.Resl.grouporder()
         try:
@@ -10961,7 +10961,7 @@ Minimal list of algebraic relations:
             if L[len(L)].Order()>1 or L[1].Order()!=O:
                 raise RuntimeError
         except RuntimeError:
-            raise ValueError, 'The given command "%s" must produce a normal series of subgroups when applied to self.group()'%command
+            raise ValueError('The given command "%s" must produce a normal series of subgroups when applied to self.group()'%command)
 
         ###########################
         # First Part: Get the groups and homomorphisms in Gap
@@ -11141,7 +11141,7 @@ Minimal list of algebraic relations:
         R = self.resolution()
         for X in L: # X should be an element of self
             if (not hasattr(X,'parent')) or (X.parent() is not self):
-                raise ValueError, "Item %s is not an element of self"%X
+                raise ValueError("Item %s is not an element of self"%X)
         from pGroupCohomology.resolution import MasseyDefiningSystems
         from pGroupCohomology.cochain import YCOCH
         YCList = [C.yoneda_cocycle() for C in L]
@@ -12266,7 +12266,7 @@ Minimal list of algebraic relations:
                                    # for later that there will be no new generator with that pivot
                 NrNewGen = NrNewGen-ZN_comp.count(2)
                 if ZN_comp.count(2)!=len(NewGen):
-                    raise ArithmeticError, "%d==%d -- that seems strange"%(ZN_comp.count(2),len(NewGen))
+                    raise ArithmeticError("%d==%d -- that seems strange"%(ZN_comp.count(2),len(NewGen)))
                 if len(NewGen)==1:
                     coho_logger.info("> There is 1 nilpotent generator in degree %d", self, n)
                 else:
@@ -12355,7 +12355,7 @@ Minimal list of algebraic relations:
                 if (R.G_Alg.Data.p!=2) and (n%2): # this can only happen for abelian groups
                     NewGen.extend([self.standardCochain(n, i, ydeg=1,rdeg=0,name='a') for i in range(len(LastPiv)) if LastPiv[i]])
                     if LastPiv.count(1)!=NrNewGen:
-                        raise ArithmeticError, "%d==%d -- that seems strange"%(LastPiv.count(1),NrNewGen)
+                        raise ArithmeticError("%d==%d -- that seems strange"%(LastPiv.count(1),NrNewGen))
                     if LastPiv.count(1)==1:
                         coho_logger.info("> There is 1 nilpotent generator in degree %d", self, n)
                     else:
@@ -12363,7 +12363,7 @@ Minimal list of algebraic relations:
                 else:
                     NewGen.extend([self.standardCochain(n, i, ydeg=0, rdeg=1) for i in range(len(LastPiv)) if LastPiv[i]])
                     if LastPiv.count(1)!=NrNewGen:
-                        raise ArithmeticError, "%d==%d -- that seems strange"%(LastPiv.count(1),NrNewGen)
+                        raise ArithmeticError("%d==%d -- that seems strange"%(LastPiv.count(1),NrNewGen))
                     if LastPiv.count(1)==1:
                         coho_logger.info("> There is 1 Duflot regular generator in degree %d", self, n)
                     else:
@@ -12557,7 +12557,7 @@ Minimal list of algebraic relations:
         cdef RESL R = self.Resl
         if (not (isinstance(max_deg, int) or isinstance(max_deg, Integer))) or \
            (max_deg==0) or (max_deg<-1):
-            raise IndexError, "The degree bound must be a positive integer"
+            raise IndexError("The degree bound must be a positive integer")
         if self.ElAb:
             if max_deg == -1:
                 while self.knownDeg < 2:
@@ -12593,7 +12593,7 @@ Minimal list of algebraic relations:
         # Catch the case of generalized quaternion groups:
         if self.completed and self.pRank==1:
             if not self.raw_filter_degree_type([X.name() for X in self.Gen if X.rdeg()]):
-                raise RuntimeError, "theoretical error"
+                raise RuntimeError("theoretical error")
         self.GenS = singular('%sr(%d)'%(self.prefix,self.lastRelevantDeg or self.knownDeg))
         self.set_ring()
         if not self.MaxelPos:
@@ -12610,13 +12610,13 @@ Minimal list of algebraic relations:
             if fdt[-1] > -len(fdt)+1:
                 alpha = True
             if fdt[-1] < -len(fdt)+1:
-                raise RuntimeError, "We got a filter degree type %s, but the last value must not be smaller than %d!\n    Theoretical error"%(repr(fdt),-len(fdt)+1)
+                raise RuntimeError("Theoretical error: We got a filter degree type %s, but the last value must not be smaller than %d!"%(repr(fdt),-len(fdt)+1))
             if self.alpha>-1:
-                raise RuntimeError,"""
+                raise RuntimeError("""
 This result contradicts the weak form
 of Benson's regularity conjecture, that
 was proved by Peter Symonds. So, there
-is an error. Please inform the author!"""
+is an error. Please inform the author!""")
             if alpha:
                 print("###########################################")
                 print("## COUNTEREXAMPLE FOR THE STRONG FORM OF ##")

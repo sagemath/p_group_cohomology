@@ -475,11 +475,11 @@ cdef class COCH(RingElement):
         """
         from pGroupCohomology.cohomology import COHO
         if not isinstance(PARENT, COHO):
-            raise TypeError, "The parent of a cochain must be a cohomology ring (type %s)"%repr(COHO)
+            raise TypeError("The parent of a cochain must be a cohomology ring (type %s)"%repr(COHO))
         cdef RESL R = PARENT.Resl
         self._sing_val = None
         if (n<0):
-            raise IndexError, "Degree out of range"
+            raise IndexError("Degree out of range")
         while n>R.deg():
             R.nextDiff()
         cdef MTX LMTX
@@ -487,7 +487,7 @@ cdef class COCH(RingElement):
             L = list(L)
         if isinstance(L,list):
             if (len(L)!=R.Data.projrank[n]):
-                raise IndexError, "Last parameter must be of length %d"%(R.Data.projrank[n])
+                raise IndexError("Last parameter must be of length %d"%(R.Data.projrank[n]))
             self.Resl = R
             self.Deg = n
             self.Name = str(Nick)
@@ -496,16 +496,16 @@ cdef class COCH(RingElement):
         elif isinstance(L,MTX):
             LMTX = L
             if (LMTX.Data.Field != R.G_Alg.Data.p):
-                raise TypeError, "MTX matrix must be defined over GF(%d)"%(R.G_Alg.Data.p)
+                raise TypeError("MTX matrix must be defined over GF(%d)"%(R.G_Alg.Data.p))
             LMTX.set_immutable()
             if (LMTX._nrows != 1) or (LMTX._ncols != R.Data.projrank[n]):
-                raise TypeError, "(1 x %d) MTX matrix expected"%(R.Data.projrank[n])
+                raise TypeError("(1 x %d) MTX matrix expected"%(R.Data.projrank[n]))
             self.Resl = R
             self.Deg = n
             self.Name = Nick
             self.Data = LMTX
         else:
-            raise TypeError, "Last parameter must be a list/tuple of integers or an MTX matrix"
+            raise TypeError("Last parameter must be a list/tuple of integers or an MTX matrix")
         self.Ydeg = ydeg
         self.Rdeg = rdeg
         RingElement.__init__(self,PARENT)
@@ -703,7 +703,7 @@ cdef class COCH(RingElement):
 
         """
         if not isinstance(s, basestring):
-            raise ValueError, "String expected"
+            raise TypeError("String expected")
         self._latex = s
 
     def _latex_(COCH self):
@@ -897,7 +897,7 @@ cdef class COCH(RingElement):
 
         """
         if not isinstance(s, basestring):
-            raise TypeError, "String expected"
+            raise TypeError("String expected")
         self.Name = s
         self._latex = None
         self._polyrep = is_polyrep
@@ -1342,11 +1342,11 @@ cdef class COCH(RingElement):
             C = self.parent()(other)
         if (self.Resl is C.Resl):
             if self.Deg!=C.Deg:
-                raise IndexError, "cochains must be of the same degree"
+                raise IndexError("cochains must be of the same degree")
             else:
                 return COCH(self._parent, self.Deg, self.Name+'+'+C.Name, self.Data+C.Data, is_polyrep=self._polyrep and C._polyrep)
         else:
-            raise TypeError, "Cochains must be defined over a common resolution"
+            raise ValueError("Cochains must be defined over a common resolution")
 
     cpdef _sub_(self, other):
         """
@@ -1383,11 +1383,11 @@ cdef class COCH(RingElement):
             C = self.parent()(other)
         if (self.Resl is C.Resl):
             if self.Deg!=C.Deg:
-                raise IndexError, "cochains must be of the same degree"
+                raise IndexError("cochains must be of the same degree")
             else:
                 return COCH(self._parent, self.Deg, self.Name+'-('+C.Name+')', self.Data-C.Data, is_polyrep=self._polyrep and C._polyrep)
         else:
-            raise TypeError, "Cochains must be defined over a common resolution"
+            raise ValueError("Cochains must be defined over a common resolution")
     cpdef ModuleElement _neg_(self):
         r"""
         Additive inverse of a cochain
@@ -1607,7 +1607,7 @@ cdef class COCH(RingElement):
         # cdef PTR src,dest
         if isinstance(C,COCH):
             if not (self.Resl is C.resolution()):
-                raise TypeError, "Cochains must be defined over a common resolution"
+                raise ValueError("Cochains must be defined over a common resolution")
             CM = C.MTX()
             n_orig = C.deg()
             while (self.deg()+C.deg())>len(self.Resl.Diff):
@@ -1656,7 +1656,7 @@ cdef class COCH(RingElement):
             return COCH(self._parent, self.Deg+Cdeg, '('+self.Name+')*('+C.name()+')', \
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
         else:
-            raise TypeError, "Multiplication COCH*%s not defined"%(type(C))
+            raise TypeError("Multiplication COCH*%s not defined"%(type(C)))
 
     def __div__(COCH self, long c):
         """
@@ -1719,7 +1719,7 @@ cdef class COCH(RingElement):
 
         """
         if n<0:
-            raise ArithmeticError, "Exponent must be non-negative integer"
+            raise ValueError("Exponent must be non-negative integer")
         if n==0:
             return int(1)
         while (self.Deg*n>len(self.Resl.Diff)):
@@ -2169,7 +2169,7 @@ class MODCOCH(RingElement):
             #self._str_value = value
         else:
             if value.parent() is not singular:
-                raise ValueError, "parent of %s is not singular"%value
+                raise ValueError("parent of %s is not singular"%value)
             # We want a copy anyway, an the following line tests whether
             # value is defined.
             self._Svalue = singular.poly(value.name())
@@ -2415,7 +2415,7 @@ class MODCOCH(RingElement):
 
         """
         if not isinstance(s, basestring):
-            raise ValueError, "String expected"
+            raise TypeError("String expected")
         self._latex = s
 
     def _latex_(self):
@@ -2603,7 +2603,7 @@ class MODCOCH(RingElement):
         if isinstance(s,basestring):
             self._name = s
         else:
-            raise TypeError, "string expected"
+            raise TypeError("string expected")
         self._latex = None
         self._polyrep = is_polyrep
 
@@ -2856,14 +2856,14 @@ class MODCOCH(RingElement):
         except:
             try:
                 if not self._polyrep:
-                    raise RuntimeError, repr(self)+' is not known to be defined by a polynomial'
+                    raise RuntimeError(repr(self)+' is not known to be defined by a polynomial')
                 tmp = self.parent()(self.name())
                 self._str_value = tmp.val_str()
                 self._Svalue = S.poly(tmp.value())
             except BaseException, msg:
                 if br is not None:
                     br.set_ring()
-                raise RuntimeError, msg.args[0]+"\nSorry, couldn't reconstruct %s after singular crashed"%repr(self)
+                raise RuntimeError(msg.args[0]+"\nSorry, couldn't reconstruct %s after singular crashed"%repr(self))
         if br is not None:
             br.set_ring()
 
@@ -3009,7 +3009,7 @@ class MODCOCH(RingElement):
 
         """
         if n<0:
-            raise ValueError, "negative exponents are not allowed"
+            raise ValueError("negative exponents are not allowed")
         try:
             return MODCOCH(self.parent(), self._Svalue.parent()('%s^%d'%(self._Svalue.name(),n)), self.Deg*n, '('+self._name+')^%d'%n, is_polyrep=self._polyrep)
         except TypeError:
@@ -3073,10 +3073,10 @@ class MODCOCH(RingElement):
             if hasattr(other,'_MODCOCH_'):
                 return self+other._MODCOCH_(self._Svalue.parent())
             if other!=0:
-                raise TypeError, "Second summand must not be of type %s"%type(other)
+                raise TypeError("Second summand must not be of type %s"%type(other))
             return self
         if self.Deg != other.deg():
-            raise ValueError, "The summands must be in the same degree"
+            raise ValueError("The summands must be in the same degree")
         try:
             return MODCOCH(self.parent(), self._Svalue+other._Svalue,self.Deg, self._name+'+('+other.name()+')', is_polyrep=self._polyrep and other._polyrep)
         except TypeError:
@@ -3123,10 +3123,10 @@ class MODCOCH(RingElement):
             if hasattr(other,'_MODCOCH_'):
                 return self-other._MODCOCH_(self._Svalue.parent())
             if other!=0:
-                raise TypeError, "Second summand must not be of type %s"%type(other)
+                raise TypeError("Second summand must not be of type %s"%type(other))
             return self
         if self.Deg != other.deg():
-            raise ValueError, "The summands must be in the same degree"
+            raise ValueError("The summands must be in the same degree")
         try:
             return MODCOCH(self.parent(), self._Svalue-other._Svalue, self.Deg, self._name+'-('+other.name()+')', is_polyrep=self._polyrep and other._polyrep)
         except TypeError:
@@ -3222,8 +3222,6 @@ class MODCOCH(RingElement):
         if isinstance(other,COCH):
             return self*other._MODCOCH_(self._Svalue.parent())
         try:
-            if self.parent() is not other.parent():
-                raise ValueError, "The factors must have the same parent"
             return MODCOCH(self.parent(), self._Svalue*other._Svalue, deg=self.Deg+other.deg(),name='('+self._name+')*('+other.name()+')', is_polyrep=self._polyrep and other._polyrep)
         except TypeError:
             try:
@@ -3281,7 +3279,7 @@ class MODCOCH(RingElement):
                 return MODCOCH(self.parent(), self._Svalue/other, name='('+self._name+')/('+repr(other)+')', is_polyrep=self._polyrep)
             except:
                 raise ZeroDivisionError
-        raise TypeError, 'Can not divide by %s'%repr(MODCOCH)
+        raise TypeError('Can not divide by %s'%repr(MODCOCH))
 
     def is_nilpotent(self):
         """
@@ -3454,7 +3452,7 @@ class MODCOCH(RingElement):
             return COCHpower
         out = self.parent().stable_to_polynomial(COCHpower)
         if out is None:
-            raise RuntimeError, "This implementation is experimental. Your example is not covered. Please inform the author."
+            raise RuntimeError("This implementation is experimental. Your example is not covered. Please inform the author.")
         return out
 
     def _NF_(self, id=None):
@@ -4102,9 +4100,9 @@ cdef class YCOCH:
         self._Data = []
         self._R = R
         if (coboundary is not None) and (construction is not None):
-            raise ValueError, "A Yoneda cochain must not both depend on a construction and on a construction of its coboundary"
+            raise ValueError("A Yoneda cochain must not both depend on a construction and on a construction of its coboundary")
         if not ((coboundary is None) or isinstance(coboundary, YCOCH)):
-            raise TypeError, "if the coboundary is given, it must be a Yoneda cochain"
+            raise TypeError("If the coboundary is given, it must be a Yoneda cochain")
 
         # Take care of the construction
         if (construction is None) or isinstance(construction, list):
@@ -4115,10 +4113,10 @@ cdef class YCOCH:
                                         # or ['D',Y] (self is the coboundary of Y)
                                         # or None (lifting of self just relies on lifting its coboundary consistently)
         else:
-            raise ValueError, "'%s' is an improper construction definition for Yoneda cochains"%construction
+            raise ValueError("'%s' is an improper construction definition for Yoneda cochains"%construction)
 
         if len(L)==0 and not construction:
-            raise ValueError, "The input data do not suffice to construct a Yoneda cochain"
+            raise ValueError("The input data do not suffice to construct a Yoneda cochain")
         for M in L: # it is not tested whether the data in L are compatible with the given construction (if there is any)
             self.append(M)
 
@@ -4316,15 +4314,15 @@ cdef class YCOCH:
 
         """
         if not isinstance(M,MTX):
-            raise TypeError, "MTX matrix expected"
+            raise TypeError("{} expected".format(MTX))
         while self._R.deg()<len(self._Data):
             self._R.nextDiff()
         if M.Data.Field != self._R.coef():
-            raise ValueError, "Matrix must be defined over GF(%d)"%(self._R.coef())
+            raise ValueError("Matrix must be defined over GF(%d)"%(self._R.coef()))
         if M.ncols() != self._R.grouporder():
-            raise ValueError, "Matrix must have %d columns"%(self._R.grouporder())
+            raise ValueError("Matrix must have %d columns"%(self._R.grouporder()))
         if M.nrows() != self._R.rank(self._deg+len(self._Data)) * self._R.rank(len(self._Data)):
-            raise ValueError, "First matrix must have %d rows"%(self._R.rank(self._deg+len(self._Data)) * self._R.rank(len(self._Data)))
+            raise ValueError("First matrix must have %d rows"%(self._R.rank(self._deg+len(self._Data)) * self._R.rank(len(self._Data))))
         M = copy(M)
         M.set_immutable()
         self._Data.append(copy(M))
@@ -4534,7 +4532,7 @@ cdef class YCOCH:
         cdef long nt  = R.G_Alg.Data.nontips
         cdef MTX X = self[0]
         if X._nrows != RK or X._ncols != nt or X.Data.Field != fl:
-            raise ValueError, "Theoretical error, please inform the author"
+            raise RuntimeError("Theoretical error, please inform the author")
         cdef MTX Y = makeMTX(MatAlloc(fl, Rk, nt))
         cdef MTX Z = makeMTX(MatAlloc(fl, RK*rk, nt))
         cdef int i, m
@@ -4664,9 +4662,9 @@ cdef class YCOCH:
 
         """
         if not (self._R is other._R):
-            raise ValueError, "Both summands must be defined over the same resolution"
+            raise ValueError("Both summands must be defined over the same resolution")
         if self._deg != other._deg:
-            raise ValueError, "Both summands must have the same degree"
+            raise ValueError("Both summands must have the same degree")
         return YCOCH(self._R, self._deg, construction=['-',self,other])
 
     def __add__(YCOCH self, YCOCH other):
@@ -4697,9 +4695,9 @@ cdef class YCOCH:
 
         """
         if not (self._R is other._R):
-            raise ValueError, "Both summands must be defined over the same resolution"
+            raise ValueError("Both summands must be defined over the same resolution")
         if self._deg != other._deg:
-            raise ValueError, "Both summands must have the same degree"
+            raise ValueError("Both summands must have the same degree")
         return YCOCH(self._R, self._deg, construction=['+',self,other])
 
     def __mul__(YCOCH self, other):
@@ -4730,7 +4728,7 @@ cdef class YCOCH:
             if self._R is other.resolution():
                 d = other.deg()
             else:
-                raise ValueError, "The two factors must be defined over the same resolution"
+                raise ValueError("The two factors must be defined over the same resolution")
         else:
             d = 0
         return YCOCH(self._R, d+self._deg, construction=['*',self,other])
@@ -4959,11 +4957,11 @@ class CohomologyHomset(RingHomset_generic):
         """
         from pGroupCohomology.cohomology import COHO
         if not isinstance(X,COHO):
-            raise TypeError, "Domain must be a cohomology ring"
+            raise TypeError("Domain must be a cohomology ring")
         if not isinstance(Y,COHO):
-            raise TypeError, "Codomain must be a cohomology ring"
+            raise TypeError("Codomain must be a cohomology ring")
         if (X.Resl.coef()<>Y.Resl.coef()):
-            raise TypeError, "Domain and Codomain must be defined over the same base field"
+            raise TypeError("Domain and Codomain must be defined over the same base field")
         self._cache = {}  # caches different maps between the same rings
         self._H0Map = makeMTX(MatAlloc(X.Resl.coef(), 1, X.Resl.G_ALG().order()))
         self._H0Map[0,0] = 1
@@ -5016,7 +5014,7 @@ class CohomologyHomset(RingHomset_generic):
         Tgt = self._domain._HSyl or self._domain
         if H0Map is not None:
             if not isinstance(H0Map,MTX):
-                raise TypeError, "second argument, if provided, must be an MTX matrix"
+                raise TypeError("The second argument, if provided, must be an MTX matrix")
             if H0Map.is_mutable():
                 H0Map.set_immutable()
                 H0Mapmutable = True
@@ -5038,18 +5036,18 @@ class CohomologyHomset(RingHomset_generic):
             if hasattr(GMap,'parent'):
                 GAP = GMap.parent()
                 if repr(GAP)!='Gap':
-                    raise RuntimeError, "The parent must be Gap, not %s"%GAP
+                    raise ValueError("The parent must be Gap, not %s"%GAP)
                 _gap_init(GAP)
                 if GAP.eval('HasName(%s)'%(GMap.name())) == 'true':
                     Name = GAP.eval('Name(%s)'%(GMap.name()))[1:-1]
                 if not (GAP == Src.group().parent() == Tgt.group().parent()):
-                    raise RuntimeError, "The second argument and the groups of domain and codomain must be defined in the same Gap session"
+                    raise ValueError("The second argument and the groups of domain and codomain must be defined in the same Gap session")
                 if GAP.eval('IsGroupHomomorphism(%s)'%(GMap.name())) == 'true':
                     GSrc = GMap.Source()
                     GTgt = GMap.Range()
                     for X in GSrc.GeneratorsOfGroup():
                         if GMap.Image(X) not in GTgt:
-                            raise ValueError, "The images of the given homomorphism are not contained in its assumed range"
+                            raise ValueError("The images of the given homomorphism are not contained in its assumed range")
                     try:
                         GSrceqGTgt = (GSrc==GTgt)
                     except:
@@ -5067,9 +5065,9 @@ class CohomologyHomset(RingHomset_generic):
                         GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
                     GTgtAdmH = GTgt.canonicalIsomorphism(self._domain.group())
                     if GAP.eval(GSrcAdmH.name()) == 'fail':
-                        raise ValueError, "The source of the group homomorphism doesn't match the range of the induced homomorphism, %s"%repr(self._codomain.group())
+                        raise ValueError("The source of the group homomorphism doesn't match the range of the induced homomorphism, %s"%repr(self._codomain.group()))
                     if GAP.eval(GTgtAdmH.name()) == 'fail':
-                        raise ValueError, "The range of the group homomorphism doesn't match the source of the induced homomorphism, %s"%repr(self._domain.group())
+                        raise ValueError("The range of the group homomorphism doesn't match the source of the induced homomorphism, %s"%repr(self._domain.group()))
                     GMap = GAP('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,Image(%s,Image(%s,GeneratorsOfGroup(%s)[x])))))'%(self._codomain.group().name(),self._domain.group().name(),self._codomain.group().name(),self._codomain.group().name(),GTgtAdmH.name(),GMap.name(),GSrcAdmH.name(),self._codomain.group().name()))
 
                     # We need restriction to Src.group(), hence, if self._codomain is not Src
@@ -5078,7 +5076,7 @@ class CohomologyHomset(RingHomset_generic):
                     if Src is not self._codomain:
                         Src2Sylow = Src.group().canonicalIsomorphism(self._codomain._SylowGp)
                         if GAP.eval(Src2Sylow.name()) == 'fail':
-                            raise RuntimeError, "Theoretical error: No canonical isomorphism from %s to %s found"%(Src.group(),self._codomain._SylowGp)
+                            raise RuntimeError("Theoretical error: No canonical isomorphism from %s to %s found"%(Src.group(),self._codomain._SylowGp))
                         GAP.eval('%s:=GroupHomomorphismByImages(%s, %s, GeneratorsOfGroup(%s), List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s,Image(%s,GeneratorsOfGroup(%s)[x]))))'%(GMap.name(),Src.group().name(), self._domain.group().name(), Src.group().name(), Src.group().name(), GMap.name(), Src2Sylow.name(), Src.group().name()))
 
                     # Now the Source is fine. About the Range:
@@ -5090,15 +5088,15 @@ class CohomologyHomset(RingHomset_generic):
                         # GMap starts at Src.group(). So, its image is a p-group
                         ConjMap = GAP('conjugateIntoSylow(%s,Image(%s),%s)'%(self._domain.group().name(), GMap.name(), (self._domain._SylowGp if self._domain._SylowGp is not None else self._domain.group()).name()))
                         if GAP.eval(ConjMap.name()) == 'fail':
-                            raise RuntimeError, "Theoretical error: Unable to conjugate a p-subgroup into a given Sylow p-subgroup"
+                            raise RuntimeError("Theoretical error: Unable to conjugate a p-subgroup into a given Sylow p-subgroup")
 
                         # We compose GMap with ConjMap and obtain a map from Src.group() to self._domain._SylowGp and forward to Tgt.group()
                         Sylow2Tgt = (self._domain._SylowGp if self._domain._SylowGp is not None else self._domain.group()).canonicalIsomorphism(Tgt._HSyl.group() if Tgt._HSyl is not None else Tgt.group())
                         if GAP.eval(Sylow2Tgt.name()) == 'fail':
-                            raise RuntimeError, "Theoretical Error: No canonical isomorphism from %s to %s found"%(self._domain._SylowGp, Tgt.group())
+                            raise RuntimeError("Theoretical Error: No canonical isomorphism from %s to %s found"%(self._domain._SylowGp, Tgt.group()))
                         GAP.eval('%s:=GroupHomomorphismByImages(%s, %s, GeneratorsOfGroup(%s), List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s,Image(%s, Image(%s, GeneratorsOfGroup(%s)[x])))))'%(GMap.name(), Src.group().name(), Tgt.group().name(), Src.group().name(), Src.group().name(), Sylow2Tgt.name(), ConjMap.name(), GMap.name(), Src.group().name()))
                 else: # not a homomorphism
-                    raise NotImplementedError, "We expected a group homomorphism"
+                    raise NotImplementedError("We expected a group homomorphism")
 
                 # Hence, we can produce a temporary file providing the MTX matrix of the induced group algebra map.
                 GStem = os.path.join(Tgt.gps_folder,Tgt.GStem)
@@ -5386,7 +5384,7 @@ cdef class ChMap(RingHomomorphism):
         """
         RingHomomorphism.__init__(self, parent)
         if not isinstance(parent, CohomologyHomset):
-            raise TypeError, "Parent must be a <CohomologyHomset>"
+            raise TypeError("Parent must be a <CohomologyHomset>")
         self._sing_val = None
         self._sing_domain = ''
         self._sing_codomain = ''
@@ -5403,18 +5401,18 @@ cdef class ChMap(RingHomomorphism):
         cdef RESL T = Tgt.Resl
         if (d>0):
             if (M._nrows <> S.rank(0)*T.rank(d)):
-                raise TypeError, "Second matrix must have %d rows"%(S.rank(0)*T.rank(d))
+                raise ValueError("Second matrix must have %d rows"%(S.rank(0)*T.rank(d)))
         else:
             if (M._nrows <> T.rank(0)*S.rank(-d)):
-                raise TypeError, "Second matrix must have %d rows"%(T.rank(0)*S.rank(-d))
+                raise ValueError("Second matrix must have %d rows"%(T.rank(0)*S.rank(-d)))
         if (M._ncols <> T.G_Alg.Data.nontips):
-            raise TypeError, "Second matrix must have |G|=%d colums"%T.G_Alg.Data.nontips
+            raise ValueError("Second matrix must have |G|=%d colums"%T.G_Alg.Data.nontips)
         if (m._ncols <> T.G_Alg.Data.nontips):
-            raise TypeError, "First matrix must have |G|=%d colums"%T.G_Alg.Data.nontips
+            raise ValueError("First matrix must have |G|=%d colums"%T.G_Alg.Data.nontips)
         if (m._nrows <> S.G_Alg.Data.nontips):
-            raise TypeError, "First matrix must have |H|=%d rows"%S.G_Alg.Data.nontips
+            raise ValueError("First matrix must have |H|=%d rows"%S.G_Alg.Data.nontips)
         if (M.Data.Field != S.coef() or (m.Data.Field != S.coef())):
-            raise TypeError, "Matrices must be defined over GF(%d)"%S.coef()
+            raise ValueError("Matrices must be defined over GF(%d)"%S.coef())
         # self.HSrc = Src # this would be an unnecessary reference
         # self.HTgt = Tgt # to an object that is already determined
                           # by parent._(co)domain
@@ -5630,7 +5628,7 @@ cdef class ChMap(RingHomomorphism):
                     Images = [C.stable_to_polynomial(X, verify=False).name() for X in GenIm]
                 except BaseException,msg:
                     if 'None' in repr(msg):
-                        raise RuntimeError, "Theoretical error: One of the generator images is not stable"
+                        raise RuntimeError("Theoretical error: One of the generator images is not stable")
                     raise
             S.eval('degBound='+dgb)
         else:
@@ -5692,7 +5690,7 @@ cdef class ChMap(RingHomomorphism):
 
         """
         if not isinstance(f,basestring):
-            raise TypeError, "File name stem expected"
+            raise TypeError("String expected")
         cdef int i
         cdef int M = len(self.Data)
         for i from 1 <= i < M:
@@ -5986,7 +5984,7 @@ cdef class ChMap(RingHomomorphism):
 
         """
         if not isinstance(s, basestring):
-            raise TypeError, "Name of an induced homomorphism must be a string"
+            raise TypeError("String expected")
         self._name = s
 
     def __getitem_name__(self,key):
@@ -6084,7 +6082,7 @@ cdef class ChMap(RingHomomorphism):
                 try:
                     return load(newData+sobj)  # realpath here?
                 except (OSError, IOError):
-                    raise IOError, "Files on disk were moved, can not find data"
+                    raise IOError("Files on disk have been moved, can not find data")
         else:
             return self.Data[key]
 
@@ -6135,9 +6133,9 @@ cdef class ChMap(RingHomomorphism):
             if (key>=0) and (key<=len(self.Data)):
                 self.Data[key:] = L
             else:
-                raise IndexError, "index out of range"
+                raise IndexError("index {} out of range".format(key))
         else:
-            raise TypeError, "key must be an integer"
+            raise TypeError("key must be an integer, not {}".format(type(key))
 
 
 #########################
@@ -6216,9 +6214,9 @@ cdef class ChMap(RingHomomorphism):
 
         """
         if d<0:
-            raise ValueError, "There are no chains of negative degree"
+            raise ValueError("There are no chains of negative degree")
         if d < -self.Deg:
-            raise ValueError, "The map can't be applied to a chain of degree less than %d"%(-self.Deg)
+            raise ValueError("The map can't be applied to a chain of degree less than %d"%(-self.Deg))
         if self.Deg >= 0:
             while len(self.Data)<d:
                 self.lift()
@@ -6236,9 +6234,9 @@ cdef class ChMap(RingHomomorphism):
         cdef long Tnontips = T.G_Alg.Data.nontips
         # Test whether C represents a d-chain in S
         if C.ncols()!=Snontips:
-            raise ValueError, "A chain must be represented by a matrix with %d columns"%Snontips
+            raise ValueError("A chain must be represented by a matrix with %d columns"%Snontips)
         if C.nrows()!=RK:
-            raise ValueError, "A %d-chain must be represented by a matrix with %d rows"%(d,RK)
+            raise ValueError("A %d-chain must be represented by a matrix with %d rows"%(d,RK))
         cdef MTX OUT = makeMTX(MatAlloc(T.G_Alg.Data.p, rk, Tnontips))
         cdef int i
         cdef MTX row = makeMTX(MatAlloc(OUT.Data.Field, 1, self.GMap.Data.Noc))
@@ -6290,9 +6288,9 @@ cdef class ChMap(RingHomomorphism):
         cdef int nt
         if isinstance(x, MODCOCH): # the output will be a MODCOCH
             if self.domain() != x.parent():
-                raise ValueError, "Argument must be contained in the domain of the map"
+                raise ValueError("Argument must be contained in the domain of the map")
             if (x.deg()-self.Deg < 0):
-                raise IndexError, "Degree of second factor (type %s) must be at least %d"%(repr(MODCOCH),self.Deg)
+                raise IndexError("Degree of second factor (type %s) must be at least %d"%(repr(MODCOCH),self.Deg))
             singular = x._Svalue.parent()
             # 1. get the corresponding map of the preferred subgroup of domain to the Sylow subgroup of codomain
             Pself = (self.domain()._HP or self.domain()).hom(self.G_map(), self.codomain()._HSyl or self.codomain())
@@ -6305,7 +6303,7 @@ cdef class ChMap(RingHomomorphism):
                 return MODCOCH(self.codomain(), singular('NF(%s(%s),std(0))'%(Sself.name(),Sx.name())), deg=x.deg(), S=singular, is_NF=True, is_polyrep=True)
         elif isinstance(x, ChMap):
             if self.domain()!=x.codomain():
-                raise ValueError, "Composition of induced maps is impossible - domain and codomain don't match"
+                raise ValueError("Composition of induced maps is impossible - domain and codomain don't match")
             # We have a contravariant functor. Hence, composing self after x means to
             # first apply the underlying chain map of self, followed by the underlying chain map of x
             # Notational convention: Double uppercase means stuff in the source of the underlying chain map
@@ -6324,7 +6322,7 @@ cdef class ChMap(RingHomomorphism):
                 RK = selfMTX.nrows()/Rk
                 base_deg = -x.deg()
             if (x.deg() > 0) and (self.deg()<0):
-                raise ValueError, "We can't compose a map of negative degree with a map of positive degree"
+                raise ValueError("We can't compose a map of negative degree with a map of positive degree")
             if (self.Deg > 0) and (x.deg()>0):
                 while(x.knownDeg() <= self.deg()):
                     x.lift()
@@ -6362,9 +6360,9 @@ cdef class ChMap(RingHomomorphism):
             return OUT
         elif isinstance(x, COCH):
             if (self.domain() is not x.parent()):
-                raise TypeError, "Cochain must belong to the domain of the induced map"
+                raise ValueError("Cochain must belong to the domain of the induced map")
             if (x.deg()-self.Deg < 0):
-                raise IndexError, "Degree of second factor (%s) must be at least %d"%(repr(COCH),self.Deg)
+                raise IndexError("Degree of second factor (%s) must be at least %d"%(repr(COCH),self.Deg))
 
             # If the codomain belongs to a non prime power group, we have to return MODCOCH
             from pGroupCohomology.modular_cohomology import MODCOHO
@@ -6391,9 +6389,9 @@ cdef class ChMap(RingHomomorphism):
             s_rk = self.Src.rank(x.deg()-self.Deg)
             t_rk = self.Tgt.rank(x.deg())
             if (selfMTX.Data.Nor<>s_rk*t_rk):
-                raise ArithmeticError, "Theoretical Error"
+                raise RuntimeError("Theoretical Error")
             if (xMTX.Data.Noc<>t_rk):
-                raise ArithmeticError, "Theoretical Error"
+                raise RuntimeError("Theoretical Error")
             OUT_M = makeMTX(MatAlloc(self.Src.coef(), 1,s_rk))
             for i from 0 <= i < s_rk:
                 cf = 0
@@ -6408,7 +6406,7 @@ cdef class ChMap(RingHomomorphism):
             if self._name is not None:
                 return COCH(self._parent._codomain,x.deg()-self.Deg, self._name+'('+x.name()+')', OUT_M)
             return COCH(self._parent._codomain,x.deg()-self.Deg, '('+x.name()+")_", OUT_M)
-        raise NotImplementedError, "Multiplication of ChMap with %s not implemented"%(type(x))
+        raise NotImplementedError("Multiplication of ChMap with %s not implemented"%(type(x)))
 
     def __invert__(self):
         """
@@ -6442,7 +6440,7 @@ cdef class ChMap(RingHomomorphism):
         try:
             M = (self.G_map())**(-1)
         except ArithmeticError:
-            raise ArithmeticError, "Induced homomorphism is not invertible"
+            raise ArithmeticError("Induced homomorphism is not invertible")
         OUT = self.codomain().hom(M,self.domain())
         if self.name() is not None:
             OUT.set_name('('+self.name()+')^(-1)')
@@ -6496,7 +6494,7 @@ cdef class ChMap(RingHomomorphism):
             i = False
         if n!=1:
             if not (OUT.domain() is OUT.codomain()):
-                raise ArithmeticError, "Induced homomorphism can't be composed with itself"
+                raise ArithmeticError("Induced homomorphism can't be composed with itself")
             OUT = OUT.domain().hom((OUT.G_map())**n, OUT.codomain())
             if self.name() is not None:
                 if i:
@@ -6553,13 +6551,13 @@ cdef class ChMap(RingHomomorphism):
         from pGroupCohomology.cochain import COCH
         if isinstance(X,tuple) or isinstance(X,list):
             if not((isinstance(X[0],int) or isinstance(X[0],Integer)) and (isinstance(X[1],int) or isinstance(X[1],Integer))):
-                raise TypeError, "pair of integers expected"
+                raise TypeError("pair of integers expected")
             if (X[0]-self.Deg < 0):
-                raise IndexError, "Degree of standard cochain must be at least %d"%(self.Deg)
+                raise IndexError("Degree of standard cochain must be at least %d"%(self.Deg))
             s_rk = self.Src.rank(X[0]-self.Deg)
             t_rk = self.Tgt.rank(X[0])
             if (X[1] >= t_rk):
-                raise IndexError, "Index of standard cochain must not exceed %d"%(t_rk-1)
+                raise IndexError("Index of standard cochain must not exceed %d"%(t_rk-1))
             tmpM = self.__getitem__(X[0])
             for j from 0 <= j < s_rk:
                 L.append(tmpM[j*t_rk+X[1],0])
@@ -6570,7 +6568,7 @@ cdef class ChMap(RingHomomorphism):
         OUT = self.codomain().base_ring()(X)
         if not isinstance(OUT,tuple):
             return OUT
-        raise NotImplementedError, "No coercion found"
+        raise NotImplementedError("No coercion found")
 
 
     def lift(ChMap self):
@@ -6701,7 +6699,7 @@ cdef class ChMap(RingHomomorphism):
             print(rk_1)
             print("Tgt.nRgs.s =", self.Tgt.nRgs.ngs.s)
             print(rk)
-            raise ArithmeticError("Theoretical error")
+            raise RuntimeError("Theoretical error")
         sig_on()
         innerPreimages(self.Tgt.nRgs, Compos.Data.Data, RK, self.Tgt.G_Alg.Data, OUT.Data.Data)
         sig_off()
@@ -6812,7 +6810,7 @@ cdef class ChMap(RingHomomorphism):
         """
         # we do caching, if self.domain() is complete.
         if not self.codomain().completed:
-            raise ValueError, "Computation of the codomain %s is incomplete"%repr(self.codomin())
+            raise ValueError("Computation of the codomain %s is incomplete"%repr(self.codomin()))
         from sage.all import singular
         if Id is None:
             key = None
@@ -7148,7 +7146,7 @@ cdef class ChMap(RingHomomorphism):
             RK = Src.rank(d-self.deg())
             rk = Tgt.rank(d)
         if M.nrows() != RK*rk:
-            raise RuntimeError, "wrong implementation"
+            raise RuntimeError("wrong implementation")
         cdef MTX N = makeMTX(MatAlloc(Tgt.coef(), rk, RK))
         for i from 0 <= i < rk:
             for j from 0 <= j < RK:

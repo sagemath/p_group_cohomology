@@ -216,9 +216,9 @@ def _symlink_to_database(publ, priv):
     priv = os.path.realpath(priv)
     publ = os.path.realpath(publ)
     if not (os.access(publ,os.R_OK) and os.path.isdir(publ)):
-        raise ValueError, "%s is supposed to be a readable folder"%publ
+        raise ValueError("%s is supposed to be a readable folder"%publ)
     if priv==publ:
-        raise ValueError, "Can not symlink %s to itself"%priv
+        raise ValueError("Can not symlink %s to itself"%priv)
     if not os.path.isdir(priv):
         # priv should be a folder. If it is anything else, then unlink it.
         if os.access(priv, os.F_OK) or os.path.islink(priv):
@@ -440,7 +440,7 @@ class CohomologyRingFactory:
                 else:
                     coho_options[opt] = True
             else:
-                raise TypeError, "option must be of type <str>"
+                raise TypeError("option must be a string")
         coho_options.update(kwds)
 
     def get_public_db(self):
@@ -560,7 +560,7 @@ class CohomologyRingFactory:
                        coho_logger.warn("WARNING: '%s' is not writeable", None, folder)
                        self._use_public_db = False
                 else:
-                    raise OSError, "'%s' is no folder"%folder
+                    raise OSError("'%s' is no folder"%folder)
             else:
                 os.makedirs(folder)  # may produce an error
             COHO.public_db = folder
@@ -683,8 +683,7 @@ class CohomologyRingFactory:
                 return _GStemMaker.sub('_',repr(g.Name()))
         except (AttributeError,IndexError):
             pass
-        raise ValueError, "Please provide the optional arguments ``GStem`` or ``GroupName``"
-
+        raise ValueError("Cannot infer a short group identifier. Please provide one of the optional arguments ``GStem`` or ``GroupName``")
     def group_name(self, G, GroupName=None):
         """
         Determine a name for the given group.
@@ -850,7 +849,7 @@ class CohomologyRingFactory:
         # Try to determine a key from GAP
         g = G[0]
         if not (hasattr(g,'parent') and repr(g.parent())=='Gap'):
-            raise ValueError, "First argument should describe a group in GAP"
+            raise TypeError("First argument should describe a group in GAP")
         gap = g.parent()
         # test if we can look g up in the Small Groups library
         try:
@@ -911,27 +910,27 @@ class CohomologyRingFactory:
 
         """
         if len(args)<1 or len(args)>2:
-            raise ValueError, "The p-Group must be described by one or two parameters"
+            raise ValueError("The p-Group must be described by one or two parameters")
         if len(args)==2:
             q,n = args
             if (GroupId is not None) and ((q,n)!=GroupId):
-                raise ValueError,"``GroupId=(%d,%d)`` incompatible with the given SmallGroups entry (%d,%d)"%(GroupId[0],GroupId[1],q,n)
+                raise ValueError("``GroupId=(%d,%d)`` incompatible with the given SmallGroups entry (%d,%d)"%(GroupId[0],GroupId[1],q,n))
             from sage.all import gap
             _gap_init(gap)
             try:
                 max_n = Integer(gap('NumberSmallGroups(%d)'%q))
             except RuntimeError:
-                raise ValueError, "SmallGroups library not available for order %d"%q
+                raise ValueError("SmallGroups library not available for order %d"%q)
             if not 1 <= n <= max_n:
-                raise ValueError, "Second argument must be between 1 and %d"%max_n
+                raise ValueError("Second argument must be between 1 and %d"%max_n)
             return Integer(q), gap('SmallGroup(%d,%d)'%(args[0],args[1]))
         g = args[0]
         if not (hasattr(g,'parent') and repr(g.parent())=='Gap'):
-            raise ValueError, "Group in GAP expected"
+            raise TypeError("Group in GAP expected")
         gap = g.parent()
         _gap_init(gap)
         if GroupId and gap.eval('canonicalIsomorphism(%s,SmallGroup(%d,%d))'%(g.name(),GroupId[0],GroupId[1]))=='fail':
-            raise ValueError,"The given group generators are not canonically isomorphic to SmallGroup(%d,%d)"%(GroupId[0],GroupId[1])
+            raise ValueError("The given group generators are not canonically isomorphic to SmallGroup(%d,%d)"%(GroupId[0],GroupId[1]))
         if GroupId: # compatibility was already checked
             q = Integer(GroupId[0])
         else:
@@ -939,7 +938,7 @@ class CohomologyRingFactory:
             q = Integer(gap.eval('Order(%s)'%(g.name())))
         coho_logger.info("The group is of order %d", None, q)
         if q==1:
-            raise ValueError, "We don't consider the trivial group"
+            raise ValueError("We don't consider the trivial group")
         if minimal_generators or not q.is_prime_power():
             return Integer(q), g
         else:
@@ -950,7 +949,7 @@ class CohomologyRingFactory:
             if repr(PhiP)!='fail':
                 return q, PhiP.Range()
             else:
-                raise ValueError, "The first generators of the group must form a minimal generating set"
+                raise ValueError("The first generators of the group must form a minimal generating set")
 
     def _check_compatibility(self, CacheKey, R):
         """
@@ -995,7 +994,7 @@ class CohomologyRingFactory:
 
         """
         if not isinstance(R, COHO):
-            raise ValueError, 'The second argument %s is no Cohomology ring'%repr(R)
+            raise TypeError('The second argument must be a Cohomology ring')
         if self._use_public_db:
             root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
         else:
@@ -1008,7 +1007,7 @@ class CohomologyRingFactory:
             coho_logger.warn('WARNING: The given key and ring describe different groups, but they are equivalent', None)
             return R
         elif similarity == 0:
-            raise ValueError, 'The ring %s does not match the given key'%repr(R)
+            raise ValueError('The ring %s does not match the given key'%repr(R))
         return R
 
     def _get_p_group_from_cache_or_db(self, GStem, KEY, **kwds):
@@ -1117,7 +1116,7 @@ class CohomologyRingFactory:
             coho_logger.debug("Data found at %s", None, os.path.join(root_user_db,file_name))
             if from_scratch:
                 from exceptions import RuntimeError
-                raise RuntimeError, "You requested a computation from scratch. Please remove %s"%(os.path.join(root_user_db,GStem))
+                raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_user_db,GStem)))
             try:
                 coho_options['@use_this_root@'] = root_user_db
                 OUT = load(os.path.join(root_user_db,file_name)) # realpath here?
@@ -1126,7 +1125,7 @@ class CohomologyRingFactory:
             except BaseException, msg:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError, "Saved data at %s are not readable: %s"%(os.path.join(root_user_db,file_name), msg)
+                raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_user_db,file_name), msg))
         ## 3. Link with public db and load from there
         elif os.access(os.path.join(root_public_db,file_name), os.R_OK) and not from_scratch:
             coho_logger.debug("Public data found at %s", None, os.path.join(root_public_db,file_name))
@@ -1134,7 +1133,7 @@ class CohomologyRingFactory:
                 coho_logger.debug('Creating symbolic links from %s to %s', None, os.path.join(root_user_db,GStem), os.path.join(root_public_db,GStem))
                 _symlink_to_database(os.path.join(root_public_db,GStem), os.path.join(root_user_db,GStem))
             except BaseException:
-                raise ValueError, "Can not create a symbolic link to the public database. Please remove %s"%(os.path.join(root_user_db,GStem))
+                raise ValueError("Can not create a symbolic link to the public database. Please remove %s"%(os.path.join(root_user_db,GStem)))
             # now try to load from the new entry in the database
             try:
                 coho_options['@use_this_root@'] = root_user_db
@@ -1144,7 +1143,7 @@ class CohomologyRingFactory:
             except BaseException, msg:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError, "Saved data at %s are not readable: %s"%(os.path.join(root_public_db,file_name), msg)
+                raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_public_db,file_name), msg))
         ## 4. Search web repository
         elif kwds.get('websource')!=False and (not from_scratch):
             try:
@@ -1301,7 +1300,7 @@ class CohomologyRingFactory:
         ## 1. Directly load from private db
         if os.access(os.path.join(root_user_db,file_name), os.R_OK):
             if from_scratch:
-                raise RuntimeError, "You requested a computation from scratch. Please remove %s"%(os.path.join(root_user_db,file_name))
+                raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_user_db,file_name)))
             try:
                 coho_options['@use_this_root@'] = root_user_db
                 OUT = load(os.path.join(root_user_db,file_name)) # realpath here?
@@ -1310,7 +1309,7 @@ class CohomologyRingFactory:
             except BaseException:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError, "Saved data at %s are not readable"%(os.path.join(root_user_db,file_name))
+                raise IOError("Saved data at %s are not readable"%(os.path.join(root_user_db,file_name)))
         ## 2. Link with public db and load from there
         elif os.access(os.path.join(root_public_db,file_name), os.R_OK) and not from_scratch:
             os.symlink(os.path.join(root_public_db,file_name), os.path.join(root_user_db,file_name))
@@ -1323,7 +1322,7 @@ class CohomologyRingFactory:
             except BaseException, msg:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError, "%. Saved data at %s are not readable"%(msg, os.path.join(root_public_db,file_name))
+                raise IOError("%. Saved data at %s are not readable"%(msg, os.path.join(root_public_db,file_name)))
         # 3. Unless the user forbids it, try to obtain it from some web source
         elif kwds.get('websource')!=False and not kwds.get('from_scratch'):
             try:
@@ -1435,7 +1434,7 @@ class CohomologyRingFactory:
         # any cohomology ring: The options are not associated with the
         # ring that we are returning below.
         if kwds.has_key('root'):
-            raise ValueError, "The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_user_db`` method instead"
+            raise ValueError("The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_user_db`` method instead")
         opts = kwds.get('options')
         if opts is not None:
             if isinstance(opts, basestring):
@@ -1467,23 +1466,23 @@ class CohomologyRingFactory:
         if not q.is_prime_power():
             pr = kwds.get('prime')
             if pr is None:
-                raise ValueError, "The parameter `prime` must be provided"
+                raise ValueError("The parameter `prime` must be provided")
             try:
                 pr = Integer(pr)
                 if not pr.is_prime():
                     raise ValueError
             except:
-                raise ValueError, "The parameter `prime=%s` must provide a prime number"%repr(pr)
+                raise ValueError("The parameter `prime=%s` must provide a prime number"%repr(pr))
             if not pr.divides(q):
-                raise ValueError, "The parameter `prime=%d` must divide the group order %d"%(pr,q)
+                raise ValueError("The parameter `prime=%d` must divide the group order %d"%(pr,q))
 
         ## Do we have the non-commutative case? If Singular is less
         ## than 3-1-0, raise an error.
         if ((pr is not None) and pr>2) or q%2:
             SingVer = tuple([int(x) for x in singular.eval('system("version")')])
             if SingVer < (3,1,0):
-                raise NotImplementedError, ("""There is only Singular %s installed.
-We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(SingVer)*['%d'])))%SingVer
+                raise NotImplementedError("""There is only Singular %s installed.
+We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(SingVer)*['{}'])).format(*SingVer))
 
         ############
         # Take care of GStem and GroupName.
@@ -1518,7 +1517,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         if OUT is not None:
             # Test if the group is OK
             if gap.eval('canonicalIsomorphism(%s,%s)'%(Hfinal.name(),OUT.group().name()))=='fail':
-                raise ValueError, "The stored cohomology ring %s does not match the given group"%repr(OUT)
+                raise ValueError("The stored cohomology ring %s does not match the given group"%repr(OUT))
 
         ## If a subgroup or its cohomology is given, test consistency
         Subgroup = kwds.get('Subgroup')
@@ -1530,14 +1529,14 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         if OUT is not None:
             # consistency vs. subgroup
             if (HP is not None) and (HP is not OUT._HP):
-                raise ValueError, "The stored cohomology ring %s is not defined as a subring of %s"%(repr(OUT),repr(HP))
+                raise ValueError("The stored cohomology ring %s is not defined as a subring of %s"%(repr(OUT),repr(HP)))
             if (Subgroup is not None) and gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),OUT.subgroup().name()))=='fail':
-                raise ValueError, "The stored cohomology ring %s is not computed using the given subgroup"%repr(OUT)
+                raise ValueError("The stored cohomology ring %s is not computed using the given subgroup"%repr(OUT))
             # consistency vs. Sylow subgroup
             if (HSyl is not None) and (HSyl is not OUT._HSyl):
-                raise ValueError, "The stored cohomology ring %s is not defined as a subring of %s"%(repr(OUT),repr(HP))
+                raise ValueError("The stored cohomology ring %s is not defined as a subring of %s"%(repr(OUT),repr(HP)))
             if (SylowSubgroup is not None) and (gap.eval('canonicalIsomorphism(%s,%s)'%(SylowSubgroup.name(),OUT.sylow_subgroup().name()))=='fail'):
-                raise ValueError, "The stored cohomology ring %s is not computed using the given Sylow subgroup"%repr(OUT)
+                raise ValueError("The stored cohomology ring %s is not computed using the given Sylow subgroup"%repr(OUT))
             ## These were enough consistency checks!
             return OUT
 
@@ -1547,30 +1546,30 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         # 1. check HP and HSyl
         if HP is not None:
             if not isinstance(HP,COHO):
-                raise TypeError, "`SubgpCohomology` must be %s"%COHO
+                raise TypeError("`SubgpCohomology` must be %s"%COHO)
             HSyl = HP._HSyl or HP # ignore the keyword argument for HSyl
         if HSyl is not None:
            if not isinstance(HSyl,COHO):
-               raise ValueError, "The given cohomology of a Sylow subgroup is not a cohomology ring"
+               raise TypeError("The given cohomology of a Sylow subgroup is not a cohomology ring")
            if isinstance(HSyl,MODCOHO):
-               raise ValueError, "The given cohomology of a Sylow subgroup does in fact not belong to a prime power group"
+               raise TypeError("The given cohomology of a Sylow subgroup does in fact not belong to a prime power group")
         # 2. check subgroup
         if Subgroup is not None:
             if not Hfinal.IsSubgroup(Subgroup):
-                raise ValueError, "The given subgroup is in fact not a subgroup"
+                raise ValueError("The given subgroup is in fact not a subgroup")
             if pr.divides(Integer(gap.eval('Index(%s,%s)'%(Hfinal.name(),Subgroup.name())))):
-                raise ValueError, "The given subgroup must contain a Sylow %d-subgroup"%pr
+                raise ValueError("The given subgroup must contain a Sylow %d-subgroup"%pr)
 ##            if HP is not None:
 ##                if gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))=='fail':
 ##                    raise ValueError, "The given subgroup does not match its given cohomology ring"
         ## 3. check Sylow subgroup
         if SylowSubgroup is not None:
             if not Hfinal.IsSubgroup(SylowSubgroup):
-                raise ValueError, "The given Sylow subgroup is in fact not a subgroup"
+                raise ValueError("The given Sylow subgroup is in fact not a subgroup")
             if pr.divides(Integer(gap.eval('Index(%s,%s)'%(Hfinal.name(),SylowSubgroup.name())))):
-                raise ValueError, "The index of the given Sylow %d-subgroup is not coprime to %d"%(pr,pr)
+                raise ValueError("The index of the given Sylow %d-subgroup is not coprime to %d"%(pr,pr))
             if not pr.divides(Integer(gap.eval('Order(%s)'%SylowSubgroup.name()))):
-                raise ValueError, "The given Sylow subgroup's order is indivisible by %d"%pr
+                raise ValueError("The given Sylow subgroup's order is indivisible by %d"%pr)
             if Subgroup is not None:
                 if not Subgroup.IsSubgroup(SylowSubgroup):
                     raise ValueError, "The given subgroup must contain the given Sylow subgroup"
@@ -1592,13 +1591,13 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                     phiSub=gap('IsomorphicSubgroups(%s,%s:findall:=false)'%(HP.group().name(),Hfinal.name()))[1]
                     Subgroup = gap('Group(List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s, GeneratorsOfGroup(%s)[x])))'%(HP.group().name(),phiSub.name(),HP.group().name()))
                 except:
-                    raise ValueError, "Unable to find a subgroup compatible with the argument `SubgpCohomology`"
+                    raise ValueError("Unable to find a subgroup compatible with the argument `SubgpCohomology`")
                 SubgroupTested = True
         else:
             if HP is not None:
                 phiSub = HP.group().canonicalIsomorphism(Subgroup)
                 if repr(phiSub)=='fail':
-                    raise ValueError, "The arguments `Subgroup` and `SubgpCohomology` don't match"
+                    raise ValueError("The arguments `Subgroup` and `SubgpCohomology` don't match")
                 SubgroupTested=True
         # 1b) dito for the Sylow subgroup
         if SylowSubgroup is None:
@@ -1611,13 +1610,13 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                     phiSyl = gap('IsomorphismGroups(%s,%s)'%(HSyl.group().name(),SylowSubgroup.name()))
                     SylowSubgroup = gap('Group(List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s, GeneratorsOfGroup(%s)[x])))'%(HSyl.group().name(),phiSyl.name(),HSyl.group().name()))
                 except:
-                    raise ValueError, "Unable to find a Sylow subgroup compatible with the given arguments `SubgpCohomology` or `SylowSubgpCohomology`"
+                    raise ValueError("Unable to find a Sylow subgroup compatible with the given arguments `SubgpCohomology` or `SylowSubgpCohomology`")
                 SylowTested = True
         else:
             if HSyl is not None:
                 phiSub = HSyl.group().canonicalIsomorphism(SylowSubgroup)
                 if repr(phiSub)=='fail':
-                    raise ValueError, "The arguments `SylowSubgroup` and `SylowSubgpCohomology` don't match"
+                    raise ValueError("The arguments `SylowSubgroup` and `SylowSubgpCohomology` don't match")
                 SylowTested=True
 
 
@@ -1741,7 +1740,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                 tmpKey[0] = (GKEY,)
                 OUT.setprop('_key',tuple(tmpKey))
             if OUT._key != CacheKey:
-                raise RuntimeError, "Keys for caching are corrupted"
+                raise RuntimeError("Cache keys are corrupted")
             else:
                 coho_logger.info( "Trying to update data on disk", OUT)
                 safe_save(OUT,OUT.autosave_name())
@@ -1797,12 +1796,12 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         if s is None:
             s = os.path.realpath(os.path.join(DOT_SAGE,'pGroupCohomology','db'))
         if not isinstance(s,basestring):
-            raise TypeError, "String (pathname) expected"
+            raise TypeError("String (pathname) expected")
         if os.path.exists(s):
             if not os.path.isdir(s):
-                raise OSError, "There is a file %s that we won't overwrite"%s
+                raise OSError("There is a file %s that we won't overwrite"%s)
             if not os.access(s,os.W_OK):
-                raise OSError, "The folder %s is not writeable"%s
+                raise OSError("The folder %s is not writeable"%s)
         else:
             os.makedirs(s)
         COHO.user_db = s
@@ -1900,7 +1899,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
         if isinstance(s,basestring):
             COHO.web_db = s
         else:
-            raise ValueError, "String expected"
+            raise TypeError("String expected")
 
 
     # TODO: non prime power groups
@@ -2014,7 +2013,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
             T.extractall(path=root)
         else:
             if not (hasattr(prime,'is_prime') and prime.is_prime()):
-                raise ValueError, '``prime`` must be a prime number'
+                raise ValueError('``prime`` must be a prime number')
             coho_logger.info( "Accessing "+websource + 'H'+GStem + 'mod%d.sobj'%prime, None)
             f = urllib2.urlopen(websource + 'H'+GStem + 'mod%d.sobj'%prime)
             coho_options['@use_this_root@'] = root
@@ -2038,7 +2037,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                 _gap_init(OUT.group().parent())
                 return OUT
             else:
-                raise RuntimeError, "No cohomology ring found in "+websource + 'H'+GStem + 'mod%d.sobj'%prime
+                raise RuntimeError("No cohomology ring found in "+websource + 'H'+GStem + 'mod%d.sobj'%prime)
 
         ## Second step: load the cohomology ring and return it
         ## It is now the prime power case.
@@ -2061,7 +2060,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
                             if coho_options.get('save', True):
                                 safe_save(OUT, OUT.autosave_name())
         else:
-            raise RuntimeError, "No cohomology ring found in "+websource + GStem + '.tar.gz'
+            raise RuntimeError("No cohomology ring found in "+websource + GStem + '.tar.gz')
         _gap_init(OUT.group().parent())
         try:
             # The original data have to be on disc, since otherwise

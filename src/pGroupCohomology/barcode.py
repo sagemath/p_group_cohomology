@@ -763,7 +763,7 @@ class BarCode:
         dmax = kwds.get('dmax',10)
         from sage.all import sphere, line
         if dmin>=dmax:
-            raise ValueError, "Optional parameters dmin, dmax must satisfy dmin < dmax"
+            raise ValueError("Optional parameters dmin, dmax must satisfy dmin < dmax")
         bars = [self[i]._bars for i in range(dmin,dmax+1)]
         G = None
         for d in range(0,dmax-dmin+1):

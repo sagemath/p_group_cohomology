@@ -249,7 +249,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         return
     F=Integer(q).factor()
     if len(F)>1:
-        raise ValueError, "The group order must be a prime power"
+        raise ValueError("The group order must be a prime power")
     if not ElAb:  # we will create data for all smaller elementary abelian groups
         for i in xrange(1,F[0][1]):
             makeGroupData(F[0][0]**i, Integer(gap('NumberSmallGroups(%d)'%(F[0][0]**i))), folder, True, Forced)
@@ -316,7 +316,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         while(1):
             cr += 1
             if cr >= 1000000:
-                raise IOError, 'File "%s" has not been created'
+                raise IOError('File "%s" has not been created')
             M = MTX(filename)
             if M.ncols():  # finally the file is written!
                 break
@@ -422,7 +422,7 @@ def makeSpecialGroupData(H, GStem, folder):
         return
     F=Integer(q).factor()
     if len(F)>1:
-        raise ValueError, "The group order must be a prime power"
+        raise ValueError("The group order must be a prime power")
     for i in xrange(1,F[0][1]):
         makeGroupData(F[0][0]**i, Integer(gap('NumberSmallGroups(%d)'%(F[0][0]**i))), folder, True)
     _gap_init(H.parent())
@@ -579,7 +579,7 @@ class RESL_sparse_unpickle_class:
                 oldroot = r
         if (newroot is not None):
             if oldroot is not None and (r!=oldroot) and (r!=newroot):
-                raise RuntimeError, "Unpickling failed since the parameter '@oldroot@' was incorrectly used"
+                raise RuntimeError("Unpickling failed since the parameter '@oldroot@' was incorrectly used")
             if r == newroot: # hence, no change is needed.
                 # By removing @newroot@, we declare that self doesn't need to be saved
                 if coho_options.has_key('@newroot@'):
@@ -1082,7 +1082,7 @@ cdef class RESL:
 
         """
         if not (isinstance(gstem,basestring) and isinstance(res_folder,basestring) and isinstance(gps_folder,basestring)):
-            raise TypeError, "arguments must be strings"
+            raise TypeError("strings expected")
         self.gstem = gstem
         rstem='Res'+gstem
         self.rstem = rstem
@@ -1404,14 +1404,14 @@ cdef class RESL:
         """
         if isinstance(key,int) or isinstance(key,Integer):
             if (key<1) or (key>len(self.Diff)):
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             else:
                 if isinstance(self.Diff[key-1],basestring):
                     return MTX(self.Diff[key-1])
                 else:
                     return self.Diff[key-1]
         else:
-            raise TypeError, "<key> must be of type integer"
+            raise TypeError("integer expected")
 
     def G_ALG(self):
         """
@@ -1510,7 +1510,7 @@ cdef class RESL:
         if n==-1:
             return tuple([self.Data.projrank[i] for i in range(len(self.Diff)+1)])
         if (n<0):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         while (n>len(self.Diff)):
             self.nextDiff()
         return self.Data.projrank[n]
@@ -1702,9 +1702,9 @@ cdef class RESL:
 
         """
         if not (isinstance(n_max,int) or isinstance(n_max,Integer)):
-            raise TypeError, "Second parameter must be an integer"
+            raise TypeError("integer expected")
         if n_max < C.deg():
-            raise IndexError, "Maximal lift index must be at least the degree of the cochain"
+            raise IndexError("Maximal lift index must be at least the degree of the cochain")
         self.Lifts[(C.deg(),C.deg(),C.MTX())] = (self.CochainToChainmap(C.deg(),C.MTX()), n_max)
 
     def exportAction(self):
@@ -1998,7 +1998,7 @@ cdef class RESL:
 
         """
         if d<1:
-            raise ValueError, "Degree must be at least 1"
+            raise ValueError("Degree must be at least 1")
         if self.ugb_deg != d:
             if coho_options['sparse']:
                 self.exportLifts()
@@ -2095,7 +2095,7 @@ cdef class RESL:
         FfSetNoc(self.G_Alg.Data.nontips)
         cdef MTX M
         if len(self.Diff):
-            raise IndexError, "First differential is already computed"
+            raise IndexError("First differential is already computed")
         M = makeMTX(makeFirstDifferential(self.Data))
         M.set_immutable()
         self.Diff = [M]
@@ -2661,20 +2661,20 @@ cdef class RESL:
         if check or (Autolift=={}):
             if n==1:
                 if M[0,0]!=0:
-                    raise ValueError, "The given chain is no cycle"
+                    raise ValueError("The given chain is no cycle")
             else:
                 if self.applyDiff(n-1,M)._rowlist_(0,self.Data.projrank[n-2]-1).count(0)!=self.Data.projrank[n-2]*nt:
-                    raise ValueError, "The given chain is no cycle"
+                    raise ValueError("The given chain is no cycle")
         if Autolift == {}:
             self.load_ugb(n)
             if (self.nRgs.ngs.r!=rk_1) or (self.nRgs.ngs.s != rk):
-                raise ArithmeticError, "Theoretical error"
+                raise ArithmeticError("Theoretical error")
             # in coho.c: innerPreimages(nRgs, images->Data, s, resol->group, this->Data),
             innerPreimages(self.nRgs, M.Data.Data, 1, self.G_Alg.Data, TMP.Data.Data)
             if check:
                 coho_logger.info("Checking the result", self)
                 if self.applyDiff(n,TMP)!=M:
-                    raise ArithmeticError, "lifting failed"
+                    raise ArithmeticError("lifting failed")
             return TMP
         cdef tuple Piv = tuple(Autolift['Piv'])
         for j in Piv:
@@ -2684,7 +2684,7 @@ cdef class RESL:
         if check:
             coho_logger.info("Checking the result", self)
             if self.applyDiff(n,TMP)!=M:
-                raise ArithmeticError, "lifting failed"
+                raise ArithmeticError("lifting failed")
         return TMP
 
     #################################
@@ -2741,16 +2741,16 @@ cdef class RESL:
 
         """
         if (s>len(self.Diff)) or (r>len(self.Diff)) or (q>len(self.Diff)) or (q<0) or (r<0) or (s<0):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         if (M1._ncols != self.G_Alg.Data.nontips) or \
                (M2._ncols != self.G_Alg.Data.nontips):
-            raise TypeError, "Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips)
+            raise ValueError("Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips))
         if (M1._nrows != self.Data.projrank[s]*self.Data.projrank[r]):
-            raise TypeError, "Matrix representing the first chain map must have %d rows"%(self.Data.projrank[s]*self.Data.projrank[r])
+            raise ValueError("Matrix representing the first chain map must have %d rows"%(self.Data.projrank[s]*self.Data.projrank[r]))
         if (M2._nrows != self.Data.projrank[r]*self.Data.projrank[q]):
-            raise TypeError, "Matrix representing the second chain map must have %d rows"%(self.Data.projrank[r]*self.Data.projrank[q])
+            raise ValueError("Matrix representing the second chain map must have %d rows"%(self.Data.projrank[r]*self.Data.projrank[q]))
         if (M1.Data.Field != self.G_Alg.Data.p) or (M2.Data.Field != self.G_Alg.Data.p):
-            raise TypeError, "Matrices representing chain maps must be defined over GF(%d)"%(self.G_Alg.Data.p)
+            raise ValueError("Matrices representing chain maps must be defined over GF(%d)"%(self.G_Alg.Data.p))
         coho_logger.info('Compose chain maps R_%d -> R_%d -> R_%d', self, s,r,q)
         cdef MTX OUT
         OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[s]*self.Data.projrank[q],self.G_Alg.Data.nontips))
@@ -2831,22 +2831,22 @@ cdef class RESL:
         # test input data
         r = L2[0][0]
         if (s>len(self.Diff)) or (r>=s):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         if (M1._ncols != self.G_Alg.Data.nontips):
-            raise TypeError, "Matrices representing the first chain map must have |G|=%d columns"%(self.G_Alg.Data.nontips)
+            raise ValueError("Matrices representing the first chain map must have |G|=%d columns"%(self.G_Alg.Data.nontips))
         if (M1._nrows != self.Data.projrank[s]*self.Data.projrank[r]):
-            raise TypeError, "Matrix representing the first chain map must have %d rows"%(self.Data.projrank[s]*self.Data.projrank[r])
+            raise ValueError("Matrix representing the first chain map must have %d rows"%(self.Data.projrank[s]*self.Data.projrank[r]))
         if (M1.Data.Field != self.G_Alg.Data.p):
-            raise TypeError, "Matrices representing the first chain map must be defined over GF(%d)"%(self.G_Alg.Data.p)
+            raise ValueError("Matrices representing the first chain map must be defined over GF(%d)"%(self.G_Alg.Data.p))
         cdef tuple X
         for X in L2:
             ## make some tests implicit
             if  (X[1]>=r) or (X[1]<0):
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if (X[2].ncols()!=self.G_Alg.Data.nontips):
-                raise TypeError, "Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips)
+                raise ValueError("Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips))
             if (X[2].nrows()!=self.Data.projrank[r]*self.Data.projrank[X[1]]):
-                raise TypeError, "Matrix representing a second chain map is of wrong size"
+                raise ValueError("Matrix representing a second chain map is of wrong size")
 
         cdef MTX IN1
         cdef MTX OUT1
@@ -2958,20 +2958,20 @@ cdef class RESL:
         cdef int n = L[0][0]
         cdef list OUT
         if (n>=len(self.Diff)):
-            raise IndexError, "Index %d bigger than known degree %d"%(n,self.deg())
+            raise IndexError("Index %d bigger than known degree %d"%(n,self.deg()))
         cdef tuple X
         cdef MTX MX
         cdef int Indi = 0
         cdef int X0,X1
         for X0,X1,MX in L:
             if (X0!=n):
-                raise IndexError, "All chain maps in the list must have the same source"
+                raise ValuError("All chain maps in the list must have the same source")
             if (X1>=n) or (X1<0):
-                raise IndexError, "Index out of range"
+                raise IndexError("Index out of range")
             if (MX.Data.Noc!=self.G_Alg.Data.nontips):
-                raise TypeError, "Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips)
+                raise ValueError("Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips))
             if (MX.Data.Nor!=self.Data.projrank[X0]*self.Data.projrank[X1]):
-                raise TypeError, "Matrix representing input chain map must have %d*%d rows"%(self.Data.projrank[X0],self.Data.projrank[X1])
+                raise ValueError("Matrix representing input chain map must have %d*%d rows"%(self.Data.projrank[X0],self.Data.projrank[X1]))
             Indi += MX.Data.Nor
         ######################
         # If separate lifts appear to be better
@@ -3021,7 +3021,7 @@ cdef class RESL:
                 self.load_ugb(Compos[1]+1)
                 if (self.nRgs.ngs.r!=self.Data.projrank[Compos[1]]) or (self.nRgs.ngs.s != self.Data.projrank[Compos[1]+1]):
                     sig_off()
-                    raise ArithmeticError, "Theoretical error"
+                    raise ArithmeticError("Theoretical error")
                 ## in coho.c: innerPreimages(nRgs, images->d, s, resol->group, this->d),
                 coho_logger.debug('> Compute preimages in degree %d'%(Compos[1]+1), self)
                 innerPreimages(self.nRgs, Compos1.Data.Data, RK, self.G_Alg.Data, Out1.Data.Data)
@@ -3089,20 +3089,20 @@ cdef class RESL:
 
         """
         if not (isinstance(X,tuple) or isinstance(X,list)):
-            raise TypeError, "Chain map must be presented by a tuple or list"
+            raise TypeError("Chain map must be presented by a tuple or list")
         if len(X)!=3:
-            raise TypeError, "Chain map must be presented by a tuple or list of length 3"
+            raise ValueError("Chain map must be presented by a tuple or list of length 3")
         cdef int n,d
         cdef MTX M
         (n,d,M)=X
         if (d>=n) or (d<0):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         if (M.Data.Noc!=self.G_Alg.Data.nontips):
-            raise TypeError, "Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips)
+            raise ValueError("Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips))
         while (n>=len(self.Diff)):
             self.nextDiff()
         if (M.Data.Nor!=self.Data.projrank[n]*self.Data.projrank[d]):
-            raise TypeError, "Matrix representing the input chain map must have %d rows"%(self.Data.projrank[n]*self.Data.projrank[d])
+            raise ValueError("Matrix representing the input chain map must have %d rows"%(self.Data.projrank[n]*self.Data.projrank[d]))
         cdef dict Autolift = self.Autolift.get(d+1,{})
         if not Autolift:
             return (n+1,d+1,self.ugb_liftChainMap(n+1,d+1,M))
@@ -3193,11 +3193,11 @@ cdef class RESL:
 
         """
         if (n>len(self.Diff)) or (d>=n) or (d<1):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         if (M.ncols()!=self.G_Alg.Data.nontips):
-            raise TypeError, "Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips)
+            raise ValueError("Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips))
         if (M.nrows()!=self.Data.projrank[n-1]*self.Data.projrank[d-1]):
-            raise TypeError, "Matrix representing the input chain map must have %d rows"%(self.Data.projrank[n-1]*self.Data.projrank[d-1])
+            raise ValueError("Matrix representing the input chain map must have %d rows"%(self.Data.projrank[n-1]*self.Data.projrank[d-1]))
         cdef MTX Compos
         Compos = self.composeChainMaps(self[n],M, n,n-1,d-1)
         coho_logger.debug('Lift with Urbild Groebner basis in degree %d'%(d), self)
@@ -3210,7 +3210,7 @@ cdef class RESL:
         sig_off()
         self.load_ugb(d)
         if (self.nRgs.ngs.r!=self.Data.projrank[d-1]) or (self.nRgs.ngs.s != self.Data.projrank[d]):
-            raise ArithmeticError, "Theoretical error"
+            raise ArithmeticError("Theoretical error")
         # in coho.c: innerPreimages(nRgs, images->d, s, resol->group, this->d),
         sig_on()
         innerPreimages(self.nRgs, Compos.Data.Data, self.Data.projrank[n], self.G_Alg.Data, OUT.Data.Data)
@@ -3258,7 +3258,7 @@ cdef class RESL:
 
         """
         if i>n:
-            raise ValueError, "The second integer argument must not exceed the first integer argument"
+            raise ValueError("The second integer argument must not exceed the first integer argument")
         if i%2:
             return self.composeChainMaps(self[n+1],X, n+1,n,n-i) + self.composeChainMaps(Y,self[n-i+1], n+1,n-i+1,n-i)
         return self.composeChainMaps(self[n+1],X, n+1,n,n-i) - self.composeChainMaps(Y,self[n-i+1], n+1,n-i+1,n-i)
@@ -3313,11 +3313,11 @@ cdef class RESL:
 
         """
         if (n>len(self.Diff)) or (n<0):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         if (Coc._ncols != self.Data.projrank[n]) or (Coc._nrows != 1):
-            raise TypeError, "expect (%d x %d) MTX matrix, got %s"%(1,self.Data.projrank[n],str(Coc))
+            raise ValueError("expect (%d x %d) MTX matrix, got %s"%(1,self.Data.projrank[n],str(Coc)))
         if (Coc.Data.Field != self.G_Alg.Data.p):
-            raise TypeError, "MTX matrix must be defined over GF(%d)"%(self.G_Alg.Data.p)
+            raise ValueError("Matrix must be defined over GF(%d)"%(self.G_Alg.Data.p))
         cdef MTX OUT
         cdef FEL Coc_f
         OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[n], self.G_Alg.Data.nontips))
@@ -3374,21 +3374,21 @@ cdef class RESL:
 
         """
         if not (isinstance(X,tuple) or isinstance(X,list)):
-            raise TypeError, "Chain map must be given by a list or tuple"
+            raise TypeError("Chain map must be given by a list or tuple")
         if len(X)!=3:
-            raise TypeError, "Chain map must be given by a list or tuple of length 3"
+            raise ValueError("Chain map must be given by a list or tuple of length 3")
         n=X[0]
         if (n>len(self.Diff)) or (n<0) or (X[1]!=0):
-            raise IndexError, "Index out of range"
+            raise IndexError("Index out of range")
         if not (isinstance(X[2],MTX)):
-            raise TypeError, "Chain map must be described by an MTX matrix"
+            raise TypeError("Chain map must be described by an {} matrix".format(MTX))
         cdef MTX CM, OUT
         cdef Py_ssize_t i,nr
         CM = X[2]
         if (CM._nrows != self.Data.projrank[n]) or (CM._ncols != self.G_Alg.Data.nontips):
-            raise TypeError, "expect (%d x %d) MTX matrix"%(self.Data.projrank[n],self.G_Alg.Data.nontips)
+            raise ValueError("expect (%d x %d) matrix"%(self.Data.projrank[n],self.G_Alg.Data.nontips))
         if (CM.Data.Field != self.G_Alg.Data.p):
-            raise TypeError, "MTX matrix must be defined over GF(%d)"%(self.G_Alg.Data.p)
+            raise ValueError("Matrix must be defined over GF(%d)"%(self.G_Alg.Data.p))
         OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, 1, CM._nrows))
         FfSetField(OUT.Data.Field)
         FfSetNoc(OUT.Data.Noc)
@@ -3499,7 +3499,7 @@ cdef class LIFTcontainer:
 
         """
         if not isinstance(R,RESL):
-            raise TypeError, "argument of type <RESL> expected"
+            raise TypeError("argument of type {} expected".format(RESL))
         cdef RESL tmp
         tmp=R
         self.Parent = R
@@ -3618,7 +3618,7 @@ cdef class LIFTcontainer:
 
         """
         if len(key)!=3:
-            raise KeyError, "key must be a list or tuple of three items"
+            raise KeyError("key must be a list or tuple of three items")
         if coho_options['sparse']:
             self.Parent.free_ugb()
         cdef int n,d
@@ -3709,7 +3709,7 @@ cdef class LIFTcontainer:
 
         """
         if len(key)!=3:
-            raise KeyError, "key must be a list or tuple of three items"
+            raise KeyError("key must be a list or tuple of three items")
         cdef int n,d
         n=key[0]
         d=key[1]
@@ -3799,7 +3799,7 @@ cdef class LIFTcontainer:
 
         """
         if len(key)!=3:
-            raise KeyError, "key must be a list or tuple of three items"
+            raise KeyError("key must be a list or tuple of three items")
         cdef int n,d
         n=key[0]
         d=key[1]
@@ -4047,7 +4047,7 @@ cdef class G_ALG:
         if folder is None:
             folder = ''
         if not (isinstance(gstem,str) and isinstance(folder,str)):
-            raise TypeError, "string expected"
+            raise TypeError("string expected")
         if gstem=='':
             self.Data = newGroupRecord()
         else:
@@ -4297,11 +4297,11 @@ cdef class G_ALG:
 
         """
         if not self.Data.p:
-            raise TypeError, "Group algebra is not specified"
+            raise ValueError("Modulus is not specified")
         if (M._nrows != 1) or (M._ncols != self.Data.nontips):
-            raise IndexError, "Parameter must be a row vector of size %d"%(self.Data.nontips)
+            raise ValueError("Parameter must be a row vector of size %d"%(self.Data.nontips))
         if (M.Data.Field != self.Data.p):
-            raise TypeError, "Matrix must be defined over GF(%d)"%(self.Data.p)
+            raise ValueError("Matrix must be defined over GF(%d)"%(self.Data.p))
         cdef MTX OUT
         OUT  = makeMTX(MatAlloc(self.Data.p, self.Data.nontips,self.Data.nontips))
         innerRightActionMatrix(self.Data, M.Data.Data, OUT.Data.Data)
@@ -4352,11 +4352,11 @@ cdef class G_ALG:
 
         """
         if not self.Data.p:
-            raise TypeError, "Group algebra is not specified"
+            raise ValueError("Modulus is not specified")
         if (M._nrows != 1) or (M._ncols != self.Data.nontips):
-            raise IndexError, "Parameter must be a row vector of size %d"%(self.Data.nontips)
+            raise ValueError("Parameter must be a row vector of size %d"%(self.Data.nontips))
         if (M.Data.Field != self.Data.p):
-            raise TypeError, "Matrix must be defined over GF(%d)"%(self.Data.p)
+            raise ValueError("Matrix must be defined over GF(%d)"%(self.Data.p))
         cdef MTX OUT
         OUT  = makeMTX(MatAlloc(self.Data.p, self.Data.nontips,self.Data.nontips))
         innerLeftActionMatrix(self.Data, M.Data.Data, OUT.Data.Data)
@@ -4409,16 +4409,16 @@ cdef class G_ALG:
             [1 0 0 1 1 0 0 0]
         """
         if not M.Data:
-            raise TypeError, "homomorphism can't be described by an empty matrix"
+            raise ValueError("homomorphism can't be described by an empty matrix")
         if not x.Data:
             return x
         if (x.ncols()!=self.Data.nontips) or (M.ncols()!=self.Data.nontips):
-            raise IndexError, "matrices must be of size |G|=%d"%(self.Data.nontips)
+            raise ValueError("matrices must be of size |G|=%d"%(self.Data.nontips))
         r=x.nrows()
         if (M.nrows()%r):
-            raise IndexError, "matrix size incompatible (row number must be multiple of %d)"%(r)
+            raise ValueError("matrix size incompatible (row number must be multiple of %d)"%(r))
         if (M.Data.Field!=self.Data.p) or (x.Data.Field!=self.Data.p):
-            raise TypeError, "matrices must be defined over GF(%d)"%(self.Data.p)
+            raise ValueError("matrices must be defined over GF(%d)"%(self.Data.p))
         s = int(M.nrows()/r)
 
         cdef MTX OUT
@@ -4561,7 +4561,7 @@ class MasseyDefiningSystems:
 
         """
         if not L:
-            raise ValueError, "At least one Yoneda cochain expected"
+            raise ValueError("At least one Yoneda cochain expected")
         cdef int i = 0
         self.States = []
         self._all = all
@@ -4573,7 +4573,7 @@ class MasseyDefiningSystems:
             # When applying the "make" method, the list that now only contains one item will be longer
             # and the list that now only contains (n,m,M) will contain further lifts.
             if not (isinstance(L[i], YCOCH) and (L[i].resolution() is R)):
-                raise ValueError, "The input must be Yoneda cochains defined over the same resolution"
+                raise TypeError("The input must be Yoneda cochains defined over the same resolution")
             if i==0:
                 self.States.append( [ [ [       L[i]             ]  ,         None         ]   ] )  # the level i starts just with one state
                 #                       - Value list for state --    there is no level i-1
@@ -4616,7 +4616,7 @@ class MasseyDefiningSystems:
         if i==0:
             return
         if i<1 or i>self.len-1:
-            raise IndexError, "Index must be an integer between 1 and %d"%(self.len-1)
+            raise IndexError("Index must be an integer between 1 and %d"%(self.len-1))
         if len(self.States[i][0][0]) == i+1: # level i has at least one state, and it is checked whether all i+1 values are already available
             return
         if i>1:

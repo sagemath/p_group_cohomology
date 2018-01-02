@@ -357,9 +357,9 @@ class MODCOHO(COHO):
         try:
             p = Integer(p)
         except:
-            raise ValueError, "base field must be given by a prime number"
+            raise ValueError("base field must be given by a prime number")
         if not p.is_prime():
-            raise ValueError, "base field must be given by a prime number"
+            raise ValueError("base field must be given by a prime number")
         from sage.all import GF
         base_ring = GF(p)
         if base_ring.characteristic()==2:
@@ -375,10 +375,10 @@ class MODCOHO(COHO):
             return
 
         if not (hasattr(G,'parent') and repr(G.parent())=='Gap'):
-            raise ValueError, "The group must be given in the Gap interface"
+            raise ValueError("The group must be given in the Gap interface")
         gap = G.parent()
         if not isinstance(HP,COHO):
-            raise ValueError, "Cohomology ring of a subgroup expected, not "+repr(type(HP))
+            raise TypeError("Cohomology ring of a subgroup expected, not "+repr(type(HP)))
         GPerm     = kwds.get('GPerm')
         SubgpId   = kwds.get('SubgpId')
         GroupName = kwds.get('GroupName')
@@ -413,7 +413,7 @@ class MODCOHO(COHO):
                     _gap_init(gap)
                     bla = gap.eval('canonicalIsomorphism(SmallGroup(%d,%d),%s)'%(GId[0],GId[1],G.name()))
                 if bla=='fail':
-                    raise ValueError, "Group and GroupId are incompatible"
+                    raise ValueError("Group and GroupId are incompatible")
         self._Order = GId[0]
 
         # Construct GStem
@@ -422,7 +422,7 @@ class MODCOHO(COHO):
             if G.HasName():
                 GStem = gap.eval('Name(%s)'%G.name())
             else:
-                raise ValueError, "optional argument <GStem> must be provided"
+                raise ValueError("Can not infer group name: Optional argument <GStem> must be provided")
         self.GStem = GStem
 
         if GroupName or G.HasName():
@@ -447,7 +447,7 @@ class MODCOHO(COHO):
             else:
                 tmpPhi = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%(G.name(),G2.name(),G.name(),G2.name()))
             if repr(tmpPhi)=='fail':
-                raise ValueError, "The given permutation group GPerm is not an equivalent description of the given group G"
+                raise ValueError("The given permutation group GPerm is not an equivalent description of the given group G")
         self._gap_group = G2
         self._gapBackup = ('Group('+repr(G2.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
         # Conclusion:
@@ -459,7 +459,7 @@ class MODCOHO(COHO):
         # The subgroups HP and Subgroup must be provided by CohomologyRing
         # Test if they are admissible
         if not G.IsSubgroup(Subgroup):
-            raise ValueError, "We expected a group-subgroup pair"
+            raise ValueError("We expected a group-subgroup pair")
         if kwds.get('verifyGroupIso'):
             try:
                 bla = gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))
@@ -467,7 +467,7 @@ class MODCOHO(COHO):
                 _gap_init(gap)
                 bla = gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))
             if bla=='fail':
-                raise ValueError, "The generators of the given subgroup must be compatible with those of the group of the given cohomology ring"
+                raise ValueError("The generators of the given subgroup must be compatible with those of the group of the given cohomology ring")
 
         P = Subgroup
         PId = SubgpId
@@ -475,7 +475,7 @@ class MODCOHO(COHO):
             # P is too big for the IdGroup algorithm!
             self._POrder = Order = Integer(gap.eval('Order(%s)'%P.name()))
             if Order == 1:
-                raise ValueError, "No Sylow subgroup is of size one!"
+                raise ValueError("Sylow subgroups cannot be trivial!")
         else:
             self._POrder = Order = PId[0]
         self._HP = HP
@@ -1127,7 +1127,7 @@ class MODCOHO(COHO):
         if len(self._PtoPcapCPdirect):
             return
         if not self._HP.completed:
-            raise RuntimeError, "The cohomology ring of the underlying subgroup must be known"
+            raise RuntimeError("The cohomology ring of the underlying subgroup must be known")
         from pGroupCohomology.resolution import coho_options
         from pGroupCohomology.cochain import MODCOCH
         from pGroupCohomology import CohomologyRing
@@ -1865,7 +1865,7 @@ class MODCOHO(COHO):
             sgprank = len(G.Gen)
         t = sgprank - z
         if t<0:
-            raise RuntimeError, "The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup"
+            raise RuntimeError("The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup")
         if t==0:
             return
         coho_logger.info("Computing Dickson invariants in elementary abelian subgroup of rank %d"%sgprank, self)
@@ -3168,7 +3168,7 @@ class MODCOHO(COHO):
 
         """
         if self.knownDeg<n and (not self.completed):
-            raise RuntimeError, "Ring structure in degree %d is not known yet"%n
+            raise RuntimeError("Ring structure in degree %d is not known yet"%n)
         cdef list DecGen = self.Triangular.get(n)
         if (DecGen is not None) and not forced:
             return DecGen
@@ -3265,7 +3265,7 @@ class MODCOHO(COHO):
             return None
         # return a cocycle of self, whose name is a defining polynomial
         if not hasattr(c,'parent'):
-            raise ValueError, "Cocycle of a subgroup expected"
+            raise ValueError("Cocycle of a subgroup expected")
         coho_logger.debug("Try to express a supposedly stable element of %r as a polynomial", self, c.parent())
         singular = self.GenS.parent()
         try:
@@ -3335,9 +3335,9 @@ class MODCOHO(COHO):
         """
         from pGroupCohomology.cochain import MODCOCH
         if (not isinstance(c,MODCOCH)) or (c.parent() is not self):
-            raise TypeError, "element of %s expected"%repr(self)
+            raise TypeError("element of %s expected"%repr(self))
         if not self.Gen:
-            raise RuntimeError, "no generators known for "+repr(self)
+            raise RuntimeError("no generators known for "+repr(self))
         singular = c._Svalue.parent()
         br = singular('basering')
         n = c.deg()
@@ -3359,7 +3359,7 @@ class MODCOHO(COHO):
 
         singular(self._HP).set_ring()
         if outP!=c._Svalue:
-            raise ValueError, "Apparently the given cochain does not belong to "+repr(self)
+            raise ValueError("Apparently the given cochain does not belong to "+repr(self))
         self.set_ring()
         c.setname(singular.eval('print(%s)'%outS.name()).strip(), is_polyrep=True)
         br.set_ring()
@@ -3422,7 +3422,7 @@ class MODCOHO(COHO):
             singular.eval('int %s_j'%self.prefix)
         for i,C in L:
             if self.RestrMaps[i][1].codomain() is not C.parent():
-                raise ValueError, "Cocycle "+repr(C)+" should belong to "+repr(self.RestrMaps[i][1].codomain())
+                raise ValueError("Cocycle "+repr(C)+" should belong to "+repr(self.RestrMaps[i][1].codomain()))
             rList.append(singular.ring(self._prime,'(@x(%d)(1..%d))'%(i,len(self.RestrMaps[i][1].codomain().Gen)),'dp')) # the ring order shouldn't matter
             name = singular(C.parent()).name()
             tmpRest = [self.RestrMaps[i][1](X) for X in DecGen]
@@ -3505,7 +3505,7 @@ class MODCOHO(COHO):
         self.set_ring()
         d = int(d)
         if d<1:
-            raise ValueError, "degree (positive integer) expected"
+            raise ValueError("degree (positive integer) expected")
         coho_logger.info("Try to find new Duflot-regular element in degree %d"%d, self)
         # find a basis of new Duflot elements in degree d
         NDList = [t.name() for t in self.Gen if not t.rdeg()]+[t.name() for t in self._DuflotRegSeq]
@@ -3910,7 +3910,7 @@ class MODCOHO(COHO):
                                              # 2 is indecomposable nilpotent
                 NrNewGen = NrNewGen-len(NewGen)
                 if ZN_comp.values().count(2)!=len(NewGen):
-                    raise ArithmeticError, "%d==%d -- that seems strange"%(ZN_comp.values().count(2),len(NewGen))
+                    raise ArithmeticError("%d==%d -- that seems strange"%(ZN_comp.values().count(2),len(NewGen)))
                 if len(NewGen)==1:
                     coho_logger.info("> There is 1 nilpotent generator in degree %d"%(n), self)
                 else:
@@ -3947,7 +3947,7 @@ class MODCOHO(COHO):
                     # a new normalised generator with nilpotent restriction:
                     NewGen.append(MODCOCH(self, '('+'+'.join(['('+str(NilNonDec[i,k])+')*'+Monomials[k] for k in range(lenMonExp) if NilNonDec[i,k]])+')/%d'%f, deg=n, name='b_%d_%d'%(n,j), S=singular, ydeg=0,rdeg=0, is_polyrep=True, is_NF=True))
                     if StablePivots[j] is None:
-                        raise RuntimeError, "Pivots got messed up. Please inform the author"
+                        raise RuntimeError("Pivots got messed up. Please inform the author")
                     StablePivots[j]=None
 
                 # we will now disregard those stable basis elements whose
@@ -3964,7 +3964,7 @@ class MODCOHO(COHO):
                 NrNewGen = NrNewGen - ZN_comp.values().count(3)
 
             if (NrNewGen != ZN_comp.values().count(1)):
-                raise RuntimeError, "Error in the quest for regular generators"
+                raise RuntimeError("Error in the quest for regular generators")
             NewDuflot = bool(NrNewGen)
             if NrNewGen:
                 for i from 0 <= i < m:
@@ -3977,7 +3977,7 @@ class MODCOHO(COHO):
                         NewGen.append(StableList[i])
                         NrNewGen -= 1
                 if NrNewGen!=0:
-                    raise RuntimeError, "Error in choosing regular generators"
+                    raise RuntimeError("Error in choosing regular generators")
 
                 if ZN_comp.values().count(1)==1:
                     coho_logger.info("> There is 1 Duflot generator in degree %d"%(n), self)
@@ -4016,7 +4016,7 @@ class MODCOHO(COHO):
                             f = Cand.lc()
                             j = Cand.lm()
                 if not f:
-                    raise RuntimeError, "New 'Generator' is in fact decomposable"
+                    raise RuntimeError("New 'Generator' is in fact decomposable")
                 DecGen.append(Cand/f)
                 pivot.append(j)
 
@@ -4286,7 +4286,7 @@ class MODCOHO(COHO):
         TWT = walltime()
         if (not (isinstance(max_deg, int) or isinstance(max_deg, Integer))) or \
            (max_deg==0) or (max_deg<-1):
-            raise IndexError, "The degree bound must be a positive integer"
+            raise IndexError("The degree bound must be a positive integer")
         if ((self.suffDeg>-1) and (self.knownDeg >= self.suffDeg)) or self.completed:
             coho_logger.info("Ring structure is completely known.", self)
             return
@@ -4332,13 +4332,13 @@ class MODCOHO(COHO):
             if fdt[-1] > -len(fdt)+1:
                 alpha = True
             if fdt[-1] < -len(fdt)+1:
-                raise RuntimeError, "We got a filter degree type %s, but the last value must not be smaller than %d!\n    Theoretical error"%(repr(fdt),-len(fdt)+1)
+                raise RuntimeError("Theoretical error: We got a filter degree type %s, but the last value must not be smaller than %d!"%(repr(fdt),-len(fdt)+1))
             if self.alpha>-1:
-                raise RuntimeError,"""
+                raise RuntimeError("""
 This result contradicts the weak form
 of Benson's regularity conjecture, that
 was proved by Peter Symonds. So, there
-is an error. Please inform the author!"""
+is an error. Please inform the author!""")
             if alpha:
                 print("###########################################")
                 print("## COUNTEREXAMPLE FOR THE STRONG FORM OF ##")
@@ -4484,7 +4484,7 @@ def MODCOHO_unpickle(*L):
     elif len(L)==29:
         _prime, GEN, Rel, RelG, lastRel, lastRelevantDeg, knownDeg, suffDeg, completed, Dickson, DuflotRegSeq, alpha, Triangular, StdMon, DG, _gap_group, _Subgp, _SylowGp, SubgroupList, PtoPcapCPdirect, PtoPcapCPtwist, PtoPcapCPdirectSing, PtoPcapCPtwistSing, _Order, _POrder, sgpDickson, _property_dict, SingularTime, cache = L
     else:
-        raise ValueError, "wrong number of arguments"
+        raise ValueError("wrong number of arguments")
 
     OUT = MODCOHO(None,_prime,None,None) # It is initialised as a ring over GF(_prime), but nothing more.
     from pGroupCohomology.cochain import MODCOCH
