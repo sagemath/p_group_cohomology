@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# "mod-p group cohomology" documentation build configuration file, created by
+# "p_group_cohomology" documentation build configuration file, created by
 # sphinx-quickstart on Wed Jan  3 00:48:45 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -53,7 +53,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'"Mod-p Group Cohomology"'
+project = u'"p_group_cohomology"'
 copyright = u'2018, "Simon King"'
 author = u'"Simon King"'
 

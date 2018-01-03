@@ -1,11 +1,25 @@
-/* ========================== Present =============================
+/* ================================================================
    mam.c : Make Action Matrices
 
    (C) Copyright 1999-2000 David J. Green <green@math.uni-wuppertal.de>
    Department of Mathematics, University of Wuppertal,
    D-42097 Wuppertal, Germany
    Copyright (C) 2015 Simon A. King <simon.king@uni-jena.de>
-   This program is free software; see the file COPYING for details.
+
+   This file is part of p_group_cohomology.
+
+   p_group_cohomoloy is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 2 of the License, or
+   (at your option) any later version.
+
+   p_group_cohomoloy is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with p_group_cohomoloy.  If not, see <http://www.gnu.org/licenses/>.
    ================================================================ */
 
 #include "pgroup.h"

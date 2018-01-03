@@ -10,9 +10,9 @@ Summary
 The source code consists of
 
  * Python and Cython extension modules as well as Singular and GAP functions
-   written by `Simon King <http://users.minet.uni-jena.de/~king/eindex.html>`_,
- * C-programs and Gap functions written by `David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_, and
- * a modified version of parts of the Aachen `C MeatAxe <http://www.math.rwth-aachen.de/homes/MTX/>`_.
+   written by `Simon King <http://users.minet.uni-jena.de/~king/eindex.html>`_.
+ * C-programs and Gap functions created by `David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_
+   and modified by `Simon King <http://users.minet.uni-jena.de/~king/eindex.html>`_.
 
 The package comprises a data base of the cohomology rings of all groups of
 order 64, and can access a repository of the cohomology rings of
@@ -60,34 +60,23 @@ Installation
 
 Before installing our package, make sure that the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
 library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien is
-installed in your copy of Sage. You can install it during a Sage session by
+installed in your copy of Sage. You can install it by
 ::
 
-    sage: install_package('database_gap')
+    sage -i database_gap
 
-Till summer 2015, the latest "official" version 2.1.4 of our package could be installed
-by ::
-
-    sage: install_package('p_group_cohomology')
-
-However, version 2.1.4 is an old-style package, and moreover it can't install because
-of backward incompatible changes in Sage. We currently provide a fix against the backward
-incompatible changes (version 2.1.6) that can be installed on the command line
-(hence, *not* in a running Sage session) by
+By version 3.0, `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_ has been removed
+from the cohomology package. Instead, it is needed to install
+`SharedMeatAxe <http://users.minet.uni-jena.de/~king/SharedMeatAxe/>`_. It
+can be installed by
 ::
 
-    sage -i http://users.minet.uni-jena.de/cohomology/p_group_cohomology-2.1.6.spkg
+    sage -i meataxe
 
-Version 2.1.6 still is an old-style package and can thus not become an official
-Sage package. Version 3.0 will be new-style.
+By :trac:`18514`, the cohomology package can then be installed by
+::
 
-Since version 2.1.4, the optimization level has been increased, which
-actually gives faster code. However, this requires a relatively recent
-version of gcc. With older compiler versions, installation of this package
-will fail with a warning hinting to upgrade gcc.
-
-Since version 2.1, the package works both on little and big endian
-machines. We are sorry for the long installation time.
+    sage -i p_group_cohomology
 
 Testing
 -------
@@ -96,12 +85,10 @@ The Cython and Python parts of the package have 100% doctest coverage, but
 be warned that running the test suite requires a considerable amount of
 time (easily one hour if a single thread is used). If the environment variable
 ``SAGE_CHECK`` is set to ``yes``, the test script is launched right after
-installing the package.
+installing the package. The same effect can be achieved by
+::
 
-The tests are parallelised, provided that Sage version at least 4.6
-is used. The number of threads can be bounded using the environment
-variable ``SAGE_NUM_THREADS`` or ``MAKE`` (giving the latter a value
-such as ``"make -j4"``.
+    sage -i -c p_group_cohomology
 
 Documentation
 -------------
@@ -144,6 +131,9 @@ suggesting to use the Poincare series in a completeness criterion.
 Versions
 --------
 
+  * v3.0: Turn the cohomology package into a "new style spkg". It is
+    into several smaller parts that are either using an autotoolized build
+    system or are pip installable.
   * v2.1.5, v2.1.6: Cope with several backwards incompatible changes in
     SageMath. Improved computation of the nil-radical, including a degree-wise
     computation. Methods is_nilpotent and nilpotency_degree for cohomology

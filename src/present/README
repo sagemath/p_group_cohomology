@@ -1,7 +1,8 @@
 This is modular_resolution, version 1.0
 
-modular_resolution is a set of programs and a C-library to compute presentations
-and minimal free resolutions of modular group algebras of prime power groups.
+modular_resolution is a sub-package of p_group_cohomology and is a set of programs
+and a C-library to compute presentations and minimal free resolutions of modular
+group algebras of prime power groups.
 
 The original version of the code was written by David J. Green, using meataxe-2.2.3.
 Simon A. King has refactored the code to use meataxe-2.4.24 instead, and use

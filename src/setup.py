@@ -1,22 +1,21 @@
 #*****************************************************************************
 #
-#    Copyright (C) 2018 Simon A. King <simon.king@uni-jena.de>
-#    Copyright (C) 2018 Simon A. King <simon.king@uni-jena.de>
-#    Copyright (C) 2009/10 Simon A. King <simon.king@nuigalway.ie>
-#    Copyright (C) 2013 Simon A. King <simon.king@uni-jena.de>
-#    Copyright (C) 2016 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2009-2018 Simon A. King <simon.king@uni-jena.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or later (at your choice)
+#    This file is part of p_group_cohomology.
 #
-#    This code is distributed in the hope that it will be useful,
+#    p_group_cohomoloy is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    p_group_cohomoloy is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
+#    You should have received a copy of the GNU General Public License
+#    along with p_group_cohomoloy.  If not, see <http://www.gnu.org/licenses/>.
 #*****************************************************************************
 
 from setuptools import setup, find_packages
