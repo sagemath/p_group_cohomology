@@ -105,6 +105,12 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
 
 == Changelog ==
 
+  * 3.0 (Simon King, January 2018):
+    - The MeatAxe has been removed from this package and has been replaced
+      by "SharedMeatAxe", as an external package.
+    - David Green's C code for the computation of minimal projective resolutions
+      is now using autotools and is now providing a library.
+    - The Python/Cython part of this package is now pip installable.
   * 2.1.5 (Simon King, Mai 2015):
     - Cope with removal of the ._domain attribute of maps and with changed import locations.
     - Improved computation of the nil-radical, including degree-wise computation

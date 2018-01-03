@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 """
-Elements of Modular Cohomology Rings and their Induced Homomorphisms
+Elements of Modular Cohomology Rings and their Induced Homomorphisms.
 
 AUTHORS:
 
@@ -163,7 +163,7 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 
 class COCH_unpickle_class:
     r"""
-    Unpickling a cochain
+    Unpickling a cochain.
 
     EXAMPLES:
 
@@ -508,7 +508,7 @@ cdef class COCH(RingElement):
 
     def __copy__(self):
         """
-        Return a copy of self, defined over *the same* resolution
+        Return a copy of self, defined over *the same* resolution.
 
         TESTS:
 
@@ -531,7 +531,7 @@ cdef class COCH(RingElement):
 
     def __reduce__(self):
         """
-        Return data used for pickling/unpickling self
+        Return data used for pickling/unpickling ``self``.
 
         TESTS:
 
@@ -554,7 +554,7 @@ cdef class COCH(RingElement):
 
     def _repr_(self):
         """
-        Return a brief description of the cochain
+        Return a brief description of the cochain.
 
         TESTS:
 
@@ -575,7 +575,7 @@ cdef class COCH(RingElement):
 
     def __str__(self):
         """
-        Return a more detailed description of the cochain
+        Return a more detailed description of the cochain.
 
         TESTS:
 
@@ -603,7 +603,7 @@ cdef class COCH(RingElement):
 
     def _singular_(self, S):
         """
-        Represent self as an element of the Singular interface version of the parent cohomology ring
+        Represent self as an element of the Singular interface version of the parent cohomology ring.
 
         TESTS::
 
@@ -677,7 +677,7 @@ cdef class COCH(RingElement):
 
     def set_latex_name(COCH self, s):
         """
-        Declare how self should be typeset in \\LaTeX
+        Declare how self should be typeset in \\LaTeX.
 
         EXAMPLES:
 
@@ -702,7 +702,7 @@ cdef class COCH(RingElement):
 
     def _latex_(COCH self):
         """
-        Return a latex typeset
+        Return a latex typeset.
 
         TESTS::
 
@@ -726,7 +726,7 @@ cdef class COCH(RingElement):
 # structural parts
     def resolution(self):
         """
-        Return the underlying resolution
+        Return the underlying resolution.
 
         EXAMPLES:
 
@@ -754,7 +754,7 @@ cdef class COCH(RingElement):
 
     def deg(self):
         """
-        Return the degree of self
+        Return the degree of ``self``.
 
         EXAMPLES:
 
@@ -775,7 +775,7 @@ cdef class COCH(RingElement):
 
     def MTX(self):
         """
-        Return the :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix by which self is defined
+        Return the :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix by which ``self`` is defined.
 
         EXAMPLES:
 
@@ -796,7 +796,7 @@ cdef class COCH(RingElement):
 
     def yoneda_cocycle(COCH self):
         """
-        Express self as a Yoneda cocycle
+        Express ``self`` as a Yoneda cocycle.
 
         EXAMPLES:
 
@@ -824,7 +824,7 @@ cdef class COCH(RingElement):
 
     def name(self):
         """
-        Return the name of self
+        Return the name of ``self``.
 
         NOTE:
 
@@ -866,7 +866,7 @@ cdef class COCH(RingElement):
 
     def setname(self, s, is_polyrep=False):
         """
-        Set the name of self
+        Set the name of ``self``.
 
         INPUT:
 
@@ -898,7 +898,7 @@ cdef class COCH(RingElement):
 
     def as_polynomial(self):
         """
-        Return a string that represents ``self`` as a polynomial in its parent
+        Return a string that represents ``self`` as a polynomial in its parent.
 
         NOTE:
 
@@ -929,7 +929,7 @@ cdef class COCH(RingElement):
 
     def rdeg(self):
         """
-        Return the r-degree of self
+        Return the `r`-degree of ``self``.
 
         NOTE:
 
@@ -962,7 +962,7 @@ cdef class COCH(RingElement):
 
     def ydeg(self):
         """
-        Return the y-degree of self
+        Return the `y`-degree of ``self``.
 
         NOTE:
 
@@ -1153,7 +1153,7 @@ cdef class COCH(RingElement):
 # !=,==, dictionary etc.
     cpdef _richcmp_(self, C, int x):
         """
-        Compare cochains
+        Compare cochains.
 
         NOTE:
 
@@ -1237,7 +1237,7 @@ cdef class COCH(RingElement):
 
     def __hash__(COCH self):
         r"""
-        Return a hash value of self
+        Return a hash value of ``self``.
 
         TESTS:
 
@@ -1288,7 +1288,7 @@ cdef class COCH(RingElement):
 
     cdef _add_(self, other):
         r"""
-        Sum of cochains of the same degree
+        Sum of cochains of the same degree.
 
         TESTS:
 
@@ -1344,7 +1344,7 @@ cdef class COCH(RingElement):
 
     cpdef _sub_(self, other):
         """
-        Difference of two cochains of the same degree
+        Difference of two cochains of the same degree.
 
         TESTS:
 
@@ -1384,7 +1384,7 @@ cdef class COCH(RingElement):
             raise ValueError("Cochains must be defined over a common resolution")
     cpdef ModuleElement _neg_(self):
         r"""
-        Additive inverse of a cochain
+        Additive inverse of a cochain.
 
         TESTS:
 
@@ -1419,7 +1419,8 @@ cdef class COCH(RingElement):
         FfSetNoc(self.Data.Data.Noc)
 
     cdef void isubmul(self, COCH other, FEL c):
-        """self -> self - other*c
+        """
+        self -> self - other*c
 
         ASSUMPTIONS:
 
@@ -1482,7 +1483,7 @@ cdef class COCH(RingElement):
 
     cdef _mul_long(self, long n):
         """
-        Multiplication with a Python int or long
+        Multiplication with a Python int or long.
 
         EXAMPLES::
 
@@ -1517,7 +1518,7 @@ cdef class COCH(RingElement):
 
     cdef _mul_(self, right):
         """
-        Cup product of two cochains, or scalar multiplication
+        Cup product of two cochains, or scalar multiplication.
 
         NOTE:
 
@@ -1654,7 +1655,7 @@ cdef class COCH(RingElement):
 
     def __div__(COCH self, long c):
         """
-        Quotient of a cochain by a field element
+        Quotient of a cochain by a field element.
 
         TESTS:
 
@@ -1686,7 +1687,7 @@ cdef class COCH(RingElement):
 
     def __pow__(COCH self, int n, x):
         """
-        Raise a cochain to some non-negative integer power (cup product with itself)
+        Raise a cochain to some non-negative integer power (cup product with itself).
 
         NOTE:
 
@@ -1731,7 +1732,7 @@ cdef class COCH(RingElement):
 
     def right_multiplication(COCH self):
         """
-        Return the cohomology ring endomorphism given by right-multiplication with self
+        Return the cohomology ring endomorphism given by right-multiplication with ``self``.
 
         EXAMPLES:
 
@@ -1781,7 +1782,7 @@ cdef class COCH(RingElement):
 
     def normalize(COCH self):
         """
-        Scale self inplace so that its leading coefficient is 1 (if non-zero)
+        Scale ``self`` inplace so that its leading coefficient is 1 (if non-zero).
 
         OUTPUT:
 
@@ -1837,7 +1838,7 @@ cdef class COCH(RingElement):
 
     def massey_power(COCH self, i=1):
         """
-        Return the `p^i`-fold restricted Massey product of ``self``, or ``None`` if it does not exist
+        Return the `p^i`-fold restricted Massey product of ``self``, or ``None`` if it does not exist.
 
         INPUT:
 
@@ -2045,7 +2046,7 @@ cdef class COCH(RingElement):
 
 def MODCOCH_unpickle(L0,L1,L2,L3,L4,L5,L6=False,L7=None):
     """
-    Auxiliary function for unpickling :class:`MODCOCH`
+    Auxiliary function for unpickling :class:`MODCOCH`.
 
     TESTS::
 
@@ -2064,7 +2065,7 @@ def MODCOCH_unpickle(L0,L1,L2,L3,L4,L5,L6=False,L7=None):
 
 class MODCOCH(RingElement):
     """
-    Elements of modular cohomology rings of finite groups
+    Elements of modular cohomology rings of finite groups.
 
     See :mod:`pGroupCohomology` or :class:`~pGroupCohomology.modular_cohomology.MODCOHO`
     for examples of cohomology computations.
@@ -2199,7 +2200,7 @@ class MODCOCH(RingElement):
 
     def _richcmp_(self, C, int x):
         """
-        Comparison of cohomology elements
+        Comparison of cohomology elements.
 
         The comparison of two elements (both type <MODCOCH> of the same
         cohomology ring ``H`` is done first by degree, then by comparison
@@ -2389,7 +2390,7 @@ class MODCOCH(RingElement):
 
     def set_latex_name(self, s):
         """
-        Declare how self should be typeset in \\LaTeX
+        Declare how self should be typeset in \\LaTeX.
 
         EXAMPLES:
 
@@ -2414,7 +2415,7 @@ class MODCOCH(RingElement):
 
     def _latex_(self):
         """
-        Return a latex typeset
+        Return a \\LaTeX typeset.
 
         TESTS::
 
@@ -2465,7 +2466,7 @@ class MODCOCH(RingElement):
 
     def deg(self):
         """
-        Degree of a cohomology element
+        Degree of a cohomology element.
 
         EXAMPLES::
 
@@ -2491,7 +2492,7 @@ class MODCOCH(RingElement):
 
     def rdeg(self):
         """
-        `r`-degree
+        `r`-degree.
 
         This is supposed to be 1 for Duflot elements, i.e., for those
         elements that have a non-zero restrictions to the centre of
@@ -2535,7 +2536,7 @@ class MODCOCH(RingElement):
 
     def ydeg(self):
         """
-        `y`-degree
+        `y`-degree.
 
         This is supposed to be 1 for nilpotent elements.
 
@@ -2565,7 +2566,7 @@ class MODCOCH(RingElement):
 
     def setname(self, s, is_polyrep=False):
         """
-        Set the name of a cohomology ring element
+        Set the name of a cohomology ring element.
 
         INPUT:
 
@@ -2603,7 +2604,7 @@ class MODCOCH(RingElement):
 
     def as_polynomial(self):
         """
-        Find a polynomial representation of self
+        Find a polynomial representation of ``self``.
 
         OUTPUT:
         A string that defines a polynomial, expressed in the
@@ -2638,7 +2639,7 @@ class MODCOCH(RingElement):
 
     def name(self):
         """
-        Return the name of the cohomology ring element
+        Return the name of the cohomology ring element.
 
         EXAMPLES::
 
@@ -2779,7 +2780,7 @@ class MODCOCH(RingElement):
 
     def _singular_(self, S):
         """
-        Represent self as an element of the Singular interface version of the parent cohomology ring
+        Represent ``self`` as an element of the Singular interface version of the parent cohomology ring.
 
         EXAMPLES::
 
@@ -2807,7 +2808,7 @@ class MODCOCH(RingElement):
 
     def _reconstruct_singular_(self,S=None):
         """
-        Automatic reconstruction of data in the Singular interface when it crashed
+        Automatic reconstruction of data in the Singular interface when it crashed.
 
         TESTS::
 
@@ -2863,7 +2864,7 @@ class MODCOCH(RingElement):
 
     def as_cocycle_in_subgroup(self):
         """
-        Represent self as stable cocycle of the chosen subgroup
+        Represent ``self`` as stable cocycle of the chosen subgroup.
 
         OUTPUT:
 
@@ -2912,7 +2913,7 @@ class MODCOCH(RingElement):
 
     def as_cocycle_in_sylow(self):
         """
-        Represent self as stable cocycle of the Sylow subgroup
+        Represent ``self`` as stable cocycle of the Sylow subgroup.
 
         OUTPUT:
 
@@ -2946,7 +2947,7 @@ class MODCOCH(RingElement):
 
     def _neg_(self):
         """
-        Additive inverse
+        Additive inverse.
 
         TESTS:
 
@@ -2983,7 +2984,7 @@ class MODCOCH(RingElement):
 
     def __pow__(self,int n):
         """
-        Exponentiation
+        Exponentiation.
 
         TESTS:
 
@@ -3041,7 +3042,7 @@ class MODCOCH(RingElement):
 
     def _add_(self, other):
         """
-        Sum of two elements (same degree) of a cohomology ring
+        Sum of two elements (same degree) of a cohomology ring.
 
         TESTS:
 
@@ -3090,7 +3091,7 @@ class MODCOCH(RingElement):
 
     def _sub_(self, other):
         """
-        Difference
+        Difference.
 
         TESTS:
 
@@ -3176,7 +3177,7 @@ class MODCOCH(RingElement):
 
     def _mul_(self, other):
         """
-        Cup product
+        Cup product.
 
         TESTS:
 
@@ -3234,7 +3235,7 @@ class MODCOCH(RingElement):
 
     def __div__(self, other):
         """
-        Division by an invertible element of the base ring
+        Division by an invertible element of the base ring.
 
         TESTS::
 
@@ -3402,7 +3403,7 @@ class MODCOCH(RingElement):
 
     def massey_power(self, i=1):
         """
-        Experimental: Restricted Massey power
+        Experimental: Restricted Massey power.
 
         ALGORITHM:
 
@@ -3451,7 +3452,7 @@ class MODCOCH(RingElement):
 
     def _NF_(self, id=None):
         """
-        Replace the underlying value in the cohomology of a subgroup by its normal form
+        Replace the underlying value in the cohomology of a subgroup by its normal form.
 
         INPUT:
 
@@ -3525,7 +3526,7 @@ class MODCOCH(RingElement):
 
     def nilreduce(self):
         """
-        Inplace reduction of ``self``'s value by the ideal generated by nilpotent generators
+        Inplace reduction of ``self``'s value by the ideal generated by nilpotent generators.
 
         OUTPUT:
 
@@ -3583,7 +3584,7 @@ class MODCOCH(RingElement):
 
     def lc(self):
         """
-        Leading coefficient of self (type <int>)
+        Leading coefficient of ``self`` (type <int>).
 
         OUTPUT:
 
@@ -3621,7 +3622,7 @@ class MODCOCH(RingElement):
 
     def lm_string(self):
         """
-        Leading monomial (no coefficient) of self (type <string>)
+        Leading monomial (no coefficient) of ``self`` (type <string>).
 
         OUTPUT:
 
@@ -3658,7 +3659,7 @@ class MODCOCH(RingElement):
 
     def lm(self):
         """
-        Leading monomial (no coefficient) of self
+        Leading monomial (no coefficient) of ``self``.
 
         OUTPUT:
 
@@ -3701,7 +3702,7 @@ class MODCOCH(RingElement):
 
     def lt(self):
         """
-        Leading term of the underlying cohomology element
+        Leading term of the underlying cohomology element.
 
         OUTPUT:
 
@@ -3744,7 +3745,7 @@ class MODCOCH(RingElement):
 
     def coef(self, m):
         """
-        The coefficient of a monomial
+        The coefficient of a monomial.
 
         INPUT:
 
@@ -3803,7 +3804,7 @@ class MODCOCH(RingElement):
 
     def coef_list(self, list M):
         """
-        Return the list of coefficients
+        Return the list of coefficients.
 
         INPUT:
 
@@ -3868,7 +3869,7 @@ class MODCOCH(RingElement):
 
 cdef class YCOCH:
     """
-    Yoneda cochains
+    Yoneda cochains.
 
     This is an auxiliary class to facilitate the computation
     of Massey products.
@@ -4205,7 +4206,7 @@ cdef class YCOCH:
 
     def deg(self):
         """
-        Return the degree of self
+        Return the degree of ``self``.
 
         EXAMPLES:
 
@@ -4228,7 +4229,7 @@ cdef class YCOCH:
 
     def resolution(self):
         """
-        Return the resolution over which self is defined
+        Return the resolution over which ``self`` is defined.
 
         EXAMPLES:
 
@@ -4272,7 +4273,7 @@ cdef class YCOCH:
 
     def append(self, MTX M):
         """
-        append further terms to self
+        append further terms to ``self``.
 
         INPUT:
 
@@ -4330,7 +4331,7 @@ cdef class YCOCH:
 
     def coboundary(YCOCH self):
         """
-        Return the Yoneda coboundary of self.
+        Return the Yoneda coboundary of ``self``.
 
         THEORY:
 
@@ -4696,7 +4697,7 @@ cdef class YCOCH:
 
     def __mul__(YCOCH self, other):
         """
-        Compose two Yoneda cochains, first self then other
+        Compose two Yoneda cochains, first ``self`` then other.
 
         TESTS::
 
@@ -4729,7 +4730,7 @@ cdef class YCOCH:
 
     def lift(self, check=False):
         """
-        Compute the next term of self
+        Compute the next term of ``self``.
 
         THEORY:
 
@@ -4873,7 +4874,7 @@ cdef class YCOCH:
 
 class CohomologyHomset(RingHomset_generic):
     """
-    Set of Homomorphisms between Modular Cohomology Rings of Finite `p`-Groups
+    Set of Homomorphisms between Modular Cohomology Rings of Finite `p`-Groups.
 
     EXAMPLES:
 
@@ -5146,7 +5147,7 @@ class CohomologyHomset(RingHomset_generic):
 
 class ChMap_unpickle_class:
     """
-    Unpickling an instance of :class:`~pGroupCohomology.cochain.ChMap`, representing an induced homomorphism
+    Unpickling an instance of :class:`~pGroupCohomology.cochain.ChMap`, representing an induced homomorphism.
 
     EXAMPLES:
 
@@ -5346,7 +5347,7 @@ cdef class ChMap(RingHomomorphism):
 ## init, dealloc(automatic in this case), repr
     def __init__(self, parent, MTX m, MTX M, int d, name = None):
         """
-        The following tests against a bug occuring in an earlier version of our package
+        The following tests against a bug occuring in an earlier version of our package.
 
         TESTS::
 
@@ -5441,7 +5442,7 @@ cdef class ChMap(RingHomomorphism):
 
     def __reduce__(self):
         """
-        Return data used for pickling/unpickling self
+        Return data used for pickling/unpickling ``self``.
 
         TESTS::
 
@@ -5552,7 +5553,7 @@ cdef class ChMap(RingHomomorphism):
 
     def _singular_(self, S):
         """
-        Represent self as a map between the Singular interface versions of domain and codomain
+        Represent ``self`` as a map between the Singular interface versions of domain and codomain.
 
         TESTS::
 
@@ -5639,7 +5640,7 @@ cdef class ChMap(RingHomomorphism):
 
     def exportData(self, f):
         """
-        Store data describing the induced map into files
+        Store data describing the induced map into files.
 
         INPUT:
 
@@ -5704,7 +5705,7 @@ cdef class ChMap(RingHomomorphism):
 ## structural parts
     def src(self):
         """
-        Return the source of the underlying chain map (type :class:`~pGroupCohomology.resolution.RESL`)
+        Return the source of the underlying chain map (type :class:`~pGroupCohomology.resolution.RESL`).
 
         NOTE:
 
@@ -5740,7 +5741,7 @@ cdef class ChMap(RingHomomorphism):
 
     def tgt(self):
         """
-        Return the codomain of the underlying chain map (type :class:`~pGroupCohomology.resolution.RESL`)
+        Return the codomain of the underlying chain map (type :class:`~pGroupCohomology.resolution.RESL`).
 
         NOTE:
 
@@ -5775,7 +5776,7 @@ cdef class ChMap(RingHomomorphism):
 
     def G_map(self):
         """
-        Return the underlying homomorphism of group algebras (given by a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix)
+        Return the underlying homomorphism of group algebras (given by a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix).
 
         EXAMPLES:
 
@@ -5824,7 +5825,7 @@ cdef class ChMap(RingHomomorphism):
 
     def deg(self):
         """
-        Return the degree of self
+        Return the degree of ``self``.
 
         NOTE:
 
@@ -5858,7 +5859,7 @@ cdef class ChMap(RingHomomorphism):
 
     def knownDeg(self):
         """
-        Return the degree out to which self was constructed
+        Return the degree out to which ``self`` was constructed.
 
         EXAMPLES:
 
@@ -5905,7 +5906,7 @@ cdef class ChMap(RingHomomorphism):
 
     def name(self):
         """
-        Return the name of self
+        Return the name of ``self``.
 
         NOTE:
 
@@ -5939,7 +5940,7 @@ cdef class ChMap(RingHomomorphism):
 
     def set_name(self, s):
         """
-        Give self a name
+        Give ``self`` a name.
 
         NOTE:
 
@@ -5983,7 +5984,7 @@ cdef class ChMap(RingHomomorphism):
 
     def __getitem_name__(self,key):
         """
-        Return n-th lift of C either as file name or MTX
+        Return `n`-th lift of ``self`` either as file name or matrix.
 
         INPUT:
 
@@ -6020,7 +6021,7 @@ cdef class ChMap(RingHomomorphism):
 
     def __getitem__(self,key):
         """
-        Return n-th lift of chainmap C (type MTX)
+        Return `n`-th lift of ``self`` as matrix.
 
         INPUT:
 
@@ -6129,14 +6130,14 @@ cdef class ChMap(RingHomomorphism):
             else:
                 raise IndexError("index {} out of range".format(key))
         else:
-            raise TypeError("key must be an integer, not {}".format(type(key))
+            raise TypeError("key must be an integer, not {}".format(type(key)))
 
 
 #########################
 ## ==, <, >
     cpdef _richcmp_(self, other, int x):
         """
-        M==N <=> M and N are the same chain maps
+        M==N <=> M and N are the same chain maps.
 
         NOTE:
 
@@ -6183,7 +6184,7 @@ cdef class ChMap(RingHomomorphism):
 
     def apply_to_chain(ChMap self, int d, MTX C):
         """
-        Apply the underlying chain map of self to a `d`-chain
+        Apply the underlying chain map of ``self`` to a `d`-chain.
 
         INPUT:
 
@@ -6245,7 +6246,7 @@ cdef class ChMap(RingHomomorphism):
 
     def __mul__(ChMap self, x):
         """
-        CM*Co: CM of type <ChMap>, Co of type <COCH> or <ChMap>
+        CM*Co: CM of type <ChMap>, Co of type <COCH> or <ChMap>.
 
         If Co is a cochain (type <COCH>), CM*Co is the image of Co
         under the induced map of the chain map CM.
@@ -6499,7 +6500,7 @@ cdef class ChMap(RingHomomorphism):
 
     def __call__(self, X):
         """
-        C(X): If X is a tuple (d,n), return the image of the n-th standard cochain of degree d under C. Otherwise, return C*X
+        C(X): If X is a tuple (d,n), return the image of the n-th standard cochain of degree d under C. Otherwise, return C*X.
 
         TESTS::
 
@@ -6567,7 +6568,7 @@ cdef class ChMap(RingHomomorphism):
 
     def lift(ChMap self):
         """
-        Compute the next unknown term of self
+        Compute the next unknown term of ``self``.
 
         EXAMPLES:
 
@@ -6994,7 +6995,7 @@ cdef class ChMap(RingHomomorphism):
 
     def poincare_of_image(self):
         r"""
-        Poincaré series of the image of self (which is a sub-ring of the codomain of self)
+        Poincaré series of the image of ``self`` (which is a sub-ring of the codomain of ``self``).
 
         THEORY:
 
@@ -7081,7 +7082,7 @@ cdef class ChMap(RingHomomorphism):
 
     def rank_of_image(self, d):
         r"""
-        Rank of the image of term number `d` of self
+        Rank of the image of term number `d` of ``self``.
 
         THEORY:
 

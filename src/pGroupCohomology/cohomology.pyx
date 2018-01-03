@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 """
-Modular Cohomology Rings of Finite `p`-Groups
+Modular Cohomology Rings of Finite `p`-Groups.
 
 This module contains :class:`COHO`, that provides a framework for the
 computation of the cohomology rings with coefficients in `\\mathbb
@@ -60,6 +60,7 @@ from sage.all import mul
 from sage.env import DOT_SAGE, SAGE_ROOT
 from sage.all import singular
 from sage.misc.sageinspect import sage_getargspec
+from sage.misc.lazy_attribute import lazy_attribute
 
 # Sage rings etc.
 from sage.all import Matrix
@@ -100,7 +101,7 @@ from weakref import ref
 
 def COHO_unpickle(GroupKey, StateFile):
     """
-    Unpickling of a cohomology ring
+    Unpickling of a cohomology ring.
 
     TESTS::
 
@@ -393,7 +394,7 @@ def pickle_gap_data(G):
 
 def FilterDegreeType(dv, rt):
     """
-    Compute the filter degree type
+    Compute the filter degree type.
 
     INPUT:
 
@@ -422,7 +423,7 @@ def FilterDegreeType(dv, rt):
     if not (isinstance(dv,list) and isinstance(rt,list)):
         raise TypeError("arguments must be lists of integers")
     if not (len(rt)==len(dv)+1):
-        raise ValuError("length of second arguments must be length of first argument plus one")
+        raise ValueError("length of second arguments must be length of first argument plus one")
     # start with the smallest possible sequence
     ft = [-k for k in range(1,len(rt)+1)]
     i = 0
@@ -446,7 +447,7 @@ def FilterDegreeType(dv, rt):
 
 def MonomialHilbert(I):
     """
-    Return the first (weighted) Hilbert function of a monomial ideal
+    Return the first (weighted) Hilbert function of a monomial ideal.
 
     INPUT:
 
@@ -529,7 +530,7 @@ def Mul(L,L0):
 
 def str2html(s,linelength=80):
     """
-    HTML representation of a string representation of a polynomial
+    HTML representation of a string representation of a polynomial.
 
     INPUT:
 
@@ -847,7 +848,8 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         raise
 
 cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
-    """Linear combinations of cochains simultaneously restricting to the nil radical
+    """
+    Linear combinations of cochains simultaneously restricting to the nil radical.
 
     INPUT:
 
@@ -972,7 +974,9 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
 
 class COHO_prefix:
     """
-    COHO_prefix()() returns the next safe prefix used for naming Singular interface data of a :class:`~pGroupCohomology.cohomology.COHO` instance.
+    COHO_prefix()() returns the next safe prefix.
+
+    Used for naming Singular interface data of a :class:`~pGroupCohomology.cohomology.COHO` instance.
 
     TESTS::
 
@@ -1002,7 +1006,7 @@ class COHO_prefix:
 
     def __call__(self):
         """
-        Provide the next unused prefix for internal use in cohomology computations
+        Provide the next unused prefix for internal use in cohomology computations.
 
         TESTS::
 
@@ -1087,9 +1091,7 @@ class COHO_Terminator:
         self._l = len(prefix)
     def __del__(self):
         """
-        The purpose of this del-method is to kill all elements
-        in the interface ``self._S`` whose name starts with
-        ``self._prefix``.
+        This del-method kills all elements in the interface ``self._S`` whose name starts with ``self._prefix``.
 
         TESTS::
 
@@ -1157,6 +1159,39 @@ class COHO_Terminator:
 
 #################
 ## Some decorators that automate caching
+
+from sage.misc.sageinspect import __embedded_position_re, _sage_getdoc_unformatted, sage_getargspec
+
+def _split_embedding_info(obj):
+    docstring = _sage_getdoc_unformatted(obj)
+    try:
+        res = __embedded_position_re.search(docstring)
+    except TypeError:
+        res = None
+    if res is not None:
+        start_orig_doc = docstring.find(os.linesep, res.start())+1
+        return docstring[:start_orig_doc], docstring[start_orig_doc:].strip(os.linesep)
+    # Test if the first docstring line provides information on the argspec
+    docstring = docstring.strip(os.linesep)
+    name = getattr(obj, '__name__', '')
+    if not name:
+        return '', docstring
+    cls = getattr(obj, 'im_class', None) or getattr(obj, '__objclass__', None)
+    clsname = getattr(cls, '__name__', None)
+    if clsname is None:
+        cls_obj = None
+    else:
+        cls_obj = '{}.{}'.format(clsname, name)
+    firstline, seconds = docstring.split(os.linesep,1)
+    if cls_obj is not None:
+        if not firstline.startswith(cls_obj):
+            return '', docstring
+    else:
+        cls_obj = name
+    preamble,argstring = firstline.split(cls_obj,1)
+    if not (argstring.startswith('(') and argstring.endswith(')')):
+        return '', docstring
+    return firstline+os.linesep, seconds.strip(os.linesep)
 
 class permanent_result(object):
     """
@@ -1388,11 +1423,18 @@ class permanent_result(object):
         self._f = f
         self._name = f.__name__
         self._inst = None
-        try:
-            if f.__doc__:
-                self.__doc__ = 'Permanently cached method: '+f.__doc__
-        except AttributeError:
-            pass
+        self._mode = 'Permanently cached method: '
+
+    @lazy_attribute
+    def __doc__(self):
+        emb_doc = _split_embedding_info(self._f)
+        second = emb_doc[1].lstrip()
+        pad = (len(emb_doc[1])-len(second))*' '
+        return (pad+self._mode).join([emb_doc[0],second])
+
+    def _sage_argspec_(self):
+        return sage_getargspec(self._f)
+
     def __get__(self, inst, cl):
         """
         TESTS::
@@ -1481,7 +1523,7 @@ class permanent_result(object):
 
     def get_cache(self, *args,**kwds):
         """
-        Return the value that was saved using :meth:`set_cache`
+        Return the value that was saved using :meth:`set_cache`.
 
         NOTE:
 
@@ -1597,7 +1639,7 @@ class permanent_result(object):
 
     def __call__(self,*args,**kwds):
         """
-        Cache the returned value (or the raised ``KeyboardInterrupt``)
+        Cache the returned value (or the raised ``KeyboardInterrupt``).
 
         NOTE:
 
@@ -1681,7 +1723,7 @@ class permanent_result(object):
 
 class temporary_result(permanent_result):
     """
-    Decorator for caching methods of a cohomology ring approximation
+    Decorator for caching methods of a cohomology ring approximation.
 
     NOTE:
 
@@ -1767,11 +1809,7 @@ class temporary_result(permanent_result):
         self._f = f
         self._name = f.__name__
         self._inst = None
-        try:
-            if f.__doc__:
-                self.__doc__ = 'Temporarily cached method: '+f.__doc__
-        except AttributeError:
-            pass
+        self._mode = 'Temporarily cached method: '
 
     def set_cache(self,val, *args,**kwds):
         """
@@ -1900,7 +1938,7 @@ class temporary_result(permanent_result):
 
 class COHO(Ring):
     r"""
-    Modular Cohomology Rings of Finite `p`-Groups with coefficients in `\\mathbb F_p`
+    Modular Cohomology Rings of Finite `p`-Groups with coefficients in `\\mathbb F_p`.
 
     AUTHORS:
 
@@ -2924,7 +2962,7 @@ class COHO(Ring):
 
     def _element_constructor_(self, s):
         """
-        Interprete a string as a cocycle in self
+        Interprete a string as a cocycle in ``self``.
 
         INPUT:
 
@@ -3027,8 +3065,7 @@ class COHO(Ring):
 
     def _coerce_map_from_(self, S):
         """
-        There is a coercion from this ring to itself
-        and from any ring that coerces into the base ring.
+        There is a coercion from this ring to itself and from any ring that coerces into the base ring.
 
         EXAMPLES::
 
@@ -3057,7 +3094,7 @@ class COHO(Ring):
     ## Homomorphisms -- Option "cat" is not supported yet
     def Hom(self, other, category=None):
         """
-        Return a homset of induced homomorphisms between two cohomology rings
+        Return a homset of induced homomorphisms between two cohomology rings.
 
         INPUT:
 
@@ -3232,7 +3269,7 @@ class COHO(Ring):
 
     def __reduce__(self):
         """
-        Serialise ``self``
+        Serialise ``self``.
 
         TESTS::
 
@@ -3399,7 +3436,7 @@ class COHO(Ring):
 
     def __setstate__(self, s, newroot=None): #s = (RestrMaps,degvec,CElPos,CenterRk,gps_folder,Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,lastRel,MaxelPos,MaxelRk,pRank,knownDeg,RelG,Gen,StdMon,NilBasis,SingularTime,completed,Monomials,suffDeg,Automatic,RelGName,NumSubgps,GStem,Resl,firstOdd,DG,Dickson,alpha, Dict):
         """
-        Set the state of self
+        Set the state of ``self``.
 
         INPUT:
 
@@ -3713,7 +3750,7 @@ class COHO(Ring):
 
     def autosave_name(self):
         """
-        Return the name of the file under which self is automatically saved
+        Return the name of the file under which ``self`` is automatically saved.
 
         EXAMPLES:
 
@@ -3752,7 +3789,7 @@ class COHO(Ring):
 
     def exportMonomials(self):
         """
-        Save previously computed standard monomials in a standard location
+        Save previously computed standard monomials in a standard location.
 
         NOTE:
 
@@ -3795,7 +3832,7 @@ class COHO(Ring):
 
     def importMonomials(self):
         """
-        Reload previously exported standard monomials
+        Reload previously exported standard monomials.
 
         NOTE:
 
@@ -3850,7 +3887,8 @@ class COHO(Ring):
 
     def decomposable_classes(self, int n, forced=False):
         """
-        Return a basis for the degree `n` cohomology, expressed by monomials
+        Return a basis for the degree `n` cohomology, expressed by monomials.
+
         EXAMPLES:
 
         We use a temporary root directory, that will be removed when
@@ -4101,7 +4139,7 @@ class COHO(Ring):
 
     def _repr_(self):
         """
-        Return a brief desctiption of the cohomology ring
+        Return a brief desctiption of the cohomology ring.
 
         TESTS:
 
@@ -4120,7 +4158,8 @@ class COHO(Ring):
         return "H^*(%s; GF(%d))"%(self.printed_group_name(), self.Resl.coef())
 
     def printed_group_name(self):
-        """Group identifier used for printing
+        """
+        Group identifier used for printing.
 
         EXAMPLES::
 
@@ -4171,7 +4210,7 @@ class COHO(Ring):
 
     def _html_(self):
         """
-        Return a brief html desctiption of the cohomology ring
+        Return a brief html desctiption of the cohomology ring.
 
         TESTS:
 
@@ -4205,7 +4244,7 @@ class COHO(Ring):
 
     def __str__(self):
         """
-        Return detailed information on the cohomology ring
+        Return detailed information on the cohomology ring.
 
         TESTS:
 
@@ -4266,7 +4305,7 @@ Minimal list of algebraic relations:
 
     def _latex_(self):
         r"""
-        LaTeX representation of self
+        LaTeX representation of ``self``.
 
         NOTE:
 
@@ -4305,7 +4344,7 @@ Minimal list of algebraic relations:
 
     def group(self):
         """
-        Return the group over which self is defined, as a permutation group.
+        Return the group over which ``self`` is defined, as a permutation group.
 
         OUTPUT:
 
@@ -4364,7 +4403,8 @@ Minimal list of algebraic relations:
 
     @permanent_result
     def group_is_abelian(self):
-        """Tell whether the associated group is abelian
+        """
+        Tell whether the associated group is abelian.
 
         EXAMPLES::
 
@@ -4381,7 +4421,7 @@ Minimal list of algebraic relations:
 ## Methods for setting/getting additional properties of the group
     def setprop(self,key, value):
         """
-        Define a property of self
+        Define a property of ``self``.
 
         INPUT:
 
@@ -4429,7 +4469,7 @@ Minimal list of algebraic relations:
 
     def __dir__(self):
         """
-        Implementing introspection
+        Implementing introspection.
 
         TESTS::
 
@@ -4473,7 +4513,7 @@ Minimal list of algebraic relations:
 
     def trait_names(self):
         """
-        Implement tab completion
+        Implement tab completion.
 
         TESTS::
 
@@ -4497,7 +4537,7 @@ Minimal list of algebraic relations:
 
     def __getattr__(self,key):
         """
-        H.foo:  return the value of attribute/property 'foo' (None, if undefined)
+        H.foo:  return the value of attribute/property 'foo' (None, if undefined).
 
         NOTE:
 
@@ -4632,7 +4672,7 @@ Minimal list of algebraic relations:
 
     def delprop(self,key):
         """
-        Delete a property of self.
+        Delete a property of ``self``.
 
         TESTS:
 
@@ -4658,7 +4698,7 @@ Minimal list of algebraic relations:
 
     def properties(self):
         """
-        List the names of the custom attributes set with :meth:`setprop`
+        List the names of the custom attributes set with :meth:`setprop`.
 
         EXAMPLES:
 
@@ -4749,7 +4789,7 @@ Minimal list of algebraic relations:
 
     def gen(self,i):
         """
-        Return generators of self.
+        Return generators of ``self``.
 
         EXAMPLES:
 
@@ -4784,7 +4824,7 @@ Minimal list of algebraic relations:
 
     def ngens(self):
         """
-        Return the number of generators of self
+        Return the number of generators of ``self``.
 
         NOTE:
 
@@ -4811,7 +4851,7 @@ Minimal list of algebraic relations:
 
     def gens(self):
         """
-        Return the list of generators of self
+        Return the list of generators of ``self``.
 
         NOTE:
 
@@ -4844,7 +4884,7 @@ Minimal list of algebraic relations:
 
     def rel(self,i):
         """
-        Return a relation of self, represented by a string
+        Return a relation of ``self``, represented by a string.
 
         NOTE:
 
@@ -4877,7 +4917,7 @@ Minimal list of algebraic relations:
 
     def rels(self):
         """
-        Return the list of minimal relations of self, represented by strings
+        Return the list of minimal relations of ``self``, represented by strings.
 
         NOTE:
 
@@ -4912,7 +4952,7 @@ Minimal list of algebraic relations:
 
     def nrels(self):
         """
-        Return the minimal number of relations of self
+        Return the minimal number of relations of ``self``.
 
         NOTE:
 
@@ -4949,7 +4989,7 @@ Minimal list of algebraic relations:
 
     def relation_ideal(self):
         """
-        Return the relation ideal for the current ring approximation
+        Return the relation ideal for the current ring approximation.
 
         OUTPUT:
 
@@ -5001,7 +5041,7 @@ Minimal list of algebraic relations:
 
     def last_interesting_degree(self):
         """
-        Presentation degree of the current ring approximation
+        Presentation degree of the current ring approximation.
 
         OUTPUT:
 
@@ -5057,7 +5097,7 @@ Minimal list of algebraic relations:
     @temporary_result
     def order_matrix(self):
         """
-        Return an integer matrix that defines the term order of self.
+        Return an integer matrix that defines the term order of ``self``.
 
         Even if the order is `dp`, a matrix is returned.
 
@@ -5385,7 +5425,7 @@ Minimal list of algebraic relations:
     # caching in addition to what is done in essential_ideal
     @permanent_result
     def depth_essential_ideal(self, r):
-        """Compute the ``r``-th depth essential ideal.
+        """Compute the `r`-th depth essential ideal.
 
         INPUT:
 
@@ -5434,7 +5474,7 @@ Minimal list of algebraic relations:
 
     def subgroups(self):
         """
-        Return the subgroup dictionary of self
+        Return the subgroup dictionary of ``self``.
 
         OUTPUT:
 
@@ -5462,7 +5502,7 @@ Minimal list of algebraic relations:
 
     def restriction_maps(self):
         """
-        Return the dictionary of restriction maps of self
+        Return the dictionary of restriction maps of ``self``.
 
         OUTPUT:
 
@@ -5495,7 +5535,7 @@ Minimal list of algebraic relations:
 
     def resolution(self):
         """
-        Return the underlying resolution of self
+        Return the underlying resolution of ``self``.
 
         Of course, when computing the cohomology ring in increasing
         degree, more and more terms of the resolution will be computed.
@@ -5528,7 +5568,7 @@ Minimal list of algebraic relations:
 ##########################
     def item2html(self,x):
         """
-        Return a string that provides HTML code for the input
+        Return a string that provides HTML code for the input.
 
         INPUT:
 
@@ -5577,7 +5617,7 @@ Minimal list of algebraic relations:
 
     def htmlpage(self, user=None):
         """
-        Create a html page describing self
+        Create a html page describing ``self``
 
         OUTPUT:
 
@@ -6383,7 +6423,7 @@ Minimal list of algebraic relations:
     ## Use result of sub-monomials that are stored in self.Monomials
     def MonToProd(self, expV):
         """
-        Return the element corresponding to a list of exponents
+        Return the element corresponding to a list of exponents.
 
         INPUT:
 
@@ -6460,7 +6500,7 @@ Minimal list of algebraic relations:
     ## Mark a monomial (given by exponent vector) as To-Be-Lifted
     def InsertLift(self, expV):
         """
-        If option 'liftlist' prevails: Determine some lifts that are needed to express a monomial as a cochain
+        If option 'liftlist' prevails: Determine some lifts needed to express a monomial as a cochain.
 
         This method should only be used internally. However, since a full doc test coverage is
         required, we need to give a rather lengthy explanation of this function. Sorry.
@@ -6602,7 +6642,7 @@ Minimal list of algebraic relations:
     ##          some of the variable x is of degree zero, and x>1
     def _makeStdMon(self,n,s):
         """
-        Compute the standard monomials in a given degree
+        Compute the standard monomials in a given degree.
 
         INPUT:
 
@@ -6699,7 +6739,7 @@ Minimal list of algebraic relations:
     ## Source of vector space bases for H^n
     def standardCochain(self, n, i, rdeg=None,ydeg=None,name='c'):
         """
-        Standard cochain of self
+        Standard cochain of ``self``.
 
         INPUT:
 
@@ -6752,7 +6792,7 @@ Minimal list of algebraic relations:
     ## usage, it seems better to do a separate way of caching.
     def standard_monomials(self, n):
         """
-        Standard monomials of a prescribed degree
+        Standard monomials of a prescribed degree.
 
         INPUT:
 
@@ -6819,7 +6859,7 @@ Minimal list of algebraic relations:
     ## Express a cochain (type COCH) as polynomial in the cohomology ring generators
     def element_as_polynomial(self, c):
         """
-        Express a cochain as polynomial in the generators of self
+        Express a cochain as polynomial in the generators of ``self``.
 
         INPUT:
 
@@ -6928,7 +6968,7 @@ Minimal list of algebraic relations:
     ## Manage restrictions
     def InsertSubgroup(self, q,nr, n):
         """
-        Initialize the restriction map to some subgroup
+        Initialize the restriction map to some subgroup.
 
         INPUT:
 
@@ -7080,7 +7120,7 @@ Minimal list of algebraic relations:
 
     def InitSubgroups(self):
         """
-        Initialise maximal elementary abelian subgroups
+        Initialise maximal elementary abelian subgroups.
 
         If self is the cohomology ring of a non-abelian `p`-group
         then ``InitSubgroups`` initialises various group theoretic
@@ -7181,7 +7221,7 @@ Minimal list of algebraic relations:
 
     def restrict_to_subgroup (self, n):
         """
-        Returns the restriction of the cohomology ring generators to the `n`-th subgroup
+        Returns the restriction of the cohomology ring generators to the `n`-th subgroup.
 
         SEE ALSO:
 
@@ -7247,7 +7287,7 @@ Minimal list of algebraic relations:
 
     def restrictions_as_string (self,n):
         """
-        Restriction of the cohomology ring generators to the n-th subgroup as list of strings
+        Restriction of the cohomology ring generators to the `n`-th subgroup as list of strings.
 
         SEE ALSO:
 
@@ -7408,7 +7448,7 @@ Minimal list of algebraic relations:
     @permanent_result
     def nil_radical(self):
         """
-        Compute the nil radical of self
+        Compute the nil radical of ``self``.
 
         OUTPUT:
 
@@ -7636,7 +7676,7 @@ Minimal list of algebraic relations:
 
     def _makeOrderMatrix_(self):
         """
-        Create an integer matrix in Singular, defining David Green's matrix order for self
+        Create an integer matrix in Singular, defining David Green's matrix order for ``self``.
 
         OUTPUT:
 
@@ -7702,7 +7742,7 @@ Minimal list of algebraic relations:
 
     def PrescribedRestrictions(self, L):
         """
-        Try to construct a cochain of self that has given restrictions to the elementary abelian subgroups
+        Try to construct a cochain of ``self`` that has given restrictions to the elementary abelian subgroups.
 
         INPUT:
 
@@ -7861,7 +7901,7 @@ Minimal list of algebraic relations:
 ## -- new version: work with cochains.
     def dickson_in_subgroup(self,id):#r,z):
         """
-        Compute Dickson classes for an elementary abelian group, considered as subgroup of the group of self.
+        Compute Dickson classes for an elementary abelian group, considered as subgroup of the group of  `self``.
 
         INPUT:
 
@@ -7967,7 +8007,7 @@ Minimal list of algebraic relations:
 
     def lift_dickson(self,i,j):
         """
-        Try to lift some power of some Dickson class
+        Try to lift some power of some Dickson class.
 
         INPUT:
 
@@ -8037,7 +8077,7 @@ Minimal list of algebraic relations:
     @temporary_result
     def find_dickson(self):
         """
-        Find classes of self that simultaneously restrict to the Dickson classes for special subgroups
+        Find classes of self that simultaneously restrict to the Dickson classes for special subgroups.
 
         NOTE:
 
@@ -8290,7 +8330,7 @@ Minimal list of algebraic relations:
 
     def duflot_regular_sequence(self):
         """
-        Return a Duflot regular sequence that is maximal in the current ring approximation
+        Return a Duflot regular sequence that is maximal in the current ring approximation.
 
         THEORY:
 
@@ -8434,7 +8474,7 @@ Minimal list of algebraic relations:
 
     def _construct_fr_parameters(self):
         """
-        Try to construct reasonably small filter regular parameters
+        Try to construct reasonably small filter regular parameters.
 
         OUTPUT:
 
@@ -8506,7 +8546,7 @@ Minimal list of algebraic relations:
 
     def verify_parameters_exist(self):
         """
-        Test whether the current ring approximation contains a HSOP for the cohomology ring
+        Test whether the current ring approximation contains a HSOP for the cohomology ring.
 
         THEORY:
 
@@ -8584,7 +8624,7 @@ Minimal list of algebraic relations:
     @temporary_result
     def _parameter_restrictions(self, Par, radical=False):
         r"""
-        Restrict a given set of elements to the maximal `p`\--elementary abelian subgroups
+        Restrict a given set of elements to the maximal `p`\--elementary abelian subgroups.
 
         INPUT:
 
@@ -8855,7 +8895,7 @@ Minimal list of algebraic relations:
     @permanent_result
     def find_small_last_parameter(self,Par, maxdeg=None):
         r"""
-        Find an element of smallest degree that can replace the last element of a given HSOP
+        Find an element of smallest degree that can replace the last element of a given HSOP.
 
         INPUT:
 
@@ -9723,7 +9763,7 @@ Minimal list of algebraic relations:
 
     def set_ring(self):
         """
-        The underlying free graded commutative ring of self in the Singular interface becomes the base ring
+        The underlying free graded commutative ring of ``self`` in the Singular interface becomes the base ring.
 
         NOTE:
 
@@ -9777,7 +9817,7 @@ Minimal list of algebraic relations:
 
     def reconstruct_singular(self):
         """
-        Reconstruct data after the Singular interface crashed
+        Reconstruct data after the Singular interface crashed.
 
         NOTE:
 
@@ -10026,7 +10066,7 @@ Minimal list of algebraic relations:
 
     def make_groebner(self,d=0):
         """
-        Compute a Groebner basis for the relation ideal
+        Compute a Groebner basis for the relation ideal.
 
         INPUT:
 
@@ -10103,7 +10143,7 @@ Minimal list of algebraic relations:
 
     def dimension(self):
         """
-        Return the dimension of self
+        Return the dimension of ``self``.
 
         NOTE:
 
@@ -10182,7 +10222,7 @@ Minimal list of algebraic relations:
     @permanent_result
     def depth(self):
         """
-        Return the depth of self, i.e., the length of a maximal regular sequence
+        Return the depth of ``self``, i.e., the length of a maximal regular sequence.
 
         NOTE:
 
@@ -10268,7 +10308,7 @@ Minimal list of algebraic relations:
 
     def filter_degree_type(self):
         """
-        Return the filter degree type of self
+        Return the filter degree type of ``self``.
 
         OUTPUT:
 
@@ -10336,15 +10376,15 @@ Minimal list of algebraic relations:
     @permanent_result
     def a_invariants(self):
         """
-        Return the a-invariants of self.
+        Return the `a`-invariants of ``self``.
 
         THEORY:
 
         A filter regular homogeneous system of paramaters can be
-        used for an iterative computation of the a-invariants,
+        used for an iterative computation of the `a`-invariants,
         provided the parameters are of sufficiently high degree.
         Often the data obtained by verifying Benson's completeness
-        criterion are sufficient for the computation of a-invariants.
+        criterion are sufficient for the computation of `a`-invariants.
         However, in some cases it is needed to raise the parameters
         occuring in Benson's criterion to some power.
 
@@ -10411,7 +10451,7 @@ Minimal list of algebraic relations:
                     break
             if NeedSquaring:
                 RAW = self.raw_filter_degree_type(PAR)
-                # now, the raw filter degree type might suffice to get the a-invariants.
+                # now, the raw filter degree type might suffice to get the `a`-invariants.
                 if isinstance(RAW,KeyboardInterrupt):
                     raise RAW
                 rfdt, HV,ParDeg = RAW
@@ -10423,7 +10463,7 @@ Minimal list of algebraic relations:
     def _poincare_series_of_ideal_(self, I, in_quotient=True):
         r"""
         Return the Poincaré series of the ideal `I`, which must define the standard
-        basis of an ideal in the singular interface version of self.
+        basis of an ideal in the singular interface version of ``self``.
 
         INPUT:
 
@@ -10561,7 +10601,7 @@ Minimal list of algebraic relations:
     @temporary_result
     def poincare_series(self, test_duality=False):
         r"""
-        Return the Poincaré series of self, a univariate rational function.
+        Return the Poincaré series of ``self``, a univariate rational function.
 
         ALGORITHM:
 
@@ -10634,7 +10674,7 @@ Minimal list of algebraic relations:
 
     def poincare_without_parameters(self, test_duality=False):
         r"""
-        Return the Poincaré series of self, a univariate rational function.
+        Return the Poincaré series of ``self``, a univariate rational function.
 
         ALGORITHM:
 
@@ -10792,7 +10832,7 @@ Minimal list of algebraic relations:
             sage: H160 = CohomologyRing(64,160)
             sage: H160.make()
 
-        The Poincaré series, the a-invariants, the degrees of
+        The Poincaré series, the `a`-invariants, the degrees of
         generators and of relations of the cohomology rings coincide::
 
             sage: H158.poincare_series()
@@ -11044,7 +11084,7 @@ Minimal list of algebraic relations:
 #####################
     def massey_products(self, *L, all=True):
         """
-        All possible elements of self that realize the Massey product of the given input
+        All possible elements of ``self`` that realize the Massey product of the given input.
 
         INPUT:
 
@@ -11477,7 +11517,7 @@ Minimal list of algebraic relations:
 
     def expect_last_relation (self):
         """
-        Returns a degree up to which there will provably be further non-obvious relations
+        Returns a degree up to which there will provably be further non-obvious relations.
 
         ALGORITHM:
 
@@ -11527,7 +11567,7 @@ Minimal list of algebraic relations:
     #@temporary_result ## problem: man darf nicht self.knownDeg+1 liefern.
     def potential_degree_bound(self,FRS,dv, forced = 1, previous_bound=None):
         """
-        Return the potential degree bound obtained from the modified Benson test
+        Return the potential degree bound obtained from the modified Benson test.
 
         INPUT:
 
@@ -11740,7 +11780,7 @@ Minimal list of algebraic relations:
     @temporary_result
     def raw_filter_degree_type(self,FRS):
         r"""
-        Test whether a given list of elements forms a filter-regular HSOP
+        Test whether a given list of elements forms a filter-regular HSOP.
 
         INPUT:
 
@@ -11840,7 +11880,7 @@ Minimal list of algebraic relations:
 
     def SymondsTest(self, hsop,dv, forced=False):
         """
-        Apply the Symonds test
+        Apply the Symonds test.
 
         INPUT:
 
@@ -11955,7 +11995,7 @@ Minimal list of algebraic relations:
     ## get next degree:
     def next(self, Forced=False, KeepDecomposables=False):
         """
-        Compute generators and relations up to the next unknown degree
+        Compute generators and relations up to the next unknown degree.
 
         TESTS:
 
@@ -12494,7 +12534,7 @@ Minimal list of algebraic relations:
     ## resp. up to a certain degree
     def make (self, max_deg=-1):
         """
-        Construct the visible ring structure
+        Construct the visible ring structure.
 
         INPUT:
 

@@ -18,7 +18,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-Minimal Free `\\mathbb F_p` Resolutions of Finite `p`-Groups
+Minimal Free `\\mathbb F_p` Resolutions of Finite `p`-Groups.
 
 AUTHORS:
 
@@ -56,14 +56,15 @@ from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
 #~ include 'sage/ext/stdsage.pxi'
 
-from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX, FieldConverter_class, FieldConverter
+from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
+from sage.matrix.matrix_gfpn_dense cimport FieldConverter_class, FieldConverter
 from sage.matrix.matrix0 cimport Matrix as Matrix0
 
 ####################
 ## MTX related auxiliary functions
 cdef MTX makeMTX(Matrix_t *Data):
     """
-    Make a mutable MTX-matrix out of the genuine MeatAxe-type <Matrix_t>
+    Make a mutable MTX-matrix out of the genuine MeatAxe-type <Matrix_t>.
 
     We can hardly test this method, since this cdef'd function and
     the MeatAxe-types can not be imported in Python. So, we only device
@@ -137,7 +138,7 @@ def baseMTX(f, m,n, i,j):
 
 def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     """
-    Create basic data files the cohomology computation of ``SmallGroup(q,n)``
+    Create basic data files the cohomology computation of ``SmallGroup(q,n)``.
 
     INPUT:
 
@@ -317,7 +318,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
 
 def makeSpecialGroupData(H, GStem, folder):
     """
-    Creating data files for computing the cohomology of a finite `p`-Group
+    Creating data files for computing the cohomology of a finite `p`-Group.
 
     INPUT:
 
@@ -487,7 +488,7 @@ def makeSpecialGroupData(H, GStem, folder):
 
 class RESL_sparse_unpickle_class:
     """
-    Used for unpickling class instances of :class:`~pGroupCohomology.resolution.RESL`
+    Used for unpickling class instances of :class:`~pGroupCohomology.resolution.RESL`.
 
     EXAMPLES:
 
@@ -632,7 +633,7 @@ resl_sparse_unpickle = RESL_sparse_unpickle_class()
 
 cdef class RESL:
     """
-    Computating minimal projective resolutions for finite `p`-groups with coefficients in ``GF(p)``
+    Computating minimal projective resolutions for finite `p`-groups with coefficients in ``GF(p)``.
 
     INPUT:
 
@@ -1101,7 +1102,7 @@ cdef class RESL:
 
     def __dealloc__(self):
         """
-        Deallocation of underlying C-data
+        Deallocation of underlying C-data.
 
         TESTS:
 
@@ -1136,7 +1137,7 @@ cdef class RESL:
 
     def __copy__(self):
         """
-        Return a copy of self
+        Return a copy of ``self``.
 
         TESTS:
         The examples produce files. For safety reasons, we choose files
@@ -1179,7 +1180,7 @@ cdef class RESL:
 
     def __reduce__(self):
         """
-        Return data used for pickling/unpickling self.
+        Return data used for pickling/unpickling ``self``.
 
         NOTE:
 
@@ -1228,7 +1229,7 @@ cdef class RESL:
 
     def __str__(self):
         """
-        Return a brief description of the resolution, providing the projective ranks
+        Return a brief description of the resolution, providing the projective ranks.
 
         TESTS:
 
@@ -1257,7 +1258,8 @@ cdef class RESL:
         return OUT
 
     def __repr__(self):
-        """Short string representation
+        """
+        Short string representation.
 
         EXAMPLES::
 
@@ -1297,7 +1299,7 @@ cdef class RESL:
 
     def __getitem_name__(self,key):
         """
-        Return `n`-th differential or the name of a file providing that differential
+        Return `n`-th differential or the name of a file providing that differential.
 
         EXAMPLES:
 
@@ -1346,7 +1348,7 @@ cdef class RESL:
 
     def __getitem__(self,key):
         """
-        Return n-th differential (type mtx.MTX)
+        Return `n`-th differential (type mtx.MTX).
 
         EXAMPLES:
 
@@ -1409,7 +1411,7 @@ cdef class RESL:
 
     def G_ALG(self):
         """
-        Return the  :class:`~pGroupCohomology.resolution.G_ALG` object over which the resolution is defined
+        Return the  :class:`~pGroupCohomology.resolution.G_ALG` object over which the resolution is defined.
 
         EXAMPLES:
 
@@ -1433,7 +1435,7 @@ cdef class RESL:
 
     def DiffList(self):
         """
-        Return the list of computed differentials of a resolution, respectively the path to saved data
+        Return the list of computed differentials of a resolution, respectively the path to saved data.
 
         EXAMPLES:
 
@@ -1473,7 +1475,7 @@ cdef class RESL:
 
     def rank(self, n=-1):
         """
-        Return projective rank(s) of a term or all terms  of self.
+        Return projective rank(s) of a term or all terms  of ``self``.
 
         EXAMPLES:
 
@@ -1511,7 +1513,7 @@ cdef class RESL:
 
     def deg(self):
         """
-        Return the number of terms of self that have been computed so far
+        Return the number of terms of self that have been computed so far.
 
         EXAMPLES:
 
@@ -1538,7 +1540,7 @@ cdef class RESL:
 
     def coef(self):
         """
-        Return the characteristic of the field over which self is defined
+        Return the characteristic of the field over which ``self`` is defined.
 
         EXAMPLES:
 
@@ -1562,7 +1564,7 @@ cdef class RESL:
 
     def grouporder(self):
         """
-        Return the order of the group over wich self is defined
+        Return the order of the group over wich ``self`` is defined.
 
         EXAMPLES:
 
@@ -1640,7 +1642,7 @@ cdef class RESL:
 
     def setLift(self, COCH C, n_max):
         """
-        Make a trivial entry in the list of known lifts for a given cochain
+        Make a trivial entry in the list of known lifts for a given cochain.
 
         INPUT:
 
@@ -1703,7 +1705,7 @@ cdef class RESL:
 
     def exportAction(self):
         """
-        Internally used: Save list of G-action matrices in a file
+        Internally used: Save list of `G`-action matrices in a file.
 
         EXAMPLE:
 
@@ -1782,7 +1784,7 @@ cdef class RESL:
 
     def importAction(self):
         """
-        Reload list of `G`-action matrices that have been exported using :meth:`exportAction`
+        Reload list of `G`-action matrices that have been exported using :meth:`exportAction`.
 
         EXAMPLE:
 
@@ -1941,7 +1943,7 @@ cdef class RESL:
 
     def load_ugb(self, int d):
         """
-        Load Urbild Groebner basis for lifts from degree d-1 to d.
+        Load Urbild Groebner basis for lifts from degree `d-1` to `d`.
 
         EXAMPLE:
 
@@ -2006,7 +2008,7 @@ cdef class RESL:
 # ==, <, >
     def __richcmp__(RESL self, RESL S, int x):
         """
-        ``R <= S`` if and only if ``R`` coincides with the first terms of ``S``
+        ``R <= S`` if and only if ``R`` coincides with the first terms of ``S``.
 
         EXAMPLES:
 
@@ -2053,7 +2055,7 @@ cdef class RESL:
 # Construct the resolution
     def firstDiff(self):
         """
-        Make first differential for self
+        Make first differential for ``self``.
 
         This function is usually called from nextDiff().
 
@@ -2191,7 +2193,7 @@ cdef class RESL:
 
     def makeAutolift(self, d):
         """
-        Produce internal data that allow to quickly lift chain maps to one degree
+        Produce internal data that allow to quickly lift chain maps to one degree.
 
         INPUT:
 
@@ -2509,7 +2511,7 @@ cdef class RESL:
 # Arithmetic
     def applyDiff(self, long n,MTX x):
         """
-        Apply `n`-th differential map to an element `x` of the `n`-th term of self.
+        Apply `n`-th differential map to an element `x` of the `n`-th term of ``self``.
 
         INPUT:
 
@@ -2567,7 +2569,7 @@ cdef class RESL:
 
     def find_bounding_chain(self, long n, MTX M, check=False):
         """
-        Find a chain that yields a given `n-1` chain under the `n`-th differential
+        Find a chain that yields a given `n-1` chain under the `n`-th differential.
 
         INPUT:
 
@@ -2686,7 +2688,7 @@ cdef class RESL:
 
     def composeChainMaps(self, MTX M1, MTX M2, long s, long r, long q):
         """
-        Compose chain maps `M1: P_s \\to P_r` with `M2: P_r\\to P_q`, where `P` is self
+        Compose chain maps `M1: P_s \\to P_r` with `M2: P_r\\to P_q`, where `P` is ``self``.
 
         INPUT:
 
@@ -2771,7 +2773,7 @@ cdef class RESL:
 
     def composeListOfMaps(self, MTX M1, long s, list L2):
         """
-        Compose one chain map with a list of chain maps
+        Compose one chain map with a list of chain maps.
 
         INPUT:
 
@@ -2879,7 +2881,7 @@ cdef class RESL:
 
     def liftListOfMaps(self, list L):
         """
-        Lift list of Chain Maps by one degree
+        Lift list of Chain Maps by one degree.
 
         INPUT:
 
@@ -2959,7 +2961,7 @@ cdef class RESL:
         cdef int X0,X1
         for X0,X1,MX in L:
             if (X0!=n):
-                raise ValuError("All chain maps in the list must have the same source")
+                raise ValueError("All chain maps in the list must have the same source")
             if (X1>=n) or (X1<0):
                 raise IndexError("Index out of range")
             if (MX.Data.Noc!=self.G_Alg.Data.nontips):
@@ -3025,7 +3027,7 @@ cdef class RESL:
 
     def liftChainMap(self, X):
         """
-        Lift Chain Map
+        Lift Chain Map.
 
         INPUT:
 
@@ -3129,7 +3131,7 @@ cdef class RESL:
 
     def ugb_liftChainMap(self, long n, long d, MTX M):
         """
-        Lift a chain map using Urbild Groebner bases
+        Lift a chain map using Urbild Groebner bases.
 
         INPUT:
 
@@ -3262,7 +3264,7 @@ cdef class RESL:
 
     cpdef tuple CochainToChainmap(self, long n, MTX Coc):
         """
-        Represent a cochain (given by a matrix) by a chain map to the zeroeth term of self
+        Represent a cochain (given by a matrix) by a chain map to the zeroeth term of ``self``
 
         INPUT:
         - n -- an integer
@@ -3328,7 +3330,7 @@ cdef class RESL:
 
     def ChainmapToCochain(self, object X):
         """
-        Represent a chain map of degree `n` by a `n`-cochain
+        Represent a chain map of degree `n` by a `n`-cochain.
 
         INPUT:
 
@@ -3642,7 +3644,7 @@ cdef class LIFTcontainer:
 
     def __setitem__(self,key,v):
         """
-        Cache some lift of a cochain
+        Cache some lift of a cochain.
 
         INPUT:
 
@@ -3733,7 +3735,7 @@ cdef class LIFTcontainer:
 
     def __delitem__(self,key):
         """
-        Delete the cache for one lift
+        Delete the cache for one lift.
 
         INPUT:
 
@@ -3821,7 +3823,7 @@ cdef class LIFTcontainer:
 
     def parent(self):
         """
-        Return the resolution for which the LIFTcontainer was defined.
+        Return the resolution for which ``self`` was defined.
 
         EXAMPLES:
 
@@ -3849,7 +3851,7 @@ cdef class LIFTcontainer:
     ## exporting
     def export(self):
         """
-        Store cached lifts on disk. The file names are determined by the parent of self
+        Store cached lifts on disk. The file names are determined by the parent of ``self``.
 
         EXAMPLES:
 
@@ -3955,7 +3957,7 @@ cdef class LIFTcontainer:
 
 cdef class G_ALG:
     """
-    A wrapper for David Green's C-type for group algebras of finite p-groups.
+    A wrapper for David Green's C-type for group algebras of finite `p`-groups.
 
     NOTE:
 
@@ -4053,7 +4055,7 @@ cdef class G_ALG:
 
     def __dealloc__(self):
         """
-        Deallocate C-data for a :class:`~pGroupCohomology.resolution.G_ALG` instance
+        Deallocate C-data for a :class:`~pGroupCohomology.resolution.G_ALG` instance.
 
         The instance must *not* be member of a :class:`~pGroupCohomology.resolution.RESL` instance!
 
@@ -4080,7 +4082,7 @@ cdef class G_ALG:
 
     def __repr__(self):
         """
-        Return a brief description of the group algebra
+        Return a brief description of the group algebra.
 
         EXAMPLES:
 
@@ -4203,7 +4205,7 @@ cdef class G_ALG:
     ## structural parts
     def order(G_ALG self):
         """
-        Return order of the group
+        Return order of the group.
 
         EXAMPLES:
 
@@ -4225,7 +4227,7 @@ cdef class G_ALG:
 
     def coef(G_ALG self):
         """
-        Return the characteristic of the base field
+        Return the characteristic of the base field.
 
         EXAMPLES:
 
@@ -4249,7 +4251,7 @@ cdef class G_ALG:
     ## group actions
     def r_action(self, MTX M):
         """
-        Return matrix for right action on kG by the element represented by a vector
+        Return matrix for right action on kG by the element represented by a vector.
 
         INPUT:
 
@@ -4304,7 +4306,7 @@ cdef class G_ALG:
 
     def l_action(self, MTX M):
         """
-        Return matrix for left action on kG by the element represented by a vector
+        Return matrix for left action on `kG` by the element represented by a vector.
 
         INPUT:
 
@@ -4359,7 +4361,7 @@ cdef class G_ALG:
 
     def kG_map(self, MTX M, MTX x):
         """
-        Image of an element of a right `\\mathbb F_pG`-module under a `\\mathbb F_pG`-module morphism
+        Image of an element of a right `\\mathbb F_pG`-module under a `\\mathbb F_pG`-module morphism.
 
         INPUT:
 
@@ -4582,7 +4584,7 @@ class MasseyDefiningSystems:
 
     def _make(self, int i):
         """
-        Make all states out to level i.
+        Make all states out to level `i`.
 
         TESTS::
 
@@ -4660,7 +4662,7 @@ class MasseyDefiningSystems:
 
     def values(self):
         """
-        Return all possible values (Yoneda cochains) of defining systems of Massey products
+        Return all possible values (Yoneda cochains) of defining systems of Massey products.
 
         EXAMPLES:
 

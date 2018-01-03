@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 r"""
-Bar codes --- a cohomological group invariant
+Bar codes --- a cohomological group invariant.
 
 AUTHORS:
 
@@ -54,7 +54,7 @@ shipped with this package.
     sage: H158 = CohomologyRing(64,158)
     sage: H160 = CohomologyRing(64,160)
 
-The Poincaré series, the a-invariants, the degrees of generators and of relations
+The Poincaré series, the `a`-invariants, the degrees of generators and of relations
 of the cohomology rings coincide::
 
     sage: H158.poincare_series()
@@ -196,7 +196,7 @@ from sage.structure.sage_object import SageObject
 # 2d bar codes
 class BarCode2d(SageObject):
     r"""
-    Integer valued bar codes (bar code in a single degree)
+    Integer valued bar codes (bar code in a single degree).
 
     A bar code in a fixed degree is encoded by an upper triangular
     matrix of integers and can be depicted by arrangement of bars
@@ -329,7 +329,7 @@ class BarCode2d(SageObject):
 
     def data(self):
         r"""
-        Return the defining data of self as a sorted list
+        Return the defining data of self as a sorted list.
 
         EXAMPLES::
 
@@ -356,7 +356,7 @@ class BarCode2d(SageObject):
 
     def matrix(self):
         r"""
-        Return the persistence matrix of self
+        Return the persistence matrix of self.
 
         EXAMPLES::
 
@@ -428,7 +428,7 @@ class BarCode2d(SageObject):
 
     def add_metadata(self, key, datum):
         r"""
-        Add further information on the bar code
+        Add further information on the bar code.
 
         NOTE:
 
@@ -456,7 +456,7 @@ class BarCode2d(SageObject):
 
     def plot(self,*args,**kwds):
         r"""
-        Produce a picture of the bar code
+        Produce a picture of the bar code.
 
         TESTS::
 
@@ -485,7 +485,7 @@ from sage.all import PowerSeriesRing, QQ
 
 class BarCode:
     r"""
-    Bar codes (persistent group cohomology)
+    Bar codes (persistent group cohomology).
 
     A bar code in a fixed degree is encoded by an upper triangular
     matrix of integers and can be depicted by arrangement of bars
@@ -612,7 +612,7 @@ class BarCode:
 
     def data(self):
         r"""
-        Return the defining data of self as a sorted list
+        Return the defining data of self as a sorted list.
 
         EXAMPLES::
 
@@ -639,7 +639,7 @@ class BarCode:
 
     def matrix(self):
         r"""
-        Return the persistence matrix of self
+        Return the persistence matrix of self.
 
         EXAMPLES::
 
@@ -686,7 +686,7 @@ class BarCode:
 
     def __getitem__(self, d):
         r"""
-        Return the degree ``d`` bar code
+        Return the degree `d` bar code.
 
         TESTS::
 

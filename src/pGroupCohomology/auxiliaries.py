@@ -25,8 +25,8 @@ AUTHORS:
 
 """
 
-import os
 from __future__ import print_function, absolute_import
+import os
 from sage.env import SAGE_ROOT, DOT_SAGE
 
 ####################
@@ -81,7 +81,8 @@ def safe_save(obj, path):
 ## Helper for unpickling old data
 
 class unpickle_old_mtx:
-    """Helper for old pickles of MTX matrices
+    """
+    Helper for old pickles of MTX matrices.
 
     It unpickles what was pickled with the old-style
     ``p_group_cohomology`` spkg. This holds, for example, for the
@@ -114,7 +115,8 @@ class unpickle_old_mtx:
         return mtx_unpickle(*args, **kwds)
 
 class unpickle_old_resl:
-    """Helper for old pickles of :class:`~pGroupCohomology.resolution.RESL`
+    """
+    Helper for old pickles of :class:`~pGroupCohomology.resolution.RESL`.
 
     It unpickles what was pickled with the old-style
     ``p_group_cohomology`` spkg.
@@ -176,7 +178,8 @@ coho_logger = logging.getLogger("pGroupCohomology")
 stream_handler = logging.StreamHandler()
 
 class CohoFormatter(logging.Formatter):
-    """Formatter that groups log messages
+    """
+    Formatter that groups log messages.
 
     EXAMPLE::
 
@@ -209,7 +212,7 @@ class CohoFormatter(logging.Formatter):
 
     def reset(self):
         """
-        Reset the formatter
+        Reset the formatter.
 
         By resetting, the next log message is guaranteed to be prepended
         by the string representation of the first argument of the
@@ -458,9 +461,9 @@ class GAP_INIT:
             gap = G
         # Read the library, if it deems needed
         if not gap('IsBoundGlobal("exportMTXLIB")'):
-            gap.eval('Read("%s/src/ext/gap/modular_cohomology/GapMaxels.g");'%(SAGE_ROOT))
-            gap.eval('Read("%s/src/ext/gap/modular_cohomology/GapMB.g");'%(SAGE_ROOT))
-            gap.eval('Read("%s/src/ext/gap/modular_cohomology/GapSgs.g");'%(SAGE_ROOT))
+            gap.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g')))
+            gap.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g')))
+            gap.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g')))
             gap.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
         # Reset the random generator
         try:

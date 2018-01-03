@@ -19,7 +19,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 r"""
-Modular Cohomology Rings of Finite Groups (top level documentation)
+Modular Cohomology Rings of Finite Groups (top level documentation).
 
 AUTHORS:
 
@@ -384,7 +384,7 @@ Ring theoretic invariants
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Up to now, we implemented the computation of four ring theoretic
-invariants, namely the dimension, the depth, the a-invariants and
+invariants, namely the dimension, the depth, the `a`-invariants and
 the Poincaré series::
 
     sage: H2.dimension()
@@ -758,7 +758,7 @@ isomorphism types of the normal subgroups and quotient groups.
     sage: H160 = CohomologyRing(64,160)
 
 These cohomology rings are part of our database, hence, they are
-already completely known. The Poincaré series, the a-invariants, the
+already completely known. The Poincaré series, the `a`-invariants, the
 degrees of generators and of relations of the cohomology rings
 coincide::
 
@@ -1195,7 +1195,7 @@ subgroups of `P`.
 2. After step 1, continue with choosing as many as possible new
    generators in degree `d` with nilpotent restriction to `S_1`.
 3. After step 2, include the remaining new generators in degree
-   `d`. These are called *Duflot* generators.
+   `d`. We call these *Duflot* generators, referring to [Duflot]_
 
 If `z` is the rank of the centre of `P` then there are exactly `z` Duflot
 generators, which was proved by [Kuhn]_, and they form a not necessarily

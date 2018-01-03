@@ -20,7 +20,7 @@
 #*****************************************************************************
 
 r"""
-Modular Cohomology Rings of Finite Non-Primepower Groups
+Modular Cohomology Rings of Finite Non-Primepower Groups.
 
 This module contains :class:`MODCOHO`, that provides a framework for the computation of
 the cohomology rings with coefficients in `\\mathbb F_p` for any finite group.
@@ -35,7 +35,6 @@ on the class :class:`~pGroupCohomology.cohomology.COHO`. See
 AUTHORS:
 
 - Simon King <simon.king@uni-jena.de>
-
 
 """
 
@@ -71,7 +70,7 @@ from pGroupCohomology.cochain cimport COCH, ChMap
 
 def _IdGroup(G, D, Client, ring=True):
     """
-    Assign an identification number for a given group, that is unique in the current session
+    Assign an identification number for a given group, that is unique in the current session.
 
     INPUT:
 
@@ -226,7 +225,7 @@ def _IdGroup(G, D, Client, ring=True):
 
 class MODCOHO(COHO):
     """
-    Modular cohomology rings of finite groups that are not of prime power order
+    Modular cohomology rings of finite groups that are not of prime power order.
 
     Normally, instances of this class should be created using the constructor
     :func:`~pGroupCohomology.cohomologyRing`, since this takes care of
@@ -722,7 +721,7 @@ class MODCOHO(COHO):
 
     def set_ring(self):
         """
-        Set the underlying ring in the Singular interface
+        Set the underlying ring in the Singular interface.
 
         TESTS::
 
@@ -778,7 +777,7 @@ class MODCOHO(COHO):
 
     def autosave_name(self):
         """
-        Return the default file name for saving self
+        Return the default file name for saving ``self``.
 
         NOTE:
 
@@ -805,7 +804,7 @@ class MODCOHO(COHO):
 
     def group(self):
         """
-        Return a permutation group equivalent to the one defining self
+        Return a permutation group equivalent to the one defining ``self``.
 
         NOTE:
 
@@ -840,7 +839,7 @@ class MODCOHO(COHO):
 
     def sylow_subgroup(self):
         """
-        Return the Sylow subgroup which is used to compute self
+        Return the Sylow subgroup which is used to compute ``self``
 
         EXAMPLES::
 
@@ -865,7 +864,7 @@ class MODCOHO(COHO):
 
     def subgroup(self):
         """
-        Return the subgroup to which the stable element method is applied
+        Return the subgroup to which the stable element method is applied.
 
         EXAMPLES::
 
@@ -892,7 +891,7 @@ class MODCOHO(COHO):
 
     def duflot_regular_sequence(self):
         """
-        Return a Duflot regular sequence
+        Return a Duflot regular sequence.
 
         NOTE:
 
@@ -951,7 +950,7 @@ class MODCOHO(COHO):
 
     def sylow_cohomology(self):
         """
-        Return the cohomology ring of a Sylow subgroup
+        Return the cohomology ring of a Sylow subgroup.
 
         EXAMPLES::
 
@@ -969,7 +968,7 @@ class MODCOHO(COHO):
 
     def subgroup_cohomology(self):
         """
-        Return the cohomology of the subgroup to which the stable element method is applied
+        Return the cohomology of the subgroup to which the stable element method is applied.
 
         EXAMPLES::
 
@@ -1200,7 +1199,7 @@ class MODCOHO(COHO):
     #@temporary_result
     def parameters_from_sylow_subgroup(self):
         """
-        Try to obtain filter regular parameters from those of a Sylow subgroup
+        Try to obtain filter regular parameters from those of a Sylow subgroup.
 
         THEORY:
 
@@ -1377,7 +1376,7 @@ class MODCOHO(COHO):
 
 ##     def __stable_space(self, int n):
 ##         """
-##         return a basis for the subspace of stable elements in self._HP of degree d
+##         return a basis for the subspace of stable elements in self._HP of degree `n`.
 
 ##         OUTPUT:
 ##         - a list of cochains (:class:`~pGroupCohomology.cochain.MODCOCH`),
@@ -1492,7 +1491,7 @@ class MODCOHO(COHO):
 
 ##     def _stable_space(self, int n):
 ##         """
-##         return a basis for the subspace of stable elements in self._HP of degree d
+##         return a basis for the subspace of stable elements in self._HP of degree `n`.
 
 ##         OUTPUT:
 
@@ -1568,7 +1567,7 @@ class MODCOHO(COHO):
 
     def stable_space(self, int n):
         """
-        return a basis for the subspace of stable cocycles of the underlying subgroup in a given degree
+        return a basis for the subspace of stable cocycles of the underlying subgroup in a given degree.
 
         INPUT:
 
@@ -1793,7 +1792,7 @@ class MODCOHO(COHO):
 
     def dickson_in_subgroup(self, id): # since self.CenterRk=0, we have the *full* Dickson invariants
         """
-        Compute Dickson classes for an elementary abelian group, considered as subgroup of the group of self.
+        Compute Dickson classes for an elementary abelian group, considered as subgroup of the group of ``self``.
 
         INPUT:
 
@@ -1878,7 +1877,7 @@ class MODCOHO(COHO):
 
     def InitSubgroups(self):
         """
-        Initialize data that are related with p-elementary abelian subgroups.
+        Initialize data that are related with `p`-elementary abelian subgroups.
 
         NOTE:
 
@@ -2686,7 +2685,7 @@ class MODCOHO(COHO):
 
     def _construct_fr_parameters(self):
         """
-        Try to construct reasonably small filter regular parameters
+        Try to construct reasonably small filter regular parameters.
 
         OUTPUT:
 
@@ -3093,7 +3092,7 @@ class MODCOHO(COHO):
 
     def decomposable_classes(self, int n, forced=False):
         """
-        Vector space basis of the degree `n` part of ``self``, expressed as polynomials
+        Vector space basis of the degree `n` part of ``self``, expressed as polynomials.
 
         INPUT:
 
@@ -3172,7 +3171,7 @@ class MODCOHO(COHO):
 
     def stable_to_polynomial(self, c, verify=True):
         """
-        Express a stable cohomology element of a subgroup as a polynomial in the generators of ``self``
+        Express a stable cohomology element of a subgroup as a polynomial in the generators of ``self``.
 
         INPUT:
 
@@ -3300,7 +3299,7 @@ class MODCOHO(COHO):
 
     def element_as_polynomial(self, c):
         """
-        Express an element of ``self`` as a polynomial in the generators
+        Express an element of ``self`` as a polynomial in the generators.
 
         INPUT:
 
@@ -3361,7 +3360,7 @@ class MODCOHO(COHO):
 
     def PrescribedRestrictions(self, L):
         """
-        Try to construct a cochain of self that has given restrictions to the elementary abelian subgroups
+        Try to construct a cochain of ``self`` that has given restrictions to the elementary abelian subgroups.
 
         INPUT:
 
@@ -3451,7 +3450,7 @@ class MODCOHO(COHO):
 
     def _extend_Duflot_reg_seq(self,d):
         """
-        Find new Duflot regular elements in degree ``d``
+        Find new Duflot regular elements in degree `d`.
 
         NOTE:
 
@@ -3552,7 +3551,7 @@ class MODCOHO(COHO):
 
     def next(self, Forced=False, KeepDecomposables=False):
         """
-        Compute the next degree of the cohomology ring approximation
+        Compute the next degree of the cohomology ring approximation.
 
         NOTE:
 
@@ -4106,7 +4105,7 @@ class MODCOHO(COHO):
 
     def make(self, max_deg=-1):
         r"""
-        Compute the cohomology ring structure, either completely or out to a specific degree
+        Compute the cohomology ring structure, either completely or out to a specific degree.
 
         INPUT:
 
@@ -4352,7 +4351,7 @@ is an error. Please inform the author!""")
 
 def COHO_from_key(key):
     """
-    Auxiliary function for getting a cohomology ring out of some internal description
+    Auxiliary function for getting a cohomology ring out of some internal description.
 
     NOTE:
 
@@ -4459,7 +4458,7 @@ def COHO_from_key(key):
 
 def MODCOHO_unpickle(*L):
     """
-    Unpickling a cohomology ring
+    Unpickling a cohomology ring.
 
     TESTS::
 

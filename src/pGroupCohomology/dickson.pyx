@@ -17,7 +17,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-Dickson Invariants
+Dickson Invariants.
 
 Dickson invariants `Q_{n,s}\\in \\mathbb F_p[y_0,...,y_{n-1}]` are
 generators for the invariant ring of the full linear group
@@ -173,7 +173,7 @@ class DICKSON:
 
     def V(self, k, P):
         """
-        Compute [Pham]_'s `V_k` polynomials
+        Compute [Pham]_'s `V_k` polynomials.
 
         See :mod:`~pGroupCohomology.dickson` for the theoretical background.
 
