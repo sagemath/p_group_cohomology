@@ -14,7 +14,7 @@ The source code consists of
  * C-programs and Gap functions written by `David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_, and
  * a modified version of parts of the Aachen `C MeatAxe <http://www.math.rwth-aachen.de/homes/MTX/>`_.
 
-The package comprises a data base of the cohomology rings of all groups of 
+The package comprises a data base of the cohomology rings of all groups of
 order 64, and can access a repository of the cohomology rings of
 all groups of order 128, all but 6 groups of order 243, of the Sylow
 2-subgroup of the Higman-Sims group, and of the Sylow 2-subgroup of the
@@ -22,19 +22,19 @@ third Conway group. These data were produced with our package.
 
 Since version 2.0, it can also compute the modular cohomology rings
 of non prime power groups. In particular, it allows for the computation
-of the modular cohomology for various primes of the first three Janko 
-groups, of Mathieu groups 11, 12, 22 and 23, of the McLaughlin group, 
-of SuzukiGroup(8), of the Higman-Sims group and of the third Conway group. 
+of the modular cohomology for various primes of the first three Janko
+groups, of Mathieu groups 11, 12, 22 and 23, of the McLaughlin group,
+of SuzukiGroup(8), of the Higman-Sims group and of the third Conway group.
 `Here are the computational results <http://users.minet.uni-jena.de/cohomology/>`_.
 It is planned (but not done yet) to include these cohomology rings in
 our repository.
 
 The standard way of creating cohomology rings is documented
 in :mod:`pGroupCohomology`. More details on the available methods can be
-found in the :mod:`~pGroupCohomology.factory`, 
+found in the :mod:`~pGroupCohomology.factory`,
 :mod:`~pGroupCohomology.cohomology` and
 :mod:`~pGroupCohomology.modular_cohomology` modules. There are
-also five other modules used in the background, which may be less 
+also five other modules used in the background, which may be less
 interesting to a casual user.
 
 The computation of the modular cohomology rings of non prime power groups
@@ -42,10 +42,10 @@ is reduced to the case of prime power groups, possibly in several steps,
 by virtue of the stable element method. The cohomology computation for prime
 power groups is based on the construction of a minimal free resolution.
 
-In both cases, we follow `Jon Carlson's <http://www.math.uga.edu/~jfc/>`_ 
-basic approach to compute an approximation of the cohomology ring in 
-increasing degree, and to use criteria to prove that at some point the 
-approximation is actually isomorphic to the cohomology ring. 
+In both cases, we follow `Jon Carlson's <http://www.math.uga.edu/~jfc/>`_
+basic approach to compute an approximation of the cohomology ring in
+increasing degree, and to use criteria to prove that at some point the
+approximation is actually isomorphic to the cohomology ring.
 
 We use completeness criteria proposed by
 `Dave Benson <http://www.maths.abdn.ac.uk/~bensondj/html/>`_,
@@ -59,7 +59,7 @@ Installation
 ------------
 
 Before installing our package, make sure that the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
-library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien is 
+library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien is
 installed in your copy of Sage. You can install it during a Sage session by
 ::
 
@@ -72,14 +72,14 @@ by ::
 
 However, version 2.1.4 is an old-style package, and moreover it can't install because
 of backward incompatible changes in Sage. We currently provide a fix against the backward
-incompatible changes (version 2.1.5) that can be installed on the command line
+incompatible changes (version 2.1.6) that can be installed on the command line
 (hence, *not* in a running Sage session) by
 ::
 
-    sage -i http://users.minet.uni-jena.de/cohomology/p_group_cohomology-2.1.5.spkg
+    sage -i http://users.minet.uni-jena.de/cohomology/p_group_cohomology-2.1.6.spkg
 
-Version 2.1.5 still is an old-style package and can thus not become an official
-Sage package. Version 2.1.6 will be new-style.
+Version 2.1.6 still is an old-style package and can thus not become an official
+Sage package. Version 3.0 will be new-style.
 
 Since version 2.1.4, the optimization level has been increased, which
 actually gives faster code. However, this requires a relatively recent
@@ -127,10 +127,10 @@ on which we could build test the SPKG and on which some huge computations
 could be completed, and acknowledge the support by National Science
 Foundation Grant No. DMS-0821725.
 
-We are also grateful to William Stein and David Joyner for critical comments 
-and for testing the installation of our package on a large variety of 
+We are also grateful to William Stein and David Joyner for critical comments
+and for testing the installation of our package on a large variety of
 platforms. Suggestions of Mikael Vejdemo Johansson and John Palmieri
-were very valuable for verifying the code on the computation of Massey 
+were very valuable for verifying the code on the computation of Massey
 products.
 
 We thank Mathieu Dutour Sikiric for his explanations how to keep track of
@@ -144,7 +144,7 @@ suggesting to use the Poincare series in a completeness criterion.
 Versions
 --------
 
-  * v2.1.5: Cope with several backwards incompatible changes in
+  * v2.1.5, v2.1.6: Cope with several backwards incompatible changes in
     SageMath. Improved computation of the nil-radical, including a degree-wise
     computation. Methods is_nilpotent and nilpotency_degree for cohomology
     ring elements. Various improvements for the computation of depth and
@@ -184,10 +184,10 @@ Versions
   * v1.0.2: Fixes some bugs (July 2009).
   * v1.0.1: First public version in GPL 2 or later (July 2009)
 
-Licence 
+Licence
 -------
 
-This document and our data bases of cohomology rings are licensed under a 
+This document and our data bases of cohomology rings are licensed under a
 `Creative Commons Attribution-Share Alike 3.0 License`__.
 
 __ http://creativecommons.org/licenses/by-sa/3.0/
@@ -215,6 +215,9 @@ Table of Contents
    barcode
    cochain
    resolution
-   mtx
    dickson
    auxiliaries
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
