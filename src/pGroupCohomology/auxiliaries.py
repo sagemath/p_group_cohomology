@@ -32,6 +32,10 @@ from __future__ import print_function, absolute_import
 import os
 from sage.env import SAGE_ROOT, DOT_SAGE
 
+## All other modules will import this version of singular
+
+from sage.all import singular
+
 ####################
 ## The SharedMeatAxe library needs initialisation, which is
 ## automatically done when importing from sage.libs.meataxe.
@@ -317,6 +321,9 @@ coho_logger.setLevel(logging.WARN)
 
 ########################
 ## Initialisation of Gap
+## The other modules import gap from `auxiliaries`
+
+from sage.all import gap
 
 class GAP_INIT:
     """
@@ -422,7 +429,7 @@ class GAP_INIT:
         self._seed = seed
         self.__init__()
 
-    def __call__(self,G=None):
+    def __call__(self, G=None):
         """
         INPUT:
 
@@ -457,30 +464,27 @@ class GAP_INIT:
             '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
 
         """
-        from sage.all import gap as G0
         if G is None:
-            gap = G0
-        else:
-            gap = G
+            G = gap
         # Read the library, if it deems needed
-        if not gap('IsBoundGlobal("exportMTXLIB")'):
-            gap.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g')))
-            gap.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g')))
-            gap.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g')))
-            gap.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
+        if not G('IsBoundGlobal("exportMTXLIB")'):
+            G.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g')))
+            G.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g')))
+            G.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g')))
+            G.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
         # Reset the random generator
         try:
             self.mersenne._check_valid()
             self.classical._check_valid()
         except ValueError: # gap crashed
             self.__init__()
-        if gap is not self.mersenne.parent():
+        if G is not self.mersenne.parent():
             # we got a different gap instance,
             # thus we update our random seed
-            self.mersenne = gap(self.mersenne)
-            self.classical = gap(self.classical)
-        gap.Reset('GlobalMersenneTwister',self.mersenne)
-        gap.Reset('GlobalRandomSource',self.classical)
+            self.mersenne = G(self.mersenne)
+            self.classical = G(self.classical)
+        G.Reset('GlobalMersenneTwister',self.mersenne)
+        G.Reset('GlobalRandomSource',self.classical)
 
 _gap_init = GAP_INIT()
 _gap_init()

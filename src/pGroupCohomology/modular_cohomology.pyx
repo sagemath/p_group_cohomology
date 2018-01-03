@@ -60,8 +60,8 @@ from sage.all import Infinity
 from sage.libs.modular_resolution cimport *
 from sage.libs.meataxe cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
-from pGroupCohomology.resolution import gap
-from pGroupCohomology.cohomology import singular, unpickle_gap_data, pickle_gap_data
+from pGroupCohomology.auxiliaries import gap, singular
+from pGroupCohomology.cohomology import unpickle_gap_data, pickle_gap_data
 from pGroupCohomology.resolution cimport *
 from pGroupCohomology.cochain cimport COCH, ChMap
 
@@ -396,7 +396,6 @@ class MODCOHO(COHO):
         # Get some Group-ID
         if isinstance(G,tuple):
             GId = G
-            from pGroupCohomology.resolution import gap
             G = gap('SmallGroup(%d,%d)'%(G[0],G[1]))
             GStem = GStem or "%dgp%d"%(GId[0],GId[1])
         else:
@@ -836,7 +835,6 @@ class MODCOHO(COHO):
         try:
             self._gap_group._check_valid()
         except:
-            from pGroupCohomology.resolution import gap
             self._gap_group = gap(self._gapBackup)
         return self._gap_group
 
@@ -861,7 +859,6 @@ class MODCOHO(COHO):
         try:
             self._SylowGp._check_valid()
         except:
-            from pGroupCohomology.resolution import gap
             self._SylowGp = gap(self._SylowGpBackup)
         return self._SylowGp
 
@@ -888,7 +885,6 @@ class MODCOHO(COHO):
         try:
             self._Subgp._check_valid()
         except:
-            from pGroupCohomology.resolution import gap
             self._Subgp = gap(self._SubgpBackup)
         return self._Subgp
 
@@ -3869,7 +3865,6 @@ class MODCOHO(COHO):
                     NilDec.set_immutable()
                     PivotsNilDec = NilDec.pivots() # these are indices of the list 'Monomials'
                 else:
-                    NilDec = MTX('',mutable=False)
                     PivotsNilDec = ()
                 for i in PivotsNilDec:
                     ZN_comp[Monomials[i]]=0

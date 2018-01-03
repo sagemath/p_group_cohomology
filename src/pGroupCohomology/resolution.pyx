@@ -41,8 +41,6 @@ import sys
 import os
 from sage.all import Integer
 from sage.all import FiniteField as GF
-from sage.all import gap
-from sage.all import singular
 from sage.all import Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.all import copy
@@ -50,7 +48,7 @@ from sage.all import deepcopy
 from sage.all import load
 from sage.env import DOT_SAGE, SAGE_ROOT, SAGE_LOCAL
 
-from pGroupCohomology.auxiliaries import coho_options, _gap_init, coho_logger, safe_save
+from pGroupCohomology.auxiliaries import gap, singular, coho_options, _gap_init, coho_logger, safe_save
 from pGroupCohomology.cochain cimport YCOCH
 from pGroupCohomology.cochain cimport COCH
 

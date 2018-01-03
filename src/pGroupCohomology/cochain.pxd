@@ -49,6 +49,7 @@ cdef class COCH(RingElement):
     cdef object _polyrep # tells whether "Name" provides a polynomial representation
     cdef void isubmul(self, COCH other, FEL c)
     cdef inline void set_mtx_globals(self)
+    cpdef MTX MTX(self)
 
 cdef class YCOCH:
     cdef RESL _R

@@ -35,11 +35,9 @@ Our package is formed by Singular- and Gap-functions, as well as Python-, Cython
 
 NOTE:
 
-    Our package requires the `Small Groups
-    <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_ library
-    of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. If
-    necessary, you can install it in Sage by
-    ``install_package('database_gap')``.
+    Our package uses the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
+    library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. If
+    necessary, you can install it in Sage by ``sage -i database_gap``.
 
 Modular cohomology rings of a finite group `G` are available via the constructor
 :func:`CohomologyRing`. The real work behind the scenes is done in the modules
@@ -66,6 +64,21 @@ that are due to different authors ([Benson]_, [GreenKing]_, [King]_,
 
 An overview of the various options that can be used is given in the
 documentation of :func:`CohomologyRing`.
+
+**In a nutshell**
+
+- One starts with a finite group ``G`` (either a group in GAP, a pair
+  of numbers denoting an address in the SmallGroups library, or a string
+  defining the group) and a prime number ``p``
+- One configures the cohomology ring by ``H = CohomologyRing(G, prime=p)``.
+  The prime can be ommitted if ``G`` is a prime power group.
+- One makes the cohomology ring by ``H.make()``.
+
+In most cases, the computation of ``H`` doesn't involve further action.
+However, sometimes particular options help with the computation. This
+documentation describes the underlying theory, the available options,
+reveals the underlying computational steps, and of course documents
+further data that this package can compute.
 
 EXAMPLES:
 
@@ -165,7 +178,7 @@ the use of databases. For example, it might be instructive to use logging;
 the log gives detailed information on how data are computed (the "debug"
 logging level is of course even more verbous). Global options can be
 changed at any time using the method
-:meth:`~pGroupCohomology.CohomologyRing.global_options`.
+:meth:`~pGroupCohomology.CohomologyRing.factory.global_options`.
 
 Usually, the package attempts to make use of existing data. However,
 if the optional parameter ``from_scratch`` is set to ``True`` then
@@ -2463,6 +2476,4 @@ References
 
 """
 
-#~ from pGroupCohomology import barcode, factory
 from pGroupCohomology.factory import CohomologyRing
-#~ from pGroupCohomology.resolution import gap, singular

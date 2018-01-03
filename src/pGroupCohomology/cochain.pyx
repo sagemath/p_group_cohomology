@@ -664,7 +664,7 @@ cdef class COCH(RingElement):
 
         """
         if S is None:
-            from pGroupCohomology import singular
+            from pGroupCohomology.auxiliaries import singular
             S = singular
         try:
             br = S('basering')
@@ -776,7 +776,7 @@ cdef class COCH(RingElement):
         """
         return self.Deg
 
-    def MTX(self):
+    cpdef MTX MTX(self):
         """
         Return the :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix by which ``self`` is defined.
 
@@ -790,7 +790,7 @@ cdef class COCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: C=H.2*H.1
+            sage: C = H.2*H.1
             sage: print(C.MTX())
             [0 0 1 0]
 
@@ -2137,7 +2137,7 @@ class MODCOCH(RingElement):
             True
 
         """
-        from pGroupCohomology import singular
+        from pGroupCohomology.auxiliaries import singular
         if S is None:
             if hasattr(value,'parent'):
                 singular = value.parent()
@@ -2433,7 +2433,7 @@ class MODCOCH(RingElement):
         """
         if self._latex is not None:
             return self._latex
-        from sage.all import singular
+        from pGroupChomology.auxiliaries import singular
         try:
             br = singular('basering')
         except TypeError:
@@ -2840,7 +2840,7 @@ class MODCOCH(RingElement):
 
         """
         if S is None:
-            from pGroupCohomology import singular
+            from pGroupCohomology.auxiliaries import singular
             S = singular
         try:
             br = S('basering')
@@ -5691,7 +5691,7 @@ cdef class ChMap(RingHomomorphism):
             raise TypeError("String expected")
         cdef int i
         cdef int M = len(self.Data)
-        for i from 1 <= i < M:
+        for i in range(1, M):
             Data_i = self.Data[i]
             if isinstance(Data_i,basestring):
                 if Data_i != f+str(i):
@@ -6809,7 +6809,7 @@ cdef class ChMap(RingHomomorphism):
         # we do caching, if self.domain() is complete.
         if not self.codomain().completed:
             raise ValueError("Computation of the codomain %s is incomplete"%repr(self.codomin()))
-        from sage.all import singular
+        from pGroupCohomology.auxiliaries import singular
         if Id is None:
             key = None
             _elim_cache = self._elim_cache.get(None)
@@ -7048,7 +7048,7 @@ cdef class ChMap(RingHomomorphism):
         :meth:`rank_of_image`
 
         """
-        from pGroupCohomology import singular
+        from pGroupCohomology.auxiliaries import singular
         from sage.all import PolynomialRing
         from sage.all import ZZ
         from sage.all import mul

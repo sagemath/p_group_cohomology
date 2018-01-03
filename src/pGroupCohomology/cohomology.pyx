@@ -61,7 +61,6 @@ from sage.all import copy
 from sage.all import add
 from sage.all import mul
 from sage.env import DOT_SAGE, SAGE_ROOT
-from sage.all import singular
 from sage.misc.sageinspect import sage_getargspec
 from sage.misc.lazy_attribute import lazy_attribute
 
@@ -79,10 +78,12 @@ from sage.interfaces.gap import GapElement
 from sage.interfaces.singular import SingularElement
 from sage.matrix.matrix_space import MatrixSpace
 
-# pGroupCohomology Cython and Python types
 from sage.libs.modular_resolution cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.libs.meataxe cimport *
+from pGroupCohomology.auxiliaries import singular
+
+# pGroupCohomology Cython and Python types
 from pGroupCohomology.resolution cimport RESL, G_ALG
 from pGroupCohomology.cochain cimport COCH, ChMap
 from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
@@ -2718,7 +2719,7 @@ class COHO(Ring):
                 raise ValueError("The group must be given in the gap interface")
             gap = args[0].parent()
         else:
-            from pGroupCohomology.resolution import gap
+            from pGroupCohomology.auxiliaries import gap
         _gap_init(gap)
         if len(args) == 2:
             # We expect an address in the Small Groups library
@@ -2932,8 +2933,8 @@ class COHO(Ring):
             singular.LIB('ncall.lib')
         singular.LIB('general.lib')
         singular.LIB('poly.lib')
-        singular.load('{}/dickson.lib'.format(os.path.join(SAGE_ROOT,'src','ext','singular')))
-        singular.load('{}/filterregular.lib'.format(os.path.join(SAGE_ROOT,'src','ext','singular')))
+        singular.LIB('dickson.lib')
+        singular.LIB('filterregular.lib')
         singular.eval('option(redSB)');
         singular.eval('int i')
         self.SingularTime = singular.cputime()
@@ -3704,8 +3705,8 @@ class COHO(Ring):
                 singular.LIB("ncall.lib")
             singular.LIB('general.lib')
             singular.LIB('poly.lib')
-            singular.load('{}/dickson.lib'.format(os.path.join(SAGE_ROOT,'src','ext','singular')))
-            singular.load('{}/filterregular.lib'.format(os.path.join(SAGE_ROOT,'src','ext','singular')))
+            singular.LIB('dickson.lib')
+            singular.LIB('filterregular.lib')
             if singular.eval('defined(i)')=='0':
                 singular.eval('int i')
             else:
@@ -4393,8 +4394,8 @@ Minimal list of algebraic relations:
                 return self._gap_group
             except ValueError:
                 pass
-        from pGroupCohomology.resolution import gap, _gap_init
-        _gap_init(gap)
+        from pGroupCohomology.auxiliaries import gap, _gap_init
+        _gap_init()
         if isinstance(self._key[0], basestring):
             self._gap_group = gap(self._key[0])
         elif len(self._key[0])==1:
@@ -7437,7 +7438,6 @@ Minimal list of algebraic relations:
 
         """
         cdef RESL Resl = self.Resl
-        from sage.all import singular
         coho_logger.info("Lift nil radical of the %s special subgroup", self, Integer(n).ordinal_str())
         G = self.subgps[self.RestrMaps[n][0]]
         r = self.RestrMaps[n][1]
@@ -7537,7 +7537,6 @@ Minimal list of algebraic relations:
         """
         if not self.completed:
             raise ValueError("The cohomology computation is not complete, yet")
-        from sage.all import singular
         singular(self).set_ring()
         if self.NILRADICAL:
             OUT = singular.ideal(self.NILRADICAL)
@@ -9952,8 +9951,8 @@ Minimal list of algebraic relations:
             singular.LIB("ncall.lib")
         singular.LIB('general.lib')
         singular.LIB('poly.lib')
-        singular.load('{}/dickson.lib'.format(os.path.join(SAGE_ROOT,'src','ext','singular')))
-        singular.load('{}/filterregular.lib'.format(os.path.join(SAGE_ROOT,'src','ext','singular')))
+        singular.LIB('dickson.lib')
+        singular.LIB('filterregular.lib')
         from pGroupCohomology.cochain import MODCOCH
         if singular.eval('defined(i)')=='0':
             singular.eval('int i')

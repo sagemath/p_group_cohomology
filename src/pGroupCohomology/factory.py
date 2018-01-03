@@ -40,8 +40,7 @@ from __future__ import print_function, absolute_import
 
 from sage.all import SAGE_ROOT, DOT_SAGE, load
 from sage.all import Integer
-from sage.all import singular
-from pGroupCohomology.resolution import coho_options, coho_logger, safe_save, _gap_init
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init, gap, singular
 from pGroupCohomology import barcode
 from pGroupCohomology.cohomology import COHO
 
@@ -918,8 +917,7 @@ class CohomologyRingFactory:
             q,n = args
             if (GroupId is not None) and ((q,n)!=GroupId):
                 raise ValueError("``GroupId=(%d,%d)`` incompatible with the given SmallGroups entry (%d,%d)"%(GroupId[0],GroupId[1],q,n))
-            from sage.all import gap
-            _gap_init(gap)
+            _gap_init()
             try:
                 max_n = Integer(gap('NumberSmallGroups(%d)'%q))
             except RuntimeError:
@@ -930,15 +928,15 @@ class CohomologyRingFactory:
         g = args[0]
         if not (hasattr(g,'parent') and repr(g.parent())=='Gap'):
             raise TypeError("Group in GAP expected")
-        gap = g.parent()
-        _gap_init(gap)
+        GAP = g.parent()
+        _gap_init(GAP)
         if GroupId and gap.eval('canonicalIsomorphism(%s,SmallGroup(%d,%d))'%(g.name(),GroupId[0],GroupId[1]))=='fail':
             raise ValueError("The given group generators are not canonically isomorphic to SmallGroup(%d,%d)"%(GroupId[0],GroupId[1]))
         if GroupId: # compatibility was already checked
             q = Integer(GroupId[0])
         else:
             coho_logger.debug( "Computing group order", None)
-            q = Integer(gap.eval('Order(%s)'%(g.name())))
+            q = Integer(GAP.eval('Order(%s)'%(g.name())))
         coho_logger.info("The group is of order %d", None, q)
         if q==1:
             raise ValueError("We don't consider the trivial group")
@@ -1161,8 +1159,8 @@ class CohomologyRingFactory:
             except KeyboardInterrupt:
                 coho_logger.warn("Access to websource was interrupted.", None)
         if OUT is not None:
-            gap = OUT.group().parent()
-            _gap_init(gap)
+            GAP = OUT.group().parent()
+            _gap_init(GAP)
             try:
                 OUT.GenS._check_valid()
             except ValueError:
@@ -1211,7 +1209,7 @@ class CohomologyRingFactory:
             True
 
         """
-        from sage.all import gap
+        from pGroupCohomology.auxiliaries import gap
         coho_logger.info('We compute this cohomology ring from scratch', None)
         if self._use_public_db:
             root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
@@ -2151,7 +2149,7 @@ def _IsKeyEquivalent(k1, k2):
         (('Group([(1,2,3,4,5,6),(1,2)])',), 'Sym6', ((16, 11), '.../16gp11/dat/State'), 2)
 
     """
-    from pGroupCohomology.resolution import gap
+    from pGroupCohomology.auxiliaries import gap
     if len(k1)!=len(k2):
         return 0
     if k1[0]==k2[0]:
