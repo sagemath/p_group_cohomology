@@ -22,11 +22,11 @@
 #    along with p_group_cohomoloy.  If not, see <http://www.gnu.org/licenses/>.
 #*****************************************************************************
 
-"""
+r"""
 Modular Cohomology Rings of Finite `p`-Groups.
 
 This module contains :class:`COHO`, that provides a framework for the
-computation of the cohomology rings with coefficients in `\\mathbb
+computation of the cohomology rings with coefficients in `\mathbb
 F_p` for any finite `p`-group.  It is based on algorithms of David
 Green and Dave Benson. See :mod:`pGroupCohomology` for an extensive
 introduction. Note that :class:`~pGroupCohomology.modular_cohomology.MODCOHO`,
@@ -1941,7 +1941,7 @@ class temporary_result(permanent_result):
 
 class COHO(Ring):
     r"""
-    Modular Cohomology Rings of Finite `p`-Groups with coefficients in `\\mathbb F_p`.
+    Modular Cohomology Rings of Finite `p`-Groups with coefficients in `\mathbb F_p`.
 
     AUTHORS:
 
@@ -1956,7 +1956,7 @@ class COHO(Ring):
     OUTPUT:
 
     An object set up to compute the cohomology ring of the given
-    `p`-group with coefficients in `\\mathbb F_p`.
+    `p`-group with coefficients in `\mathbb F_p`.
 
     ALGORITHM:
 
@@ -1967,7 +1967,8 @@ class COHO(Ring):
     minimal set of algebraic relations is computed, together with
     various other information (e.g., Poincaré series).
 
-    By :meth:`option` and by various parameters (see below), it can be
+    By :meth:`~pGroupCohomology.factory.CohomologyRingFactory.global_options`
+    and by various parameters (see below), it can be
     influenced by what methods the results are computed, how the
     computation is documented, and where files created during the
     computation are stored.
@@ -1978,13 +1979,13 @@ class COHO(Ring):
     construct an instance of the class COHO directly. Just for
     documentation, we use COHO in all but the first example. In the
     first example, we use the constructor
-    :func:`pGroupCohomology.cohomologyRing`, which is the recommended
+    :func:`pGroupCohomology.CohomologyRing`, which is the recommended
     way of creating a cohomology ring.
 
     EXAMPLES:
 
     First, a small example with logging enabled. We use the
-    constructor :func:`pGroupCohomology.cohomologyRing` in
+    constructor :func:`pGroupCohomology.CohomologyRing` in
     a way that prevents the ring from being downloaded from the web
     repository or reloaded from the data based shipped with this package.
 
@@ -2131,7 +2132,7 @@ class COHO(Ring):
     Now, without logging, an example using a group defined in Gap.
     This time, just for documentation, we invoke the class COHO directly
     (but in practice, one should of course use
-    :func:`~pGroupCohomology.cohomologyRing`).
+    :func:`~pGroupCohomology.CohomologyRing`).
     ::
 
         sage: from pGroupCohomology.cohomology import COHO
@@ -2368,7 +2369,7 @@ class COHO(Ring):
         True
 
     Usually, cohomology rings that are created using the constructor
-    :func:`~pGroupCohomology.cohomologyRing` are cached::
+    :func:`~pGroupCohomology.CohomologyRing` are cached::
 
         sage: H is loads(dumps(H))
         True
@@ -2755,7 +2756,7 @@ class COHO(Ring):
             ## It is assumed here that the group is given by minimal generators, and that there is a unique
             ## descriptor for the group provided (by the option 'key'). Moreover, GStem and GroupName must
             ## be explicitly provided. This is taken care of in
-            ##       pGroupCohomology.cohomologyRing
+            ##       pGroupCohomology.CohomologyRing
             ## So, we see if there are proper key words (provided by CohomologyRing) and otherwise
             ## we test the input explicitly.
             if kwds.get('gap_input'):
@@ -4099,7 +4100,7 @@ class COHO(Ring):
         NOTE:
 
         Usually, one would create a cohomology ring using
-        :func:`~pGroupCohomology.cohomologyRing`. Then, the resulting
+        :func:`~pGroupCohomology.CohomologyRing`. Then, the resulting
         cohomology rings are cached, so that two cohomology rings of
         the *same* group with data stored in the *same* location are
         not only equal but identical.
@@ -4343,7 +4344,7 @@ Minimal list of algebraic relations:
                     GStem = 'SmallGroup(%d,%d)'%GroupKey
                 else:
                     GStem = self.GStem
-        return "H^\\ast(%s; \\mathbb F_%d)"%(GStem, self.Resl.coef())
+        return r"H^\ast(%s; \mathbb F_%d)"%(GStem, self.Resl.coef())
 
     def group(self):
         """
@@ -5428,11 +5429,12 @@ Minimal list of algebraic relations:
     # caching in addition to what is done in essential_ideal
     @permanent_result
     def depth_essential_ideal(self, r):
-        """Compute the `r`-th depth essential ideal.
+        r"""
+        Compute the `r`-th depth essential ideal.
 
         INPUT:
 
-        ``r`` -- an integer, ``self.CenterRk \\le r \\le self.dimension()``.
+        ``r`` -- an integer, ``self.CenterRk \le r \le self.dimension()``.
 
         OUTPUT:
 
@@ -6502,7 +6504,7 @@ Minimal list of algebraic relations:
     ####################
     ## Mark a monomial (given by exponent vector) as To-Be-Lifted
     def InsertLift(self, expV):
-        """
+        r"""
         If option 'liftlist' prevails: Determine some lifts needed to express a monomial as a cochain.
 
         This method should only be used internally. However, since a full doc test coverage is
@@ -6524,7 +6526,7 @@ Minimal list of algebraic relations:
         For iteratively computing the ring structure of a cohomology ring, we need to express
         standard monomials in a given degree as cochains. So, we have to perform cup products.
         The order of factors does matter: If we have two cochains `x`, `y` and if
-        `\\deg(x)>\\deg(y)` then `y*x` is easier to compute than `x*y`.
+        `\deg(x)>\deg(y)` then `y*x` is easier to compute than `x*y`.
 
         Hence, when computing the cochain corresponding to the monomial given by ``expV``,
         it is reasonable to consider the cochain `C_0` corresponding to the variable of
@@ -8376,7 +8378,7 @@ Minimal list of algebraic relations:
 
     @permanent_result
     def filter_regular_parameters(self):
-        """
+        r"""
         Return reasonably small filter regular parameters of the ring approximation guaranteed to yield parameters in cohomology.
 
         OUTPUT:
@@ -8406,7 +8408,7 @@ Minimal list of algebraic relations:
         yields fairly small parameters, but the factorisation may be
         quite difficult in some examples.
 
-        In the case `G\\not=S`, it is in general impossible to lift a
+        In the case `G\not=S`, it is in general impossible to lift a
         power of the Dickson elements in complements of `C`. But if it
         is, the previous construction still yields a filter regular
         hsop. Therefore, we test whether the restricted Dickson
@@ -10804,17 +10806,17 @@ Minimal list of algebraic relations:
 
         THEORY:
 
-        Any sequence of group homomorphisms `\\phi_i: G_i \\to G_{i+1}`
+        Any sequence of group homomorphisms `\phi_i: G_i \to G_{i+1}`
         with `i=1,...,n` gives rise to a series of induced homomorphisms
         of cohomology rings. Persistent group cohomology, introduced by
         [EllisKing]_, asks how long cocycles in a given degree"survive"
         being mapped by the induced homomorphisms. For a given degree
         `d`, the persistent cohomology can be described by an upper
         triangular matrix of non-negative integers, where entry
-        `i,j` (`i\\le j`) is the dimension of the image of the degree
+        `i,j` (`i\le j`) is the dimension of the image of the degree
         `d` part of `H^*(G_j)` in `H^*(G_i)` under the induced
         homomorphism given by the composition of
-        `\\phi_i,\\phi_{i+1},...,\\phi_{j-1}`, including the case
+        `\phi_i,\phi_{i+1},...,\phi_{j-1}`, including the case
         `i=j` in which the matrix entry simply gives the dimension
         of the degree `d` part of `H^*(G_i)`.
 
@@ -10977,7 +10979,7 @@ Minimal list of algebraic relations:
             sage: B160.matrix()[2,4]
             t^3 + 2*t^2 + 2*t + 1
 
-        Hence, the image of the map `H^*(G/G_2) \\to H^*(G)` induced
+        Hence, the image of the map `H^*(G/G_2) \to H^*(G)` induced
         by the quotient map contains only finitely many cocycles,
         where `G` is group number 158 or 160 of order 64, and `G_2`
         is the second term of the upper central series.
@@ -11086,7 +11088,7 @@ Minimal list of algebraic relations:
 ## Massey products ##
 #####################
     def massey_products(self, *L, all=True):
-        """
+        r"""
         All possible elements of ``self`` that realize the Massey product of the given input.
 
         INPUT:
@@ -11148,7 +11150,7 @@ Minimal list of algebraic relations:
         Here, we test against a part of the Juggling Theorem (see [Ravenel]_
         Section A1.4) that states
 
-            `\\langle c_1,c_2,...,c_n\\rangle c \\subset \\langle c_1,c_2,...,c_{n-1},c_nc\\rangle,`
+            `\langle c_1,c_2,...,c_n\rangle c \subset \langle c_1,c_2,...,c_{n-1},c_nc\rangle,`
 
         where `c,c_1,...,c_n` are cocycles, and the multiplication on the left
         hand side is taken element-wise. For our example, we use the

@@ -20,8 +20,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with p_group_cohomoloy.  If not, see <http://www.gnu.org/licenses/>.
 #*****************************************************************************
-"""
-Minimal Free `\\mathbb F_p` Resolutions of Finite `p`-Groups.
+r"""
+Minimal Free `\mathbb F_p` Resolutions of Finite `p`-Groups.
 
 AUTHORS:
 
@@ -106,7 +106,7 @@ cdef MTX makeMTX(Matrix_t *Data):
     return M
 
 def baseMTX(f, m,n, i,j):
-    """
+    r"""
     Return an immutable :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix with a single mark ``1``.
 
     INPUT:
@@ -117,7 +117,7 @@ def baseMTX(f, m,n, i,j):
 
     OUTPUT:
 
-    An immutable `(m\\times n)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix
+    An immutable `(m\times n)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix
     over `GF(f)` with a single entry ``1`` at `(i,j)`
 
     EXAMPLE::
@@ -140,7 +140,7 @@ def baseMTX(f, m,n, i,j):
 ## Group data related auxiliary functions
 
 def makeGroupData(q,n, folder, ElAb=False,Forced=False):
-    """
+    r"""
     Create basic data files the cohomology computation of ``SmallGroup(q,n)``.
 
     INPUT:
@@ -170,7 +170,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
       consistency. So, if data are corrupted, one may empty the folder
       or simply specify ``'forced=True'``).
     - Minimal generators for the group are computed, giving rise to a
-      certain basis of the group algebra `\\mathbb F_pG`.
+      certain basis of the group algebra `\mathbb F_pG`.
     - The matrices for left and right action of `G` on the group algebra
       are computed.
     - The greatest central elementary abelian subgroup of `G` and
@@ -635,7 +635,7 @@ resl_sparse_unpickle = RESL_sparse_unpickle_class()
 
 
 cdef class RESL:
-    """
+    r"""
     Computating minimal projective resolutions for finite `p`-groups with coefficients in ``GF(p)``.
 
     INPUT:
@@ -791,19 +791,19 @@ cdef class RESL:
 
     A :class:`~pGroupCohomology.resolution.RESL` object represents a
     minimal free resolution for a finite `p`-group `G`, hence, it
-    provides a sequence of free `\\mathbb F_p`-modules that are
+    provides a sequence of free `\mathbb F_p`-modules that are
     related by homomorphisms, the differentials. The construction of
     the resolution relies on C-programs developped by `David Green
     <http://users.minet.uni-jena.de/~green/index.php>`_.  They involve
     a certain non-commutative Groebner basis theory due to David
     Green.
 
-    A homomorphism from a rank `r` to a rank `s` free `\\mathbb
-    F_p`-module can be described by a `r\\times s` matrix with
-    coefficients in `\\mathbb F_p`. An element of `\\mathbb F_pG` can
-    be represented by a tuple of length `|G|` of elements of `\\mathbb
+    A homomorphism from a rank `r` to a rank `s` free `\mathbb
+    F_p`-module can be described by a `r\times s` matrix with
+    coefficients in `\mathbb F_p`. An element of `\mathbb F_pG` can
+    be represented by a tuple of length `|G|` of elements of `\mathbb
     F_p`. Therefore, the data for the differentials are stored as
-    matrices with `|G|` columns and `r\\times s` rows. Since David
+    matrices with `|G|` columns and `r\times s` rows. Since David
     Green's programs use C-MeatAxe for linear algebra over finite
     fields, our :class:`~pGroupCohomology.resolution.RESL` class
     relies on our C-MeatAxe wrapper
@@ -848,7 +848,7 @@ cdef class RESL:
     These blocks encode a cochain, hence, a map from some term of the
     resolution (here: a term of rank two, corresponding to the number
     of rows) to the group algebra (whose elements are encoded by a
-    `1\\times |G|` matrix.
+    `1\times |G|` matrix.
 
     The salient feature of a resolution is that the composition of two
     differentials is zero. This can be verified as follows (where we
@@ -865,23 +865,23 @@ cdef class RESL:
 
     **Cochains and chain maps**
 
-    A `d`-cochain `c` is a `\\mathbb F_pG`-module morphism from the `d`-th term
-    of the resolution to `\\mathbb F_p`.
+    A `d`-cochain `c` is a `\mathbb F_pG`-module morphism from the `d`-th term
+    of the resolution to `\mathbb F_p`.
 
-    Embedding `\\mathbb F_p=\\mathbb F_p\\cdot 1 \\subset \mathbb
+    Embedding `\mathbb F_p=\mathbb F_p\cdot 1 \subset \mathbb
     F_pG`, we obtain a map to the 0-th term of the resolution. This
     gives rise to a chain map of degree `-d`, hence, a collection of a
     map from the `(n+d)`-th term `R_{n+d}` to the `n`-th term `R_n` of
-    the resolution, for all `n\\ge 0`, that commute with the
+    the resolution, for all `n\ge 0`, that commute with the
     differentials.
 
     It is iteratively constructed as follows. Let the map `c_n:
-    R_{n+d}\\to R_n` be already known. We compose the differential
-    `\\partial_{n+1+d}` with it and obtain a map
-    `\\partial_{n+1+d}\\circ c_n: R_{n+1+d}\\to R_n`. It is easy to
+    R_{n+d}\to R_n` be already known. We compose the differential
+    `\partial_{n+1+d}` with it and obtain a map
+    `\partial_{n+1+d}\circ c_n: R_{n+1+d}\to R_n`. It is easy to
     show that its image is contained in the image of
-    `\\partial_{d+1}`. We choose one of the pre-images, and obtain the
-    next term `c_{n+1}: R_{n+1+d}\\to R_{n+1}`.  We refer to that
+    `\partial_{d+1}`. We choose one of the pre-images, and obtain the
+    next term `c_{n+1}: R_{n+1+d}\to R_{n+1}`.  We refer to that
     construction as 'lifting'.
 
     Here is a step-by-step example. Note that
@@ -889,7 +889,7 @@ cdef class RESL:
     functionality with high-level functions, hence, it is not needed
     to perform the following steps manually.
 
-    First, we define a `1\\times 3` matrix that represents a 2-cochain, and
+    First, we define a `1\times 3` matrix that represents a 2-cochain, and
     construct the lowest term of the corresponding chain map::
 
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
@@ -943,7 +943,7 @@ cdef class RESL:
     So, associated with the cochain ``C`` we obtain a chain map ``c``. For obtaining
     the cup product of ``C`` with itself, we compose ``c`` with itself. We obtain a
     chain map of degree `-4`, and its lowest term, composed with the augmentation map
-    `\\mathbb F_pG\\to \\mathbb F_p` yields the cochain ``C*C``. But first, we have
+    `\mathbb F_pG\to \mathbb F_p` yields the cochain ``C*C``. But first, we have
     to lift ``c`` one step further::
 
         sage: c2 = R.liftChainMap(c1)
@@ -958,7 +958,7 @@ cdef class RESL:
         [0 0 0 0 0 0 0 0]
         [1 0 0 0 0 0 0 0]
 
-    The basis of `\\mathbb F_pG` is chosen so that the kernel of the augmentation
+    The basis of `\mathbb F_pG` is chosen so that the kernel of the augmentation
     map is given by all columns after the first. Hence, the cup product of ``C`` with
     itself is given by ``[1,0,0,0,1]``.
 
@@ -2513,13 +2513,13 @@ cdef class RESL:
 ##################
 # Arithmetic
     def applyDiff(self, long n,MTX x):
-        """
+        r"""
         Apply `n`-th differential map to an element `x` of the `n`-th term of ``self``.
 
         INPUT:
 
         - n -- integer, determining a term of self
-        - x -- `(r \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `r` is
+        - x -- `(r \times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `r` is
           the projective rank of the `n`-th term of self, and `G` is the group upon which
           `R` is defined.
 
@@ -2571,13 +2571,13 @@ cdef class RESL:
         return self.G_Alg.kG_map(self[n],x)
 
     def find_bounding_chain(self, long n, MTX M, check=False):
-        """
+        r"""
         Find a chain that yields a given `n-1` chain under the `n`-th differential.
 
         INPUT:
 
         - ``n`` -- integer, determining a term of self
-        - ``M`` -- `(r \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
+        - ``M`` -- `(r \times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
           matrix, where `r` is the projective rank of the `(n-1)`-th
           term of self, and `G` is the group upon which `R` is defined.
           ``M`` represents a chain.
@@ -2586,7 +2586,7 @@ cdef class RESL:
 
         OUTPUT:
 
-        A `n`-chain, represented by a `(s \\times |G|)`
+        A `n`-chain, represented by a `(s \times |G|)`
         :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `s`
         is the projective rank of the `n`-th term of self.
 
@@ -2690,8 +2690,8 @@ cdef class RESL:
     # compose Chain Maps
 
     def composeChainMaps(self, MTX M1, MTX M2, long s, long r, long q):
-        """
-        Compose chain maps `M1: P_s \\to P_r` with `M2: P_r\\to P_q`, where `P` is ``self``.
+        r"""
+        Compose chain maps `M1: P_s \to P_r` with `M2: P_r\to P_q`, where `P` is ``self``.
 
         INPUT:
 
@@ -3221,18 +3221,18 @@ cdef class RESL:
     # Yoneda complex
 
     def yoneda_coboundary(self, MTX X, MTX Y, int n, int i):
-        """
+        r"""
         INPUT:
 
-        - ``X, Y``: :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrices representing the terms `\\phi_n^i: P_n\\to P_{n-i}`
-          and `\\phi_{n+1}^i: P_{n+1}\\to P_{n-i+1}` of an element `\\phi^i` of degree `i` in the
-          Yoneda complex, where `P_\\ast` is the underlying resolution.
-        - ``n, i``: integers, `i \\le n`.
+        - ``X, Y``: :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrices representing the terms `\phi_n^i: P_n\to P_{n-i}`
+          and `\phi_{n+1}^i: P_{n+1}\to P_{n-i+1}` of an element `\phi^i` of degree `i` in the
+          Yoneda complex, where `P_\ast` is the underlying resolution.
+        - ``n, i``: integers, `i \le n`.
 
         OUTPUT:
 
-        ``Z``: :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the term `(\\partial \\phi^i)_{n+1}: P_{n+1}\\to P_{n-i}`
-        representing the Yoneda coboundary of `\\phi^i`.
+        ``Z``: :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the term
+        `(\partial \phi^i)_{n+1}: P_{n+1}\to P_{n-i}` representing the Yoneda coboundary of `\phi^i`.
 
         NOTE:
 
@@ -3240,8 +3240,8 @@ cdef class RESL:
 
         THEORY:
 
-        If `d_\\ast: P_\\ast \\to P_{\\ast-1}` denotes the boundary maps of `P_\\ast` then
-        `(\\partial \\phi^i)_{n+1} = \\phi_n\\circ d_{n+1} - (-1)^i d_{n-i+1}\\circ \\phi_{n+1}^i`.
+        If `d_\ast: P_\ast \to P_{\ast-1}` denotes the boundary maps of `P_\ast` then
+        `(\partial \phi^i)_{n+1} = \phi_n\circ d_{n+1} - (-1)^i d_{n-i+1}\circ \phi_{n+1}^i`.
 
         TESTS::
 
@@ -3332,17 +3332,17 @@ cdef class RESL:
         return (n,0,OUT)
 
     def ChainmapToCochain(self, object X):
-        """
+        r"""
         Represent a chain map of degree `n` by a `n`-cochain.
 
         INPUT:
 
-        ``(n,0,M)`` -- ``M`` is a `\\operatorname{rank}(P_n) \\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix,
+        ``(n,0,M)`` -- ``M`` is a `\operatorname{rank}(P_n) \times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix,
         where `P_n` is the `n`-th term of self and `G` is the finite `p`-group under consideration.
 
         OUTPUT:
 
-        A `1 \\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing a `n`-cochain.
+        A `1 \times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing a `n`-cochain.
 
         NOTE:
 
@@ -4253,7 +4253,7 @@ cdef class G_ALG:
     ######################
     ## group actions
     def r_action(self, MTX M):
-        """
+        r"""
         Return matrix for right action on kG by the element represented by a vector.
 
         INPUT:
@@ -4263,7 +4263,7 @@ cdef class G_ALG:
 
         OUTPUT:
 
-        A `|G|\\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing the right action of the
+        A `|G|\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing the right action of the
         given element on the group algebra. The result of the action is obtained by matrix multiplication
         from the right side.
 
@@ -4308,7 +4308,7 @@ cdef class G_ALG:
         return OUT
 
     def l_action(self, MTX M):
-        """
+        r"""
         Return matrix for left action on `kG` by the element represented by a vector.
 
         INPUT:
@@ -4318,7 +4318,7 @@ cdef class G_ALG:
 
         OUTPUT:
 
-        A `|G|\\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing the left action of the
+        A `|G|\times |G|` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing the left action of the
         given element on the group algebra. The result of the left action is obtained by matrix
         multiplication from the *right* side.
 
@@ -4363,21 +4363,21 @@ cdef class G_ALG:
         return OUT
 
     def kG_map(self, MTX M, MTX x):
-        """
-        Image of an element of a right `\\mathbb F_pG`-module under a `\\mathbb F_pG`-module morphism.
+        r"""
+        Image of an element of a right `\mathbb F_pG`-module under a `\mathbb F_pG`-module morphism.
 
         INPUT:
 
-        - M -- `((s\\cdot r) \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, representing a
-          right-`\\mathbb F_pG`-module morphism from a free right `\\mathbb F_pG`-module of rank `r`
+        - M -- `((s\cdot r) \times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, representing a
+          right-`\mathbb F_pG`-module morphism from a free right `\mathbb F_pG`-module of rank `r`
           to a free right `\mathbb F_pG`-module of rank `s`, where `G` is a finite `p`-group.
           The data of ``M`` are organized in `s` blocks of `r` rows.
-        - x -- `(r \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing an element
-          of a free right `\\mathbb F_pG`-module of rank `r`
+        - x -- `(r \times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing an element
+          of a free right `\mathbb F_pG`-module of rank `r`
 
         OUTPUT:
 
-        A `(s \\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the image of ``x``
+        A `(s \times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the image of ``x``
         under the map represented by ``M``
 
         EXAMPLES:

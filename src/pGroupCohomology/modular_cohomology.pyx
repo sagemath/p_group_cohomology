@@ -26,7 +26,7 @@ r"""
 Modular Cohomology Rings of Finite Non-Primepower Groups.
 
 This module contains :class:`MODCOHO`, that provides a framework for the computation of
-the cohomology rings with coefficients in `\\mathbb F_p` for any finite group.
+the cohomology rings with coefficients in `\mathbb F_p` for any finite group.
 
 It is based on the stable element method of Henri Cartan and Samuel
 Eilenberg [CartanEilenberg]_ and uses a completeness criterion based
@@ -231,9 +231,9 @@ class MODCOHO(COHO):
     Modular cohomology rings of finite groups that are not of prime power order.
 
     Normally, instances of this class should be created using the constructor
-    :func:`~pGroupCohomology.cohomologyRing`, since this takes care of
+    :func:`~pGroupCohomology.CohomologyRing`, since this takes care of
     uniqueness of parent structures. See
-    :func:`~pGroupCohomology.cohomologyRing` and
+    :func:`~pGroupCohomology.CohomologyRing` and
     :mod:`pGroupCohomology` for an introduction.
 
     EXAMPLES::
@@ -271,7 +271,7 @@ class MODCOHO(COHO):
     def __init__(self, G,p, HP,Subgroup, **kwds):
         """
         Normally, instances of this class should be created using the constructor
-        :func:`pGroupCohomology.cohomologyRing`, since this takes care of unique
+        :func:`pGroupCohomology.CohomologyRing`, since this takes care of unique
         parent structures. Here, we demonstrate the input used internally.
 
         INPUT:
@@ -2510,10 +2510,10 @@ class MODCOHO(COHO):
         If the cohomology ring has depth at least `D` and has a homogeneous
         system of parameters of degrees `d_1,...,d_r` , and if the current
         approximation of the cohomology ring has a complete generating set
-        and is known at least out to degree `\\sum d_i-D`, then the
+        and is known at least out to degree `\sum d_i-D`, then the
         approximation is complete if and only if its Poincaré series
-        multiplied by `\\prod (1-t^{d_i})` is a polynomial of degree at
-        most `\\sum d_i-D`. See [King]_ for more details.
+        multiplied by `\prod (1-t^{d_i})` is a polynomial of degree at
+        most `\sum d_i-D`. See [King]_ for more details.
 
         TODO:
 

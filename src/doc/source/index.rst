@@ -58,22 +58,24 @@ of `David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_.
 Installation
 ------------
 
-Before installing our package, make sure that the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
+The `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
 library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien is
-installed in your copy of Sage. You can install it by
+used at run-time. Thus, to use our cohomology software, you need
+to have it in your copy of Sage. You can install it by
 ::
 
     sage -i database_gap
 
 By version 3.0, `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_ has been removed
-from the cohomology package. Instead, it is needed to install
-`SharedMeatAxe <http://users.minet.uni-jena.de/~king/SharedMeatAxe/>`_. It
-can be installed by
+from the cohomology package. Instead, it is linked against
+`SharedMeatAxe <http://users.minet.uni-jena.de/~king/SharedMeatAxe/>`_.
+So, it is a build-time dependency. You can install it in your copy of Sage by
 ::
 
     sage -i meataxe
 
-By :trac:`18514`, the cohomology package can then be installed by
+By `trac ticket 18514 <https://trac.sagemath.org/ticket/18514>`_, the cohomology
+package can then be installed in your copy of Sage by
 ::
 
     sage -i p_group_cohomology
@@ -131,7 +133,7 @@ suggesting to use the Poincare series in a completeness criterion.
 Versions
 --------
 
-  * v3.0: Turn the cohomology package into a "new style spkg". It is
+  * v3.0: Turn the cohomology package into a "new style spkg". It is split
     into several smaller parts that are either using an autotoolized build
     system or are pip installable.
   * v2.1.5, v2.1.6: Cope with several backwards incompatible changes in

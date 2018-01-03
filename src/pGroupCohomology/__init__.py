@@ -95,7 +95,7 @@ right away.
 
 The package is shipped with the cohomology rings for all groups of
 order 64; the data are stored in folders and can simply be retrieved
-by calling :func:`~pGroupCohomology.cohomologyRing` with appropriate
+by calling :func:`~pGroupCohomology.CohomologyRing` with appropriate
 keys.  These data are provided to *all* users of the Sage installation,
 thus we refer to it as the *public database*.
 
@@ -175,7 +175,7 @@ ring itself, but not for cohomology rings of certain subgroups that
 might be created during the computation.
 
 Further options are described in the documentation of
-:func:`~pGroupCohomology.cohomologyRing`.
+:func:`~pGroupCohomology.CohomologyRing`.
 
 ... using the SmallGroups library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

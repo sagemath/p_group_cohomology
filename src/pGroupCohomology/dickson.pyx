@@ -19,17 +19,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with p_group_cohomoloy.  If not, see <http://www.gnu.org/licenses/>.
 #*****************************************************************************
-"""
+r"""
 Dickson Invariants.
 
-Dickson invariants `Q_{n,s}\\in \\mathbb F_p[y_0,...,y_{n-1}]` are
+Dickson invariants `Q_{n,s}\in \mathbb F_p[y_0,...,y_{n-1}]` are
 generators for the invariant ring of the full linear group
-`GL(n,\\mathbb F_p)`, where `s` ranges from `0` to `n`, setting
+`GL(n,\mathbb F_p)`, where `s` ranges from `0` to `n`, setting
 `Q_{n,n} = 1`, and `p` is a prime.
 
 NOTE:
 
-We choose the indices such that `\\deg(Q_{n,s}) = p^n-p^s`. There
+We choose the indices such that `\deg(Q_{n,s}) = p^n-p^s`. There
 also occurs a different convention in the literature.
 
 AUTHORS:
@@ -42,24 +42,24 @@ THEORY:
 According to [Wilkerson]_, the Dickson invariants `Q_{n,s}` with `s<n`
 can be defined as follows:
 
-1.  `\\prod_{v \\in \\mathbb F_p^n}(v+X) = X^{p^n} + \\sum_{s=0}^{n-1} (-1)^{n-s} Q_{n,s} X^{p^s}`
+1.  `\prod_{v \in \mathbb F_p^n}(v+X) = X^{p^n} + \sum_{s=0}^{n-1} (-1)^{n-s} Q_{n,s} X^{p^s}`
 
 [Pham]_ provides the following recursion for `Q_{n,s}`:
 
 * `Q_{n,n} = 1`
-* `Q_{n,0} = (V_1\\cdot \\dots \\cdot V_n)^{p-1}`
-* `Q_{n,s} = Q_{n-1,s}\\cdot V_n^{p-1} + Q_{n-1,s-1}^p`
+* `Q_{n,0} = (V_1\cdot \dots \cdot V_n)^{p-1}`
+* `Q_{n,s} = Q_{n-1,s}\cdot V_n^{p-1} + Q_{n-1,s-1}^p`
 
 where
 
-2. `V_k = \\prod_{\\lambda_i\\in\\mathbb Z_p} (\\lambda_0y_0 + ... + \\lambda_{k-2}y_{k-2} + y_{k-1})` for `1\\le k \\le n`
+2. `V_k = \prod_{\lambda_i\in\mathbb Z_p} (\lambda_0y_0 + ... + \lambda_{k-2}y_{k-2} + y_{k-1})` for `1\le k \le n`
 
 Apparently the definition of `V_k` is a stumbling block in the recursion,
 as it is a product of `p^{k-1}` polynomials. However, combining 1. and 2.,
 one can express `V_k` using Dickson invariants `Q_{n,s}` of lower degrees.
 Namely, setting `X = y_{k-1}` in 1., 2. becomes
 
-* `V_k = (y_{k-1}^{p^{k-1}} + \\sum_{s=0}^{k-2} (-1)^{k-s-1}\\cdot Q_{k-1,s} \cdot y_{k-1}^{p^{s}})` (in particular, `V_1 = y_0`).
+* `V_k = (y_{k-1}^{p^{k-1}} + \sum_{s=0}^{k-2} (-1)^{k-s-1}\cdot Q_{k-1,s} \cdot y_{k-1}^{p^{s}})` (in particular, `V_1 = y_0`).
 
 The preceding formula, together with [Pham]_'s recursion, allows for
 a convenient computation of the Dickson invariants: One computes
@@ -81,11 +81,11 @@ from sage.all import MatrixSpace
 from sage.all import PolynomialRing
 
 class DICKSON:
-    """
+    r"""
     A factory for computing Dickson invariants.
 
     Let `p` be a prime number. Then, ``DICKSON(p)`` can compute the Dickson
-    invariants over `\\mathbb F_p`. See :mod:`~pGroupCohomology.dickson` for
+    invariants over `\mathbb F_p`. See :mod:`~pGroupCohomology.dickson` for
     the theoretical background.
 
     EXAMPLES::

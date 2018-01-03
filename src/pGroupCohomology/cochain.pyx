@@ -259,7 +259,7 @@ coch_unpickle=COCH_unpickle_class()
 ################################################################
 
 cdef class COCH(RingElement):
-    """
+    r"""
     COCH extension class representing elements of cohomology rings.
 
     INPUT:
@@ -268,7 +268,7 @@ cdef class COCH(RingElement):
     - ``n`` -- the degree of the cochain (integer)
     - ``s`` -- name of the `n`-cochain (string)
     - ``M`` -- data describing the cochain. Either
-       1. a `(1 \\times d)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, or
+       1. a `(1 \times d)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, or
        2. a `d`-tuple of integers
 
       where `d` is the projective rank of the `n`-th term of the resolution
@@ -679,8 +679,8 @@ cdef class COCH(RingElement):
         return out
 
     def set_latex_name(COCH self, s):
-        """
-        Declare how self should be typeset in \\LaTeX.
+        r"""
+        Declare how self should be typeset in \LaTeX.
 
         EXAMPLES:
 
@@ -1840,7 +1840,7 @@ cdef class COCH(RingElement):
     #######################################################################
 
     def massey_power(COCH self, i=1):
-        """
+        r"""
         Return the `p^i`-fold restricted Massey product of ``self``, or ``None`` if it does not exist.
 
         INPUT:
@@ -1858,7 +1858,7 @@ cdef class COCH(RingElement):
 
         According to [Kraines]_, for `p > 2`, the 1st restricted Massey power
         of a cocycle `C` of odd degree in a cohomology ring with coefficients in
-        `\\mathbb F_p` is minus the Bockstein of the Steenrod `p`-th power, `-\\beta P^1(C)`.
+        `\mathbb F_p` is minus the Bockstein of the Steenrod `p`-th power, `-\beta P^1(C)`.
 
         EXAMPLES:
 
@@ -1903,10 +1903,10 @@ cdef class COCH(RingElement):
         is the identity, we have `P^1(C) = P^1(a_{1,0})c_{2,1} + a_{1,0}P(c_{2,1})`.
         Since `P^1` vanishes in degree one and acts as the `p`-th power in
         degree two, we get `P^1(C) = a_{1,0}c_{2,1}^3`. Applying the Bockstein
-        operator `\\beta`, we get `\\beta P^1(C) = c_{2,1}^4`, since
-        `\\beta(c_{2,1}) = \\beta^2(c_{1,0}) = 0` and since
-        `\\beta(xy)=\\beta(x)y + (-1)^{\\deg x}x\\beta(y)`. Hence, according to
-        Kraines, we should get `\\langle a_{1,0}c_{2,1}; 1\\rangle = - c_{2,1}^4`.
+        operator `\beta`, we get `\beta P^1(C) = c_{2,1}^4`, since
+        `\beta(c_{2,1}) = \beta^2(c_{1,0}) = 0` and since
+        `\beta(xy)=\beta(x)y + (-1)^{\deg x}x\beta(y)`. Hence, according to
+        Kraines, we should get `\langle a_{1,0}c_{2,1}; 1\rangle = - c_{2,1}^4`.
         And indeed::
 
             sage: (H.1*H.3).massey_power()
@@ -1967,7 +1967,7 @@ cdef class COCH(RingElement):
 
         Hence, after computing Bockstein and Steenrod power in ``U`` as above, and since
         Steenrod power and Bockstein commute with restriction maps, the theorem of Kraines
-        tells us that `\\langle C; 1\\rangle` should restrict to
+        tells us that `\langle C; 1\rangle` should restrict to
         `c_{2,1}c_{2,2}^3 - c_{2,1}^3c_{2,2}`, 0, `c_{2,1}c_{2,2}^3 - c_{2,1}^3c_{2,2}`,
         and `-c_{2,2}^4 - c_{2,1}c_{2,2}^3 + c_{2,1}^3c_{2,2}`. It does::
 
@@ -1987,7 +1987,7 @@ cdef class COCH(RingElement):
 
         We don't know of general results in the case of even characteristic. However, even
         in this case, we find that cocycles of higher degree can be produced by restricted
-        Massey powers, for example for the cohomology ring of `C_4\\times C_4`::
+        Massey powers, for example for the cohomology ring of `C_4\times C_4`::
 
             sage: H = CohomologyRing(16,2)
             sage: H.make()
@@ -2392,8 +2392,8 @@ class MODCOCH(RingElement):
         return repr(self)+'\ndefined by\n'+self.val_str()
 
     def set_latex_name(self, s):
-        """
-        Declare how self should be typeset in \\LaTeX.
+        r"""
+        Declare how self should be typeset in \LaTeX.
 
         EXAMPLES:
 
@@ -2417,8 +2417,8 @@ class MODCOCH(RingElement):
         self._latex = s
 
     def _latex_(self):
-        """
-        Return a \\LaTeX typeset.
+        r"""
+        Return a \LaTeX typeset.
 
         TESTS::
 
@@ -3871,7 +3871,7 @@ class MODCOCH(RingElement):
 ################################################
 
 cdef class YCOCH:
-    """
+    r"""
     Yoneda cochains.
 
     This is an auxiliary class to facilitate the computation
@@ -3882,13 +3882,13 @@ cdef class YCOCH:
     whatsoever (e.g., the maps are not supposed to commute with the boundary maps of the
     resolution).
 
-    Yoneda cochains form a cocomplex, equipped with the coboundary map `\\partial` defined by
-    `(\\partial \\phi^i)_n = \\phi_n\\circ d_{n+i+1} - (-1)^i d_{n-i+1}\\circ \\phi_{n+1}^i`
+    Yoneda cochains form a cocomplex, equipped with the coboundary map `\partial` defined by
+    `(\partial \phi^i)_n = \phi_n\circ d_{n+i+1} - (-1)^i d_{n-i+1}\circ \phi_{n+1}^i`
     where
 
-    * `P_\\ast` is a resolution
-    * `\\phi^i` is a Yoneda `i`-cochain, `\\phi^i_n: P_{i+n}\\to P_n` for `n=0,1,2,...`
-    * `\\phi_n\\circ d_{n+i+1}` means `d_{n+i+1}` followed by `\\phi_n`.
+    * `P_\ast` is a resolution
+    * `\phi^i` is a Yoneda `i`-cochain, `\phi^i_n: P_{i+n}\to P_n` for `n=0,1,2,...`
+    * `\phi_n\\circ d_{n+i+1}` means `d_{n+i+1}` followed by `\phi_n`.
 
     If `Y_1,Y_2` are two Yoneda cochains, then `Y_1*Y_2` is their composition,
     where we use the convention *first* `Y_2` *then* `Y_1`.
@@ -4333,14 +4333,14 @@ cdef class YCOCH:
     ########################
 
     def coboundary(YCOCH self):
-        """
+        r"""
         Return the Yoneda coboundary of ``self``.
 
         THEORY:
 
-        If `d_\\ast: P_\\ast \\to P_{\\ast-1}` denotes the boundary maps of `P_\\ast` and `\\phi^i` is a Yoneda `i`-cochain
-        with `\\phi^i_n: P_{i+n}\\to P_n` then
-        `(\\partial \\phi^i)_n = \\phi_n\\circ d_{n+i+1} - (-1)^i d_{n-i+1}\\circ \\phi_{n+1}^i`, which is a Yoneda `(i+1)`-cocycle.
+        If `d_\ast: P_\ast \to P_{\ast-1}` denotes the boundary maps of `P_\ast` and `\phi^i` is a Yoneda `i`-cochain
+        with `\phi^i_n: P_{i+n}\to P_n` then
+        `(\partial \phi^i)_n = \phi_n\circ d_{n+i+1} - (-1)^i d_{n-i+1}\circ \phi_{n+1}^i`, which is a Yoneda `(i+1)`-cocycle.
 
         NOTE:
 
@@ -6186,13 +6186,13 @@ cdef class ChMap(RingHomomorphism):
 ## Arithmetic -- Application to (co)chains, composition of maps, inverse maps...
 
     def apply_to_chain(ChMap self, int d, MTX C):
-        """
+        r"""
         Apply the underlying chain map of ``self`` to a `d`-chain.
 
         INPUT:
 
         - ``d``, the degree of the chain
-        - ``C``, a `(r\\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `r` is
+        - ``C``, a `(r\times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `r` is
           the rank of the `d`-th term of the resolution, and `|G|`  is the group order.
 
         EXAMPLES:

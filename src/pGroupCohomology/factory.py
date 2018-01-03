@@ -31,7 +31,7 @@ AUTHORS:
 
 This module provides a constructor for modular cohomology rings of
 finite groups, that takes care of caching. The constructor is an
-instance :func:`~pGroupCohomology.cohomologyRing` of the class
+instance :func:`~pGroupCohomology.CohomologyRing` of the class
 :class:`CohomologyRingFactory`.
 
 """
@@ -259,7 +259,7 @@ class CohomologyRingFactory:
     r"""
     A factory for creating modular cohomology rings of finite p-groups as unique parent structures
 
-    Please use :func:`~pGroupCohomology.cohomologyRing`, which is an
+    Please use :func:`~pGroupCohomology.CohomologyRing`, which is an
     instance of this class, and is provided with a documentation of
     the available options.
 
@@ -1914,7 +1914,7 @@ We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(Si
 
         Usually this function would not be directly used. It is
         automatically called by
-        :func:`~pGroupCohomology.cohomologyRing` if a cohomology ring
+        :func:`~pGroupCohomology.CohomologyRing` if a cohomology ring
         can not be found in a local folder.
 
         INPUT:
@@ -2192,7 +2192,7 @@ Using :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_user_db`, the
 location of the user defined database can be determined. By
 :meth:`~pGroupCohomology.factory.CohomologyRingFactory.user_db`, one can
 explicitly ask for taking data from the user defined database. The
-input formats for calling :func:`~pGroupCohomology.cohomologyRing` and
+input formats for calling :func:`~pGroupCohomology.CohomologyRing` and
 for calling :meth:`~pGroupCohomology.factory.CohomologyRingFactory.user_db`
 or :meth:`~pGroupCohomology.factory.CohomologyRingFactory.public_db` are the same.
 
