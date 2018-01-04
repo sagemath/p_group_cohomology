@@ -358,7 +358,7 @@ cdef class COCH(RingElement):
     be immutable::
 
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-        sage: D = COCH(H,2,'second', MTX(MatrixSpace(GF(3),1,4), [[0,1,0,1]], mutable=False))
+        sage: D = COCH(H,2,'second', MTX(MatrixSpace(GF(3),1,4, implementation=MTX), [[0,1,0,1]], mutable=False))
 
     Now, we can add or subtract the cochains::
 
@@ -3932,7 +3932,7 @@ cdef class YCOCH:
         sage: R = H.resolution()
         sage: R
         Resolution of GF(2)[D8]
-        sage: Y = YCOCH(R,1, MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]))
+        sage: Y = YCOCH(R,1, MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]]))
         sage: len(Y)
         1
 
@@ -3960,8 +3960,8 @@ cdef class YCOCH:
 
     Next, we provide all terms explicitly, yielding a Yoneda cochain that is not a cocycle::
 
-        sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
-        sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+        sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+        sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8, implementation=MTX), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
         sage: Y = YCOCH(R,1,tmpM1,tmpM2)
         sage: Y
         Yoneda 1-cochain on a resolution of GF(2)[D8]
@@ -4175,8 +4175,8 @@ cdef class YCOCH:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
-            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8, implementation=MTX), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
             sage: print(Y[0])   # indirect doctest
             [1 0 1 0 1 0 1 0]
@@ -4302,10 +4302,10 @@ cdef class YCOCH:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
-            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8, implementation=MTX), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
-            sage: M = MTX(MatrixSpace(GF(2),12,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: M = MTX(MatrixSpace(GF(2),12,8, implementation=MTX), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y.append(M)
             sage: Y[2]==M
             True
@@ -4358,8 +4358,8 @@ cdef class YCOCH:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
-            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8, implementation=MTX), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y = YCOCH(H.resolution(),1,tmpM1, tmpM2)
             sage: YC = Y.coboundary()
             sage: YC
@@ -4756,8 +4756,8 @@ cdef class YCOCH:
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
-            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
+            sage: tmpM2 = MTX(MatrixSpace(GF(2),6,8, implementation=MTX), [[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,1,1,0,0],[1,0,1,0,1,0,1,0]])
             sage: Y = YCOCH(H.resolution(), 1, tmpM1, tmpM2)
             sage: YC = Y.coboundary()
             sage: len(YC)
@@ -6207,7 +6207,7 @@ cdef class ChMap(RingHomomorphism):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: f = H.2.right_multiplication()
-            sage: print(f.apply_to_chain(1, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]])))
+            sage: print(f.apply_to_chain(1, MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]])))
             [0 1 0 1 0 1 0 1]
 
         """

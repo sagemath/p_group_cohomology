@@ -95,7 +95,7 @@ cdef MTX makeMTX(Matrix_t *Data):
     """
     cdef MTX M = MTX.__new__(MTX)
     BR = GF(Data.Field, 'x')
-    M._parent = MatrixSpace(BR, Data.Nor, Data.Noc)
+    M._parent = MatrixSpace(BR, Data.Nor, Data.Noc, implementation=MTX)
     M._ncols  = Data.Noc
     M._nrows  = Data.Nor
     M._base_ring = BR
@@ -129,7 +129,7 @@ def baseMTX(f, m,n, i,j):
 
     """
     cdef MTX M
-    M = MTX(MatrixSpace(GF(f,'x'), m,n))
+    M = MTX(MatrixSpace(GF(f,'x'), m,n, implementation=MTX))
     M[i,j]=1
     M.set_immutable()
     return M
@@ -683,7 +683,7 @@ cdef class RESL:
         sage: gstem='8gp3'
         sage: gps_folder = os.path.join(tmp_root,gstem)
         sage: res_folder = os.path.join(gps_folder, 'dat')
-        sage: R=RESL(gstem,gps_folder,res_folder)
+        sage: R = RESL(gstem,gps_folder,res_folder)
         sage: R
         Resolution of GF(2)[8gp3]
         sage: print(R)
@@ -891,7 +891,7 @@ cdef class RESL:
     construct the lowest term of the corresponding chain map::
 
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-        sage: C = MTX(MatrixSpace(GF(2),1,3),[[1,0,1]])
+        sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX),[[1,0,1]])
         sage: c0 = R.CochainToChainmap(2,C)
         sage: c0
         (
@@ -1216,9 +1216,18 @@ cdef class RESL:
         self.exportLifts()
         cdef list Lifts = []
         for X,Y in self.Lifts.Data.items():
-            s = Y.get(1,None)
-            if isinstance(s,tuple) or s is None:
-                s = Y['file']
+            s = Y.get('file','')
+            if (not s) and isinstance(Y.get(1,None), tuple):
+                # Problem: the number 1 evaluates equal to
+                # the MTX matrix [1]. That hasn't been the
+                # case in the past. Now we have to deal with
+                # it, since in old data it is assumed that
+                # they aren't equal.
+                s = ''
+            else: # That's old exported data
+                s = Y.get(1,'')
+            if not s:
+                s = os.path.join(self.res_folder,'L'+self.gstem+'n'+str(X[0])+'d'+str(X[1]))
             Lifts.append((X,s))
         r = os.path.split(self.gps_folder)[0]
         from pGroupCohomology.cohomology import COHO
@@ -1625,7 +1634,7 @@ cdef class RESL:
 
             sage: sorted(R.getLifts().items())
             [((1, 1),
-              {1: '.../8gp3/dat/L8gp3n1d1'}),
+              {'file': '.../8gp3/dat/L8gp3n1d1'}),
              ((2, 1),
               {[0 1]: ((
                   [0 0 0 0 0 0 0 0]
@@ -1859,7 +1868,7 @@ cdef class RESL:
 
             sage: sorted(R.getLifts().items())
             [((1, 1),
-              {1: '.../8gp3/dat/L8gp3n1d1'}),
+              {'file': '.../8gp3/dat/L8gp3n1d1'}),
              ((2, 1),
               {[0 1]: ((
                   [0 0 0 0 0 0 0 0]
@@ -1875,8 +1884,8 @@ cdef class RESL:
         Now, both lifts are stored on disk::
 
             sage: sorted(R.getLifts().items())
-            [((1, 1), {1: '.../8gp3/dat/L8gp3n1d1'}),
-             ((2, 1), {1: '.../8gp3/dat/L8gp3n2d1'})]
+            [((1, 1), {'file': '.../8gp3/dat/L8gp3n1d1'}),
+             ((2, 1), {'file': '.../8gp3/dat/L8gp3n2d1'})]
             sage: CohomologyRing.reset()
 
         """
@@ -2602,13 +2611,13 @@ cdef class RESL:
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: R = H.resolution()
-            sage: M1 = R.find_bounding_chain(1, MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,1,1,0,1]]))
+            sage: M1 = R.find_bounding_chain(1, MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,1,1,0,1]]))
             sage: print(M1)
             [1 0 0 0 1 0 0 0]
             [1 1 0 0 0 1 0 0]
             sage: print(R.applyDiff(1,M1))
             [0 1 1 0 1 1 0 1]
-            sage: M2 = R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,0,1,0],[0,0,0,0,0,1,0,0]]))
+            sage: M2 = R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[0,1,0,1,0,0,1,0],[0,0,0,0,0,1,0,0]]))
             sage: print(M2)
             [1 0 1 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
@@ -2622,7 +2631,7 @@ cdef class RESL:
         the output would be nonsense. So, in case of doubt, one may
         use the optional parameter ``check``::
 
-            sage: FOO =  R.find_bounding_chain(2, MTX(MatrixSpace(GF(2), 2,8), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]))
+            sage: FOO =  R.find_bounding_chain(2, MTX(MatrixSpace(GF(2), 2,8, implementation=MTX), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]))
             sage: print(FOO)
             [1 0 1 0 0 0 0 0]
             [1 0 0 0 0 0 0 0]
@@ -2630,7 +2639,7 @@ cdef class RESL:
             sage: print(R.applyDiff(2,FOO))
             [0 1 0 1 0 0 1 0]
             [0 0 1 0 0 1 0 0]
-            sage: print(R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]), check=True))
+            sage: print(R.find_bounding_chain(2, MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[0,1,0,1,0,0,1,0],[0,1,1,0,0,1,0,0]]), check=True))
             Traceback (most recent call last):
             ...
             ValueError: The given chain is no cycle
@@ -2809,7 +2818,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
             sage: c = R.CochainToChainmap(2,C)
             sage: c
             (
@@ -2917,7 +2926,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
             sage: c = R.CochainToChainmap(2,C)
             sage: L = [(2,1,R[2]), c]
             sage: O = R.liftListOfMaps(L)
@@ -3063,7 +3072,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
             sage: c = R.CochainToChainmap(2,C)
             sage: c
             (
@@ -3169,7 +3178,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
             sage: c = R.CochainToChainmap(2,C)
             sage: c
             (
@@ -3299,7 +3308,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
             sage: c = R.CochainToChainmap(2,C)
             sage: c
             (
@@ -3365,7 +3374,7 @@ cdef class RESL:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]])
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
             sage: print(R.ChainmapToCochain(R.CochainToChainmap(2,C)))
             [1 0 1]
 
@@ -3439,7 +3448,7 @@ cdef class LIFTcontainer:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]], mutable=False)
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]], mutable=False)
             sage: C3 = R.liftChainMap(R.CochainToChainmap(2,C))
             sage: C3
             (
@@ -3580,7 +3589,7 @@ cdef class LIFTcontainer:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]], mutable=False)
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]], mutable=False)
             sage: C3 = R.liftChainMap(R.CochainToChainmap(2,C))
             sage: C3
             (
@@ -3680,7 +3689,7 @@ cdef class LIFTcontainer:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]], mutable=False)
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]], mutable=False)
             sage: C3 = R.liftChainMap(R.CochainToChainmap(2,C))
             sage: C3
             (
@@ -3767,7 +3776,7 @@ cdef class LIFTcontainer:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]], mutable=False)
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]], mutable=False)
             sage: C3 = R.liftChainMap(R.CochainToChainmap(2,C))
             sage: C3
             (
@@ -3873,7 +3882,7 @@ cdef class LIFTcontainer:
             sage: R.nextDiff()
             sage: R.nextDiff()
             sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3), [[1,0,1]], mutable=False)
+            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]], mutable=False)
             sage: C3 = R.liftChainMap(R.CochainToChainmap(2,C))
             sage: C3
             (
@@ -3898,7 +3907,7 @@ cdef class LIFTcontainer:
               [1 0 0 0 0 0 0 0]}}
             sage: L.export()
             sage: L.out()
-            {(3, 2): {1: '.../8gp3/dat/L8gp3n3d2'}}
+            {(3, 2): {'file': '.../8gp3/dat/L8gp3n3d2'}}
 
         Here are the saved contents::
 
@@ -3943,7 +3952,10 @@ cdef class LIFTcontainer:
                         del D['file']
                     except KeyError:
                         coho_logger.debug("updating old data", self.Parent)
-                        del D[1]
+                        try:
+                            del D[1]
+                        except KeyError:
+                            pass
                     safe_save(D.items(),s)
                     D = {'file':s}
             else:
@@ -4278,7 +4290,7 @@ cdef class G_ALG:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
-            sage: print(G.r_action(MTX(MatrixSpace(GF(2),1,8), [[1,0,0,1,0,1,1,0]])))
+            sage: print(G.r_action(MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[1,0,0,1,0,1,1,0]])))
             [1 0 0 1 0 1 1 0]
             [0 1 0 0 0 0 0 1]
             [0 0 1 0 0 0 1 1]
@@ -4287,9 +4299,9 @@ cdef class G_ALG:
             [0 0 0 0 0 1 0 0]
             [0 0 0 0 0 0 1 0]
             [0 0 0 0 0 0 0 1]
-            sage: MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,0,0,0,0]])*G.r_action(MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,1,0,0,0]]))
+            sage: MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,0,0,0,0]])*G.r_action(MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,1,0,0,0]]))
             [0 0 0 1 1 1 0 0]
-            sage: G.kG_map(MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,0,0,0,0]]), MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,1,0,0,0]]))
+            sage: G.kG_map(MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,0,0,0,0]]), MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,1,0,0,0]]))
             [0 0 0 1 1 1 0 0]
 
         """
@@ -4333,7 +4345,7 @@ cdef class G_ALG:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
-            sage: G.l_action(MTX(MatrixSpace(GF(2),1,8), [[1,0,0,1,0,1,1,0]]))
+            sage: G.l_action(MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[1,0,0,1,0,1,1,0]]))
             [1 0 0 1 0 1 1 0]
             [0 1 0 0 0 1 0 1]
             [0 0 1 0 0 0 0 1]
@@ -4342,9 +4354,9 @@ cdef class G_ALG:
             [0 0 0 0 0 1 0 0]
             [0 0 0 0 0 0 1 0]
             [0 0 0 0 0 0 0 1]
-            sage: MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,0,0,0,0]])*G.l_action(MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,1,0,0,0]]))
+            sage: MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,0,0,0,0]])*G.l_action(MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,1,0,0,0]]))
             [0 0 0 1 1 0 1 0]
-            sage: G.kG_map(MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,1,0,0,0]]),MTX(MatrixSpace(GF(2),1,8), [[0,1,1,0,0,0,0,0]]))
+            sage: G.kG_map(MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,1,0,0,0]]),MTX(MatrixSpace(GF(2),1,8, implementation=MTX), [[0,1,1,0,0,0,0,0]]))
             [0 0 0 1 1 0 1 0]
 
         """
@@ -4391,17 +4403,17 @@ cdef class G_ALG:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: G = G_ALG(gstem,folder=gps_folder,dependent=False)
-            sage: M = MTX(MatrixSpace(GF(2),4,8), [[1,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0],[1,0,1,0,1,0,1,0]])
-            sage: G.kG_map(M,MTX(MatrixSpace(GF(2),2,8), [[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1]]))
+            sage: M = MTX(MatrixSpace(GF(2),4,8, implementation=MTX), [[1,0,0,0,0,0,0,0],[0,1,0,1,0,1,0,1],[1,0,0,0,0,0,0,0],[1,0,1,0,1,0,1,0]])
+            sage: G.kG_map(M,MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1]]))
             [1 1 1 1 1 1 1 1]
             [0 0 0 1 1 1 1 0]
-            sage: G.kG_map(M,MTX(MatrixSpace(GF(2),2,8), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]))
+            sage: G.kG_map(M,MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]))
             [1 1 1 1 1 1 1 1]
             [1 0 0 0 0 1 1 0]
 
         The image of the sum is the sum of the images::
 
-            sage: G.kG_map(M, MTX(MatrixSpace(GF(2),2,8), [[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1]]))
+            sage: G.kG_map(M, MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1]]))
             [0 0 0 0 0 0 0 0]
             [1 0 0 1 1 0 0 0]
         """
