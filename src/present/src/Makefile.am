@@ -46,4 +46,4 @@ mnttest.sh: test.reg
 	@echo './makeNontips -O RLL 2 test && groupInfo test | grep -Fxq "Size of Groebner basis: 3"' > mnttest.sh
 	@chmod +x mnttest.sh
 
-CLEANFILES                  = mnttest.sh test.reg test.nontips
+CLEANFILES                  = mnttest.sh test.nontips

@@ -397,7 +397,7 @@ int urbildAufnahme(nRgs_t *nRgs, group_t *group, PTR result)
       }
       else
       {
-        MTX_ERROR1("vector doesn't lie in image : %E", MTX_ERR_INCOMPAT);
+        return MTX_ERROR1("vector doesn't lie in image : %E", MTX_ERR_INCOMPAT),1;
       }
     }
     if (!uv) break; /* All unreduced vectors processed */

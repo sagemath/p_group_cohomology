@@ -22,7 +22,7 @@ AC_PREREQ([2.69])
 AC_INIT([modular_resolution], [1.0], [simon.king@uni-jena.de])
 AM_INIT_AUTOMAKE([check-news dist-bzip2 -Wall])
 AM_PROG_AR
-LT_INIT
+LT_INIT([disable-static])
 AC_CONFIG_SRCDIR([src/modular_resolution.h])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
