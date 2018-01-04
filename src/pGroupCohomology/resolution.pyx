@@ -2335,11 +2335,13 @@ cdef class RESL:
         OUTPUT:
 
         ``P,K,D``: Data that allow for the fast computation of a Yoneda `(n-1)`-cochain that cobounds
-        a given Yoneda `n` cocycle. Compare :meth:`yoneda_coboundary` and :meth:`~pGroupCohomology.cochain.YCOCH.find_cobounding_yoneda_cochain`.
+        a given Yoneda `n` cocycle.
 
         This method should only be of internal use. The output is cached on disk.
 
-        TESTS::
+        .. seealso:: :meth:`yoneda_coboundary` and :meth:`~pGroupCohomology.cochain.YCOCH.find_cobounding_yoneda_cochain`.
+
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
@@ -2376,6 +2378,23 @@ cdef class RESL:
             [0 1 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0]
+
+        TESTS:
+
+        We make sure that the previously computed result coincides with
+        the result obtained using a different matrix backend::
+
+            sage: tmp_root = tmp_dir()
+            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: H = CohomologyRing(8,3, options="nouseMTX")
+            sage: H.make()
+            sage: P2,K2,D2 = H.resolution()._get_yoneda_liftdata(2)
+            sage: P == P2
+            True
+            sage: K == K2
+            True
+            sage: D == D2
+            True
 
         """
         import os
@@ -2429,18 +2448,18 @@ cdef class RESL:
         # |nt|nt|..|  |nt|nt|..|nt|  |nt|nt|..|nt||nt|nt|..|nt|  ... |nt|nt|..|nt|
         if coho_options['useMTX']:
             FfSetField(Mmtx.Data.Field)
-            FfSetNoc(Mmtx.Data.Noc)
-        for i from 0 <= i < Rk:  # "long rows" of M, part 1
+        for i in range(Rk):  # "long rows" of M, part 1
             for j from 0 <= j < nt: # "short rows" within a long row of M
                 # The following collects all RK short rows of Dn_G[j] that correspond to short row number i
                 L = []
-                for k from 0 <= k < RK:
+                for k in range(RK):
                     L.extend(Dn_G[j]._rowlist_(k*Rk+i,k*Rk+i) )
                 if coho_options['useMTX']:
-                    for k from 0 <= k < maxK:
+                    FfSetNoc(Mmtx.Data.Noc)
+                    for k in range(maxK):
                         FfInsert(FfGetPtr(Mmtx.Data.Data,i*nt+j), k, FfFromInt(L[k]))
                 else:
-                    for k from 0 <= k < maxK:
+                    for k in range(maxK):
                         M.set_unsafe(i*nt+j, k, baseK(L[k]))
                 M[i*nt+j, maxK+i*nt+j] = 1
         cdef int offset
@@ -3911,7 +3930,7 @@ cdef class LIFTcontainer:
 
         Here are the saved contents::
 
-            sage: E = load(L.out()[(3,2)][1])
+            sage: E = load(L.out()[(3,2)]['file'])
             sage: E
             [(
                      [1 0 0 0 0 0 0 0]
@@ -3952,10 +3971,7 @@ cdef class LIFTcontainer:
                         del D['file']
                     except KeyError:
                         coho_logger.debug("updating old data", self.Parent)
-                        try:
-                            del D[1]
-                        except KeyError:
-                            pass
+                        del D[1]
                     safe_save(D.items(),s)
                     D = {'file':s}
             else:
@@ -4654,7 +4670,7 @@ class MasseyDefiningSystems:
                     Value = - S[0][0]*S_[0][j-1]
                 else:
                     Value = S[0][0]*S_[0][j-1]
-                for k from 0 < k < j:
+                for k in range(1,j):
                     S_ = self.States[i-k-1][S_[1]]
                     if S[0][k].deg()%2:
                         Value = Value - S[0][k]*S_[0][j-k-1]

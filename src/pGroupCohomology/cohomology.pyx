@@ -76,7 +76,6 @@ from sage.all import Integer
 from sage.all import Algebras, CommutativeAlgebras
 from sage.interfaces.gap import GapElement
 from sage.interfaces.singular import SingularElement
-from sage.matrix.matrix_space import MatrixSpace
 
 from sage.libs.modular_resolution cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX

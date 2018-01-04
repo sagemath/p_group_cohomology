@@ -77,7 +77,6 @@ from sage.all import ZZ
 from sage.all import Integer
 from sage.all import FiniteField as GF
 from sage.all import Matrix
-from sage.all import MatrixSpace
 from sage.all import PolynomialRing
 
 class DICKSON:
