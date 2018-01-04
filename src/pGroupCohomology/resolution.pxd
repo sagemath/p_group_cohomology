@@ -22,7 +22,7 @@
 #*****************************************************************************
 
 from sage.libs.meataxe cimport *
-from sage.libs.modular_resolution cimport *
+from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 
 #########################################################

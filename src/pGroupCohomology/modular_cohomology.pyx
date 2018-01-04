@@ -57,7 +57,7 @@ from sage.all import Algebras, CommutativeAlgebras
 from sage.all import subsets
 from sage.all import Infinity
 
-from sage.libs.modular_resolution cimport *
+from pGroupCohomology.resolution_bindings cimport *
 from sage.libs.meataxe cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from pGroupCohomology.auxiliaries import gap, singular

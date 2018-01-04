@@ -24,7 +24,7 @@
 ## Cohomology Ring Elements
 #############################################################
 
-from sage.libs.modular_resolution cimport *
+from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.libs.meataxe cimport *
 from pGroupCohomology.resolution cimport *

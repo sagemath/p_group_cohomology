@@ -85,6 +85,7 @@ setup(
   url = "http://users.minet.uni-jena.de/cohomology/documentation/",
   description = "Modular Cohomology Rings of Finite Groups",
   packages = find_packages(),
+  package_data={'pGroupCohomology': ['*.pxd']},
   py_modules = ["pGroupCohomology.barcode","pGroupCohomology.factory"],
   data_files=[(os.path.join(SAGE_SHARE,"sage","ext","gap"),
               [os.path.join("pGroupCohomology","GapMaxels.g"),

@@ -77,7 +77,7 @@ from sage.all import Algebras, CommutativeAlgebras
 from sage.interfaces.gap import GapElement
 from sage.interfaces.singular import SingularElement
 
-from sage.libs.modular_resolution cimport *
+from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.libs.meataxe cimport *
 from pGroupCohomology.auxiliaries import singular
