@@ -2259,7 +2259,7 @@ cdef class RESL:
 
         """
         coho_logger.info('Make degree %d autolift data'%(d), self)
-        cdef int i,j,k
+        cdef int i,j,k,l
         ct=cputime()
         wt=walltime()
         self.importAction()
@@ -2280,27 +2280,29 @@ cdef class RESL:
         cdef Matrix0 M
         cdef MTX Mmtx
         baseK = GF(fl)
+        cdef PTR DGj_p
+        cdef MTX DGj
 
         if coho_options['useMTX']:
             Mmtx = makeMTX(MatAlloc(fl, RK*nt, (rk+RK)*nt))
             FfSetField(fl)
             FfSetNoc(Mmtx.Data.Noc)
-            for i from 0 <= i < RK: # "long rows" of M
-                for j from 0 <= j < nt: # "short rows" within a long row of M
-                    L = D_G[j]._rowlist_(i*rk,(i+1)*rk-1)
-                    assert len(L)==maxK
-                    for k from 0 <= k < maxK:
-                        FfInsert(FfGetPtr(Mmtx.Data.Data,i*nt+j), k, FfFromInt(L[k]))
-                        #Mmtx.set_unsafe_int(i*nt+j, k, L[k])
+            for j in range(nt): # "short rows" within a long row of Mmtx
+                DGj = D_G[j]
+                for i in range(RK):
+                    for k in range(rk):
+                        DGj_p = DGj.Data.Data + (i*rk+k)*DGj.Data.RowSize # The k-th row of a block of rk rows of D_G[j]
+                        for l in range(nt):
+                            FfInsert(FfGetPtr(Mmtx.Data.Data,i*nt+j), k*nt+l, FfExtract(DGj_p, l))
                     Mmtx[i*nt+j, maxK+i*nt+j] = 1
             M = Mmtx
         else:
             M = Matrix(baseK, RK*nt, (rk+RK)*nt, 0)  # we begin with zero.
-            for i from 0 <= i < RK: # "long rows" of M
-                for j from 0 <= j < nt: # "short rows" within a long row of M
+            for i in range(RK): # "long rows" of M
+                for j in range(nt): # "short rows" within a long row of M
                     L = D_G[j]._rowlist_(i*rk,(i+1)*rk-1)
                     assert len(L)==maxK
-                    for k from 0 <= k < maxK:
+                    for k in range(maxK):
                         M.set_unsafe(i*nt+j, k, baseK(L[k]))
                     M[i*nt+j, maxK+i*nt+j] = 1
         M.echelonize()
@@ -2695,6 +2697,7 @@ cdef class RESL:
             if (self.nRgs.ngs.r!=rk_1) or (self.nRgs.ngs.s != rk):
                 raise ArithmeticError("Theoretical error")
             # in coho.c: innerPreimages(nRgs, images->Data, s, resol->group, this->Data),
+            FfSetNoc(nt)
             innerPreimages(self.nRgs, M.Data.Data, 1, self.G_Alg.Data, TMP.Data.Data)
             if check:
                 coho_logger.info("Checking the result", self)
@@ -2792,6 +2795,7 @@ cdef class RESL:
             for i from 0 <= i < rk:
                 sig_on()
                 L = leftActionMatrix(self.G_Alg.Data, M2_ji)
+                FfSetNoc(nontips)
                 for k from 0 <= k < RK:
                     FfAddMapRow(FfGetPtr(M1.Data.Data,k*Rk+j), L.Data, nontips, FfGetPtr(OUT.Data.Data,k*rk+i))
                 M2_ji += FfCurrentRowSize
@@ -3049,6 +3053,7 @@ cdef class RESL:
                     raise ArithmeticError("Theoretical error")
                 ## in coho.c: innerPreimages(nRgs, images->d, s, resol->group, this->d),
                 coho_logger.debug('> Compute preimages in degree %d'%(Compos[1]+1), self)
+                FfSetNoc(nt)
                 innerPreimages(self.nRgs, Compos1.Data.Data, RK, self.G_Alg.Data, Out1.Data.Data)
         sig_off()
         return OUT
@@ -3147,7 +3152,7 @@ cdef class RESL:
         cdef tuple Piv = tuple(Autolift['Piv'])
         ##########################
         # Lift each "long row"
-        for i from 0 <= i < RK:
+        for i in range(RK):
             Z = Compos._rowlist_(i*rk_1, (i+1)*rk_1-1)
             TMP = makeMTX(MatAlloc(fl, rk, nt))
             for j in Piv:

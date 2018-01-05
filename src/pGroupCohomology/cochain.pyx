@@ -1646,10 +1646,10 @@ cdef class COCH(RingElement):
             RK = R.Data.projrank[self.deg()+Cdeg]
             # CM2 should have rk*RK rows
             # print('Compose Chainmaps')
-            for i from 0 <= i < rk: # loop through the rows of OUT
+            for i in range(rk): # loop through the rows of OUT
                 self_f = FfExtract(self.Data.Data.Data, i)
                 if self_f != FF_ZERO:
-                    for j from 0 <= j < RK: # loop through the entries of the lift of C
+                    for j in range(RK): # loop through the entries of the lift of C
                         FfAddMulRow(MatGetPtr(OUT.Data, j), MatGetPtr(CM2.Data, i+rk*j), self_f)
             return COCH(self._parent, self.Deg+Cdeg, '('+self.Name+')*('+C.name()+')', \
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
@@ -6628,34 +6628,33 @@ cdef class ChMap(RingHomomorphism):
         ## AIM: construct matrix describing map from Src[SrcDeg] -> Tgt[TgtDeg]
         ## 1. compose with the next differential
         coho_logger.info('lift in the source resolution', self)
-        ct=cputime()
-        wt=walltime()
-        cdef MTX M1
-        cdef MTX M2
+#~         ct=cputime()
+#~         wt=walltime()
+        cdef MTX M1 = self.Src[SrcDeg]*self.GMap # TgtNontips columns
+        cdef MTX M2 = self[-1]                   # TgtNontips columns
         cdef int i,j,k
-        M1 = self.Src[SrcDeg]*self.GMap # TgtNontips columns
-        M2 = self[-1]                   # TgtNontips columns
         cdef MTX Compos
         cdef long SrcNontips = self.Src.G_Alg.Data.nontips
         cdef long TgtNontips = self.Tgt.G_Alg.Data.nontips
         FfSetField(self.Src.coef())
-        FfSetNoc(TgtNontips)
         sig_on()
         Compos = makeMTX(MatAlloc(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips))
         sig_off()
         cdef Matrix_t *L
+
         cdef int RK = self.Src.Data.projrank[SrcDeg]
         cdef int Rk = self.Src.Data.projrank[SrcDeg-1]
         cdef int rk = self.Tgt.Data.projrank[TgtDeg-1]
         cdef PTR M2_ji = M2.Data.Data
-        for j from 0 <= j < Rk:
-            for i from 0 <= i < rk:
-                sig_on()
+        FfSetNoc(TgtNontips)
+        for j in range(Rk):
+            for i in range(rk):
                 L = leftActionMatrix(self.Tgt.G_Alg.Data, M2_ji)
-                for k from 0 <= k < RK:
+                sig_check()
+                for k in range(RK):
                     FfAddMapRow(FfGetPtr(M1.Data.Data, k*Rk+j), L.Data, TgtNontips, FfGetPtr(Compos.Data.Data,k*rk+i))
+                    sig_check()
                 MatFree(L)
-                sig_off()
                 M2_ji += FfCurrentRowSize
         Compos.set_immutable()
 
@@ -6676,10 +6675,11 @@ cdef class ChMap(RingHomomorphism):
             Piv = tuple(Autolift['Piv'])
             ##########################
             # Lift each "long row"
-            for i from 0 <= i < RK:
+            for i in range(RK):
                 # 'lift long row ',i
                 Z = Compos._rowlist_(i*rk_1, (i+1)*rk_1-1)
                 TMP = makeMTX(MatAlloc(fl, rk, nt))
+                FfSetNoc(nt)
                 for J in Piv:
                     if Z[J]:
                         DUMMY = Autolift[J][Z[J]]
@@ -6693,10 +6693,6 @@ cdef class ChMap(RingHomomorphism):
         coho_logger.debug('> use Urbild Groebner basis', self)
         self.Tgt.load_ugb(d)
         if (self.Tgt.nRgs.ngs.r!=rk_1) or (self.Tgt.nRgs.ngs.s != rk):
-            print("Tgt.nRgs.r =", self.Tgt.nRgs.ngs.r)
-            print(rk_1)
-            print("Tgt.nRgs.s =", self.Tgt.nRgs.ngs.s)
-            print(rk)
             raise RuntimeError("Theoretical error")
         sig_on()
         innerPreimages(self.Tgt.nRgs, Compos.Data.Data, RK, self.Tgt.G_Alg.Data, OUT.Data.Data)
