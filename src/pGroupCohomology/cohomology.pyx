@@ -63,6 +63,7 @@ from sage.all import mul
 from sage.env import DOT_SAGE, SAGE_ROOT
 from sage.misc.sageinspect import sage_getargspec
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.docs.instancedoc import instancedoc
 
 # Sage rings etc.
 from sage.all import Matrix
@@ -909,6 +910,7 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
 
     # Reduce modulo nilradical
     col_head = Images.Data
+    FfSetNoc(Images.Noc)
     assert FfCurrentRowSize == LongRowSize, "Conflicting row sizes {} vs {}".format(FfCurrentRowSize, LongRowSize)
     cdef MTX nil_basis
     cdef int piv_j_imC
@@ -936,13 +938,13 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
         pivots_nilbasis = nil_basis.pivots()
         FfSetNoc(imC.Data.Data.Noc)
         p_imC = col_head
-        for row_nr from 0 <= row_nr < Images.Nor:
+        for row_nr in range(Images.Nor):
             piv_j_imC = FfFindPivot(p_imC, &piv_f_imC)
             if piv_j_imC < 0:
                 p_imC += LongRowSize
                 continue
             p_nilbasis = nil_basis.Data.Data
-            for k from 0 <= k < len(pivots_nilbasis):
+            for k in range(len(pivots_nilbasis)):
                 piv_j_nilbasis = pivots_nilbasis[k]
                 if piv_j_imC > piv_j_nilbasis:
                     p_nilbasis += FfCurrentRowSize
@@ -1057,8 +1059,8 @@ class COHO_Terminator:
         sage: singular.eval('ring MyPrefixR = 0,(a,b,c),dp')
         ''
         sage: print(singular.eval('MyPrefixR'))
-        //   characteristic : 0
-        //   number of vars : 3
+        // coefficients: QQ
+        // number of vars : 3
         //        block   1 : ordering dp
         //                  : names    a b c
         //        block   2 : ordering C
@@ -1103,8 +1105,8 @@ class COHO_Terminator:
             sage: singular.eval('ring MyPrefixR = 0,(a,b,c),dp')
             ''
             sage: print(singular.eval('MyPrefixR'))
-            //   characteristic : 0
-            //   number of vars : 3
+            // coefficients: QQ
+            // number of vars : 3
             //        block   1 : ordering dp
             //                  : names    a b c
             //        block   2 : ordering C
@@ -1185,14 +1187,21 @@ def _split_embedding_info(obj):
         cls_obj = None
     else:
         cls_obj = '{}.{}'.format(clsname, name)
-    firstline, seconds = docstring.split(os.linesep,1)
+    firstline_seconds = docstring.split(os.linesep,1)
+    if len(firstline_seconds) == 1:
+        firstline = firstline_seconds[0]
+        seconds = ''
+    else:
+        firstline, seconds = firstline_seconds
     if cls_obj is not None:
         if not firstline.startswith(cls_obj):
             return '', docstring
     else:
         cls_obj = name
-    preamble,argstring = firstline.split(cls_obj,1)
-    if not (argstring.startswith('(') and argstring.endswith(')')):
+    preamble_argstring = firstline.split(cls_obj,1)
+    if len(preamble_argstring) == 1:
+        return '', docstring
+    if not (preamble_argstring[1].startswith('(') and preamble_argstring[1].endswith(')')):
         return '', docstring
     return firstline+os.linesep, seconds.strip(os.linesep)
 
@@ -1405,6 +1414,8 @@ class permanent_result(object):
         Singular
 
     """
+    _mode = 'Permanently cached method: '
+
     def __init__(self, f):
         """
         INPUT:
@@ -1426,10 +1437,8 @@ class permanent_result(object):
         self._f = f
         self._name = f.__name__
         self._inst = None
-        self._mode = 'Permanently cached method: '
 
-    @lazy_attribute
-    def __doc__(self):
+    def _instancedoc_(self):
         emb_doc = _split_embedding_info(self._f)
         second = emb_doc[1].lstrip()
         pad = (len(emb_doc[1])-len(second))*' '
@@ -1794,25 +1803,7 @@ class temporary_result(permanent_result):
     """
     # assumption: If it is data in Singular, then it belongs
     # to the ring singular(self._inst).
-    def __init__(self, f):
-        r"""
-        TESTS::
-
-            sage: from pGroupCohomology import CohomologyRing
-            sage: H = CohomologyRing(8,3)
-            sage: H.make()
-            sage: print(H.poincare_series.__doc__)    #indirect doctest
-            Temporarily cached method: COHO.poincare_series(self, test_duality=False)
-            File: pGroupCohomology/cohomology.pyx (starting at line ...)
-            <BLANKLINE>
-                    Return the Poincaré series of self, a univariate rational function.
-            ...
-
-        """
-        self._f = f
-        self._name = f.__name__
-        self._inst = None
-        self._mode = 'Temporarily cached method: '
+    _mode = 'Temporarily cached method: '
 
     def set_cache(self,val, *args,**kwds):
         """
@@ -1932,6 +1923,9 @@ class temporary_result(permanent_result):
             a = S(b,t)   # includes the type information!
             inst._decorator_cache[key][0] = a
             return a
+
+instancedoc(permanent_result)
+instancedoc(temporary_result)
 
 #########################################
 ##
@@ -2263,8 +2257,8 @@ class COHO(Ring):
         sage: I=H.GenS.parent().ideal(H.RelG)
         sage: s=H.GenS.parent().eval('qring Q = %s'%(I.name()))
         sage: H.GenS.parent()('Q')
-        //   characteristic : 2
-        //   number of vars : 3
+        // coefficients: ZZ/2
+        // number of vars : 3
         //        block   1 : ordering M
         //                  : names    c_2_2 b_1_0 b_1_1
         //                  : weights      2     1     1
@@ -2274,8 +2268,8 @@ class COHO(Ring):
         // quotient ring from ideal
         _[1]=b_1_0*b_1_1
         sage: singular(H)
-        //   characteristic : 2
-        //   number of vars : 3
+        // coefficients: ZZ/2
+        // number of vars : 3
         //        block   1 : ordering M
         //                  : names    c_2_2 b_1_0 b_1_1
         //                  : weights      2     1     1
@@ -2298,8 +2292,8 @@ class COHO(Ring):
     defined and can be addressed as follows::
 
         sage: print(singular.eval('%sr(%d)'%(H.prefix,H.knownDeg)))
-        //   characteristic : 2
-        //   number of vars : 3
+        // coefficients: ZZ/2
+        // number of vars : 3
         //        block   1 : ordering M
         //                  : names    c_2_2 b_1_0 b_1_1
         //                  : weights      2     1     1
@@ -8617,7 +8611,7 @@ Minimal list of algebraic relations:
                 coho_logger.info("> Nein", self)
                 return False
         self.setprop('_parameters_do_exist',True)
-        coho_logger.info("> Ja", self)
+        coho_logger.info("> Yes", self)
         return True
 
 ##########################################
@@ -9791,8 +9785,8 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: H.subgroups()[4,2].set_ring()
             sage: print(singular.eval('basering'))
-            //   characteristic : 2
-            //   number of vars : 2
+            // coefficients: ZZ/2
+            // number of vars : 2
             //        block   1 : ordering M
             //                  : names    c_1_0 c_1_1
             //                  : weights      1     1
@@ -9800,8 +9794,8 @@ Minimal list of algebraic relations:
             //        block   2 : ordering C
             sage: H.set_ring()
             sage: print(singular.eval('basering'))
-            //   characteristic : 2
-            //   number of vars : 3
+            // coefficients: ZZ/2
+            // number of vars : 3
             //        block   1 : ordering M
             //                  : names    c_2_2 b_1_0 b_1_1
             //                  : weights      2     1     1
@@ -9881,8 +9875,8 @@ Minimal list of algebraic relations:
 
             sage: CohomologyRing.global_options('info')
             sage: singular(H)
-            //   characteristic : 2
-            //   number of vars : 4
+            // coefficients: ZZ/2
+            // number of vars : 4
             //        block   1 : ordering M
             //                  : names    c_2_1 c_1_0 b_3_2 b_3_3
             //                  : weights      2     1     3     3
@@ -9901,8 +9895,8 @@ Minimal list of algebraic relations:
                       Reconstructing data in the Singular interface
             H^*(SmallGroup(4,2); GF(2)):
                       Reconstructing data in the Singular interface
-            //   characteristic : 2
-            //   number of vars : 4
+            // coefficients: ZZ/2
+            // number of vars : 4
             //        block   1 : ordering M
             //                  : names    c_2_1 c_1_0 b_3_2 b_3_3
             //                  : weights      2     1     3     3
@@ -10023,8 +10017,8 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: R1 = singular(H); R1
-            //   characteristic : 2
-            //   number of vars : 2
+            // coefficients: ZZ/2
+            // number of vars : 2
             //        block   1 : ordering M
             //                  : names    b_1_0 b_1_1
             //                  : weights      1     1
@@ -10034,8 +10028,8 @@ Minimal list of algebraic relations:
             True
             sage: H.make()
             sage: R2 = singular(H); R2          # indirect doctest
-            //   characteristic : 2
-            //   number of vars : 3
+            // coefficients: ZZ/2
+            // number of vars : 3
             //        block   1 : ordering M
             //                  : names    c_2_2 b_1_0 b_1_1
             //                  : weights      2     1     1

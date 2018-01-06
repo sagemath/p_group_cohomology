@@ -737,8 +737,8 @@ class MODCOHO(COHO):
         This is the underlying ring out to degree 2::
 
             sage: singular('basering')
-            //   characteristic : 2
-            //   number of vars : 3
+            // coefficients: ZZ/2
+            // number of vars : 3
             //        block   1 : ordering M
             //                  : names    c_2_0 b_1_0 c_1_1
             //                  : weights      2     1     1
@@ -751,8 +751,8 @@ class MODCOHO(COHO):
             sage: H.make()
             sage: H.set_ring()
             sage: singular('basering')
-            //   characteristic : 2
-            //   number of vars : 4
+            // coefficients: ZZ/2
+            // number of vars : 4
             //        block   1 : ordering M
             //                  : names    c_2_0 b_1_0 c_1_1 c_3_3
             //                  : weights      2     1     1     3
@@ -2120,7 +2120,7 @@ class MODCOHO(COHO):
 
         In degree 5, it turns out that parameters can be found. But,
         since we expect a relation at least in degree 10, the
-        completion criterion is still not invoked. But at least, there
+        completion criterion is still not invoked. However, there
         are now nice filter regular parameters::
 
             sage: CohomologyRing.global_options('warn')
@@ -2139,7 +2139,7 @@ class MODCOHO(COHO):
             H^*(M11; GF(2)):
                       One parameter could not be lifted
                       Testing whether parameters of the cohomology ring can be found
-                      > Ja
+                      > Yes
                       Compute find_small_last_parameter
                       Computing complete Groebner basis
                       Compute _parameter_restrictions
@@ -2214,7 +2214,10 @@ class MODCOHO(COHO):
             sage: H.find_dickson()
             True
             sage: H.Dickson
-            ['b_1_0^8+c_4_5^2+c_2_1*c_6_12+c_2_1^4', 'c_6_12^2+c_4_5^2*b_1_0^4+c_2_1*c_6_12*b_1_0^4+c_2_1*c_4_5*c_6_12+c_2_1^2*c_4_5^2+c_2_1^3*c_6_12+c_2_1^4*b_1_0^4', 'c_6_12^2*b_1_0^2+c_2_1*c_6_12^2+c_2_1*c_4_5*c_6_12*b_1_0^2+c_2_1^2*c_4_5*c_6_12+c_2_1^2*c_4_5^2*b_1_0^2+c_2_1^3*c_6_12*b_1_0^2', 'b_1_0']
+            ['b_1_0^8+c_4_5^2+c_2_1*c_6_12+c_2_1^4',
+             'c_6_12^2+c_4_5^2*b_1_0^4+c_2_1*c_6_12*b_1_0^4+c_2_1*c_4_5*c_6_12+c_2_1^2*c_4_5^2+c_2_1^3*c_6_12+c_2_1^4*b_1_0^4',
+             'c_6_12^2*b_1_0^2+c_2_1*c_6_12^2+c_2_1*c_4_5*c_6_12*b_1_0^2+c_2_1^2*c_4_5*c_6_12+c_2_1^2*c_4_5^2*b_1_0^2+c_2_1^3*c_6_12*b_1_0^2',
+             'b_1_0']
             sage: H.set_ring()
             sage: singular.ideal(H.Dickson+H.rels()).groebner().dim()
             1
@@ -2742,7 +2745,7 @@ class MODCOHO(COHO):
             sage: H._construct_fr_parameters()
             H^*(SmallGroup(324,39); GF(3)):
                       Testing whether parameters of the cohomology ring can be found
-                      > Ja
+                      > Yes
                       Compute find_small_last_parameter
                       Computing complete Groebner basis
                       Compute _parameter_restrictions

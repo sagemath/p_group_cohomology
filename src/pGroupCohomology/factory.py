@@ -664,7 +664,7 @@ class CohomologyRingFactory:
             sage: CohomologyRing.gstem([gap('DihedralGroup(8)')])
             Traceback (most recent call last):
             ...
-            ValueError: Please provide the optional arguments ``GStem`` or ``GroupName``
+            ValueError: Cannot infer a short group identifier. Please provide one of the optional arguments ``GStem`` or ``GroupName``
 
         """
         # Explicitly provided gstem has the highest rank.

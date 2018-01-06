@@ -229,8 +229,8 @@ It is also possible to convert the cohomology ring into a quotient
 ring in the Singular interface::
 
     sage: singular(H0)
-    //   characteristic : 2
-    //   number of vars : 3
+    // coefficients: ZZ/2
+    // number of vars : 3
     //        block   1 : ordering M
     //                  : names    c_2_2 b_1_0 b_1_1
     //                  : weights      2     1     1
@@ -297,8 +297,8 @@ case, we need to provide the modulus by the optional parameter
     [b_3_2*b_3_3]
     <BLANKLINE>
     sage: singular(HS6a)
-    //   characteristic : 2
-    //   number of vars : 4
+    // coefficients: ZZ/2
+    // number of vars : 4
     //        block   1 : ordering M
     //                  : names    c_2_1 c_1_0 b_3_2 b_3_3
     //                  : weights      2     1     3     3
