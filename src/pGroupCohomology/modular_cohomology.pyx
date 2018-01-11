@@ -737,6 +737,7 @@ class MODCOHO(COHO):
         This is the underlying ring out to degree 2::
 
             sage: singular('basering')
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 3
             //        block   1 : ordering M
@@ -751,6 +752,7 @@ class MODCOHO(COHO):
             sage: H.make()
             sage: H.set_ring()
             sage: singular('basering')
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 4
             //        block   1 : ordering M

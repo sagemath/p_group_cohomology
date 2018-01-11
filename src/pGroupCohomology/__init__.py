@@ -229,6 +229,7 @@ It is also possible to convert the cohomology ring into a quotient
 ring in the Singular interface::
 
     sage: singular(H0)
+    polynomial ring, over a field, global ordering
     // coefficients: ZZ/2
     // number of vars : 3
     //        block   1 : ordering M
@@ -297,6 +298,7 @@ case, we need to provide the modulus by the optional parameter
     [b_3_2*b_3_3]
     <BLANKLINE>
     sage: singular(HS6a)
+    polynomial ring, over a field, global ordering
     // coefficients: ZZ/2
     // number of vars : 4
     //        block   1 : ordering M

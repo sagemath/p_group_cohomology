@@ -1258,7 +1258,7 @@ class permanent_result(object):
         ....:   @permanent_result
         ....:   def bar(self, G):
         ....:       '''
-        ....:       Here is documentation
+        ....:       Here is the documentation.
         ....:       '''
         ....:       singular(self).set_ring()
         ....:       print('Group of order',G.Order())
@@ -1314,8 +1314,7 @@ class permanent_result(object):
     the decorator::
 
         sage: print(f.bar.__doc__)
-        Permanently cached method:
-                 Here is documentation
+        Permanently cached method: Here is the documentation.
         <BLANKLINE>
 
     Last, we simulate a ``KeyboardInterrupt`` being cached,
@@ -2036,7 +2035,14 @@ class COHO(Ring):
                   Initialising maximal p-elementary abelian subgroups
                   Inserting SmallGroup(2,1) as a subgroup
                   Inserting SmallGroup(4,2) as a subgroup
-                  Computing Dickson invariants in elementary abelian subgroup of rank 2
+                  Resolution of GF(2)[4gp2]:
+                            Differential reloaded
+                            > rk P_02 =   3
+                  H^*(SmallGroup(4,2); GF(2)):
+                            Import monomials
+                  Checking compatibility of SmallGroups library and stored cohomology ring
+                  H^*(D8; GF(2)):
+                            Computing Dickson invariants in elementary abelian subgroup of rank 2
 
     Now, the basic setup is done. We compute the ring structure, logging
     the computation::
@@ -2257,6 +2263,7 @@ class COHO(Ring):
         sage: I=H.GenS.parent().ideal(H.RelG)
         sage: s=H.GenS.parent().eval('qring Q = %s'%(I.name()))
         sage: H.GenS.parent()('Q')
+        polynomial ring, over a field, global ordering
         // coefficients: ZZ/2
         // number of vars : 3
         //        block   1 : ordering M
@@ -2268,6 +2275,7 @@ class COHO(Ring):
         // quotient ring from ideal
         _[1]=b_1_0*b_1_1
         sage: singular(H)
+        polynomial ring, over a field, global ordering
         // coefficients: ZZ/2
         // number of vars : 3
         //        block   1 : ordering M
@@ -3010,7 +3018,7 @@ class COHO(Ring):
             sage: H.subgps[4,2](H.2+H.3)
             Traceback (most recent call last):
             ...
-            TypeError: Cochain belongs to a different cohomology ring, namely H^*(D8; GF(2))
+            ValueError: Cochain belongs to a different cohomology ring, namely H^*(D8; GF(2))
 
         """
         from pGroupCohomology.cochain import MODCOCH
@@ -3073,9 +3081,9 @@ class COHO(Ring):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.coerce_map_from(ZZ)   # indirect doctest
-            Conversion map:
-                From: Integer Ring
-                To:
+            Coercion map:
+              From: Integer Ring
+              To:
             Cohomology ring of Dihedral group of order 8 with  coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -5324,6 +5332,7 @@ Minimal list of algebraic relations:
 
             sage: (I*I).NF('std(0)').interred()  #long time
             a_4_8*a_6_8*a_1_0^3*a_1_3
+            sage: singular(H).set_ring()
             sage: singular('NF((a_4_8*a_6_8*a_1_0^3*a_1_3)^2, std(0))')
             0
 
@@ -7486,21 +7495,21 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(64,242)
             sage: H.make()
             sage: H.nil_radical()
-            b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1,
-            b_1_0*b_1_2+b_1_0^2
-            sage: print(H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1'))
-            2-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-            represented by
-            [0 1 1 1 0 0 0 0]
+            b_1_0*b_1_2+b_1_0^2,
+            b_1_0*b_1_3+b_1_0*b_1_1+b_1_0^2
             sage: print(H('b_1_0*b_1_2+b_1_0^2'))
             2-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [1 0 1 0 0 0 0 0]
-            sage: print(H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1')^2)
+            sage: print(H('b_1_0*b_1_3+b_1_0*b_1_1+b_1_0^2'))
+            2-Cocycle in H^*(Syl2(L3(4)); GF(2)),
+            represented by
+            [1 1 0 1 0 0 0 0]
+            sage: print(H('b_1_0*b_1_2+b_1_0^2')^2)
             4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-            sage: print(H('b_1_0*b_1_2+b_1_0^2')^2)
+            sage: print(H('b_1_0*b_1_3+b_1_0*b_1_1+b_1_0^2')^2)
             4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
             represented by
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -9785,6 +9794,7 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: H.subgroups()[4,2].set_ring()
             sage: print(singular.eval('basering'))
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 2
             //        block   1 : ordering M
@@ -9794,6 +9804,7 @@ Minimal list of algebraic relations:
             //        block   2 : ordering C
             sage: H.set_ring()
             sage: print(singular.eval('basering'))
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 3
             //        block   1 : ordering M
@@ -9875,6 +9886,7 @@ Minimal list of algebraic relations:
 
             sage: CohomologyRing.global_options('info')
             sage: singular(H)
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 4
             //        block   1 : ordering M
@@ -9895,6 +9907,7 @@ Minimal list of algebraic relations:
                       Reconstructing data in the Singular interface
             H^*(SmallGroup(4,2); GF(2)):
                       Reconstructing data in the Singular interface
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 4
             //        block   1 : ordering M
@@ -10017,6 +10030,7 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: R1 = singular(H); R1
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 2
             //        block   1 : ordering M
@@ -10028,6 +10042,7 @@ Minimal list of algebraic relations:
             True
             sage: H.make()
             sage: R2 = singular(H); R2          # indirect doctest
+            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 3
             //        block   1 : ordering M
