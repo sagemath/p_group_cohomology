@@ -730,14 +730,7 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
     from sage.all import cartesian_product_iterator
     dgb = singular.eval('degBound')
     singular.eval('degBound=0')
-    good_singular_version = (tuple([int(x) for x in singular.eval('system("version")')])>=(3,1,1)) or p==2
-    if good_singular_version:
-        d0 = int(getattr(Id,'dim' if p==2 else 'GKdim')())
-    else:
-        # The comparison with -1 in Singular returns 1 if
-        # there are infinitely many standard monomials,
-        # hence, if the dimension is greater than zero.
-        d0 = int(singular('vdim(%s)==-1'%Id.name()))
+    d0 = int(getattr(Id,'dim' if p==2 else 'GKdim')())
     if d0 <= 0:
         return '0',[0]*len(L)
     cdef int lenL = len(L)
@@ -755,76 +748,55 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
     gb_command = "groebner" # todo: allow to choose between slimgb, std, groebner
 
     try:
-        # again, std(..,..) is buggy. Avoid it!
-        if good_singular_version and (int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim',gb_command, Id.name(),S.name()))) >= d0):
+        if (int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim',gb_command, Id.name(),S.name()))) >= d0):
             return False,False
         # S might be by far too long. So, try to eliminate
         # some of its elements.
         Kicked = []
-        # unfortunately, elimination of unnecessary monomials only
-        # works if the singular version is good.
-        if good_singular_version:
-            for j from 1 <=j <=lenL:
-                singular.eval('%s=%s[%d]'%(Poly_tmp.name(),S.name(),j))
-                singular.eval('%s[%d]=0'%(S.name(),j))
-                # std(...,...) is buggy
-                if int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim', gb_command, Id.name(),S.name()))) >= d0:
-                    singular.eval('%s[%d]=%s'%(S.name(),j,Poly_tmp.name()))
-                else:
-                    Kicked.append(j-1)
+        for j from 1 <=j <=lenL:
+            singular.eval('%s=%s[%d]'%(Poly_tmp.name(),S.name(),j))
+            singular.eval('%s[%d]=0'%(S.name(),j))
+            # std(...,...) was buggy at some point
+            if int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim', gb_command, Id.name(),S.name()))) >= d0:
+                singular.eval('%s[%d]=%s'%(S.name(),j,Poly_tmp.name()))
+            else:
+                Kicked.append(j-1)
         singular.eval('%s=simplify(%s,2)'%(S.name(),S.name()))
         lenL = int(singular.eval('size(%s)'%S.name()))
         if lenL == 0:
             return False,False
-        if good_singular_version:
-            coho_logger.info('%d = (%d-1)^%d parameter candidates',singular, (p-1)**lenL,p,lenL)
-        else:
-            coho_logger.info('%d = %d^%d parameter candidates', singular, p**lenL,p,lenL)
+        coho_logger.info('%d = (%d-1)^%d parameter candidates',singular, (p-1)**lenL,p,lenL)
         if BreakPoint < (p-1)**lenL:
             coho_logger.info('Will break after %d candidates', singular, BreakPoint)
         got_something = False
         from sage.all import add
-        if good_singular_version: # we kicked stuff, so, we don't need coefficient zero
-            ProdIter = cartesian_product_iterator([range(1,p)]*lenL)
-        else:
-            ProdIter = cartesian_product_iterator([range(p)]*lenL)
+        # we kicked stuff, so, we don't need coefficient zero
+        ProdIter = cartesian_product_iterator([range(1,p)]*lenL)
         for C in ProdIter:
             v = singular.intmat(singular.intvec(*C),lenL,1)
             vp = S*v
             counter +=1
             # Did we find something?
-            if good_singular_version:
-                if int(singular.eval('%s(%s(%s+ideal(%s[1][1])))'%('dim' if p==2 else 'GKdim',gb_command,Id.name(),vp.name())))<d0:
-                    #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
-                    coho_logger.info("We found a parameter.",singular)
-                    if regularity==1:
-                        if singular.eval('is_freg(%s[1][1],%s)!=intvec(-1)'%(vp.name(),Id.name()))=='1':
-                            coho_logger.info('> It is filter-regular.',singular)
-                            got_something = True
-                            break
-                        else:
-                            coho_logger.info('> But it is not filter-regular.',singular)
-                    elif regularity>1:
-                        if singular.eval('is_freg(%s[1][1],%s)==intvec(0)'%(vp.name(),Id.name()))=='1':
-                            coho_logger.info('> It is regular.',singular)
-                            got_something = True
-                            break
-                        else:
-                            coho_logger.info('> But it is not regular.', singular)
-                    else:
-                        got_something = True
-                        break
-            else:  # we can only argue in terms of regularity
-                if regularity<2:
+            if int(singular.eval('%s(%s(%s+ideal(%s[1][1])))'%('dim' if p==2 else 'GKdim',gb_command,Id.name(),vp.name())))<d0:
+                #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
+                coho_logger.info("We found a parameter.",singular)
+                if regularity==1:
                     if singular.eval('is_freg(%s[1][1],%s)!=intvec(-1)'%(vp.name(),Id.name()))=='1':
-                        coho_logger.info("We found a filter-regular parameter.", singular)
+                        coho_logger.info('> It is filter-regular.',singular)
                         got_something = True
                         break
-                else:
+                    else:
+                        coho_logger.info('> But it is not filter-regular.',singular)
+                elif regularity>1:
                     if singular.eval('is_freg(%s[1][1],%s)==intvec(0)'%(vp.name(),Id.name()))=='1':
-                        coho_logger.info("We found a regular parameter.", singular)
+                        coho_logger.info('> It is regular.',singular)
                         got_something = True
                         break
+                    else:
+                        coho_logger.info('> But it is not regular.', singular)
+                else:
+                    got_something = True
+                    break
             if counter >= BreakPoint:
                 singular.eval('degBound='+dgb)
                 return None, None
@@ -2904,7 +2876,6 @@ class COHO(Ring):
 
         ###########
         ## Prepare Singular
-        self._good_singular_version = (tuple([int(x) for x in singular.eval('system("version")')])>=(3,1,1)) or self.Resl.coef()==2
         if self.Resl.coef()!=2: # non-commutative case
             singular.LIB('ncall.lib')
         singular.LIB('general.lib')
@@ -3676,7 +3647,6 @@ class COHO(Ring):
             # Finally, we reconstruct the attributes in Singular:
             # GenS, StdMon; a ring and the relation ideal in singular.
             p = self.Resl.coef()
-            self._good_singular_version = (tuple([int(x) for x in singular.eval('system("version")')])>=(3,1,1)) or p==2
             if p!=2:
                 singular.LIB("ncall.lib")
             singular.LIB('general.lib')
@@ -9566,14 +9536,9 @@ Minimal list of algebraic relations:
                 phi = self.RestrMaps[pos][1]
                 phi_s = singular(phi)
                 singular(phi.codomain()).set_ring()
-                if self._good_singular_version:
-                    if int(singular.eval('%s(%s(%s(%s)))'%('dim' if p==2 else 'GKdim',gb_command,phi_s.name(),I.name())))>0:
-                        coho_logger.info("The cohomology ring is not finite over the current ring approximation", self)
-                        return None
-                else:
-                    if singular.eval('vdim(%s(%s(%s)))'%(gb_command,phi_s.name(),I.name()))=='-1':
-                        coho_logger.info("The cohomology ring is not finite over the current ring approximation", self)
-                        return None
+                if int(singular.eval('%s(%s(%s(%s)))'%('dim' if p==2 else 'GKdim',gb_command,phi_s.name(),I.name())))>0:
+                    coho_logger.info("The cohomology ring is not finite over the current ring approximation", self)
+                    return None
             while P:
                 coho_logger.debug("> Considering %d elements", self, len(P)+len(Ess)-1)
                 x = P.pop(-1)
@@ -9583,14 +9548,9 @@ Minimal list of algebraic relations:
                     phi = self.RestrMaps[pos][1]
                     phi_s = singular(phi)
                     singular(phi.codomain()).set_ring()
-                    if self._good_singular_version:
-                        if int(singular.eval('%s(%s(%s(%s)))'%('dim' if p==2 else 'GKdim',gb_command,phi_s.name(),I.name())))>0:
-                            Ess.append(x)
-                            break
-                    else:
-                        if singular.eval('vdim(%s(%s(%s)))'%(gb_command,phi_s.name(),I.name()))=='-1':
-                            Ess.append(x)
-                            break
+                    if int(singular.eval('%s(%s(%s(%s)))'%('dim' if p==2 else 'GKdim',gb_command,phi_s.name(),I.name())))>0:
+                        Ess.append(x)
+                        break
             return Ess
         except:
             self.reconstruct_singular()
@@ -11585,11 +11545,10 @@ Minimal list of algebraic relations:
                 I0 = (singular('%sI'%(self.prefix))+singular.ideal(['0']+FRS[:-N])).groebner()
             else:
                 I0 = (singular('%sI'%(self.prefix))+singular.ideal(['0']+FRS)).groebner()
-        if self._good_singular_version:
-            if (self.Resl.coef()==2 and I0.dim()>N) or (self.Resl.coef()>2 and I0.GKdim()>N):
-                coho_logger.info("Dimension %d > %d - The ring approximation is incomplete", self, I0.dim() if self.Resl.coef()==2 else I0.GKdim(),N)
-                self.setprop('potential_bound',-1)
-                return self.knownDeg + 1
+        if (self.Resl.coef()==2 and I0.dim()>N) or (self.Resl.coef()>2 and I0.GKdim()>N):
+            coho_logger.info("Dimension %d > %d - The ring approximation is incomplete", self, I0.dim() if self.Resl.coef()==2 else I0.GKdim(),N)
+            self.setprop('potential_bound',-1)
+            return self.knownDeg + 1
         cdef int lastBoundFound = natBound
         for n from N >= n >= 1:
             tai = sum(DV[-n:])

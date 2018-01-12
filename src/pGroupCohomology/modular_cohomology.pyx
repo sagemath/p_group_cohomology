@@ -366,7 +366,6 @@ class MODCOHO(COHO):
         self._no_generic_basering_coercion = True
         Ring.__init__(self,GF(p), category=cat)
         self._prime = p
-        self._good_singular_version = (tuple([int(x) for x in singular.eval('system("version")')])>=(3,1,1)) or p==2
         if G==None: # used for pickling
             return
 

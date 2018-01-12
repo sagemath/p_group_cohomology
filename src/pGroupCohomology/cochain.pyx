@@ -6953,20 +6953,9 @@ cdef class ChMap(RingHomomorphism):
 
         # We are interested in those elements of G that do not contain
         # variables from CoSNew_flat, saved in CoSNewI.
-        # Unfortunately, we hit a very nasty bug in Singular-3-1-0.
-        # Since everything is homogeneous, it is not possible
-        # that we have 1 = x*y-...
-        if tuple([int(x) for x in singular.eval('system("version")')])>=(3,1,1):
-            Filter = CoSNew_flat.imap(CoSNewI)
-            singular.eval('attrib(%s,"isSB",1)'%Filter.name())
-            Out = [p for p in G if singular.eval('%s==NF(%s,%s)'%(p.name(),p.name(),Filter.name()))=='1']
-        else:
-            DoS.set_ring()
-            Gg = RTotal.imap(G)
-            RTotal.set_ring()
-            Ggg = DoS.imap(Gg)
-            l = int(singular.eval('ncols(%s)'%Ggg.name()))
-            Out = [G[i] for i in range(1,l+1) if G[i]==Ggg[i]]
+        Filter = CoSNew_flat.imap(CoSNewI)
+        singular.eval('attrib(%s,"isSB",1)'%Filter.name())
+        Out = [p for p in G if singular.eval('%s==NF(%s,%s)'%(p.name(),p.name(),Filter.name()))=='1']
         # Moreover, if we want to lift one element, we apply G
         # and see if the result is in the domain.
         if (Item is not None):

@@ -1475,14 +1475,6 @@ class CohomologyRingFactory:
             if not pr.divides(q):
                 raise ValueError("The parameter `prime=%d` must divide the group order %d"%(pr,q))
 
-        ## Do we have the non-commutative case? If Singular is less
-        ## than 3-1-0, raise an error.
-        if ((pr is not None) and pr>2) or q%2:
-            SingVer = tuple([int(x) for x in singular.eval('system("version")')])
-            if SingVer < (3,1,0):
-                raise NotImplementedError("""There is only Singular %s installed.
-We need at least Singular 3-1-0 in the non-commutative Case."""%('-'.join(len(SingVer)*['{}'])).format(*SingVer))
-
         ############
         # Take care of GStem and GroupName.
         GStem = self.gstem(args, GStem=kwds.get('GStem'), GroupName=kwds.get('GroupName') or GapName, GroupId=kwds.get('GroupId'))
