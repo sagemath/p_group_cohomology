@@ -219,7 +219,7 @@ def COHO_unpickle(GroupKey, StateFile):
 # Ensure old pickles can be opened
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('pGroupCohomology.cohomology', 'COHO_unpickle', COHO_unpickle)
-
+register_unpickle_override('sage.groups.modular_cohomology.cohomology', 'COHO_unpickle', COHO_unpickle)
 
 ###############
 # Data in the gap interface tend to be difficult to pickle.
@@ -10739,6 +10739,7 @@ Minimal list of algebraic relations:
         We test commutative and non-commutative cohomology rings::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()    # this is to clear the cache
             sage: for n in range(1,268):
             ....:     H = CohomologyRing(64, n)
             ....:     H.make()
