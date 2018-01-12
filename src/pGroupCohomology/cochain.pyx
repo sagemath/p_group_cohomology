@@ -7061,7 +7061,7 @@ cdef class ChMap(RingHomomorphism):
         tmpI = L[4]
         tmpR = singular('ring(list(%s[1..3],ideal(0)))'%(L.name()))
         tmpR.set_ring()
-        HP = MonomialHilbert('lead(fetch(%s,%s)+fetch(%s,%s))'%(DS.name(),K.name(),DS.name(),tmpI.name()))
+        HP = MonomialHilbert(singular('lead(fetch(%s,%s)+fetch(%s,%s))'%(DS.name(),K.name(),DS.name(),tmpI.name())))
         HS = HP/mul([(1-t**X) for X in self.domain().degvec])
         singular.eval('degBound = '+dgb)
         if HS.denominator().leading_coefficient()<0:
