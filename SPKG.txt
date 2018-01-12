@@ -111,6 +111,8 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
     - David Green's C code for the computation of minimal projective resolutions
       is now using autotools and is now providing a library.
     - The Python/Cython part of this package is now pip installable.
+    - Remove some experimental options
+    - Drop support for Singular versions < 3-1-0
   * 2.1.5 (Simon King, Mai 2015):
     - Cope with removal of the ._domain attribute of maps and with changed import locations.
     - Improved computation of the nil-radical, including degree-wise computation

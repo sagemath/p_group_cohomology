@@ -1149,9 +1149,9 @@ class CohomologyRingFactory:
                     OUT = self.web_db(GStem)
             except urllib2.URLError, msg:
                 if "HTTP Error 404" in str(msg):
-                    coho_logger.warn("Websource %r is not available.", None, kwds.get('websource', 'http://cohomology.uni-jena.de/db/'))
-                else:
                     coho_logger.info("Cohomology ring can not be found in web database.", None)
+                else:
+                    coho_logger.warn("Websource %r is not available.", None, kwds.get('websource', 'http://cohomology.uni-jena.de/db/'))
             except (ValueError, RuntimeError):
                 coho_logger.info("Cohomology ring can not be found in web database.", None)
             except KeyboardInterrupt:
