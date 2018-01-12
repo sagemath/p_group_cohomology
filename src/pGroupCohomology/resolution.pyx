@@ -1094,7 +1094,6 @@ cdef class RESL:
         self.G_Alg.gstem = self.gstem
         self.G_Alg.groupname = groupname
         self.Lifts = LIFTcontainer(self)
-        self.ToBeLifted = [] # Lists (n,MTX), if the cochain of degree n defined by MTX ought to be lifted to next degree.
         self.Autolift = {}
         self.ugb_deg = 0
         self.Action = [ self.G_Alg.r_action(baseMTX(self.G_Alg.Data.p, 1,self.G_Alg.Data.nontips, 0,i)) for i in range(self.G_Alg.Data.nontips)]
@@ -1170,7 +1169,6 @@ cdef class RESL:
         OUT = RESL(self.gstem,self.gps_folder,self.res_folder)
         OUT.Diff = copy(self.Diff)
         OUT.Lifts = copy(self.Lifts)
-        OUT.ToBeLifted = copy(self.ToBeLifted)
         OUT.Autolift = deepcopy(self.Autolift)
         OUT.Action = copy(self.Action)
         cdef int n
@@ -2911,153 +2909,6 @@ cdef class RESL:
 
     ################################################################
     ## Lift of Chain Maps
-
-    def liftListOfMaps(self, list L):
-        """
-        Lift list of Chain Maps by one degree.
-
-        INPUT:
-
-        - ``L`` -- a list whose elements ``L[i]`` are triples ``(n,d_i,M_i)``, where the :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix ``M_i``
-          represents a morphism from the `n`-th to the `(d_i)`-th term of self, `d_i<n`.
-
-        OUTPUT:
-
-        The function returns another list of triples, lifting the input to morphisms from
-        the `(n+1)`-th to the `(d_i+1)` term of self.
-
-        NOTE:
-
-        Uses the autolift method, if possible. See :class:`pGroupCohomology.resolution.RESL`
-        for an explanation of the notion 'lift' and of the autolift method.
-
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        First, we create the basic data for the dihedral group of order 8
-        (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-
-            sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.resolution import makeGroupData, RESL
-            sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: makeGroupData(8,3,folder=tmp_root)
-            sage: gstem='8gp3'
-            sage: gps_folder=os.path.join(tmp_root,gstem)
-            sage: res_folder=os.path.join(gps_folder,'dat')
-            sage: R=RESL(gstem,gps_folder,res_folder)
-            sage: R.nextDiff()
-            sage: R.nextDiff()
-            sage: R.nextDiff()
-            sage: C = MTX(MatrixSpace(GF(2),1,3, implementation=MTX), [[1,0,1]])
-            sage: c = R.CochainToChainmap(2,C)
-            sage: L = [(2,1,R[2]), c]
-            sage: O = R.liftListOfMaps(L)
-            sage: O
-            [(
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-            3, 2, [0 0 0 0 0 0 0 0]
-            ),
-             (
-                  [1 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-                  [1 0 0 0 0 0 0 0]
-                  [0 0 0 1 0 0 0 0]
-                  [0 0 0 0 0 0 0 0]
-            3, 1, [1 0 0 0 0 0 0 0]
-            )]
-
-        """
-        coho_logger.info('Lift list of %d chain maps'%len(L), self)
-        if L==[]:
-            return []
-        # n is the known degree, must be lifted to n+1
-        cdef int n = L[0][0]
-        cdef list OUT
-        if (n>=len(self.Diff)):
-            raise IndexError("Index %d bigger than known degree %d"%(n,self.deg()))
-        cdef tuple X
-        cdef MTX MX
-        cdef int Indi = 0
-        cdef int X0,X1
-        for X0,X1,MX in L:
-            if (X0!=n):
-                raise ValueError("All chain maps in the list must have the same source")
-            if (X1>=n) or (X1<0):
-                raise IndexError("Index out of range")
-            if (MX.Data.Noc!=self.G_Alg.Data.nontips):
-                raise ValueError("Matrices representing chain maps must have |G|=%d columns"%(self.G_Alg.Data.nontips))
-            if (MX.Data.Nor!=self.Data.projrank[X0]*self.Data.projrank[X1]):
-                raise ValueError("Matrix representing input chain map must have %d*%d rows"%(self.Data.projrank[X0],self.Data.projrank[X1]))
-            Indi += MX.Data.Nor
-        ######################
-        # If separate lifts appear to be better
-        if Indi<self[n+1].nrows():
-            OUT = [self.liftChainMap((n,X1,MX)) for X0,X1,MX in L]
-            return OUT
-        ######################
-        # Otherwise:
-        coho_logger.debug('> Compose list of %d Chain Maps with Differential'%(len(L)), self)
-        COMPOS = self.composeListOfMaps(self[n+1],n+1,L)
-        cdef int RK  = self.Data.projrank[n+1]
-        cdef int fl  = self.G_Alg.Data.p
-        cdef int nt  = self.G_Alg.Data.nontips
-        OUT = [(n+1,X1+1, makeMTX(MatAlloc(fl, RK*self.Data.projrank[X1+1], nt))) for X0,X1,MX in L]
-        cdef MTX Compos1
-        cdef MTX Out1
-        cdef MTX  TMP,DUMMY
-        cdef int a,i,j, projrk
-        cdef int lenCOMPOS = len(COMPOS)
-        cdef list Z
-        cdef tuple Piv
-        cdef dict Autolift
-        sig_on()
-        for a from 0 <= a < lenCOMPOS:
-            Out1 = OUT[a][2]
-            Compos = COMPOS[a] # this is a list: low degree, high degree,matrix
-            Compos1 = Compos[2] # this is the matrix
-            Autolift = self.Autolift.get(Compos[1]+1,{})
-            if Autolift:
-                coho_logger.debug('> Lift with the autolift method', self)
-                Piv = tuple(Autolift['Piv'])
-                ##########################
-                # Lift each "long row"
-                for i from 0 <= i < RK:
-                    # Z is the list of coefficients of Compos1,
-                    # hence, we look up the pivots and add up the Autolift matrices
-                    Z = Compos1._rowlist_(i*self.Data.projrank[Compos[1]], (i+1)*self.Data.projrank[Compos[1]]-1)
-                    projrk = self.Data.projrank[Compos[1]+1]
-                    TMP = makeMTX(MatAlloc(fl, projrk, nt))
-                    for j in Piv:
-                        if Z[j]:
-                            DUMMY = Autolift[j][Z[j]]
-                            MatAdd(TMP.Data, DUMMY.Data)
-                    memcpy(MatGetPtr(Out1.Data, i*projrk), TMP.Data.Data, FfCurrentRowSize*projrk)
-            else:
-                coho_logger.debug('> Lift with Urbild Groebner basis', self)
-                self.load_ugb(Compos[1]+1)
-                if (self.nRgs.ngs.r!=self.Data.projrank[Compos[1]]) or (self.nRgs.ngs.s != self.Data.projrank[Compos[1]+1]):
-                    sig_off()
-                    raise ArithmeticError("Theoretical error")
-                ## in coho.c: innerPreimages(nRgs, images->d, s, resol->group, this->d),
-                coho_logger.debug('> Compute preimages in degree %d'%(Compos[1]+1), self)
-                FfSetNoc(nt)
-                innerPreimages(self.nRgs, Compos1.Data.Data, RK, self.G_Alg.Data, Out1.Data.Data)
-        sig_off()
-        return OUT
-
 
     def liftChainMap(self, X):
         """

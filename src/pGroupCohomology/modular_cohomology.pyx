@@ -3713,10 +3713,6 @@ class MODCOHO(COHO):
             return
         if self.SUBGPS:
             self.reconstructSubgroups()
-        cdef list NEW_KEYS = []
-        cdef list Liftables = []
-        cdef list MaxDegs = []
-        cdef int lenNEW_KEYS
 
         n = self.knownDeg + 1
         cdef int i,k,m,cf

@@ -44,8 +44,7 @@ cdef class RESL:
     cdef resol_t *Data
     cdef list Diff   # list of differentials
     cdef G_ALG G_Alg
-    cdef LIFTcontainer Lifts  # in order to make doc tests
-    cpdef list ToBeLifted      # in order to make doc tests
+    cdef LIFTcontainer Lifts
     cdef dict Autolift
     cdef list Action
     cdef int _Action_saved

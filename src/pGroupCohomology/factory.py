@@ -321,7 +321,6 @@ class CohomologyRingFactory:
              ('SingularCutoff', 70),
              ('autolift', 1),
              ('autoliftElAb', 0),
-             ('liftlist', False),
              ('reload', True),
              ('save', True),
              ('sparse', False),
@@ -334,7 +333,6 @@ class CohomologyRingFactory:
              ('SingularCutoff', 70),
              ('autolift', 4),
              ('autoliftElAb', 0),
-             ('liftlist', False),
              ('reload', True),
              ('save', False),
              ('sparse', True),
@@ -347,7 +345,6 @@ class CohomologyRingFactory:
              ('SingularCutoff', 70),
              ('autolift', 1),
              ('autoliftElAb', 0),
-             ('liftlist', False),
              ('reload', True),
              ('save', True),
              ('sparse', False),
@@ -397,7 +394,6 @@ class CohomologyRingFactory:
              ('SingularCutoff', 70),
              ('autolift', 1),
              ('autoliftElAb', 0),
-             ('liftlist', False),
              ('reload', True),
              ('save', True),
              ('sparse', False),
@@ -410,7 +406,6 @@ class CohomologyRingFactory:
              ('SingularCutoff', 70),
              ('autolift', 4),
              ('autoliftElAb', 0),
-             ('liftlist', False),
              ('reload', True),
              ('save', False),
              ('sparse', True),
@@ -2288,9 +2283,6 @@ Each option is set by a string, and unset by prepending ``'no'`` to that string.
   * ``'sparse'`` [not default], remove temporarily unneeded data on
     the resolution from memory. With that option, the computation
     of very large examples becomes more feasible.
-  * ``'liftlist'`` [not default], try to lift a whole bunch of
-    cochains at once. With that option, some examples are faster,
-    others are slower.
 
   Further options have a numerical value:
 
@@ -2312,8 +2304,6 @@ the different options had the following effect:
 * With ``options="nouseMTX"``, the computation time slightly increases.
 * With ``options="sparse"``, the computation time increases.
 * With ``options="nosave"``, the computation time decreases.
-* With ``options="liftlist"``, the computation time slightly increases.
-  That's why we chose to not use it by default.
 
 The options can also be (un)set later, by using the method
 :meth:`~pGroupCohomology.CohomologyRing.global_options`.

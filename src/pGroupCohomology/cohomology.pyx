@@ -2490,31 +2490,6 @@ class COHO(Ring):
          'a_3_3^2']
         sage: CohomologyRing.global_options('nosparse')
 
-    Next, we try to lift many chain maps in one step::
-
-        sage: H4 = COHO(64,14,root=tmp_root)
-        sage: CohomologyRing.global_options('liftlist')
-        sage: H4.make()
-        sage: H4.gens()
-        [1,
-         a_2_1: 2-Cocycle in H^*(SmallGroup(64,14); GF(2)),
-         c_2_2: 2-Cocycle in H^*(SmallGroup(64,14); GF(2)),
-         c_4_4: 4-Cocycle in H^*(SmallGroup(64,14); GF(2)),
-         a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
-         a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
-         a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
-        sage: CohomologyRing.global_options('noliftlist')
-
     And finally, we allow to convert to Sage matrices in some
     steps of the computation::
 
@@ -6504,145 +6479,6 @@ Minimal list of algebraic relations:
         self.Resl.setLift(Coch, Coch.deg()+self.degvec[sml])
         return Coch
 
-    ####################
-    ## Mark a monomial (given by exponent vector) as To-Be-Lifted
-    def InsertLift(self, expV):
-        r"""
-        If option 'liftlist' prevails: Determine some lifts needed to express a monomial as a cochain.
-
-        This method should only be used internally. However, since a full doc test coverage is
-        required, we need to give a rather lengthy explanation of this function. Sorry.
-
-        INPUT:
-
-        ``expV``: a list or tuple of integers, providing the exponents of a monomial
-
-        OUTPUT:
-
-        The aim is to help express the monomial given by ``expV`` as a cochain. To that purpose,
-        one needs to compute one more term of some previously studied chain map. This chain
-        map is put on some internal list, and the items on the list are lifted simultaneously,
-        which may safe resources.
-
-        NOTE:
-
-        For iteratively computing the ring structure of a cohomology ring, we need to express
-        standard monomials in a given degree as cochains. So, we have to perform cup products.
-        The order of factors does matter: If we have two cochains `x`, `y` and if
-        `\deg(x)>\deg(y)` then `y*x` is easier to compute than `x*y`.
-
-        Hence, when computing the cochain corresponding to the monomial given by ``expV``,
-        it is reasonable to consider the cochain `C_0` corresponding to the variable of
-        smallest degree in that monomial, and multiply it from the right by the cochain
-        `C_r` corresponding to the rest of the monomial. Hence, we put `C_r` on the list of
-        to-be-lifted cochains.
-
-        EXAMPLES:
-
-        This non-commutative example requires Singular 3-1-0 (or later versions)
-        being installed.
-
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
-            sage: from pGroupCohomology.cohomology import COHO
-            sage: from pGroupCohomology import CohomologyRing
-            sage: H = COHO(27,3,root=tmp_root)
-            sage: CohomologyRing.global_options('liftlist')
-            sage: H.make(2)
-            sage: H.gens()
-            [1,
-             b_2_0: 2-Cocycle in H^*(E27; GF(3)),
-             b_2_1: 2-Cocycle in H^*(E27; GF(3)),
-             b_2_2: 2-Cocycle in H^*(E27; GF(3)),
-             b_2_3: 2-Cocycle in H^*(E27; GF(3)),
-             a_1_0: 1-Cocycle in H^*(E27; GF(3)),
-             a_1_1: 1-Cocycle in H^*(E27; GF(3))]
-
-        When computing the next term of the cohomology ring, standard monomials are studied.
-        But it is known from theory that ``a_1_1^2`` and ``a_1_0^2`` are zero, so, the only standard
-        monomial in degree 2 formed by generators in lower degree is ``a_1_0*a_1_1``. Hence, in
-        the previous computation, ``a_1_1`` was lifted, but ``a_1_0`` was not. Hence, when we now
-        compute ``a_1_1*a_1_0``, it is needed to compute the lift for ``a_1_0``, as can be seen
-        in the log::
-
-            sage: CohomologyRing.global_options('info')
-            sage: H('a_1_1*a_1_0')
-            Resolution of GF(3)[E27]:
-                      Compose chain maps R_2 -> R_1 -> R_0
-            (a_1_1)*(a_1_0): 2-Cocycle in H^*(E27; GF(3))
-            sage: CohomologyRing.global_options('warn')
-
-        Now, we repeat the computation, but we explicitly ask for help on computing ``a_1_0^2``
-        (although we know it is zero). This results in computing a lift for ``a_1_0``, and
-        by consequence, that lift is already known when computing ``a_1_1*a_1_0``. This can
-        be seen in the log, by the absence of the statement 'Compose chain maps'.
-        ::
-
-            sage: H = COHO(27,3,root=tmp_root)
-            sage: H.next()
-            sage: H.gens()
-            [1,
-             a_1_0: 1-Cocycle in H^*(E27; GF(3)),
-             a_1_1: 1-Cocycle in H^*(E27; GF(3))]
-            sage: H.InsertLift([2,0])  # [2,0] stands for H.1^2, i.e., a_1_0^2
-            sage: H.next()
-            sage: CohomologyRing.global_options('info')
-            sage: H('a_1_1*a_1_0')
-            (a_1_1)*(a_1_0): 2-Cocycle in H^*(E27; GF(3))
-            sage: CohomologyRing.reset()
-
-        """
-        cdef int lenoldV = len(expV)
-        cdef int i, s_e, s_o, sml
-        newKey = ''.join([expV[i]*(self.Gen[i].name()) for i in range(lenoldV)])
-        if self.Monomials.has_key(newKey):
-            return
-        cdef list oldV = list(tuple(expV)) #copy the list
-        # find the factor of smallest even/odd degree
-        for i from 0 <= i < self.firstOdd:
-            if oldV[i]:
-                break
-        if (i<lenoldV) and oldV[i]:
-            s_e=i
-        else:
-            s_e=-1
-
-        for i from self.firstOdd <=i < lenoldV:
-            if oldV[i]:
-                break
-        if (i<lenoldV) and oldV[i]:
-            s_o=i
-        else:
-            s_o=-1
-        # Which one has lower degree?
-        if s_o==-1:
-            sml = s_e
-        elif s_e==-1:
-            sml = s_o
-        else:
-            if self.degvec[s_o]<self.degvec[s_e]:
-                sml = s_o
-            else:
-                sml = s_e
-        # -> Later, we have to compute the product Gen[sml]*(the rest)
-        # Determine "the rest"!
-        oldV[sml]-=1
-        oldKey = ''.join([oldV[i]*(self.Gen[i].name()) for i in range(len(oldV))])
-        # By induction, this is in the dictionary,
-        # unless the whole monomial is just a generator
-        cdef RESL R
-        R=self.Resl
-        if oldKey:
-            # The following multipication is easy since a lift of
-            # the right factor was constructed before
-            Coch = self.Monomials[oldKey]
-            if coho_options['liftlist']:
-                R.ToBeLifted.append((Coch.deg(),Coch.MTX()))
-            return
-
     #####################
     ## Compute the standard monomials in degree n and store them in Singular under
     ## the name s
@@ -9794,7 +9630,6 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: H.subgroups()[4,2].set_ring()
             sage: print(singular.eval('basering'))
-            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 2
             //        block   1 : ordering M
@@ -9804,7 +9639,6 @@ Minimal list of algebraic relations:
             //        block   2 : ordering C
             sage: H.set_ring()
             sage: print(singular.eval('basering'))
-            polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 3
             //        block   1 : ordering M
@@ -9933,7 +9767,21 @@ Minimal list of algebraic relations:
             c_3_6^2+c_3_2*c_3_7+c_3_2*c_3_6+c_3_0*c_3_7+c_3_0*c_3_6+c_3_0*c_3_5+c_3_0*c_3_4+c_3_0*c_3_3+c_2_3^3+c_2_2*c_2_3^2+c_2_1^2*c_2_3+c_2_1^3+c_2_0*c_2_3^2+c_2_0*c_2_1*c_2_2+c_2_0*c_2_1^2+c_2_0^2*c_2_3: 6-Cocycle in H^*(SmallGroup(48,50); GF(2))
             sage: R = H.find_relations(6)
             sage: [r.name() for r in R[0]]
-            ['c_3_6*c_3_7+c_3_6^2+c_2_3^3', 'c_3_6^2+c_2_3^3', 'c_3_4*c_3_7+c_3_4*c_3_6+c_2_1*c_2_3^2', 'c_3_4*c_3_7', 'c_3_2*c_3_6+c_2_1^2*c_2_3', 'c_3_2*c_3_7', 'c_3_0*c_3_7+c_3_0*c_3_6+c_2_1^2*c_2_2+c_2_1^3+c_2_0*c_2_2*c_2_3', 'c_3_0*c_3_7', 'c_3_6^2', 'c_3_4*c_3_7+c_2_2*c_2_3^2', 'c_3_4*c_3_6', 'c_3_2*c_3_6+c_2_1*c_2_2*c_2_3+c_2_0*c_2_3^2', 'c_3_2*c_3_7+c_3_2*c_3_6+c_2_1*c_2_2*c_2_3+c_2_1^2*c_2_3', 'c_3_2*c_3_7+c_2_1^2*c_2_3', 'c_2_1^3+c_2_0*c_2_2*c_2_3+c_2_0*c_2_1*c_2_3', 'c_2_1^2*c_2_2+c_2_1^3+c_2_0*c_2_1*c_2_3', 'c_3_0*c_3_7+c_2_1^2*c_2_2', 'c_3_0*c_3_6+c_2_1^2*c_2_2+c_2_0*c_2_2*c_2_3', 'c_3_0*c_3_5+c_3_0*c_3_4+c_2_0*c_2_1^2', 'c_3_0*c_3_5+c_2_0*c_2_1^2+c_2_0^2*c_2_3', 'c_3_0*c_3_4+c_2_0*c_2_1*c_2_2+c_2_0*c_2_1^2', 'c_3_0*c_3_5+c_3_0*c_3_4+c_2_0^2*c_2_3', 'c_3_0*c_3_5+c_2_0*c_2_1*c_2_2+c_2_0^2*c_2_3', 'c_3_0*c_3_2+c_2_0^2*c_2_1', 'c_3_0*c_3_3', 'c_3_0*c_3_2+c_2_0^2*c_2_2+c_2_0^2*c_2_1', 'c_3_0*c_3_3+c_2_0^2*c_2_1', 'c_3_0*c_3_1+c_3_0^2+c_2_0^3', 'c_3_0^2+c_2_0^3', 'c_3_0^2']
+            ['c_3_6*c_3_7+c_3_6^2+c_2_3^3', 'c_3_6^2+c_2_3^3',
+             'c_3_4*c_3_7+c_3_4*c_3_6+c_2_1*c_2_3^2', 'c_3_4*c_3_7',
+             'c_3_2*c_3_6+c_2_1^2*c_2_3', 'c_3_2*c_3_7',
+             'c_3_0*c_3_7+c_3_0*c_3_6+c_2_1^2*c_2_2+c_2_1^3+c_2_0*c_2_2*c_2_3',
+             'c_3_0*c_3_7', 'c_3_6^2', 'c_3_4*c_3_7+c_2_2*c_2_3^2',
+             'c_3_4*c_3_6', 'c_3_2*c_3_6+c_2_1*c_2_2*c_2_3+c_2_0*c_2_3^2',
+             'c_3_2*c_3_7+c_3_2*c_3_6+c_2_1*c_2_2*c_2_3+c_2_1^2*c_2_3',
+             'c_3_2*c_3_7+c_2_1^2*c_2_3', 'c_2_1^3+c_2_0*c_2_2*c_2_3+c_2_0*c_2_1*c_2_3',
+             'c_2_1^2*c_2_2+c_2_1^3+c_2_0*c_2_1*c_2_3', 'c_3_0*c_3_7+c_2_1^2*c_2_2',
+             'c_3_0*c_3_6+c_2_1^2*c_2_2+c_2_0*c_2_2*c_2_3',
+             'c_3_0*c_3_5+c_3_0*c_3_4+c_2_0*c_2_1^2', 'c_3_0*c_3_5+c_2_0*c_2_1^2+c_2_0^2*c_2_3',
+             'c_3_0*c_3_4+c_2_0*c_2_1*c_2_2+c_2_0*c_2_1^2', 'c_3_0*c_3_5+c_3_0*c_3_4+c_2_0^2*c_2_3',
+             'c_3_0*c_3_5+c_2_0*c_2_1*c_2_2+c_2_0^2*c_2_3', 'c_3_0*c_3_2+c_2_0^2*c_2_1',
+             'c_3_0*c_3_3', 'c_3_0*c_3_2+c_2_0^2*c_2_2+c_2_0^2*c_2_1', 'c_3_0*c_3_3+c_2_0^2*c_2_1',
+             'c_3_0*c_3_1+c_3_0^2+c_2_0^3', 'c_3_0^2+c_2_0^3', 'c_3_0^2']
             sage: singular.quit()
             sage: d == H.stable_to_polynomial(c) #indirect doc test
             H^*(SmallGroup(16,14); GF(2)):
@@ -12065,10 +11913,6 @@ Minimal list of algebraic relations:
         TWT = walltime()
         cdef RESL R
         R = self.Resl
-        cdef list NEW_KEYS = []
-        cdef list Liftables = []
-        cdef list MaxDegs = []
-        cdef int lenNEW_KEYS
 
         cdef Matrix_t *tmpMTX0
         cdef Matrix_t *tmpMTX
@@ -12130,24 +11974,6 @@ Minimal list of algebraic relations:
                           [s.strip() for s in (singular.eval('for (i=1;i<=ncols(Mon);i++) { print(leadexp(Mon[i]));print(\";\");}')+'\n').split(';')] if x]
                 lenMonExp = len(MonExp)
 
-                #######################################
-                # Do all necessary lifts
-                if coho_options['liftlist']:
-                    for i from 0<= i < lenMonExp:
-                        self.InsertLift(MonExp[i])
-                    lAn=len(R.Diff) # the degree to which we will lift
-                    # filter the to-be-lifted cochains
-                    for I in list(set(R.ToBeLifted)):
-                        TestLift = R.Lifts[(lAn-1,I[0],I[1])]
-                        if TestLift != None: # i.e., it is lifted to the previous degree
-                            NEW_KEYS.append((lAn,I[0],I[1]))
-                            Liftables.append(TestLift[0])
-                            MaxDegs.append(TestLift[1])
-                    R.ToBeLifted=[]
-                    New_Lifts = R.liftListOfMaps(Liftables)
-                    lenNEW_KEYS = len(NEW_KEYS)
-                    for i from 0 <= i < lenNEW_KEYS:
-                        R.Lifts[NEW_KEYS[i]] = (New_Lifts[i],MaxDegs[i])
                 ct=cputime()
                 wt=walltime()
 
