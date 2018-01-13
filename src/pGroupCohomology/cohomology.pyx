@@ -8251,10 +8251,10 @@ Minimal list of algebraic relations:
             ['c_4_18', 'b_1_2^4+b_1_1^2*b_1_2^2+b_1_1^4+b_1_0^4+b_2_6^2+b_2_4*b_2_6+b_2_4^2', 'b_1_1^2*b_1_2^4+b_1_1^4*b_1_2^2+b_2_6^2*b_1_2^2+b_2_6^2*b_1_0^2+b_2_4*b_2_6*b_1_0^2+b_2_4*b_2_6^2+b_2_4^2*b_1_1*b_1_2+b_2_4^2*b_1_1^2+b_2_4^2*b_1_0^2+b_2_4^2*b_2_6', 'b_1_0']
 
         For computing the cohomology of `G`, we use the cohomology
-        ring of an intermediate subgroup. It turns out that the a
-        filter regular hsop for the cohomology ring of that subgroup
-        can be found by using Dickson elements in a complement of the
-        centre of a Sylow subgroup::
+        ring of an intermediate subgroup. It turns out that a filter
+        regular hsop for the cohomology ring of that subgroup can be
+        found by using Dickson elements in a complement of the centre
+        of a Sylow subgroup::
 
             sage: H.subgroup_cohomology()
             H^*(SmallGroup(192,1493); GF(2))
@@ -8265,7 +8265,7 @@ Minimal list of algebraic relations:
 
             sage: H.make(8)
             sage: H.duflot_regular_sequence()
-            ['c_4_0']
+            ['c_4_1']
             sage: H.filter_regular_parameters()
 
         So, a maximal Duflot regular sequence is already available, but the
@@ -8275,7 +8275,10 @@ Minimal list of algebraic relations:
 
             sage: H.make(14)
             sage: H.filter_regular_parameters()
-            ['b_3_1*b_5_0+b_2_0^4+c_4_0^2', 'b_6_2^2+b_6_0*b_6_2+b_6_0^2+b_2_0^2*b_3_1*b_5_0', 'b_7_4^2+b_3_1^3*b_5_0+b_6_0*b_3_1*b_5_0+b_2_0*b_6_0*b_3_1^2+b_2_0^3*b_3_1*b_5_0+b_2_0^4*b_6_0+b_2_0^2*c_4_0*b_3_1^2+b_2_0^2*c_4_0*b_6_0+c_4_0^2*b_3_0^2', 'b_3_1^3+b_2_0^2*b_5_0']
+            ['b_3_1*b_5_2+b_2_0^4+c_4_1^2',
+             'b_3_1^4+b_3_0^4+b_6_2*b_3_1^2+b_6_2^2+b_2_0^3*b_6_2+c_4_1*b_3_1*b_5_2+b_2_0*c_4_1*b_3_1^2+b_2_0^2*c_4_1^2',
+             'b_7_6^2+b_3_1^3*b_5_2+b_6_2*b_3_1*b_5_2+b_2_0*b_6_2*b_3_1^2+b_2_0^3*b_3_1*b_5_2+b_2_0^4*b_6_2+b_2_0^2*c_4_1*b_3_1^2+b_2_0^2*c_4_1*b_6_2+c_4_1^2*b_3_0^2',
+             'b_6_2']
 
         """
         if self._construct_fr_parameters():
@@ -9091,10 +9094,10 @@ Minimal list of algebraic relations:
         out that we can now find parameters::
 
             sage: H.parameters()
-            ['b_2_0^2+c_4_0',
-             'b_3_1^2+b_3_0^2+b_2_0*c_4_0',
-             'b_7_4+b_2_0*b_5_0+c_4_0*b_3_0',
-             'b_6_0']
+            ['b_2_0^2+c_4_1',
+             'b_3_1^4+b_3_0^4+b_6_2*b_3_1^2+b_6_2^2+b_2_0^3*b_6_2+c_4_1*b_3_1*b_5_2+b_2_0*c_4_1*b_3_1^2+b_2_0^2*c_4_1^2',
+             'b_7_6+c_4_1*b_3_1+c_4_1*b_3_0',
+             'b_6_2']
 
         These elements are guaranteed to form a homogeneous system of
         parameters of the cohomology ring, but they are not parameters of the
@@ -9102,7 +9105,7 @@ Minimal list of algebraic relations:
 
             sage: I = H.relation_ideal()
             sage: I.std(singular.ideal(H.parameters())).dim()
-            4
+            5
 
         Continuing to degree 14, thus, having more relations, the above
         parameters do indeed turn into parameters for the ring approximation::
@@ -9661,7 +9664,7 @@ Minimal list of algebraic relations:
             sage: H.find_dickson()
             True
             sage: H.parameters()
-            ['c_1_0', 'c_2_1', 'b_3_3+b_3_2']
+            ['c_1_0', 'c_2_1', 'b_3_3+c_3_2']
             sage: H.make()
             sage: print(H)
             Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
@@ -9670,10 +9673,10 @@ Minimal list of algebraic relations:
             Minimal list of generators:
             [c_2_1: 2-Cocycle in H^*(SmallGroup(720,763); GF(2)),
              c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+             b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
             Minimal list of algebraic relations:
-            [b_3_2*b_3_3]
+            [b_3_3*c_3_2+c_2_1*c_1_0*b_3_3]
 
         Note that this method is automatically called when Singular is called
         on the cohomology ring::
@@ -9684,13 +9687,14 @@ Minimal list of algebraic relations:
             // coefficients: ZZ/2
             // number of vars : 4
             //        block   1 : ordering M
-            //                  : names    c_2_1 c_1_0 b_3_2 b_3_3
+            //                  : names    c_2_1 c_1_0 b_3_3 c_3_2
             //                  : weights      2     1     3     3
-            //                  : weights     -1    -1     0     0
+            //                  : weights     -1    -1     0    -1
             //                  : weights     -1     0     0     0
-            //                  : weights      0     0    -1     0
+            //                  : weights      0    -1     0     0
             //        block   2 : ordering C
-            // quotient ring from ideal ...
+            // quotient ring from ideal
+            _[1]=b_3_3*c_3_2+c_2_1*c_1_0*b_3_3
             sage: singular.quit()
             sage: singular(H)
             H^*(SmallGroup(720,763); GF(2)):
@@ -9705,14 +9709,14 @@ Minimal list of algebraic relations:
             // coefficients: ZZ/2
             // number of vars : 4
             //        block   1 : ordering M
-            //                  : names    c_2_1 c_1_0 b_3_2 b_3_3
+            //                  : names    c_2_1 c_1_0 b_3_3 c_3_2
             //                  : weights      2     1     3     3
-            //                  : weights     -1    -1     0     0
+            //                  : weights     -1    -1     0    -1
             //                  : weights     -1     0     0     0
-            //                  : weights      0     0    -1     0
+            //                  : weights      0    -1     0     0
             //        block   2 : ordering C
             // quotient ring from ideal
-            _[1]=b_3_2*b_3_3
+            _[1]=b_3_3*c_3_2+c_2_1*c_1_0*b_3_3
             sage: CohomologyRing.reset()
 
         TESTS:
@@ -9720,6 +9724,7 @@ Minimal list of algebraic relations:
         The following used to fail in at some point in the development of this package.
         ::
 
+            sage: CohomologyRing.set_user_db(tmp_dir())
             sage: H = CohomologyRing(48,50, prime=2)
             sage: H.make()
             sage: c = H.subgroup_cohomology()('c_1_1*c_1_2^2*c_1_3^3+c_1_1*c_1_2^4*c_1_3+c_1_1*c_1_2^5+c_1_1^2*c_1_3^4+c_1_1^2*c_1_2*c_1_3^3+c_1_1^2*c_1_2^3*c_1_3+c_1_1^3*c_1_2^2*c_1_3+c_1_1^3*c_1_2^3+c_1_1^4*c_1_3^2+c_1_1^4*c_1_2*c_1_3+c_1_1^4*c_1_2^2+c_1_1^5*c_1_2+c_1_0*c_1_3^5+c_1_0*c_1_2^2*c_1_3^3+c_1_0*c_1_2^3*c_1_3^2+c_1_0*c_1_1^2*c_1_2*c_1_3^2+c_1_0*c_1_1^2*c_1_2^2*c_1_3+c_1_0*c_1_1^2*c_1_2^3+c_1_0*c_1_1^3*c_1_3^2+c_1_0*c_1_1^3*c_1_2^2+c_1_0*c_1_1^4*c_1_3+c_1_0*c_1_1^5+c_1_0^2*c_1_3^4+c_1_0^2*c_1_2^2*c_1_3^2+c_1_0^2*c_1_2^3*c_1_3+c_1_0^2*c_1_2^4+c_1_0^2*c_1_1*c_1_3^3+c_1_0^2*c_1_1*c_1_2^2*c_1_3+c_1_0^2*c_1_1^2*c_1_2*c_1_3+c_1_0^2*c_1_1^2*c_1_2^2+c_1_0^2*c_1_1^3*c_1_2+c_1_0^3*c_1_2*c_1_3^2+c_1_0^3*c_1_1*c_1_2^2+c_1_0^3*c_1_1^2*c_1_3+c_1_0^3*c_1_1^3+c_1_0^4*c_1_3^2+c_1_0^4*c_1_2*c_1_3+c_1_0^4*c_1_2^2+c_1_0^4*c_1_1*c_1_2+c_1_0^4*c_1_1^2+c_1_0^5*c_1_3+c_1_0^5*c_1_1')
