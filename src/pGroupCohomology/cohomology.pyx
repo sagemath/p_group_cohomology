@@ -1964,6 +1964,7 @@ class COHO(Ring):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
+        sage: CohomologyRing.reset()
         sage: CohomologyRing.set_user_db(tmp_root)
         sage: X = CohomologyRing(4,2, from_scratch=True)
         sage: X.make()
@@ -2006,15 +2007,8 @@ class COHO(Ring):
         H^*(D8; GF(2)):
                   Initialising maximal p-elementary abelian subgroups
                   Inserting SmallGroup(2,1) as a subgroup
-                  Inserting SmallGroup(4,2) as a subgroup
-                  Resolution of GF(2)[4gp2]:
-                            Differential reloaded
-                            > rk P_02 =   3
-                  H^*(SmallGroup(4,2); GF(2)):
-                            Import monomials
-                  Checking compatibility of SmallGroups library and stored cohomology ring
-                  H^*(D8; GF(2)):
-                            Computing Dickson invariants in elementary abelian subgroup of rank 2
+                  Inserting SmallGroup(4,2) as a subgroup...
+                  Computing Dickson invariants in elementary abelian subgroup of rank 2
 
     Now, the basic setup is done. We compute the ring structure, logging
     the computation::

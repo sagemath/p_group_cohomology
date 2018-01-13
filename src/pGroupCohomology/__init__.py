@@ -2135,7 +2135,7 @@ we only show one term so that the degrees are visible::
     sage: HU.filter_regular_parameters()
     ['...b_1_1^8+...',
      '...b_3_9^4+...',
-     '...b_1_1^2*b_3_1^4+...',
+     '...b_1_0^2*b_3_0^4+...',
      'b_1_1+b_1_0']
     sage: HU.parameters()
     ['b_1_0^4+b_2_4^2+b_2_3^2+c_4_15',
