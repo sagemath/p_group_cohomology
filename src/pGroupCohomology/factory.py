@@ -363,6 +363,7 @@ class CohomologyRingFactory:
         from pGroupCohomology.auxiliaries import default_options, coho_options
         coho_options.clear()
         coho_options.update(default_options)
+        singular.option('noqringNF')
         _gap_init()
 
     def global_options(self, *args, **kwds):
