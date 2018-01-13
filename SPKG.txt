@@ -83,18 +83,8 @@ fact, any class, method and function is covered by tests.
 Note that internet access is required for these tests, as it is attempted to
 download cohomology rings from a public data base in the web.
 
-The script ``spkg-check`` walks through all public methods of all classes
-in all modules of our package and perform the respective doc test. The
-test script is executed right after installation of the package, if the
-environment variable SAGE_CHECK is yes (do "export SAGE_CHECK=yes" on
-the command line before installation). Should a test fail, details are
-displayed on screen and can also be find in SAGEROOT/install.log.
-
-The script allows for parallel testing. By default, the number of threads
-equals one third of the available CPUs. The default can be changed by
-exporting the environment variable SAGE_NUM_THREADS (for example:
-``export SAGE_NUM_THREADS=2``) or by giving a number of parallel processes
-for ``make``, such as ``export MAKE="make -j4"``.
+The script ``spkg-check`` calls `sage -t --force_lib` on the files
+in `pGroupCohomology`.
 
 == Documentation ==
 
@@ -113,6 +103,9 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
     - The Python/Cython part of this package is now pip installable.
     - Remove some experimental options
     - Drop support for Singular versions < 3-1-0
+    - Drop the old test script, as `sage -t` now works for this package.
+    - Drop the old doc builder, as building the docs is now closer to
+      Sage's documentation than before.
   * 2.1.5 (Simon King, Mai 2015):
     - Cope with removal of the ._domain attribute of maps and with changed import locations.
     - Improved computation of the nil-radical, including degree-wise computation
