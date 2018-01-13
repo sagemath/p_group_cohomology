@@ -1027,13 +1027,13 @@ cdef class COCH(RingElement):
             sage: H = CohomologyRing(64,242)
             sage: H.make()
             sage: H.nil_radical()
-            b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1,
-            b_1_0*b_1_2+b_1_0^2
-            sage: H('b_1_0*b_1_3+b_1_0*b_1_2+b_1_0*b_1_1').is_nilpotent()
+            b_1_0*b_1_2+b_1_0^2,
+            b_1_0*b_1_3+b_1_0*b_1_1+b_1_0^2
+            sage: H('b_1_0*b_1_2+b_1_0^2').is_nilpotent()
             True
             sage: H('b_1_0*b_1_3+b_1_0*b_1_2').is_nilpotent()
             False
-            sage: H('b_1_0*b_1_2+b_1_0^2').is_nilpotent()
+            sage: H('b_1_0*b_1_3+b_1_0*b_1_1+b_1_0^2').is_nilpotent()
             True
 
         An example in odd characteristic::
@@ -1318,15 +1318,15 @@ cdef class COCH(RingElement):
 
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
-            sage: type(X.sylow_cohomology()('c_2_5*b_1_1'))
+            sage: type(X.sylow_cohomology()('c_2_5*b_1_0'))
             <type 'pGroupCohomology.cochain.COCH'>
-            sage: type(X.4.as_cocycle_in_sylow())
+            sage: type(X.3.as_cocycle_in_sylow())
             <class 'pGroupCohomology.cochain.MODCOCH'>
-            sage: print(X.sylow_cohomology()('c_2_5*b_1_1')+X.4.as_cocycle_in_sylow())
-            c_2_5*b_1_1+(c_2_5*b_1_1): 3-Cocycle in H^*(D8xC2; GF(2))
+            sage: print(X.sylow_cohomology()('c_2_5*b_1_0')+X.3.as_cocycle_in_sylow())
+            c_2_5*b_1_0+(c_2_5*b_1_0): 3-Cocycle in H^*(D8xC2; GF(2))
             defined by
             0
-            sage: type(X.sylow_cohomology()('c_2_5*b_1_1')+X.4.as_cocycle_in_sylow())
+            sage: type(X.sylow_cohomology()('c_2_5*b_1_0')+X.3.as_cocycle_in_sylow())
             <class 'pGroupCohomology.cochain.MODCOCH'>
 
         """
@@ -2082,10 +2082,10 @@ class MODCOCH(RingElement):
         sage: H.make()
         sage: H.2
         c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
-        sage: print(H('b_3_3*b_3_2+c_2_1^2*c_1_0^2'))   #indirect doctest
-        (b_3_3)*(b_3_2)+(((c_2_1)^2)*((c_1_0)^2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
+        sage: print(H('b_3_3*c_3_2+c_2_1^2*c_1_0^2'))   #indirect doctest
+        (b_3_3)*(c_3_2)+(((c_2_1)^2)*((c_1_0)^2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
         defined by
-        b_1_0^6+c_2_5^2*b_1_1^2+c_2_5^2*b_1_0^2+b_1_1^2*c_1_2^4+c_2_5^2*c_1_2^2+c_1_2^6
+        b_1_1^4*c_1_2^2+b_1_0^4*c_1_2^2+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_1^2+c_2_5^2*b_1_0*c_1_2+b_1_1^2*c_1_2^4+c_2_5^2*c_1_2^2
 
     """
     def __init__(self, parent, value, deg=None, name=None, S=None, rdeg=None, ydeg=None, is_polyrep=False, is_NF=None):
@@ -2194,7 +2194,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
-            sage: c = H('b_3_2^2+b_3_2*b_3_3+c_2_1*c_1_0*b_3_2')
+            sage: c = H('c_3_2^2+c_3_2*b_3_3+c_2_1*c_1_0*c_3_2')
             sage: c == loads(dumps(c))   # indirect doctest
             True
 
@@ -2231,23 +2231,24 @@ class MODCOCH(RingElement):
             Minimal list of generators:
             [c_2_1: 2-Cocycle in H^*(SmallGroup(720,763); GF(2)),
              c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+             b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
             Minimal list of algebraic relations:
-            [b_3_2*b_3_3]
+            [b_3_3*c_3_2+c_2_1*c_1_0*b_3_3]
+            <BLANKLINE>
 
         Apparently, adding the relation must not change the value
         of a cohomology element::
 
-            sage: H.1**2*H.2**2+H('b_3_2*b_3_3')==H.1**2*H.2**2
+            sage: H.1**2*H.2**2+H(H.rel(0))==H.1**2*H.2**2
             True
 
         A zero-valued element of degree 6 is greater than a non-zero
         element of degree four::
 
-            sage: H('b_3_2*b_3_3').is_zero()
+            sage: H(H.rel(0)).is_zero()
             True
-            sage: H.1*H.2**2 < H('b_3_2*b_3_3')
+            sage: H.1*H.2**2 < H(H.rel(0))
             True
 
         Before comparing, the two elements are turned into normal form::
@@ -2260,9 +2261,9 @@ class MODCOCH(RingElement):
 
             sage: singular(H.subgroup_cohomology()).set_ring()
             sage: c.value()
-            b_1_0^6+b_1_0^5*c_1_2+c_2_5*b_1_0^4+c_2_5*b_1_0^2*b_1_1*c_1_2+c_2_5^2*b_1_0*b_1_1+c_2_5^2*b_1_0^2+b_1_0^3*c_1_2^3+c_2_5*b_1_0*b_1_1*c_1_2^2+c_2_5*b_1_0^2*c_1_2^2+c_2_5^2*b_1_0*c_1_2+c_2_5^3+c_2_5^2*c_1_2^2+b_1_0*c_1_2^5+c_2_5*c_1_2^4+c_1_2^6
+            b_1_0^6+b_1_0^4*b_1_1*c_1_2+c_2_5*b_1_0^4+b_1_0^2*b_1_1^2*c_1_2^2+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0^2+b_1_1^3*c_1_2^3+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5^3
             sage: cNF.value()
-            b_1_0^6+b_1_0^5*c_1_2+c_2_5*b_1_0^4+c_2_5^2*b_1_0^2+b_1_0^3*c_1_2^3+c_2_5*b_1_0^2*c_1_2^2+c_2_5^2*b_1_0*c_1_2+c_2_5^3+c_2_5^2*c_1_2^2+b_1_0*c_1_2^5+c_2_5*c_1_2^4+c_1_2^6
+            b_1_0^6+c_2_5*b_1_0^4+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0^2+b_1_1^3*c_1_2^3+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5^3
 
         However, the two polynomials represent the same stable cocycle.
         And indeed, after comparison, both are in normal form::
@@ -2270,7 +2271,7 @@ class MODCOCH(RingElement):
             sage: c == cNF   # indirect doctest
             True
             sage: c.value()
-            b_1_0^6+b_1_0^5*c_1_2+c_2_5*b_1_0^4+c_2_5^2*b_1_0^2+b_1_0^3*c_1_2^3+c_2_5*b_1_0^2*c_1_2^2+c_2_5^2*b_1_0*c_1_2+c_2_5^3+c_2_5^2*c_1_2^2+b_1_0*c_1_2^5+c_2_5*c_1_2^4+c_1_2^6
+            b_1_0^6+c_2_5*b_1_0^4+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0^2+b_1_1^3*c_1_2^3+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5^3
 
         """
         assert isinstance(C,COCH) or isinstance(C,MODCOCH)
@@ -2352,8 +2353,8 @@ class MODCOCH(RingElement):
             sage: H.make()
             sage: H.2      # indirect doctest
             c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
-            sage: H('b_3_2^2+b_3_2*b_3_3+c_2_1*c_1_0*b_3_2')
-            (b_3_2)^2+((b_3_2)*(b_3_3))+(((c_2_1)*(c_1_0))*(b_3_2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            sage: H('c_3_2^2+c_3_2*b_3_3+c_2_1*c_1_0*c_3_2')
+            (c_3_2)^2+((c_3_2)*(b_3_3))+(((c_2_1)*(c_1_0))*(c_3_2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
         return self._name+": %d-Cocycle in %s"%(self.Deg, repr(self.parent()))
@@ -2370,23 +2371,23 @@ class MODCOCH(RingElement):
             sage: print(H.2)     # indirect doctest
             c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
-            b_1_1+b_1_0+c_1_2
-            sage: print(H('b_3_2^2+b_3_2*b_3_3+c_2_1*c_1_0*b_3_2'))
-            (b_3_2)^2+((b_3_2)*(b_3_3))+(((c_2_1)*(c_1_0))*(b_3_2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            b_1_1+c_1_2
+            sage: print(H('c_3_2^2+c_3_2*b_3_3+c_2_1*c_1_0*c_3_2'))
+            (c_3_2)^2+((c_3_2)*(b_3_3))+(((c_2_1)*(c_1_0))*(c_3_2)): 6-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
-            b_1_0^5*c_1_2+c_2_5*b_1_0^4+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0*c_1_2+b_1_0*c_1_2^5
+            c_2_5*b_1_0^3*c_1_2+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5*b_1_1*c_1_2^3
 
         Note that, when printing the value that the element takes in a subgroup,
         it is not necessarily in normal form::
 
             sage: print(H.2*H.4)
-            (c_1_0)*(b_3_3): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            (c_1_0)*(c_3_2): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
-            c_2_5*b_1_1^2+c_2_5*b_1_0*b_1_1+c_2_5*b_1_1*c_1_2
+            b_1_0^2*b_1_1*c_1_2+b_1_0^2*c_1_2^2+c_2_5*b_1_1*c_1_2+c_2_5*c_1_2^2
             sage: print((H.2*H.4)._NF_())
-            (c_1_0)*(b_3_3): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            (c_1_0)*(c_3_2): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
-            c_2_5*b_1_1^2+c_2_5*b_1_1*c_1_2
+            b_1_0^2*c_1_2^2+c_2_5*b_1_1*c_1_2+c_2_5*c_1_2^2
 
         """
         return repr(self)+'\ndefined by\n'+self.val_str()
@@ -2428,12 +2429,12 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: latex((H.1*H.2)^2+H.3*H.4) # indirect doctest
-            b_{3,2} b_{3,3}+c_{2,1}^{2} c_{1,0}^{2}
+            c_{3,2} b_{3,3}+c_{2,1}^{2} c_{1,0}^{2}
 
         """
         if self._latex is not None:
             return self._latex
-        from pGroupChomology.auxiliaries import singular
+        from pGroupCohomology.auxiliaries import singular
         try:
             br = singular('basering')
         except TypeError:
@@ -2478,7 +2479,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
-            sage: H('b_3_2^2+b_3_3*b_3_2+c_2_1*c_1_0*b_3_2').deg()
+            sage: H('c_3_2^2+b_3_3*c_3_2+c_2_1*c_1_0*c_3_2').deg()
             6
 
         The degree may be explicitly provided in the definition of the
@@ -2509,7 +2510,7 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: [t.rdeg() for t in H.Gen]
-            [1, 1, 0, 0]
+            [1, 1, 0, 1]
 
         So, the restriction of all but the third generator to the centre
         of a Sylow subgroup should be non-zero::
@@ -2518,9 +2519,9 @@ class MODCOCH(RingElement):
             sage: r
             Induced homomorphism of degree 0 from H^*(SmallGroup(720,763); GF(2)) to H^*(SmallGroup(4,2); GF(2))
             sage: print(r(H.1)._NF_())
-            c_1_1^2+c_1_0^2: 2-Cocycle in H^*(SmallGroup(4,2); GF(2))
+            c_1_1^2: 2-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
-            c_1_1^2+c_1_0^2
+            c_1_1^2
             sage: print(r(H.2)._NF_())
             c_1_0: 1-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
@@ -2530,9 +2531,9 @@ class MODCOCH(RingElement):
             defined by
             0
             sage: print(r(H.4)._NF_())
-            0: 3-Cocycle in H^*(SmallGroup(4,2); GF(2))
+            c_1_0*c_1_1^2: 3-Cocycle in H^*(SmallGroup(4,2); GF(2))
             defined by
-            0
+            c_1_0*c_1_1^2
 
         """
         return self._rdeg
@@ -2692,24 +2693,24 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: singular(H.subgroup_cohomology()).set_ring()
-            sage: (H.1*H.2).value()
-            b_1_0^2*b_1_1+b_1_0^3+b_1_0*b_1_1*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3
-            sage: (H.1*H.2)._NF_().value()
-            b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3
+            sage: (H.1*H.2+H.4).value()
+            b_1_0^2*b_1_1+b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2
+            sage: (H.1*H.2+H.4)._NF_().value()
+            b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2
 
         Note that if Singular crashed, it is attempted to reconstructed the value.
         However, this is only possible if :meth:`val_str` was called before.
         ::
 
-            sage: c = (H.1*H.2)._NF_()
+            sage: c = (H.1*H.2+H.4)._NF_()
             sage: c.val_str()
-            'b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3'
+            'b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2'
             sage: singular.quit()
             sage: CohomologyRing.global_options('info')
             sage: c.value()
             H^*(D8xC2; GF(2)):
                       Reconstructing data in the Singular interface
-            b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3
+            b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2
             sage: CohomologyRing.global_options('warn')
 
         """
@@ -2794,7 +2795,7 @@ class MODCOCH(RingElement):
             sage: H.make()
             sage: singular(H).set_ring()
             sage: singular(H.1*H.2+H.3)    # indirect doctest
-            b_3_2+c_2_1*c_1_0
+            b_3_3+c_2_1*c_1_0
             sage: parent(_)
             Singular
 
@@ -2886,8 +2887,8 @@ class MODCOCH(RingElement):
             sage: H.subgroup_cohomology()
             H^*(SmallGroup(192,1493); GF(2))
             sage: H.1.as_cocycle_in_subgroup()
-            b_2_1+(b_2_0): 2-Cocycle in H^*(SmallGroup(192,1493); GF(2))
-            sage: H.subgroup_cohomology()('b_2_1+b_2_0')*H.2.as_cocycle_in_subgroup() == (H.1*H.2).as_cocycle_in_subgroup()
+            (b_1_0)^2+(b_2_2)+(b_2_1): 2-Cocycle in H^*(SmallGroup(192,1493); GF(2))
+            sage: H.subgroup_cohomology()('b_1_0^2+b_2_1+b_2_2')*H.2.as_cocycle_in_subgroup() == (H.1*H.2).as_cocycle_in_subgroup()
             True
 
         """
@@ -2933,8 +2934,8 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(G,prime=2,GroupName='A8')
             sage: H.make()
             sage: H.1.as_cocycle_in_sylow()
-            b_1_2^2+b_1_1*b_1_2+b_2_6+b_2_5: 2-Cocycle in H^*(SmallGroup(64,138); GF(2))
-            sage: H.sylow_cohomology()('b_1_2^2+b_1_1*b_1_2+b_2_6+b_2_5')*H.2.as_cocycle_in_sylow() == (H.1*H.2).as_cocycle_in_sylow()
+            b_1_1*b_1_2+b_1_1^2+b_1_0^2+b_2_5+b_2_4: 2-Cocycle in H^*(SmallGroup(64,138); GF(2))
+            sage: H.sylow_cohomology()('b_1_1*b_1_2+b_1_1^2+b_1_0^2+b_2_5+b_2_4')*H.2.as_cocycle_in_sylow() == (H.1*H.2).as_cocycle_in_sylow()
             True
 
         """
@@ -3055,14 +3056,14 @@ class MODCOCH(RingElement):
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
             sage: print(X.3+X.4) #indirect doctest
-            b_3_2+(b_3_3): 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            b_3_3+(c_3_2): 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
             defined by
-            b_1_0^2*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_0*c_1_2^2
+            b_1_0^2*c_1_2+c_2_5*b_1_0+c_2_5*c_1_2
 
         It is possible to add :class:`MODCOCH` with :class:`COCH`::
 
-            sage: print(X.4.as_cocycle_in_sylow()+X.sylow_cohomology()('c_2_5*b_1_1')) #indirect doctest
-            c_2_5*b_1_1+(c_2_5*b_1_1): 3-Cocycle in H^*(D8xC2; GF(2))
+            sage: print(X.3.as_cocycle_in_sylow()+X.sylow_cohomology()('c_2_5*b_1_0'))
+            c_2_5*b_1_0+(c_2_5*b_1_0): 3-Cocycle in H^*(D8xC2; GF(2))
             defined by
             0
 
@@ -3308,11 +3309,11 @@ class MODCOCH(RingElement):
 
             sage: H = CohomologyRing(1620, 23, prime=3)
             sage: H.make()
-            sage: H.3.is_nilpotent()
+            sage: H.1.is_nilpotent()
             True
-            sage: bool(H.3^2)
+            sage: bool(H.1^2)
             True
-            sage: bool(H.3^3)
+            sage: bool(H.1^3)
             False
             sage: H.2.is_nilpotent()
             False
@@ -3477,7 +3478,7 @@ class MODCOCH(RingElement):
             sage: c = H.1*H.2
             sage: singular(H.subgroup_cohomology()).set_ring()
             sage: c.value()
-            b_1_0^2*b_1_1+b_1_0^3+b_1_0*b_1_1*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3
+            b_1_0^2*b_1_1+b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2+c_2_5*c_1_2
 
         The value (i.e., the restriction to the subgroup used in the computation of ``H``)
         is not in normal form. We will change this now::
@@ -3485,21 +3486,22 @@ class MODCOCH(RingElement):
             sage: c._NF_()
             (c_2_1)*(c_1_0): 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
             sage: c.value()
-            b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3
+            b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2+c_2_5*c_1_2
 
         We can also reduce it modulo one of the generators::
 
             sage: c._NF_(['c_1_2'])
             (c_2_1)*(c_1_0): 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
             sage: c._Svalue
-            b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0
+            c_2_5*b_1_1
 
-        Note that this changes the value of ``c``. Computing the normal form with
-        respect to a non-trivial ideal should thus be used with extreme care.
+        Note that this changes the value of ``c`` internally. Computing the
+        normal form with respect to a non-trivial ideal should thus be used
+        with extreme care.
         ::
 
             sage: c.value()
-            b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0
+            c.value()
             sage: c == H.1*H.2
             False
 
@@ -6446,6 +6448,8 @@ cdef class ChMap(RingHomomorphism):
 
     def __pow__(self, n, z):
         """
+        Composition of an induced homomorphism with itself.
+
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
@@ -6459,17 +6463,8 @@ cdef class ChMap(RingHomomorphism):
 
             sage: f,g = H._PtoPcapCPtwist
             sage: X = H.sylow_cohomology()
-            sage: [X.element_as_polynomial((f^2)(t)) for t in X.gens()]  # indirect doctest
-            [1: 0-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_1*b_3_10+b_1_0*b_3_11+b_1_0*b_3_10+b_1_0^2*b_1_1^2+c_4_19+c_4_18: 4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_1*b_3_11+b_1_1^4+b_1_0*b_3_10+b_1_0*b_1_1^3+b_1_0^3*b_1_1+c_4_18: 4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_2*b_1_3^2*b_3_11+b_1_2^2*b_1_3*b_3_11+b_1_2^3*b_3_11+b_1_1^3*b_3_11+b_1_1^6+b_1_0*b_1_1^2*b_3_11+b_1_0*b_1_1^2*b_3_10+b_1_0^2*b_1_1*b_3_10+b_1_0^2*b_1_1^4+b_1_0^4*b_1_1^2+b_1_0^6+b_6_47+c_4_19*b_1_2*b_1_3+c_4_19*b_1_2^2+c_4_19*b_1_1^2+c_4_19*b_1_0*b_1_2+c_4_19*b_1_0*b_1_1+c_4_18*b_1_3^2+c_4_18*b_1_2^2+c_4_18*b_1_1^2+c_4_18*b_1_0*b_1_3+c_4_18*b_1_0*b_1_1: 6-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_1: 1-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_1+b_1_0: 1-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_3+b_1_0: 1-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_1_3+b_1_2+b_1_1+b_1_0: 1-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_3_10: 3-Cocycle in H^*(Syl2(L3(4)); GF(2)),
-             b_3_11+b_1_0*b_1_1^2+b_1_0^2*b_1_3+b_1_0^2*b_1_2+b_1_0^3: 3-Cocycle in H^*(Syl2(L3(4)); GF(2))]
+            sage: all([(f^2)(t)==f(f(t)) for t in X.gens()])  # indirect doctest
+            True
             sage: [X.element_as_polynomial((g^3)(t)) for t in X.gens()]
             [1: 0-Cocycle in H^*(Syl2(L3(4)); GF(2)),
              c_4_18: 4-Cocycle in H^*(Syl2(L3(4)); GF(2)),
