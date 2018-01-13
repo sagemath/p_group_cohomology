@@ -285,30 +285,29 @@ case, we need to provide the modulus by the optional parameter
     sage: HS6a = CohomologyRing(720,763,prime=2)
     sage: HS6a.make()
     sage: print(HS6a)
-    <BLANKLINE>
     Cohomology ring of SmallGroup(720,763) with coefficients in GF(2)
     <BLANKLINE>
     Computation complete
     Minimal list of generators:
     [c_2_1: 2-Cocycle in H^*(SmallGroup(720,763); GF(2)),
      c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-     b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-     b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+     b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+     c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
     Minimal list of algebraic relations:
-    [b_3_2*b_3_3]
-    <BLANKLINE>
+    [b_3_3*c_3_2+c_2_1*c_1_0*b_3_3]
     sage: singular(HS6a)
     polynomial ring, over a field, global ordering
     // coefficients: ZZ/2
     // number of vars : 4
     //        block   1 : ordering M
-    //                  : names    c_2_1 c_1_0 b_3_2 b_3_3
+    //                  : names    c_2_1 c_1_0 b_3_3 c_3_2
     //                  : weights      2     1     3     3
-    //                  : weights     -1    -1     0     0
+    //                  : weights     -1    -1     0    -1
     //                  : weights     -1     0     0     0
-    //                  : weights      0     0    -1     0
+    //                  : weights      0    -1     0     0
     //        block   2 : ordering C
-    // quotient ring from ideal ...
+    // quotient ring from ideal
+    _[1]=b_3_3*c_3_2+c_2_1*c_1_0*b_3_3
 
 ... using a group in the Gap interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -593,9 +592,9 @@ as well::
     sage: HS6a.group()
     Group( [ (1,2), (1,2,3,4,5,6) ] )
     sage: HS6a.subgroup()
-    Group( [ (1,3), (1,4)(2,5)(3,6), (2,5), (1,3)(4,6) ] )
+    Group( [ (1,3)(2,5), (1,2), (4,6), (1,2)(3,5) ] )
     sage: HS6a.sylow_subgroup()
-    Group( [ (1,3), (1,4)(2,5)(3,6), (2,5) ] )
+    Group( [ (1,3)(2,5), (1,2), (4,6) ] )
 
 The dihedral group of order 8 is a subgroup of the symmetric group of
 rank 6. We compute the ring homomorphism that is induced by the
@@ -606,23 +605,23 @@ group homomorphism explicitly::
     sage: phi_star = HS6a.hom(phi,H0)
     sage: [H0.element_as_polynomial(phi_star(x)) for x in HS6a.gens()]
     [1: 0-Cocycle in H^*(D8; GF(2)),
-     b_1_1^2+b_1_0^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
+     b_1_1^2+c_2_2: 2-Cocycle in H^*(D8; GF(2)),
      b_1_0: 1-Cocycle in H^*(D8; GF(2)),
-     c_2_2*b_1_0: 3-Cocycle in H^*(D8; GF(2)),
-     c_2_2*b_1_1: 3-Cocycle in H^*(D8; GF(2))]
+     c_2_2*b_1_1: 3-Cocycle in H^*(D8; GF(2)),
+     0: 3-Cocycle in H^*(D8; GF(2))]
     sage: singular(H0).set_ring()
     sage: singular(phi_star)
-    s...[1]=b_1_1^2+b_1_0^2+c_2_2
+    s...[1]=b_1_1^2+c_2_2
     s...[2]=b_1_0
-    s...[3]=c_2_2*b_1_0
-    s...[4]=c_2_2*b_1_1
+    s...[3]=c_2_2*b_1_1
+    s...[4]=0
 
 Here is the kernel of the induced map::
 
     sage: phi_star.preimage()
-    b_3_2+c_2_1*c_1_0+c_1_0^3,
+    c_3_2,
     c_1_0*b_3_3
-    sage: phi_star(HS6a('b_3_2+c_2_1*c_1_0+c_1_0^3')).as_polynomial()
+    sage: phi_star(HS6a('c_3_2')).as_polynomial()
     '0'
     sage: phi_star(HS6a('c_1_0*b_3_3')).as_polynomial()
     '0'
@@ -2103,7 +2102,7 @@ restriction to the subgroup used in the stable element method::
     sage: g = HU.1; g
     b_2_3: 2-Cocycle in H^*(SmallGroup(384,5602); GF(2))
     sage: g.val_str()
-    'b_1_0^2+b_2_5'
+    'b_1_0^2+b_2_4'
 
 We create the corresponding element of ``HSyl`` and verify that the two induced
 maps involved in the stability conditions evaluate equal on this element::
@@ -2115,7 +2114,7 @@ maps involved in the stability conditions evaluate equal on this element::
 In degree 3, we find the first relation::
 
     sage: HU.find_relations(3)[1]
-    ['b_2_3*b_1_1']
+    ['b_2_3*b_1_0']
 
 The Hilbert\--Poincaré test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2129,22 +2128,22 @@ Let us compute the cohomology ring approximation out to degree six::
     6
 
 Hence, it seems possible that the ring approximation is complete in degree
-six. What parameters do we find?
-::
+six. What parameters do we find? The filter regular ones are rather lengthy,
+we only show one term so that the degrees are visible::
 
     sage: HU.parameters_from_sylow_subgroup()
     sage: HU.filter_regular_parameters()
-    ['b_1_1^2*b_3_1^2+b_1_1^8+b_1_0^4*b_1_1^4+b_1_0^8+b_2_4*b_1_0^3*b_3_0+b_2_4^2*b_1_0^2*b_1_1^2+b_2_4^2*b_1_0^4+b_2_4^4+b_2_3*b_2_4^2*b_1_0^2+b_2_3^4+c_4_15*b_1_1*b_3_1+c_4_15*b_1_0*b_3_0+c_4_15*b_1_0*b_1_1^3+c_4_15*b_1_0^3*b_1_1+c_4_15*b_1_0^4+b_2_4*c_4_15*b_1_1^2+b_2_4*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^2+c_4_15^2',
-     'b_3_9^4+b_3_1^4+b_1_1^6*b_3_1^2+b_1_0^4*b_1_1^8+b_1_0^8*b_1_1^4+b_2_4*b_1_0^2*b_1_1^5*b_3_1+b_2_4*b_1_0^6*b_1_1*b_3_1+b_2_4*b_1_0^7*b_3_0+b_2_4^2*b_1_1^2*b_3_1^2+b_2_4^2*b_1_0^2*b_1_1^6+b_2_4^2*b_1_0^8+b_2_4^4*b_1_1^4+b_2_4^4*b_1_0^2*b_1_1^2+b_2_4^4*b_1_0^4+b_2_3*b_2_4^2*b_1_0^6+b_2_3^2*b_2_4*b_1_0^3*b_3_0+b_2_3^2*b_2_4^2*b_1_0^4+b_2_3^2*b_2_4^4+b_2_3^3*b_2_4^2*b_1_0^2+b_2_3^4*b_1_0^4+c_4_15*b_1_1^2*b_3_1^2+c_4_15*b_1_1^5*b_3_1+c_4_15*b_1_0*b_1_1^4*b_3_1+c_4_15*b_1_0*b_1_1^7+c_4_15*b_1_0^2*b_1_1^6+c_4_15*b_1_0^5*b_3_1+c_4_15*b_1_0^5*b_3_0+c_4_15*b_1_0^6*b_1_1^2+c_4_15*b_1_0^7*b_1_1+c_4_15*b_1_0^8+b_2_4*c_4_15*b_1_1^3*b_3_1+b_2_4*c_4_15*b_1_1^6+b_2_4*c_4_15*b_1_0*b_1_1^5+b_2_4^2*c_4_15*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_4^3*c_4_15*b_1_1^2+b_2_4^3*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^3*b_3_0+b_2_3*c_4_15*b_1_0^6+b_2_3*b_2_4*c_4_15*b_1_0^4+b_2_3^2*c_4_15*b_1_0*b_3_0+b_2_3^2*c_4_15*b_1_0^4+b_2_3^3*c_4_15*b_1_0^2+c_4_15^2*b_1_1*b_3_1+c_4_15^2*b_1_0*b_3_0+c_4_15^2*b_1_0^2*b_1_1^2+b_2_4*c_4_15^2*b_1_0*b_1_1+b_2_4*c_4_15^2*b_1_0^2+b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2',
-     'b_1_1^2*b_3_1^4+b_2_4*b_1_0^2*b_1_1^7*b_3_1+b_2_4*b_1_0^4*b_1_1^5*b_3_1+b_2_4*b_1_0^6*b_1_1^3*b_3_1+b_2_4*b_1_0^8*b_1_1*b_3_1+b_2_4^2*b_1_1^4*b_3_1^2+b_2_4^2*b_1_0^4*b_1_1^6+b_2_4^2*b_1_0^8*b_1_1^2+b_2_4^4*b_1_0^2*b_1_1^4+b_2_4^4*b_1_0^4*b_1_1^2+b_2_3^2*b_2_4*b_1_0^5*b_3_0+b_2_3^2*b_2_4^2*b_1_0^6+b_2_3^2*b_2_4^4*b_1_0^2+b_2_3^3*b_2_4^2*b_1_0^4+c_4_15*b_1_1*b_3_1^3+c_4_15*b_1_1^4*b_3_1^2+c_4_15*b_1_0*b_1_1^6*b_3_1+c_4_15*b_1_0^2*b_1_1^8+c_4_15*b_1_0^3*b_1_1^4*b_3_1+c_4_15*b_1_0^3*b_1_1^7+c_4_15*b_1_0^4*b_1_1^6+c_4_15*b_1_0^5*b_1_1^2*b_3_1+c_4_15*b_1_0^6*b_1_1^4+c_4_15*b_1_0^7*b_3_1+c_4_15*b_1_0^7*b_1_1^3+c_4_15*b_1_0^8*b_1_1^2+b_2_4*c_4_15*b_1_1^5*b_3_1+b_2_4*c_4_15*b_1_0^3*b_1_1^5+b_2_4*c_4_15*b_1_0^7*b_1_1+b_2_4^2*c_4_15*b_1_0*b_1_1^2*b_3_1+b_2_4^2*c_4_15*b_1_0^3*b_3_1+b_2_4^2*c_4_15*b_1_0^3*b_3_0+b_2_4^3*c_4_15*b_1_1^4+b_2_4^3*c_4_15*b_1_0^3*b_1_1+b_2_3*c_4_15*b_1_0^5*b_3_0+b_2_3*b_2_4*c_4_15*b_1_0^6+b_2_3*b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_3^2*c_4_15*b_1_0^6+b_2_3^2*b_2_4*c_4_15*b_1_0^4+b_2_3^3*c_4_15*b_1_0^4+c_4_15^2*b_3_9^2+c_4_15^2*b_3_1^2+c_4_15^2*b_1_1^6+c_4_15^2*b_1_0*b_1_1^2*b_3_1+c_4_15^2*b_1_0*b_1_1^5+c_4_15^2*b_1_0^3*b_3_1+c_4_15^2*b_1_0^3*b_3_0+c_4_15^2*b_1_0^5*b_1_1+c_4_15^2*b_1_0^6+b_2_4*c_4_15^2*b_1_1*b_3_1+b_2_4*c_4_15^2*b_1_1^4+b_2_4*c_4_15^2*b_1_0*b_1_1^3+b_2_4*c_4_15^2*b_1_0^4+b_2_4^2*c_4_15^2*b_1_1^2+b_2_4^2*c_4_15^2*b_1_0*b_1_1+b_2_4^2*c_4_15^2*b_1_0^2+b_2_3*c_4_15^2*b_1_0*b_3_0+b_2_3*c_4_15^2*b_1_0^4+b_2_3*b_2_4*c_4_15^2*b_1_0^2+b_2_3*b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2*b_1_0^2+c_4_15^3*b_1_1^2',
+    ['...b_1_1^8+...',
+     '...b_3_9^4+...',
+     '...b_1_1^2*b_3_1^4+...',
      'b_1_1+b_1_0']
     sage: HU.parameters()
     ['b_1_0^4+b_2_4^2+b_2_3^2+c_4_15',
-     'b_3_9^2+b_3_1^2+b_2_4*b_1_0*b_3_0+b_2_4^3+b_2_3*c_4_15',
+     'b_3_9^2+b_3_0^2+b_2_4*b_1_0*b_3_0+b_2_4^3+b_2_3*c_4_15',
      'b_2_4+b_2_3',
      'b_1_1+b_1_0']
      sage: HU.dependent_parameters()
-     ['b_1_0', 'b_1_1', 'c_4_15', 'b_3_1', 'b_3_9', 'b_2_3', 'b_2_4']
+     ['b_1_0', 'b_1_1', 'c_4_15', 'b_3_0', 'b_3_9', 'b_2_3', 'b_2_4']
 
 Let us determine in what degrees our three completion tests have a theoretical
 chance to apply. We found a filter-regular hsop only in degrees 8, 12, 14 and
@@ -2280,7 +2279,7 @@ to degree four::
 
     sage: H.make(4)
     sage: H.duflot_regular_sequence()
-    ['c_4_3']
+    ['c_4_0']
     sage: H.generator_degbound() # this has no output, but may set some attributes
     sage: print(H.degbound_for_gens)
     None
@@ -2302,30 +2301,30 @@ the image of the current ring approximation. Hence::
     sage: singular.eval('degBound=0')
     ''
     sage: I = HU.relation_ideal()
-    sage: (I + singular.ideal([x.val_str() for x in H.gens()[1:]])).std().kbase()
-    b_2_3*b_3_9,
-    b_3_9,
-    b_2_3*b_1_0^3,
-    b_1_0^3,
-    b_2_3^3*b_1_0^2,
-    b_2_3^2*b_1_0^2,
-    b_2_3*b_1_0^2,
-    b_1_0^2,
-    b_2_3^3*b_1_0,
-    b_2_3^2*b_1_0,
-    b_2_3*b_1_0,
-    b_1_0,
-    c_4_15^2,
-    b_2_3*c_4_15,
-    c_4_15,
-    b_2_3^3,
-    b_2_3^2,
+    sage: (I + singular.ideal([x.val_str() for x in H.gens()[1:]])).std().kbase().sort()[1]
+    1,
+    b_1_1,
     b_2_3,
-    1
+    b_1_1^2,
+    b_2_3*b_1_1,
+    b_1_1^3,
+    b_3_9,
+    c_4_15,
+    b_2_3^2,
+    b_2_3*b_1_1^2,
+    b_2_3^2*b_1_1,
+    b_2_3*b_1_1^3,
+    b_2_3*b_3_9,
+    b_2_3*c_4_15,
+    b_2_3^3,
+    b_2_3^2*b_1_1^2,
+    b_2_3^3*b_1_1,
+    c_4_15^2,
+    b_2_3^3*b_1_1^2
 
-The maximal degree of a module generator is 8 (namely the degree of
-``c_4_15^2``), as we have claimed. By consequence, when we compute degree 8,
-we still compute the stable subspace.
+The maximal degree of a module generator is 8 (which is the degree of the
+last five elements in the above list of monomials), as we have claimed.
+By consequence, when we compute degree 8, we still compute the stable subspace.
 ::
 
     sage: CohomologyRing.global_options('info')
@@ -2401,28 +2400,29 @@ anyway.
     12
 
 It now makes sense to study parameters. We find filter regular parameters in degrees 8, 12, 14 and 6
+(we truncate the output),
 ::
 
     sage: H.filter_regular_parameters()
-    ['b_3_1*b_5_3+b_1_0^2*b_3_0^2+b_1_0^8+b_2_1*b_1_0*b_5_3+b_2_1*b_1_0^3*b_3_1+b_2_1^4+c_4_3*b_1_0*b_3_0+b_2_1*c_4_3*b_1_0^2+c_4_3^2',
-     'b_3_1^4+b_3_0^4+b_1_0*b_3_1^2*b_5_3+b_1_0^3*b_3_1^3+b_1_0^4*b_3_1*b_5_3+b_1_0^6*b_3_0^2+b_6_0*b_3_1^2+b_6_0^2+b_2_1*b_1_0^5*b_5_3+b_2_1*b_1_0^7*b_3_1+b_2_1^2*b_1_0^2*b_3_1^2+b_2_1^2*b_1_0^2*b_3_0^2+b_2_1^3*b_1_0*b_5_3+b_2_1^3*b_1_0^3*b_3_1+b_2_1^3*b_6_0+b_2_1^4*b_1_0^4+c_4_3*b_3_1*b_5_3+c_4_3*b_1_0^2*b_3_1^2+c_4_3*b_1_0^2*b_3_0^2+c_4_3*b_1_0^3*b_5_3+c_4_3*b_1_0^5*b_3_1+c_4_3*b_1_0^5*b_3_0+b_2_1*c_4_3*b_3_1^2+b_2_1*c_4_3*b_1_0*b_5_3+b_2_1*c_4_3*b_1_0^3*b_3_0+b_2_1*c_4_3*b_1_0^6+b_2_1^2*c_4_3*b_1_0*b_3_0+b_2_1^3*c_4_3*b_1_0^2+c_4_3^2*b_1_0*b_3_0+b_2_1^2*c_4_3^2',
-     'b_7_18^2+b_3_1^3*b_5_3+b_1_0^2*b_3_0^4+b_1_0^3*b_3_1^2*b_5_3+b_1_0^5*b_3_1^3+b_6_0*b_3_1*b_5_3+b_2_1*b_1_0*b_3_1^2*b_5_3+b_2_1*b_1_0^3*b_3_1^3+b_2_1*b_6_0*b_3_1^2+b_2_1^2*b_1_0^4*b_3_1^2+b_2_1^2*b_1_0^4*b_3_0^2+b_2_1^3*b_3_1*b_5_3+b_2_1^3*b_1_0^2*b_3_1^2+b_2_1^3*b_1_0^3*b_5_3+b_2_1^3*b_1_0^5*b_3_1+b_2_1^4*b_6_0+c_4_3*b_1_0*b_3_1^3+c_4_3*b_1_0*b_3_0^3+c_4_3*b_1_0^4*b_3_0^2+c_4_3*b_1_0^5*b_5_3+c_4_3*b_1_0^7*b_3_1+b_2_1*c_4_3*b_1_0^3*b_5_3+b_2_1*c_4_3*b_1_0^5*b_3_0+b_2_1^2*c_4_3*b_3_1^2+b_2_1^2*c_4_3*b_1_0*b_5_3+b_2_1^2*c_4_3*b_1_0^3*b_3_1+b_2_1^2*c_4_3*b_6_0+b_2_1^3*c_4_3*b_1_0^4+c_4_3^2*b_3_0^2+c_4_3^2*b_1_0^3*b_3_1+c_4_3^2*b_1_0^6+b_2_1*c_4_3^2*b_1_0*b_3_0+b_2_1*c_4_3^2*b_1_0^4+b_2_1^2*c_4_3^2*b_1_0^2+c_4_3^3*b_1_0^2',
+    ['...b_1_0^8+...',
+     '...b_3_0^4+...',
+     '...b_7_18^2+...',
      'b_1_0^6+b_6_0']
 
 algebraically independent parameters in degrees 4, 6, 7 and 6
 ::
 
     sage: H.parameters()
-    ['b_2_1^2+c_4_3',
-     'b_3_1^2+b_3_0^2+b_2_1*c_4_3',
-     'b_7_18+b_2_1*b_5_3+c_4_3*b_3_0',
+    ['b_2_1^2+c_4_0',
+     'b_3_1^2+b_3_0^2+b_2_1*c_4_0',
+     'b_7_18+b_2_1*b_5_0+c_4_0*b_3_1+c_4_0*b_3_0',
      'b_1_0^6+b_6_0']
 
 and algebraically dependent parameters in degrees 1, 7, 6, 4, 3, 3 and 2.
 ::
 
     sage: H.dependent_parameters()
-    ['b_1_0', 'b_7_18', 'b_6_0', 'c_4_3', 'b_3_0', 'b_3_1', 'b_2_1']
+    ['b_1_0', 'b_7_18', 'b_6_0', 'c_4_0', 'b_3_0', 'b_3_1', 'b_2_1']
 
 Since `7+11+13+5`, `3+5+6+5` and `0+6+5+3+2+2+1` are all greater than the
 current degree of approximation, we can only hope for using an existence proof
@@ -2452,7 +2452,7 @@ hsop::
     sage: H.knownDeg
     20
     sage: H._parameters_for_criterion
-    ['b_1_0', 'b_7_18', 'b_6_0', 'c_4_3', 'b_3_0', 'b_3_1', 'b_2_1']
+    ['b_1_0', 'b_7_18', 'b_6_0', 'c_4_0', 'b_3_0', 'b_3_1', 'b_2_1']
 
 
 References
