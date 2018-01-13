@@ -2116,7 +2116,7 @@ class MODCOCH(RingElement):
           that ``name`` provides a polynomial representation of self as an
           element of ``parent``. Note that a polynomial representation can
           always be computed using :meth:`~pGroupCohomology.modular_cohomology.MODCOHO.element_as_polynomial`.
-        - ``NF`` (optional boolean): If ``True``, the user asserts that
+        - ``is_NF`` (optional boolean): If ``True``, the user asserts that
           ``value`` is a normal form in ``parent._HP`` respectively ``parent``.
 
         TESTS::
@@ -2179,7 +2179,6 @@ class MODCOCH(RingElement):
             self._name = str(value)
         else:
             self._name = name
-##         self._Terminator = MODCOCH_Terminator(singular, self._Svalue.name(), self._SPparent.name())
         self._polyrep = is_polyrep
         self._NF = is_NF
         if br is not None:
@@ -2741,7 +2740,7 @@ class MODCOCH(RingElement):
         singular(self.parent()._HP or self.parent()).set_ring()
         if singular.eval('typeof(%s)'%self.value().name())=='int':
             return singular.eval(self.value().name())
-        if self._NF is not None:
+        if not self._NF:
             singular.eval('%s=NF(%s,std(0))'%(self.value().name(),self.value().name()))
         self._NF = True
         cdef int SizePieces = coho_options.get('SingularCutoff',50)

@@ -920,20 +920,28 @@ class MODCOHO(COHO):
         we have a regular sequence of length three::
 
             sage: X.filter_regular_parameters()
-            ['c_1_0', 'c_2_1', 'b_3_3+b_3_2']
+            ['c_1_0', 'c_2_1', 'b_3_3+c_3_2']
             sage: X.a_invariants()
             [-Infinity, -Infinity, -Infinity, -3]
 
         However, this regular sequence is not Duflot regular,
-        which can be seen when restricting to the first special
+        because the restriction to the first special
         subgroup, which is the greatest central elementary
-        abelian subgroup of the Sylow subgroup::
+        abelian subgroup of the Sylow subgroup, does not form
+        a regular sequence::
 
             sage: r = X.restriction_maps()[1][1]
             sage: r
             Induced homomorphism of degree 0 from H^*(SmallGroup(720,763); GF(2)) to H^*(SmallGroup(4,2); GF(2))
-            sage: [r(X(p)).as_polynomial() for p in X.filter_regular_parameters()]
-            ['c_1_0', 'c_1_1^2+c_1_0^2', '0']
+            sage: rest = [r(X(p)).as_polynomial() for p in X.filter_regular_parameters()]; rest
+            ['c_1_0', 'c_1_1^2', 'c_1_0*c_1_1^2']
+            sage: singular(r.codomain()).set_ring()
+            sage: for i in range(len(rest)):
+            ....:     print(singular.is_regular(rest[i], 'ideal({})'.format(','.join(rest[:i]))))
+            ....:
+            1
+            1
+            0
 
         Often, a Duflot regular sequence can be formed by generators
         of the cohomology ring. Actually, to some extent this is how
@@ -2199,7 +2207,7 @@ class MODCOHO(COHO):
             sage: H.verify_parameters_exist()
             True
             sage: H.dependent_parameters()
-            ['b_1_0', 'c_6_13', 'c_4_5', 'c_2_1']
+            ['b_1_0', 'c_6_12', 'c_4_5', 'c_2_1']
 
 
         But the dependent parameters of the ring approximation are not enough
@@ -2215,20 +2223,20 @@ class MODCOHO(COHO):
             sage: H.find_dickson()
             True
             sage: H.Dickson
-            ['b_1_0^8+c_4_5^2+c_2_1*c_6_12+c_2_1^4',
-             'c_6_12^2+c_4_5^2*b_1_0^4+c_2_1*c_6_12*b_1_0^4+c_2_1*c_4_5*c_6_12+c_2_1^2*c_4_5^2+c_2_1^3*c_6_12+c_2_1^4*b_1_0^4',
-             'c_6_12^2*b_1_0^2+c_2_1*c_6_12^2+c_2_1*c_4_5*c_6_12*b_1_0^2+c_2_1^2*c_4_5*c_6_12+c_2_1^2*c_4_5^2*b_1_0^2+c_2_1^3*c_6_12*b_1_0^2',
+            ['...b_1_0^8+...',
+             '...c_6_11^2+...',
+             '...c_6_11*c_6_12*b_1_0^2+...',
              'b_1_0']
             sage: H.set_ring()
-            sage: singular.ideal(H.Dickson+H.rels()).groebner().dim()
-            1
+            sage: singular.ideal(H.Dickson+H.rels()).groebner().dim() > 0
+            True
 
         we can find smaller elements that are guaranteed to yield parameters
         of the complete cohomology ring, but of course the ring approximation
         is not complete yet::
 
             sage: H.parameters()
-            ['c_2_1', 'c_4_5', 'c_6_13', 'b_1_0']
+            ['c_2_1', 'c_4_5', 'c_6_12', 'b_1_0']
             sage: H.test_for_completion()
             False
 
@@ -2241,9 +2249,9 @@ class MODCOHO(COHO):
             sage: H.last_interesting_degree()
             12
             sage: H.rels()[-1]
-            'c_6_13^2+c_6_12*c_6_13+c_6_12^2+c_4_5^2*b_1_0*a_3_4+c_2_1*c_6_12*b_1_0*a_3_3+c_2_1*c_4_5*a_3_3*a_3_4+c_4_5^3+c_2_1*c_4_5*c_6_13+c_2_1^2*c_4_5*b_1_0*a_3_3+c_2_1^3*a_3_3*a_3_4+c_2_1^3*c_6_12+c_2_1^4*b_1_0*a_3_4'
+            '...c_6_12^2+...'
             sage: H.parameters()
-            ['c_2_1', 'c_4_5', 'c_6_13', 'b_1_0']
+            ['c_2_1', 'c_4_5', 'c_6_12', 'b_1_0']
             sage: H.set_ring()
             sage: singular.ideal(H.Dickson+H.rels()).groebner().dim()
             0
@@ -2382,7 +2390,7 @@ class MODCOHO(COHO):
             sage: H.make(6)
             sage: H.parameters()
             ['b_1_0^4+b_2_4^2+b_2_3^2+c_4_15',
-             'b_3_9^2+b_3_1^2+b_2_4*b_1_0*b_3_0+b_2_4^3+b_2_3*c_4_15',
+             'b_3_9^2+b_3_0^2+b_2_4*b_1_0*b_3_0+b_2_4^3+b_2_3*c_4_15',
              'b_2_4+b_2_3',
              'b_1_1+b_1_0']
 
@@ -2571,9 +2579,9 @@ class MODCOHO(COHO):
             sage: H.find_dickson()
             True
             sage: H.filter_regular_parameters()
-            ['b_1_1^2*b_3_1^2+b_1_1^8+b_1_0^2*b_3_0*b_3_1+b_1_0^2*b_3_0^2+b_1_0^4*b_1_1^4+b_1_0^8+b_2_4*b_1_0^3*b_3_1+b_2_4^2*b_1_0^2*b_1_1^2+b_2_4^2*b_1_0^4+b_2_4^4+b_2_3^4+c_4_15*b_1_1*b_3_1+c_4_15*b_1_0*b_3_0+c_4_15*b_1_0*b_1_1^3+b_2_4*c_4_15*b_1_1^2+b_2_4*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^2+c_4_15^2',
-             'b_3_9^4+b_3_1^4+b_3_0^4+b_1_1^6*b_3_1^2+b_1_0^2*b_1_1^4*b_3_1^2+b_1_0^3*b_3_0^2*b_3_1+b_1_0^4*b_1_1^8+b_1_0^6*b_3_1^2+b_1_0^6*b_3_0*b_3_1+b_1_0^6*b_3_0^2+b_1_0^8*b_1_1^4+b_2_4*b_1_0^4*b_3_0*b_3_1+b_2_4*b_1_0^7*b_3_1+b_2_4^2*b_1_1^2*b_3_1^2+b_2_4^2*b_1_0^2*b_3_0^2+b_2_4^2*b_1_0^2*b_1_1^6+b_2_4^2*b_1_0^8+b_2_4^4*b_1_1^4+b_2_4^4*b_1_0^2*b_1_1^2+b_2_4^4*b_1_0^4+b_2_3*b_1_0^4*b_3_0^2+b_2_3*b_2_4*b_1_0^5*b_3_0+b_2_3^2*b_1_0^2*b_3_0^2+b_2_3^4*b_1_0^4+c_4_15*b_1_1^2*b_3_1^2+c_4_15*b_1_1^5*b_3_1+c_4_15*b_1_0*b_1_1^4*b_3_1+c_4_15*b_1_0*b_1_1^7+c_4_15*b_1_0^2*b_3_1^2+c_4_15*b_1_0^5*b_3_0+b_2_4*c_4_15*b_1_1^3*b_3_1+b_2_4*c_4_15*b_1_1^6+b_2_4*c_4_15*b_1_0*b_1_1^5+b_2_4*c_4_15*b_1_0^2*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_4^3*c_4_15*b_1_1^2+b_2_4^3*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^3*b_3_0+b_2_3*b_2_4*c_4_15*b_1_0^4+b_2_3^2*c_4_15*b_1_0*b_3_0+b_2_3^3*c_4_15*b_1_0^2+c_4_15^2*b_1_1*b_3_1+c_4_15^2*b_1_0*b_3_0+c_4_15^2*b_1_0^4+b_2_4*c_4_15^2*b_1_0*b_1_1+b_2_4*c_4_15^2*b_1_0^2+b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2',
-             'b_1_1^2*b_3_1^4+b_1_0^2*b_3_0^3*b_3_1+b_1_0^2*b_3_0^4+b_1_0^2*b_1_1^6*b_3_1^2+b_1_0^3*b_1_1^2*b_3_1^3+b_1_0^3*b_1_1^5*b_3_1^2+b_1_0^4*b_1_1^4*b_3_1^2+b_1_0^5*b_3_1^3+b_1_0^5*b_3_0^2*b_3_1+b_1_0^6*b_1_1^2*b_3_1^2+b_1_0^7*b_1_1*b_3_1^2+b_1_0^8*b_3_1^2+b_2_4*b_1_0^3*b_1_1^6*b_3_1+b_2_4*b_1_0^5*b_1_1*b_3_1^2+b_2_4*b_1_0^7*b_1_1^2*b_3_1+b_2_4^2*b_1_1^4*b_3_1^2+b_2_4^2*b_1_0*b_3_0^2*b_3_1+b_2_4^2*b_1_0^3*b_1_1^4*b_3_1+b_2_4^2*b_1_0^4*b_3_0*b_3_1+b_2_4^2*b_1_0^4*b_3_0^2+b_2_4^2*b_1_0^4*b_1_1^6+b_2_4^2*b_1_0^7*b_3_1+b_2_4^2*b_1_0^8*b_1_1^2+b_2_4^4*b_1_0^2*b_1_1^4+b_2_4^4*b_1_0^3*b_3_1+b_2_4^4*b_1_0^4*b_1_1^2+b_2_3*b_1_0^6*b_3_0^2+b_2_3*b_2_4*b_1_0^7*b_3_0+b_2_3^2*b_1_0^4*b_3_0^2+c_4_15*b_1_1*b_3_1^3+c_4_15*b_1_1^4*b_3_1^2+c_4_15*b_1_0*b_3_0^2*b_3_1+c_4_15*b_1_0*b_3_0^3+c_4_15*b_1_0*b_1_1^3*b_3_1^2+c_4_15*b_1_0*b_1_1^6*b_3_1+b_2_4*c_4_15*b_1_1^5*b_3_1+b_2_4*c_4_15*b_1_0*b_1_1*b_3_1^2+b_2_4*c_4_15*b_1_0*b_1_1^4*b_3_1+b_2_4*c_4_15*b_1_0^2*b_3_0*b_3_1+b_2_4*c_4_15*b_1_0^2*b_3_0^2+b_2_4^2*c_4_15*b_1_0^3*b_3_0+b_2_4^3*c_4_15*b_1_1^4+b_2_3*c_4_15*b_1_0^5*b_3_0+b_2_3*c_4_15*b_1_0^8+b_2_3*b_2_4*c_4_15*b_1_0^6+b_2_3^2*b_2_4*c_4_15*b_1_0^4+b_2_3^3*c_4_15*b_1_0^4+c_4_15^2*b_3_9^2+c_4_15^2*b_3_1^2+c_4_15^2*b_3_0^2+c_4_15^2*b_1_1^6+c_4_15^2*b_1_0*b_1_1^2*b_3_1+b_2_4*c_4_15^2*b_1_1*b_3_1+b_2_4*c_4_15^2*b_1_1^4+b_2_4*c_4_15^2*b_1_0*b_3_0+b_2_4*c_4_15^2*b_1_0^4+b_2_4^2*c_4_15^2*b_1_1^2+b_2_4^2*c_4_15^2*b_1_0*b_1_1+b_2_4^2*c_4_15^2*b_1_0^2+b_2_3*c_4_15^2*b_1_0*b_3_0+b_2_3*c_4_15^2*b_1_0^4+b_2_3*b_2_4*c_4_15^2*b_1_0^2+b_2_3^2*c_4_15^2*b_1_0^2+c_4_15^3*b_1_1^2+c_4_15^3*b_1_0^2',
+            ['...b_1_1^8+...',
+             '...b_3_9^4+...',
+             '...b_1_0^8*b_3_1^2+...',
              'b_1_1+b_1_0']
 
         So, they live in degrees 4, 12, 14 and 1. We find algebraically independent
@@ -2582,7 +2590,7 @@ class MODCOHO(COHO):
 
             sage: H.parameters()
             ['b_1_0^4+b_2_4^2+b_2_3^2+c_4_15',
-             'b_3_9^4+b_3_1^4+b_3_0^4+b_1_1^6*b_3_1^2+b_1_0^2*b_1_1^4*b_3_1^2+b_1_0^3*b_3_0^2*b_3_1+b_1_0^4*b_1_1^8+b_1_0^6*b_3_1^2+b_1_0^6*b_3_0*b_3_1+b_1_0^6*b_3_0^2+b_1_0^8*b_1_1^4+b_2_4*b_1_0^4*b_3_0*b_3_1+b_2_4*b_1_0^7*b_3_1+b_2_4^2*b_1_1^2*b_3_1^2+b_2_4^2*b_1_0^2*b_3_0^2+b_2_4^2*b_1_0^2*b_1_1^6+b_2_4^2*b_1_0^8+b_2_4^4*b_1_1^4+b_2_4^4*b_1_0^2*b_1_1^2+b_2_4^4*b_1_0^4+b_2_3*b_1_0^4*b_3_0^2+b_2_3*b_2_4*b_1_0^5*b_3_0+b_2_3^2*b_1_0^2*b_3_0^2+b_2_3^4*b_1_0^4+c_4_15*b_1_1^2*b_3_1^2+c_4_15*b_1_1^5*b_3_1+c_4_15*b_1_0*b_1_1^4*b_3_1+c_4_15*b_1_0*b_1_1^7+c_4_15*b_1_0^2*b_3_1^2+c_4_15*b_1_0^5*b_3_0+b_2_4*c_4_15*b_1_1^3*b_3_1+b_2_4*c_4_15*b_1_1^6+b_2_4*c_4_15*b_1_0*b_1_1^5+b_2_4*c_4_15*b_1_0^2*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_4^3*c_4_15*b_1_1^2+b_2_4^3*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^3*b_3_0+b_2_3*b_2_4*c_4_15*b_1_0^4+b_2_3^2*c_4_15*b_1_0*b_3_0+b_2_3^3*c_4_15*b_1_0^2+c_4_15^2*b_1_1*b_3_1+c_4_15^2*b_1_0*b_3_0+c_4_15^2*b_1_0^4+b_2_4*c_4_15^2*b_1_0*b_1_1+b_2_4*c_4_15^2*b_1_0^2+b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2',
+             '...b_3_9^4+...',
              'b_2_4+b_2_3',
              'b_1_1+b_1_0']
 
@@ -2609,7 +2617,7 @@ class MODCOHO(COHO):
         algebraically dependent parameters in relatively small degrees::
 
             sage: H.dependent_parameters()
-            ['b_1_0', 'b_1_1', 'c_4_15', 'b_3_1', 'b_3_9', 'b_2_3', 'b_2_4']
+            ['b_1_0', 'b_1_1', 'c_4_15', 'b_3_0', 'b_3_9', 'b_2_3', 'b_2_4']
 
 
         With these parameters, the Symonds criterion (see :meth:`SymondsTest`)
@@ -2792,6 +2800,11 @@ class MODCOHO(COHO):
             H^*(SmallGroup(9,2); GF(3)):
                       Compute nil_radical
             Resolution of GF(3)[SmallGroup(9,2)]:
+                      Compose chain maps R_3 -> R_2 -> R_0
+                      Compose chain maps R_4 -> R_3 -> R_1
+                      Compose chain maps R_3 -> R_2 -> R_0
+                      Compose chain maps R_4 -> R_3 -> R_1
+                      Compose chain maps R_2 -> R_1 -> R_0
                       Compose chain maps R_2 -> R_1 -> R_0
             H^*(SmallGroup(9,2); GF(3)):
                       Compute order_matrix
@@ -2804,6 +2817,14 @@ class MODCOHO(COHO):
             H^*(SmallGroup(27,5); GF(3)):
                       Compute nil_radical
             Resolution of GF(3)[SmallGroup(27,5)]:
+                      Compose chain maps R_3 -> R_2 -> R_0
+                      Compose chain maps R_4 -> R_3 -> R_1
+                      Compose chain maps R_3 -> R_2 -> R_0
+                      Compose chain maps R_4 -> R_3 -> R_1
+                      Compose chain maps R_3 -> R_2 -> R_0
+                      Compose chain maps R_4 -> R_3 -> R_1
+                      Compose chain maps R_2 -> R_1 -> R_0
+                      Compose chain maps R_2 -> R_1 -> R_0
                       Compose chain maps R_2 -> R_1 -> R_0
             H^*(SmallGroup(27,5); GF(3)):
                       Compute order_matrix
@@ -2963,7 +2984,7 @@ class MODCOHO(COHO):
 
             sage: H.make(3)
             sage: H.find_relations(6, rank=10)
-            (None, ['b_3_2*b_3_3'])
+            (None, ['b_3_3*c_3_2+c_2_1*c_1_0*b_3_3'])
 
         The ideal in the Singular session is updated, but the list of relations isn't::
 
@@ -2971,23 +2992,23 @@ class MODCOHO(COHO):
             []
             sage: H.set_ring()
             sage: H.relation_ideal()
-            b_3_2*b_3_3
+            b_3_3*c_3_2+c_2_1*c_1_0*b_3_3
 
         Therefore, when we now repeat the quest for relations, we don't
         find any. However, this method can still be used for getting
         the decomposable subspace, by dropping the optional parameter::
 
             sage: H.find_relations(6)
-            ([b_3_2^2+c_2_1*c_1_0*b_3_2+c_1_0^3*b_3_2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_3^2+c_2_1*c_1_0*b_3_3: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+            ([c_1_0^3*b_3_3: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              c_3_2^2+c_2_1*c_1_0*c_3_2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
               b_3_3^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_3^2+c_1_0^3*b_3_2+c_2_1^3+c_2_1^2*c_1_0^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_2^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_3^2+c_2_1*c_1_0*b_3_3+c_2_1*c_1_0*b_3_2+c_1_0^3*b_3_3+c_1_0^3*b_3_2+c_2_1^3+c_2_1*c_1_0^4: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_3^2+c_2_1*c_1_0*b_3_3+c_1_0^3*b_3_3: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_3^2+b_3_2^2+c_2_1*c_1_0*b_3_2+c_1_0^3*b_3_2+c_2_1^3+c_2_1^2*c_1_0^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_3^2+c_2_1^2*c_1_0^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-              b_3_2^2+c_2_1*c_1_0*b_3_3+c_2_1*c_1_0*b_3_2+c_1_0^3*b_3_3+c_1_0^3*b_3_2+c_2_1^3+c_2_1^2*c_1_0^2+c_2_1*c_1_0^4+c_1_0^6: 6-Cocycle in H^*(SmallGroup(720,763); GF(2))],
+              c_2_1*c_1_0*b_3_3: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              c_3_2^2+c_2_1*c_1_0*c_3_2+c_1_0^3*c_3_2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              c_3_2^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              c_3_2^2+c_2_1^2*c_1_0^2: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              c_2_1*c_1_0^4: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              b_3_3^2+c_3_2^2+c_2_1*c_1_0*c_3_2+c_2_1^3: 6-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+              c_3_2^2+c_2_1^2*c_1_0^2+c_1_0^6: 6-Cocycle in H^*(SmallGroup(720,763); GF(2))],
              [])
 
         """
@@ -3153,14 +3174,14 @@ class MODCOHO(COHO):
 
             sage: sorted(H.decomposable_classes(3,forced=True))
             [b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3+b_3_2+c_2_1*c_1_0+c_1_0^3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+             c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2+c_2_1*c_1_0+c_1_0^3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
             sage: sorted(H.decomposable_classes(3))
             [b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3+b_3_2+c_2_1*c_1_0+c_1_0^3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+             c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2+c_2_1*c_1_0+c_1_0^3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
 
         """
         if self.knownDeg<n and (not self.completed):
@@ -3197,6 +3218,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
+            sage: CohomologyRing.reset()
             sage: CohomologyRing.set_user_db(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M12', from_scratch=True)
@@ -3206,11 +3228,9 @@ class MODCOHO(COHO):
 
         We first consider elements of ``HS`` and ``HU`` that are stable::
 
-            sage: cS = HS('b_1_2^6+b_1_1^2*b_1_2^4+b_1_1^6+b_2_4^2*b_1_1*b_1_2+b_2_4^3')
-            sage: H.stable_to_polynomial(cS)
+            sage: H.stable_to_polynomial(HS('b_1_1^6+b_2_4^2*b_1_1*b_1_2+b_2_4^2*b_1_1^2+b_2_4^3'))
             b_3_0*b_3_1+b_2_0^3: 6-Cocycle in H^*(M12; GF(2))
-            sage: cU = HU('b_2_0*b_2_2*b_3_4+c_4_6*b_3_1')
-            sage: H.stable_to_polynomial(cU)
+            sage: H.stable_to_polynomial(HU('b_2_0^2*b_3_2+c_4_6*b_3_2'))
             c_4_0*b_3_1: 7-Cocycle in H^*(M12; GF(2))
 
         An element of ``H`` is simply expressed as a polynomial, changing
@@ -3221,24 +3241,39 @@ class MODCOHO(COHO):
             sage: cG
             foobar: 6-Cocycle in H^*(M12; GF(2))
             sage: H.stable_to_polynomial(cG)
-            b_3_0*b_3_1+b_6_3+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
+            b_3_0*b_3_1+b_6_5+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
             sage: cG
-            b_3_0*b_3_1+b_6_3+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
+            b_3_0*b_3_1+b_6_5+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
 
         By default, it is tested whether the input is stable. If it isn't,
         it is stated in the log, and ``None`` is returned.
         ::
 
             sage: cS2 = HS('b_2_4^2*b_1_1*b_1_2+b_2_4^2*b_2_5+b_2_4^3+c_4_14*b_1_2^2')
-            sage: CohomologyRing.global_options('info')
+            sage: CohomologyRing.global_options('debug')
             sage: print(H.stable_to_polynomial(cS2))
+            H^*(M12; GF(2)):
+                      Try to express a supposedly stable element of H^*(Syl2(M12); GF(2)) as a polynomial
+            H^*(SmallGroup(192,1494); GF(2)):
+                      Try to express a supposedly stable element of H^*(Syl2(M12); GF(2)) as a polynomial
+                      Stability condition #0 is violated
             None
             sage: CohomologyRing.global_options('warn')
             sage: cS3 = HS('c_4_14*b_1_0')
+            sage: CohomologyRing.global_options('debug')
             sage: print(H.stable_to_polynomial(cS3))
+            H^*(M12; GF(2)):
+                      Try to express a supposedly stable element of H^*(Syl2(M12); GF(2)) as a polynomial
+            H^*(SmallGroup(192,1494); GF(2)):
+                      Try to express a supposedly stable element of H^*(Syl2(M12); GF(2)) as a polynomial
+                      Input is indeed stable in this ring...
+            H^*(M12; GF(2)):
+                      Stability condition #0 is violated
             None
+            sage: CohomologyRing.global_options('warn')
 
-        According to the log, ``cS3`` can be expressed in ``HU``, and indeed::
+        According to the log, ``cS3`` can be expressed in ``HU`` (not in ``H``,
+        however), and indeed::
 
             sage: HU.stable_to_polynomial(cS3)
             c_4_6*b_1_0: 5-Cocycle in H^*(SmallGroup(192,1494); GF(2))
@@ -3250,7 +3285,6 @@ class MODCOHO(COHO):
 
             sage: HU.stable_to_polynomial(cS3, verify=False)
             c_4_6*b_1_0: 5-Cocycle in H^*(SmallGroup(192,1494); GF(2))
-            sage: CohomologyRing.global_options('warn')
             sage: H.stable_to_polynomial(cS3, verify=False)
             Traceback (most recent call last):
             ...
@@ -3288,7 +3322,7 @@ class MODCOHO(COHO):
             coho_logger.debug( "Input is indeed stable in this ring", self)
         from pGroupCohomology.cochain import MODCOCH
         singular(self._HP).set_ring()
-        s = repr(singular(c))
+        s = singular.eval('NF({},std(0))'.format(singular(c).name()))
         c2 = MODCOCH(self,s,deg=c.deg(), name='tmpcycle',S=singular,rdeg=c.rdeg(),ydeg=c.ydeg(),is_NF=True)
         if br is not None:
             br.set_ring()
@@ -3324,9 +3358,9 @@ class MODCOHO(COHO):
             sage: c
             foobar: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
             sage: H.element_as_polynomial(c)
-            b_3_3+b_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            b_3_3+c_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
             sage: c
-            b_3_3+b_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            b_3_3+c_3_2+c_2_1*c_1_0: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
         from pGroupCohomology.cochain import MODCOCH
@@ -3393,7 +3427,7 @@ class MODCOHO(COHO):
             sage: D
             D: 4-Cocycle in H^*(SmallGroup(8,5); GF(2))
             sage: H.PrescribedRestrictions([[2,D],[3,D]])
-            (c_1_0)*(b_3_3)+((c_1_0)*(b_3_2))+((c_2_1)^2)+((c_2_1)*((c_1_0)^2))+((c_1_0)^4): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
+            (c_1_0)*(b_3_3)+((c_1_0)*(c_3_2))+((c_2_1)^2)+((c_1_0)^4): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
         if not self.Gen:
@@ -3660,8 +3694,8 @@ class MODCOHO(COHO):
             Minimal list of generators:
             [c_2_1: 2-Cocycle in H^*(SmallGroup(720,763); GF(2)),
              c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-             b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+             b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+             c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
             Minimal list of algebraic relations:
             []
 
@@ -4202,73 +4236,72 @@ class MODCOHO(COHO):
             sage: H.knownDeg
             19
             sage: print(H)
-            <BLANKLINE>
             Cohomology ring of SmallGroup(1620,244) with coefficients in GF(3)
             <BLANKLINE>
             Computation complete
             Minimal list of generators:
             [a_2_1: 2-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
              b_2_0: 2-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             c_4_4: 4-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
+             c_4_3: 4-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
              a_6_1: 6-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             c_8_6: 8-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             c_12_6: 12-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
+             c_8_4: 8-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
+             c_12_11: 12-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
              a_1_0: 1-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
              a_3_0: 3-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             a_3_3: 3-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
+             a_3_1: 3-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
              a_3_4: 3-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             a_7_2: 7-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             a_7_3: 7-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
+             a_7_0: 7-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
              a_7_4: 7-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
-             a_11_2: 11-Cocycle in H^*(SmallGroup(1620,244); GF(3))]
+             a_7_5: 7-Cocycle in H^*(SmallGroup(1620,244); GF(3)),
+             a_11_4: 11-Cocycle in H^*(SmallGroup(1620,244); GF(3))]
             Minimal list of algebraic relations:
             [a_2_1^2,
              a_2_1*b_2_0,
              a_2_1*a_3_0,
-             a_2_1*a_3_3,
+             a_2_1*a_3_1,
              a_2_1*a_3_4,
              b_2_0*a_3_0,
              b_2_0*a_3_4,
              a_3_0*a_3_4,
-             a_3_3*a_3_4+a_2_1*c_4_4,
+             a_3_1*a_3_4-a_2_1*c_4_3,
              a_2_1*a_6_1,
-             a_2_1*a_7_2,
-             a_2_1*a_7_3,
+             a_2_1*a_7_0,
              a_2_1*a_7_4,
+             a_2_1*a_7_5,
              a_6_1*a_3_0,
-             a_6_1*a_3_3,
+             a_6_1*a_3_1+b_2_0*a_6_1*a_1_0,
              a_6_1*a_3_4,
-             b_2_0*a_7_3,
-             a_3_0*a_7_3,
-             a_3_0*a_7_4,
-             a_3_3*a_7_2,
-             a_3_3*a_7_3+a_2_1*c_8_6,
-             a_3_3*a_7_4-c_4_4*a_6_1,
-             a_3_4*a_7_2-a_2_1*c_8_6,
-             a_3_4*a_7_3,
-             a_3_4*a_7_4,
-             c_8_6*a_3_3-c_4_4*a_7_2,
-             c_8_6*a_3_4-c_4_4*a_7_3,
+             b_2_0*a_7_5,
+             a_3_0*a_7_0,
+             a_3_0*a_7_5,
+             a_3_1*a_7_4+b_2_0*a_1_0*a_7_4,
+             a_3_1*a_7_5+a_2_1*c_8_4,
+             a_3_4*a_7_0,
+             a_3_4*a_7_4-a_2_1*c_8_4,
+             a_3_4*a_7_5,
+             b_2_0^2*a_6_1-a_3_1*a_7_0-b_2_0*a_1_0*a_7_0-c_4_3*a_6_1,
+             c_8_4*a_3_4+c_4_3*a_7_5,
+             b_2_0^2*a_7_4-c_8_4*a_3_1-c_4_3*a_7_4-b_2_0*c_8_4*a_1_0,
              a_6_1^2,
-             a_2_1*a_11_2,
-             a_6_1*a_7_2,
-             a_6_1*a_7_3,
+             a_2_1*a_11_4,
+             a_6_1*a_7_0,
              a_6_1*a_7_4,
-             a_3_0*a_11_2,
-             a_3_3*a_11_2-a_6_1*c_8_6,
-             a_3_4*a_11_2,
-             a_7_2*a_7_3+a_2_1*c_12_6,
-             a_7_2*a_7_4-a_6_1*c_8_6,
-             a_7_3*a_7_4,
-             c_8_6*a_7_4-c_4_4*a_11_2,
-             c_12_6*a_3_3-c_8_6*a_7_2,
-             c_12_6*a_3_4-c_8_6*a_7_3,
-             c_8_6^2-c_4_4*c_12_6,
-             a_6_1*a_11_2,
-             a_7_2*a_11_2-a_6_1*c_12_6,
-             a_7_3*a_11_2,
-             a_7_4*a_11_2,
-             c_12_6*a_7_4-c_8_6*a_11_2]
+             a_6_1*a_7_5,
+             a_3_0*a_11_4,
+             a_3_1*a_11_4+b_2_0*a_1_0*a_11_4-a_6_1*c_8_4,
+             a_3_4*a_11_4,
+             a_7_0*a_7_4+a_6_1*c_8_4,
+             a_7_0*a_7_5,
+             a_7_4*a_7_5+a_2_1*c_12_11,
+             c_12_11*a_3_1-c_8_4*a_7_4+b_2_0*c_12_11*a_1_0,
+             c_12_11*a_3_4-c_8_4*a_7_5,
+             b_2_0^2*a_11_4-c_8_4*a_7_0-c_4_3*a_11_4,
+             b_2_0^2*c_12_11-c_8_4^2-c_4_3*c_12_11,
+             a_6_1*a_11_4,
+             a_7_0*a_11_4,
+             a_7_4*a_11_4-a_6_1*c_12_11,
+             a_7_5*a_11_4,
+             c_12_11*a_7_0-c_8_4*a_11_4]
 
         """
         if max_deg == 0:
@@ -4389,8 +4422,8 @@ def COHO_from_key(key):
         Minimal list of generators:
         [c_2_1: 2-Cocycle in H^*(SmallGroup(720,763); GF(2)),
          c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-         b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-         b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+         b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+         c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
         Minimal list of algebraic relations:
         []
         sage: print(COHO_from_key(H._key))
@@ -4400,10 +4433,10 @@ def COHO_from_key(key):
         Minimal list of generators:
         [c_2_1: 2-Cocycle in H^*(SmallGroup(720,763); GF(2)),
          c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-         b_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
-         b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
+         b_3_3: 3-Cocycle in H^*(SmallGroup(720,763); GF(2)),
+         c_3_2: 3-Cocycle in H^*(SmallGroup(720,763); GF(2))]
         Minimal list of algebraic relations:
-        [b_3_2*b_3_3]
+        [b_3_3*c_3_2+c_2_1*c_1_0*b_3_3]
 
     """
     from pGroupCohomology import CohomologyRing
