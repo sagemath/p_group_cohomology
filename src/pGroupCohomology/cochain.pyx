@@ -2220,8 +2220,8 @@ class MODCOCH(RingElement):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.reset()
+            sage: CohomologyRing.set_user_db(tmp_dir())
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: print(H)
@@ -2240,7 +2240,7 @@ class MODCOCH(RingElement):
         Apparently, adding the relation must not change the value
         of a cohomology element::
 
-            sage: H.1**2*H.2**2+H(H.rel(0))==H.1**2*H.2**2
+            sage: H.1^2*H.2^2+H(H.rel(0))==H.1^2*H.2^2
             True
 
         A zero-valued element of degree 6 is greater than a non-zero
@@ -2251,27 +2251,19 @@ class MODCOCH(RingElement):
             sage: H.1*H.2**2 < H(H.rel(0))
             True
 
-        Before comparing, the two elements are turned into normal form::
+        Before comparing, the two elements are turned into normal form.
+        Thus, it is possible that before comparison the two elements,
+        represented as polynomials in the cohomology ring of the underlying
+        subgroup, look different::
 
-            sage: c = H.1^3+H.3*H.4
-            sage: cNF = copy(c)._NF_()
-
-        We show that the two elements, represented as polynomials
-        in the cohomology of the underlying subgroup, look different::
-
-            sage: singular(H.subgroup_cohomology()).set_ring()
-            sage: c.value()
-            b_1_0^6+b_1_0^4*b_1_1*c_1_2+c_2_5*b_1_0^4+b_1_0^2*b_1_1^2*c_1_2^2+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0^2+b_1_1^3*c_1_2^3+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5^3
-            sage: cNF.value()
-            b_1_0^6+c_2_5*b_1_0^4+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0^2+b_1_1^3*c_1_2^3+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5^3
-
-        However, the two polynomials represent the same stable cocycle.
-        And indeed, after comparison, both are in normal form::
-
-            sage: c == cNF   # indirect doctest
+            sage: c = H.1^3+H.4^2
+            sage: singular(c.parent()._HP).set_ring()
+            sage: c.value() == (H.1^3+H.4^2)._NF_().value()
+            False
+            sage: c == (H.1^3+H.4^2)._NF_()
             True
-            sage: c.value()
-            b_1_0^6+c_2_5*b_1_0^4+c_2_5*b_1_0^3*c_1_2+c_2_5^2*b_1_0^2+b_1_1^3*c_1_2^3+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5^3
+            sage: c.value() == (H.1^3+H.4^2)._NF_().value()
+            True
 
         """
         assert isinstance(C,COCH) or isinstance(C,MODCOCH)
@@ -2378,16 +2370,7 @@ class MODCOCH(RingElement):
             c_2_5*b_1_0^3*c_1_2+c_2_5*b_1_1^2*c_1_2^2+c_2_5^2*b_1_1*c_1_2+c_2_5^2*b_1_0*c_1_2+c_2_5*b_1_1*c_1_2^3
 
         Note that, when printing the value that the element takes in a subgroup,
-        it is not necessarily in normal form::
-
-            sage: print(H.2*H.4)
-            (c_1_0)*(c_3_2): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
-            defined by
-            b_1_0^2*b_1_1*c_1_2+b_1_0^2*c_1_2^2+c_2_5*b_1_1*c_1_2+c_2_5*c_1_2^2
-            sage: print((H.2*H.4)._NF_())
-            (c_1_0)*(c_3_2): 4-Cocycle in H^*(SmallGroup(720,763); GF(2))
-            defined by
-            b_1_0^2*c_1_2^2+c_2_5*b_1_1*c_1_2+c_2_5*c_1_2^2
+        it is not necessarily in normal form.
 
         """
         return repr(self)+'\ndefined by\n'+self.val_str()
@@ -2425,11 +2408,12 @@ class MODCOCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
-            sage: latex((H.1*H.2)^2+H.3*H.4) # indirect doctest
-            c_{3,2} b_{3,3}+c_{2,1}^{2} c_{1,0}^{2}
+            sage: latex((H.1*H.2*H.3+H.3*H.4)) # indirect doctest
+            b_{3,3} c_{3,2}+c_{2,1} c_{1,0} b_{3,3}
 
         """
         if self._latex is not None:
@@ -2693,24 +2677,22 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: singular(H.subgroup_cohomology()).set_ring()
-            sage: (H.1*H.2+H.4).value()
-            b_1_0^2*b_1_1+b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2
-            sage: (H.1*H.2+H.4)._NF_().value()
-            b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2
+            sage: (H.1*H.2+H.3)._NF_().value()
+            b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2
 
         Note that if Singular crashed, it is attempted to reconstructed the value.
         However, this is only possible if :meth:`val_str` was called before.
         ::
 
-            sage: c = (H.1*H.2+H.4)._NF_()
+            sage: c = (H.1*H.2+H.3)._NF_()
             sage: c.val_str()
-            'b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2'
+            'b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2'
             sage: singular.quit()
             sage: CohomologyRing.global_options('info')
             sage: c.value()
             H^*(D8xC2; GF(2)):
                       Reconstructing data in the Singular interface
-            b_1_1^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2
+            b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2
             sage: CohomologyRing.global_options('warn')
 
         """
@@ -2743,10 +2725,8 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
-            sage: (H.1*H.2).val_str()
-            'b_1_0^2*b_1_1+b_1_0^3+b_1_0*b_1_1*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3'
             sage: (H.1*H.2)._NF_().val_str()
-            'b_1_0^3+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2+c_1_2^3'
+            'b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+b_1_1*c_1_2^2+c_2_5*c_1_2'
             sage: H.one().val_str()
             '1'
 
@@ -3376,14 +3356,14 @@ class MODCOCH(RingElement):
 
             sage: H = CohomologyRing(1620, 23, prime=3)
             sage: H.make()
-            sage: H.3.is_nilpotent()
+            sage: for g in H.Gen:
+            ....:     if g.nilpotency_degree() == 3:
+            ....:         break
+            ....:
+            sage: bool(g^2)
             True
-            sage: bool(H.3^2)
-            True
-            sage: bool(H.3^3)
+            sage: bool(g^3)
             False
-            sage: H.3.nilpotency_degree()
-            3
             sage: H.2.is_nilpotent()
             False
             sage: H.2.nilpotency_degree()
@@ -3471,6 +3451,7 @@ class MODCOCH(RingElement):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
@@ -3500,8 +3481,6 @@ class MODCOCH(RingElement):
         with extreme care.
         ::
 
-            sage: c.value()
-            c.value()
             sage: c == H.1*H.2
             False
 
@@ -5322,26 +5301,19 @@ cdef class ChMap(RingHomomorphism):
         sage: singular(H2).set_ring()
         sage: I = singular.ideal(['c_2_2^50','b_1_0^50','b_1_1^50'])
         sage: singular(H1).set_ring()
-        sage: S_phi_star(I)
-        b_1_0^100+c_2_2^2*b_1_0^96+c_2_2^16*b_1_0^68+c_2_2^18*b_1_0^64+c_2_2^32*b_1_0^36+c_2_2^34*b_1_0^32+c_2_2^48*b_1_0^4+c_2_2^50,
-        b_1_1^50+b_1_0^2*b_1_1^48+b_1_0^16*b_1_1^34+b_1_0^18*b_1_1^32+b_1_0^32*b_1_1^18+b_1_0^34*b_1_1^16+b_1_0^48*b_1_1^2+b_1_0^50,
-        b_1_0^50
+        sage: imI = S_phi_star(I)
 
-    Note that Singular does not do automatic reduction in quotient rings. So, eventually we
+    Note that Singular does pfte not do automatic reduction in quotient rings. So, eventually we
     do the reductions explicitly, in two ways, with the same result::
 
-        sage: S_phi_star(I).reduce(singular('ideal(0)'))
+        sage: imI.reduce(singular('ideal(0)'))
         b_1_0^100+c_2_2^2*b_1_0^96+c_2_2^16*b_1_0^68+c_2_2^18*b_1_0^64+c_2_2^32*b_1_0^36+c_2_2^34*b_1_0^32+c_2_2^48*b_1_0^4+c_2_2^50,
         b_1_1^50+b_1_0^50,
         b_1_0^50
         sage: singular(H2).set_ring()
-        sage: I = I.reduce(singular('ideal(0)'))
+        sage: I_red = I.reduce(singular('ideal(0)'))
         sage: singular(H1).set_ring()
-        sage: S_phi_star(I)
-        b_1_0^100+c_2_2^2*b_1_0^96+c_2_2^16*b_1_0^68+c_2_2^18*b_1_0^64+c_2_2^32*b_1_0^36+c_2_2^34*b_1_0^32+c_2_2^48*b_1_0^4+c_2_2^50,
-        b_1_1^50+b_1_0^2*b_1_1^48+b_1_0^16*b_1_1^34+b_1_0^18*b_1_1^32+b_1_0^32*b_1_1^18+b_1_0^34*b_1_1^16+b_1_0^48*b_1_1^2+b_1_0^50,
-        b_1_0*b_1_1^49+b_1_0^2*b_1_1^48+b_1_0^17*b_1_1^33+b_1_0^18*b_1_1^32+b_1_0^33*b_1_1^17+b_1_0^34*b_1_1^16+b_1_0^49*b_1_1+b_1_0^50
-        sage: S_phi_star(I).reduce(singular('ideal(0)'))
+        sage: S_phi_star(I_red).reduce(singular('ideal(0)'))
         b_1_0^100+c_2_2^2*b_1_0^96+c_2_2^16*b_1_0^68+c_2_2^18*b_1_0^64+c_2_2^32*b_1_0^36+c_2_2^34*b_1_0^32+c_2_2^48*b_1_0^4+c_2_2^50,
         b_1_1^50+b_1_0^50,
         b_1_0^50
@@ -6154,7 +6126,9 @@ cdef class ChMap(RingHomomorphism):
 
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: H = CohomologyRing(8,3,websource=False)
+            sage: CohomologyRing.reset()
+            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: r = H.restriction_maps()[1][1]
             sage: r is copy(r)
             False
@@ -6169,7 +6143,7 @@ cdef class ChMap(RingHomomorphism):
         # < 0, <= 1, == 2, != 3, > 4, >= 5
         cdef ChMap S = other
         if (x==0) or (x==4):
-            return NotImplemented
+            return False
         if (x==1) or (x==2) or (x==5):
             if self is S:
                 return True
