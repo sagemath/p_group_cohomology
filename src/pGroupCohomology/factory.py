@@ -325,8 +325,7 @@ class CohomologyRingFactory:
              ('save', True),
              ('sparse', False),
              ('useMTX', True),
-             ('use_web', True),
-             ('use_web_in_doctest', False)]
+             ('use_web', True)]
             sage: CohomologyRing.global_options('sparse', 'nosave', autolift=4)
             sage: sorted(CohomologyRing.global_options().items())
             [('NrCandidates', 1000),
@@ -337,8 +336,7 @@ class CohomologyRingFactory:
              ('save', False),
              ('sparse', True),
              ('useMTX', True),
-             ('use_web', True),
-             ('use_web_in_doctest', False)]
+             ('use_web', True)]
             sage: CohomologyRing.reset()
             sage: sorted(CohomologyRing.global_options().items())
             [('NrCandidates', 1000),
@@ -349,8 +347,7 @@ class CohomologyRingFactory:
              ('save', True),
              ('sparse', False),
              ('useMTX', True),
-             ('use_web', True),
-             ('use_web_in_doctest', False)]
+             ('use_web', True)]
 
         """
         CohomologyRing.logger.setLevel(logging.WARN)
@@ -399,8 +396,7 @@ class CohomologyRingFactory:
              ('save', True),
              ('sparse', False),
              ('useMTX', True),
-             ('use_web', True),
-             ('use_web_in_doctest', False)]
+             ('use_web', True)]
             sage: CohomologyRing.global_options('sparse', 'nosave', autolift=4)
             sage: sorted(CohomologyRing.global_options().items())
             [('NrCandidates', 1000),
@@ -411,8 +407,7 @@ class CohomologyRingFactory:
              ('save', False),
              ('sparse', True),
              ('useMTX', True),
-             ('use_web', True),
-             ('use_web_in_doctest', False)]
+             ('use_web', True)]
             sage: CohomologyRing.reset()
 
         """
@@ -1152,7 +1147,7 @@ class CohomologyRingFactory:
                 if "HTTP Error 404" in str(msg):
                     coho_logger.info("Cohomology ring can not be found in web database.", None)
                 else:
-                    coho_logger.warn("Websource %r is not available.", None, kwds.get('websource', 'http://cohomology.uni-jena.de/db/'))
+                    coho_logger.debug("Websource %r is not available.", None, kwds.get('websource', 'http://cohomology.uni-jena.de/db/'))
             except (ValueError, RuntimeError):
                 coho_logger.info("Cohomology ring can not be found in web database.", None)
             except KeyboardInterrupt:
@@ -1861,19 +1856,16 @@ class CohomologyRingFactory:
         ::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.env import SAGE_SHARE
             sage: CohomologyRing.reset()
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_web_db('http://users.minet.uni-jena.de/cohomology/testdb/')
 
-        During doctests, the access to the internet is usually not available::
+        During package installation, internet access is impossible.
+        Therefore, we simulate the use of a web database by accessing
+        local files::
 
-            sage: H=CohomologyRing.web_db('8gp3')
-            Traceback (most recent call last):
-            ...
-            RuntimeError: No web access during doctests
-            sage: CohomologyRing.global_options('use_web_in_doctest')
-            sage: H=CohomologyRing.web_db('8gp3') # needs internet access
-            sage: CohomologyRing.global_options('nouse_web_in_doctest')
+            sage: CohomologyRing.set_web_db('file://'+os.path.join(SAGE_SHARE,'pGroupCohomology'))
+            sage: H = CohomologyRing.web_db('8gp3')
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
@@ -1933,25 +1925,19 @@ class CohomologyRingFactory:
         ::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: from sage.env import SAGE_SHARE
             sage: CohomologyRing.reset()
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_user_db(tmp_root)
             sage: CohomologyRing.global_options('info')
-            <BLANKLINE>
-            sage: H=CohomologyRing.web_db('8gp3', websource='http://users.minet.uni-jena.de/cohomology/testdb/')
-            Traceback (most recent call last):
-            ...
-            RuntimeError: No web access during doctests
 
-        During doctests, we normally disallow web access, since downloading data
-        may result in even longer execution time of the tests. But for this one
-        test, we allow web access::
+        During package installation, and thus also during its doctests,
+        web access is blocked. Therefore, we simulate a data base using
+        a local file that is installed together with the package::
 
-            sage: CohomologyRing.global_options('use_web_in_doctest')
-            <BLANKLINE>
-            sage: H=CohomologyRing.web_db('8gp3', websource='http://users.minet.uni-jena.de/cohomology/testdb/') # needs internet access
+            sage: H = CohomologyRing.web_db('8gp3', websource='file://'+os.path.join(SAGE_SHARE,'pGroupCohomology'))
             Press Ctrl-c to interrupt web access.
-            Accessing http://users.minet.uni-jena.de/cohomology/testdb/8gp3.tar.gz
+            Accessing .../8gp3.tar.gz
             Downloading and extracting archive file
             Resolution of GF(2)[8gp3]:
                       Differential reloaded
@@ -1960,7 +1946,6 @@ class CohomologyRingFactory:
                       > rk P_03 =   4
             H^*(D8; GF(2)):
                       Import monomials
-            sage: CohomologyRing.global_options('nouse_web_in_doctest')
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
@@ -1977,12 +1962,6 @@ class CohomologyRingFactory:
         from pGroupCohomology.resolution import coho_options
         if not coho_options.get('use_web'):
             return None
-        if not coho_options.get('use_web_in_doctest'):
-            import inspect
-            for stackline in inspect.stack():
-                s = stackline[1]
-                if isinstance(s,basestring) and 'doctest' in s:
-                    raise RuntimeError("No web access during doctests")
         if self._use_public_db:
             root = COHO.public_db
         else:

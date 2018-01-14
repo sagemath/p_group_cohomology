@@ -94,7 +94,7 @@ ring of the third Conway group where obtained with our package; see
 [GreenKing]_ and [KingGreenEllis]_ for more details. We computed the
 mod-`p` cohomology rings for various interesting finite non prime
 power groups and different primes `p`. Our results are available
-`here <http://www.nuigalway.ie/maths/sk/Cohomology/rings/>`_. The non
+`here <http://users.minet.uni-jena.de/~king/cohomology/nonprimepower/>`_. The non
 prime power groups are not part of our web repository yet.
 
 We expect the groups to be given either by their address in the Small
