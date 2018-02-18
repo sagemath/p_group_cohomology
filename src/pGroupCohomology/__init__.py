@@ -36,8 +36,8 @@ Our package is formed by Singular- and Gap-functions, as well as Python-, Cython
 NOTE:
 
     Our package uses the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
-    library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. If
-    necessary, you can install it in Sage by ``sage -i database_gap``.
+    library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. It
+    should be installed in Sage by ``sage -i database_gap``.
 
 Modular cohomology rings of a finite group `G` are available via the constructor
 :func:`CohomologyRing`. The real work behind the scenes is done in the modules
