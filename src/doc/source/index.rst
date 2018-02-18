@@ -97,7 +97,7 @@ Documentation
 
 If the environment variable ``SAGE_SPKG_INSTALL_DOCS`` is set to ``yes``, then
 the documentation of our spkg is automatically created and put into
-``SAGE_ROOT/local/share/doc/p_group_cohomology/html/``.
+``SAGE_ROOT/local/share/doc/p_group_cohomology/``.
 
 Acknowledgements
 ----------------

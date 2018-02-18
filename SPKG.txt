@@ -93,7 +93,7 @@ in `pGroupCohomology`.
 The documentation of this package is automatically built, if the environment
 variable SAGE_SPKG_INSTALL_DOCS is yes (do "export SAGE_SPKG_INSTALL_DOCS=yes"
 on the command line before installation). The documents are put into
-SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
+SAGE_ROOT/local/share/doc/p_group_cohomology/.
 
 == Changelog ==
 
