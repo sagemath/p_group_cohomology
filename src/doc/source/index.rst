@@ -61,7 +61,7 @@ Installation
 The `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
 library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien is
 used at run-time. The default way of installing it into SageMath's version
-of GAP by
+of GAP is by
 ::
 
     sage -i database_gap

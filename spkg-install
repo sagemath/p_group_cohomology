@@ -1,90 +1,28 @@
-#!/usr/bin/env bash
-
-#*****************************************************************************
-#
-#    Install script 
-#
-#    Copyright (C) 2009 Simon A. King <simon.king@uni-jena.de>
-#
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or later (at your choice)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
-SMALL_GROUPS=`echo "SmallGroup(13,1); quit;" | gap -b -T | grep "13"`
-if [ "$SMALL_GROUPS" = "" ]; then
-   echo "It seems that GAP's SmallGroups library is missing."
-   echo "One way to install it is by doing"
-   echo "    sage: install_package('database_gap')"
-   echo "in a Sage session."
-   exit 1
-fi
-
-# test whether we are on an intel mac
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
-   DARWIN64=-m64; export DARWIN64;
-else
-   DARWIN64=""; export DARWIN64;
+if [ `echo "SmallGroup(13,1); quit;" | gap -b -T | grep "13"` = "" ]; then
+   echo "=================================================================="
+   echo "| Warning: It seems that GAP's SmallGroups library is missing.   |"
+   echo "| It is a runtime dependency for the p_group_cohomology package. |"
+   echo "| One way to install it is as part of the database_gap package.  |"
+   echo "=================================================================="
 fi
 
 cd src
 
-$MKDIR lib
-$MKDIR bin
-
-$MAKE
-if [ $? -ne 0 ]; then
-   echo "Error building pGroupCohomology."
-   echo "You are using" $CC `$CC -dumpversion`
-   echo "If this is older than gcc 4.6, then please consider upgrading your system-wide gcc,"
-   echo "or install Sage with its gcc spkg."
-   echo "If your gcc version is more recent, then please inform the author."
-   exit 1
-fi
-
+# building modular_resolution-1.0
+cd csources
+sdh_configure
+sdh_make
+# sdh_make install got broken by trac ticket #24106
 $MAKE install
-if [ $? -ne 0 ]; then
-   echo "Error installing pGroupCohomology."
-   exit 1
-fi
+cd ..
 
-python setup.py install
-if [ $? -ne 0 ]; then
-   echo "Error installing Cython code."
-   exit 1
-fi
+# building pGroupCohomology
+cd pyxsources
+sdh_pip_install .
 
-# Perhaps we are supposed to build the docs?
 if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-    cd ../
-    export SPKG_ROOT=`pwd`
     cd doc
-    ./builder.py reference html
-    if [ $? -ne 0 ]; then
-	    echo "Error building p_group_cohomology docs."
-	    exit 1
-    fi
-    mkdir -p $SAGE_ROOT/local/share/doc/p_group_cohomology/html/
-    cp -r output/html/en/reference/* $SAGE_ROOT/local/share/doc/p_group_cohomology/html/
-    if [ $? -ne 0 ]; then
-	    echo "Error copying docs."
-	    exit 1
-    else
-	    echo "The built documents have been copied to $SAGE_ROOT/local/share/doc/p_group_cohomology/html/"
-    fi
+    $MAKE html || sdh_die "Error building documentation"
+    rm -r "$SAGE_SHARE/doc/p_group_cohomology"
+    cp -r build/html "$SAGE_SHARE/doc/p_group_cohomology" || sdh_die "Error moving documentation to $SAGE_SHARE/doc/p_group_cohomology"
 fi
