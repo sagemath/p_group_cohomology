@@ -1,0 +1,6 @@
+recursive-include pGroupCohomology *.py *.pyx *.pxd *.pxi
+recursive-exclude pGroupCohomology *.c *.o *.so
+graft doc/source
+recursive-exclude doc/build *
+include doc/Makefile
+prune dist

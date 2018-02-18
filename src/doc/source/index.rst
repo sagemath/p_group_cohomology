@@ -122,13 +122,13 @@ platforms. Suggestions of Mikael Vejdemo Johansson and John Palmieri
 were very valuable for verifying the code on the computation of Massey
 products.
 
-We thank Mathieu Dutour Sikiric for his explanations how to keep track of
+We thank Mathieu Dutour Sikirić for his explanations how to keep track of
 large lists of double cosets in GAP. We are also grateful to the GAP support
 group for solving various technical problems that became imminent when
 dealing with non prime power groups.
 
 We thank Peter Symonds for interesting discussions, in particular for
-suggesting to use the Poincare series in a completeness criterion.
+suggesting to use the Poincaré series in a completeness criterion.
 
 Versions
 --------
@@ -145,7 +145,7 @@ Versions
     ring rather than only for the ring approximation. Better portability
     by using os.path. Replace SAGE_DATA by SAGE_SHARE. Use urllib2.
     Protocol output tells which instance's method is being called.
-  * v2.1.3: Improved heuristics to choose between Hilbert-Poincare
+  * v2.1.3: Improved heuristics to choose between Hilbert-Poincaré
     and Symonds criteria. Cope with Cython's new "name mangling" for
     double underscore attributes. Allow storing of "permanent results"
     that are indexed in terms of data in Gap. In some situations, use

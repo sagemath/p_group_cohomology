@@ -1,11 +1,3 @@
-if [ `echo "SmallGroup(13,1); quit;" | gap -b -T | grep "13"` = "" ]; then
-   echo "=================================================================="
-   echo "| Warning: It seems that GAP's SmallGroups library is missing.   |"
-   echo "| It is a runtime dependency for the p_group_cohomology package. |"
-   echo "| One way to install it is as part of the database_gap package.  |"
-   echo "=================================================================="
-fi
-
 cd src
 
 # building modular_resolution-1.0
