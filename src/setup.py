@@ -87,7 +87,7 @@ setup(
   packages = find_packages(),
   package_data={'pGroupCohomology': ['*.pxd']},
   py_modules = ["pGroupCohomology.auxiliaries", "pGroupCohomology.barcode", "pGroupCohomology.factory"],
-  data_files=[(os.path.join(SAGE_SHARE,"sage","ext","gap"),
+  data_files=[(os.path.join(SAGE_SHARE,"sage","ext","gap","modular_cohomology"),
               [os.path.join("pGroupCohomology","GapMaxels.g"),
                os.path.join("pGroupCohomology","GapMB.g"),
                os.path.join("pGroupCohomology","GapSgs.g")]),
