@@ -24,6 +24,7 @@
 
 #include "nDiag.h"
 #include "slice_decls.h"
+#include "fp_decls.h"
 #include "meataxe.h"
 
 MTX_DEFINE_FILE_INFO
@@ -299,6 +300,27 @@ nFgs_t *nFgsAllocation(group_t *group, long r, char *stem)
   return nFgs;
 }
 
+/******************************************************************************/
+void freeNgs(ngs_t *ngs)
+{
+  freeReducedVectors(ngs->firstReduced, ngs);
+  freeUnreducedVectors(ngs);
+  if (ngs->proot)
+  {
+    // freeWordForest(ngs);
+    modW_t **proot = ngs->proot;
+    free(proot[0][0].child);
+    free(proot[0]);
+    free(proot);
+  }
+  if (ngs->gVwaiting) freeGeneralVector(ngs->gVwaiting);
+  if (ngs->thisBlock) free(ngs->thisBlock);
+  if (ngs->theseProds) free(ngs->theseProds);
+  if (ngs->w) free(ngs->w);
+  free(ngs);
+  return;
+}
+
 /*****
  * NULL on error
  **************************************************************************/
@@ -367,28 +389,6 @@ static void freeUnreducedVectors(ngs_t *ngs)
     next = uv->next;
     freeUnreducedVector(uv);
   }
-  return;
-}
-
-
-/******************************************************************************/
-void freeNgs(ngs_t *ngs)
-{
-  freeReducedVectors(ngs->firstReduced, ngs);
-  freeUnreducedVectors(ngs);
-  if (ngs->proot)
-  {
-    // freeWordForest(ngs);
-    modW_t **proot = ngs->proot;
-    free(proot[0][0].child);
-    free(proot[0]);
-    free(proot);
-  }
-  if (ngs->gVwaiting) freeGeneralVector(ngs->gVwaiting);
-  if (ngs->thisBlock) free(ngs->thisBlock);
-  if (ngs->theseProds) free(ngs->theseProds);
-  if (ngs->w) free(ngs->w);
-  free(ngs);
   return;
 }
 

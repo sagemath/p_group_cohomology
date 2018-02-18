@@ -25,6 +25,8 @@
 
 #include "modular_resolution.h"
 #include "meataxe.h"
+#include "aufnahme.h"
+#include "fp_decls.h"
 #define LONGLINE 320
 MTX_DEFINE_FILE_INFO
 

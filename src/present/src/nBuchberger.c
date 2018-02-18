@@ -232,7 +232,7 @@ static int checkRanksCorrect(nRgs_t *nRgs)
 {
   ngs_t *ngs = nRgs->ngs;
   ngs_t *ker_ngs = nRgs->ker->ngs;
-  if (ngs->targetRank == RANK_UNKNOWN) return;
+  if (ngs->targetRank == RANK_UNKNOWN) return 1;
   if (ker_ngs->pnontips != ngs->targetRank)
   {
      MTX_ERROR2("Theoretical error: rank differs from expected value. Expected %d, got %d",ngs->targetRank,ker_ngs->pnontips);

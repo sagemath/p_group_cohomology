@@ -24,6 +24,7 @@
 */
 
 #include "nDiag.h"
+#include "fp_decls.h"
 #include "meataxe.h"
 #include <stdio.h>
 
