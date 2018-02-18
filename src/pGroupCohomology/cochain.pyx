@@ -1289,7 +1289,7 @@ cdef class COCH(RingElement):
         FfSetNoc((<COCH>self).Data.Data.Noc)
         return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
 
-    cdef _add_(self, other):
+    cpdef _add_(self, other):
         r"""
         Sum of cochains of the same degree.
 
@@ -1519,7 +1519,7 @@ cdef class COCH(RingElement):
                     '('+self.Name+')*'+str(n%self.Data.Data.Field),
                     self.Data._mul_long(n), is_polyrep=self._polyrep)
 
-    cdef _mul_(self, right):
+    cpdef _mul_(self, right):
         """
         Cup product of two cochains, or scalar multiplication.
 

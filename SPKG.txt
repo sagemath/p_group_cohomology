@@ -1,10 +1,12 @@
-= p_group_cohomology-3.0 =
+= p_group_cohomology =
 
 == Description ==
 
 Modular Cohomology Rings of Finite Groups
 
-The documentation of the package is provided at
+The package is located at http://users.minet.uni-jena.de/cohomology/,
+that's to say the tarball p_group_cohomology-x.y.tar.gz can be found
+there and the documentation of the package is provided at
 http://users.minet.uni-jena.de/cohomology/documentation/
 
 == License ==
@@ -60,10 +62,10 @@ on which we could build test the SPKG and on which some huge computations
 could be completed, and acknowledge the support by National Science
 Foundation Grant No. DMS-0821725.
 
-We thank Mathieu Dutour Sikitic for hints on how to use GAP
+We thank Mathieu Dutour Sikirić for hints on how to use GAP
 more efficiently.
 
-We owe Peter Symonds the idea of using the Poincare series in a
+We owe Peter Symonds the idea of using the Poincaré series in a
 rather efficient completeness criterion.
 
 == Dependencies ==
@@ -95,7 +97,7 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
 
 == Changelog ==
 
-  * 3.0 (Simon King, January 2018):
+  * 3.0 (Simon King, January/February 2018):
     - The MeatAxe has been removed from this package and has been replaced
       by "SharedMeatAxe", as an external package.
     - David Green's C code for the computation of minimal projective resolutions
@@ -106,6 +108,7 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
     - Drop the old test script, as `sage -t` now works for this package.
     - Drop the old doc builder, as building the docs is now closer to
       Sage's documentation than before.
+    - Cope with an API change in SageMath.
   * 2.1.5 (Simon King, Mai 2015):
     - Cope with removal of the ._domain attribute of maps and with changed import locations.
     - Improved computation of the nil-radical, including degree-wise computation
@@ -146,7 +149,7 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
       remain legible. Most important example: Construction of parameters.
     - Address of Simon King changed from Galway to Jena
   * 2.1.3 (Simon King, July 2012):
-    - Improve the heuristic of choosing between Hilbert-Poincare and Symonds
+    - Improve the heuristic of choosing between Hilbert-Poincaré and Symonds
       criteria. If the computation of parameters in small degrees by lifting
       the Dickson invariants using elimination seems too difficult
       to the user, then this computation can be interrupted with
@@ -194,7 +197,7 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
       change once computed. The cached results are preserved under
       pickling. KeyboardInterrupts are cached as well, but a re-computation
       can be forced.
-    - Improved use of the Symonds and the Hilbert-Poincare criteria, using
+    - Improved use of the Symonds and the Hilbert-Poincaré criteria, using
       algebraically *dependent* parameters.
   * 2.0 (Simon King, April 2010):
     - Modular cohomology rings for *any* finite groups (not just for
