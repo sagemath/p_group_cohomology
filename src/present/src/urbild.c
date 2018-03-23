@@ -301,6 +301,49 @@ nFgs_t *nFgsAllocation(group_t *group, long r, char *stem)
 }
 
 /******************************************************************************/
+void freeReducedVector(rV_t *rv, ngs_t *ngs)
+{
+  if (rv->gv) freeGeneralVector(rv->gv);
+  free(rv);
+  return;
+}
+
+/******************************************************************************/
+static void freeReducedVectors(rV_t *first, ngs_t *ngs)
+{
+  rV_t *rv, *next;
+  if (first && first->prev) first->prev->next = NULL;
+  for (rv = first; rv; rv = next)
+  {
+    next = rv->next;
+    freeReducedVector(rv, ngs);
+  }
+  return;
+}
+
+/******************************************************************************/
+void freeUnreducedVector(uV_t *uv)
+{
+  if (uv->gv) freeGeneralVector(uv->gv);
+  free(uv);
+  return;
+}
+
+/******************************************************************************/
+static void freeUnreducedVectors(ngs_t *ngs)
+{
+  uV_t *first = ngs->unreducedHeap;
+  uV_t *uv, *next;
+  if (first && first->prev) first->prev->next = NULL;
+  for (uv = first; uv; uv = next)
+  {
+    next = uv->next;
+    freeUnreducedVector(uv);
+  }
+  return;
+}
+
+/******************************************************************************/
 void freeNgs(ngs_t *ngs)
 {
   freeReducedVectors(ngs->firstReduced, ngs);
@@ -347,49 +390,6 @@ nRgs_t *nRgsAllocation(group_t *group, long r, long s, char *stem)
   }
   nRgs->overshoot = MAX_OVERSHOOT;
   return nRgs;
-}
-
-/******************************************************************************/
-void freeReducedVector(rV_t *rv, ngs_t *ngs)
-{
-  if (rv->gv) freeGeneralVector(rv->gv);
-  free(rv);
-  return;
-}
-
-/******************************************************************************/
-static void freeReducedVectors(rV_t *first, ngs_t *ngs)
-{
-  rV_t *rv, *next;
-  if (first && first->prev) first->prev->next = NULL;
-  for (rv = first; rv; rv = next)
-  {
-    next = rv->next;
-    freeReducedVector(rv, ngs);
-  }
-  return;
-}
-
-/******************************************************************************/
-void freeUnreducedVector(uV_t *uv)
-{
-  if (uv->gv) freeGeneralVector(uv->gv);
-  free(uv);
-  return;
-}
-
-/******************************************************************************/
-static void freeUnreducedVectors(ngs_t *ngs)
-{
-  uV_t *first = ngs->unreducedHeap;
-  uV_t *uv, *next;
-  if (first && first->prev) first->prev->next = NULL;
-  for (uv = first; uv; uv = next)
-  {
-    next = uv->next;
-    freeUnreducedVector(uv);
-  }
-  return;
 }
 
 /******************************************************************************/
