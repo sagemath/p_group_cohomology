@@ -2747,7 +2747,7 @@ class MODCOCH(RingElement):
         cdef list L = []
         cdef int j
         cdef int a = int(singular.eval('size(%s)'%self.value().name()))
-        cdef int nr = int(a/SizePieces)
+        cdef int nr = a//SizePieces
         for j from 0<=j<nr:
             L.append(singular.eval('print(%s[%d..%d])'%(self.value().name(),j*SizePieces+1,(j+1)*SizePieces)))
             if len(L)>1 and (L[-1][0] not in ['-','+']):
@@ -4516,7 +4516,7 @@ cdef class YCOCH:
         cdef int i, m
         coho_logger.info( "Try to find a cobounding Yoneda cochain for %r", self._R, self)
         for i in P: # these are the pivots of the "autolift" data
-            m = X[i/nt, i%nt]
+            m = X[i//nt, i%nt]
             if m:
                 if m!=1:
                     Y += (D[i][0]*m)
@@ -6292,7 +6292,7 @@ cdef class ChMap(RingHomomorphism):
                 xMTX = x[0]
                 rk = 1
                 Rk = xMTX.nrows()
-                RK = selfMTX.nrows()/Rk
+                RK = selfMTX.nrows()//Rk
                 base_deg = -x.deg()
             if (x.deg() > 0) and (self.deg()<0):
                 raise ValueError("We can't compose a map of negative degree with a map of positive degree")
@@ -6303,7 +6303,7 @@ cdef class ChMap(RingHomomorphism):
                 xMTX = x[self.deg()]
                 RK = 1
                 Rk = selfMTX.nrows()
-                rk = xMTX.nrows()/Rk
+                rk = xMTX.nrows()//Rk
                 base_deg = self.Deg
             if (x.deg() < 0) and (self.deg() > 0):
                 if self.Deg+x.deg() < 0:
@@ -6313,7 +6313,7 @@ cdef class ChMap(RingHomomorphism):
                     xMTX = x[0]
                     rk = 1
                     Rk = xMTX.nrows()
-                    RK = selfMTX.nrows()/Rk
+                    RK = selfMTX.nrows()//Rk
                     base_deg = -x.deg()
                 else:
                     while (x.knownDeg() <= (self.Deg+x.deg())):
@@ -6322,7 +6322,7 @@ cdef class ChMap(RingHomomorphism):
                     xMTX = x[self.Deg+x.deg()]
                     RK = 1
                     Rk = xMTX.nrows()
-                    rk = selfMTX.nrows()/Rk
+                    rk = selfMTX.nrows()//Rk
                     base_deg = self.deg()
             OUT_M = makeMTX(MatAlloc(self.Tgt.G_Alg.Data.p, RK*rk, nt))
             for i from 0 <= i < RK:
