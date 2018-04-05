@@ -1008,14 +1008,14 @@ cdef class RESL:
     use the Urbild Groebner bases, this can still be done with :meth:`ugb_liftChainMap`,
     although this has a slightly different syntax. The autolift method used to be more
     than 250 times faster than the Urbild Groebner basis method, but optimisations
-    in recent package versions made the running time almost equal::
+    in recent package versions made the running time almost equal on some machines,
+    while on other machines there still is a factor of about 10::
 
         sage: CohomologyRing.global_options('warn')
-        sage: Ta = timeit.eval('cX = R.liftChainMap(c1)')
-        sage: Tu = timeit.eval('cX = R.ugb_liftChainMap(c1[0]+1,c1[1]+1,c1[2])')
-        sage: D={'s':10^6,'ms':10^3} # used for expressing the times in microseconds
-        sage: 0.5 < Tu.stats[3]*D.get(Tu.stats[4],1)/(Ta.stats[3]*D.get(Ta.stats[4],1)) < 2
-        True
+        sage: timeit.eval('cX = R.liftChainMap(c1)')                        # random
+        625 loops, best of 3: 230 µs per loop
+        sage: timeit.eval('cX = R.ugb_liftChainMap(c1[0]+1,c1[1]+1,c1[2])') # random
+        625 loops, best of 3: 297 µs per loop
 
     In general, the lifts obtained with both methods are not the same (they may
     vary up to elements in the radical, hence, in the kernel of the augmentation

@@ -131,8 +131,10 @@ def _IdGroup(G, D, Client, ring=True):
         sage: G2 = gap('CyclicGroup(2520)')
         sage: _IdGroup(G2,D,H)
         (2520, 0)
-        sage: sorted(D.items())
-        [(2520, {0: H^*(8gp3_2520_0; GF(3))}), ('prime', 3)]
+        sage: D['prime']
+        3
+        sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
+        [(2520, {0: H^*(8gp3_2520_0; GF(3))})]
 
     When we now test ``G1`` again, a different identifier is returned,
     since it is not isomorphic to ``G2``::
@@ -152,14 +154,13 @@ def _IdGroup(G, D, Client, ring=True):
         sage: G3 = gap('AlternatingGroup(6)')
         sage: _IdGroup(G3,D,H, ring=False)
         (360, 118)
-        sage: sorted(D.items())
-        [(360, {}), (2520, {0: H^*(8gp3_2520_0; GF(3))}), ('prime', 3)]
+        sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
+        [(360, {}), (2520, {0: H^*(8gp3_2520_0; GF(3))})]
         sage: _IdGroup(G3,D,H)
         (360, 118)
-        sage: sorted(D.items())
+        sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
         [(360, {118: H^*(SmallGroup(360,118); GF(3))}),
-         (2520, {0: H^*(8gp3_2520_0; GF(3))}),
-         ('prime', 3)]
+         (2520, {0: H^*(8gp3_2520_0; GF(3))})]
 
     """
     gap = G.parent()
