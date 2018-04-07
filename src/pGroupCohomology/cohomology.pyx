@@ -4467,8 +4467,8 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.set_user_db(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
-            sage: import sagenb.misc.support as s
-            sage: s.completions('H.f',globals(),system='python')  # indirect doctest
+            sage: import sage.interfaces.tab_completion as s
+            sage: s.completions('H.f',globals())  # indirect doctest
             ['H.filter_degree_type',
              'H.filter_regular_parameters',
              'H.find_dickson',
@@ -4510,8 +4510,8 @@ Minimal list of algebraic relations:
             False
             sage: 'foobar' in dir(H)
             False
-            sage: import sagenb.misc.support as s
-            sage: s.completions('H.f',globals(),system='python')
+            sage: import sage.interfaces.tab_completion as s
+            sage: s.completions('H.f',globals())
             ['H.filter_degree_type',
              'H.filter_regular_parameters',
              'H.find_dickson',
