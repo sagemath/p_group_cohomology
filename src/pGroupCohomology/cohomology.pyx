@@ -3638,24 +3638,27 @@ class COHO(Ring):
                 singular.eval('setring %sr(%d)'%(self.prefix,n))
                 singular.eval('kill tmp')
                 self.GenS = singular('%sr(%d)'%(self.prefix,n))
-            if self.RelG:
-                singular.eval('ideal %sI = %s'%(self.prefix,','.join(self.RelG)))
-            else:
-                if self.Rel:
-                    singular.eval('ideal %sI = %s'%(self.prefix,','.join(self.Rel)))
-                    self.delprop('completeGroebner')
+                if self.RelG:
+                    singular.eval('ideal %sI = %s'%(self.prefix,','.join(self.RelG)))
                 else:
-                    singular.eval('ideal %sI'%(self.prefix))
+                    if self.Rel:
+                        singular.eval('ideal %sI = %s'%(self.prefix,','.join(self.Rel)))
+                        self.delprop('completeGroebner')
+                    else:
+                        singular.eval('ideal %sI'%(self.prefix))
+                singular.eval(('ideal %sDG = '%self.prefix)+','.join(DG))
 
             self.StdMon = {0:{'1':singular('1')}}
-            for nkey,StdMonN in StdMon:
+            for nkey,StdMonN in StdMon: # There will only be a standard monomial, if
+                                        # there are generators. Hence, IF we are defining
+                                        # an ideal below, it is granted that the basering
+                                        # is defined.
                 self.StdMon[nkey]={}
                 for monkey,STD in StdMonN:
                     if monkey!='1':
                         self.StdMon[nkey][monkey] = singular.ideal(STD)
                     else:
                         self.StdMon[nkey][monkey] = singular('1')
-            singular.eval(('ideal %sDG = '%self.prefix)+','.join(DG))
         finally:
             coho_options.clear()
             coho_options.update(opts)

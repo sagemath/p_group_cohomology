@@ -1082,6 +1082,23 @@ class CohomologyRingFactory:
             sage: CohomologyRing._get_p_group_from_cache_or_db('8gp3',(8,3), websource=False) is None
             True
 
+        We test against a bug that was fixed in version 3.0::
+
+            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: H = CohomologyRing(8,1,options='info',from_scratch=True)
+            We compute this cohomology ring from scratch
+            Computing basic setup for Small Group number 1 of order 2
+            Computing basic setup for Small Group number 2 of order 4
+            Computing basic setup for Small Group number 1 of order 8
+            H^*(SmallGroup(8,1); GF(2)):
+                      Initialising maximal p-elementary abelian subgroups
+            sage: CohomologyRing._cache.clear()
+            sage: del H
+            sage: H = CohomologyRing(8,1,options='info')
+            H^*(SmallGroup(8,1); GF(2)):
+                      Import monomials
+            Checking compatibility of SmallGroups library and stored cohomology ring
+
         """
         # If data for the given GStem and KEY are available,
         # they are returned, otherwise None.
@@ -1407,6 +1424,27 @@ class CohomologyRingFactory:
             sage: H2.make()
             sage: H0 == H2
             True
+
+        If the group order is smaller than 128, then the cohomology
+        ring is not downloaded from a remote source::
+
+            sage: CohomologyRing.reset()
+            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: H = CohomologyRing(125,3,options='info')
+            We compute this cohomology ring from scratch
+            Computing basic setup for Small Group number 1 of order 5
+            Computing basic setup for Small Group number 2 of order 25
+            Computing basic setup for Small Group number 3 of order 125
+            ...
+            sage: print H
+            sage: print H
+            Cohomology ring of Extraspecial 5-group of order 125 and exponent 5 with coefficients in GF(5)
+            <BLANKLINE>
+            Computed up to degree 0
+            Minimal list of generators:
+            []
+            Minimal list of algebraic relations:
+            []
 
         """
         from pGroupCohomology.modular_cohomology import MODCOHO
@@ -1855,7 +1893,7 @@ class CohomologyRingFactory:
         Therefore, we simulate the use of a web database by accessing
         local files::
 
-            sage: CohomologyRing.set_remote_sources(('file://'+os.path.join(SAGE_SHARE,'pGroupCohomology',)))
+            sage: CohomologyRing.set_remote_sources(('file://'+os.path.join(os.path.realpath(os.path.curdir),'tests'),))
             sage: H = CohomologyRing.remote_sources('8gp3')
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
