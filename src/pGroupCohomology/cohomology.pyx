@@ -111,7 +111,7 @@ def COHO_unpickle(GroupKey, StateFile):
 
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: H is loads(dumps(H)) # indirect doctest
@@ -121,10 +121,10 @@ def COHO_unpickle(GroupKey, StateFile):
     # Since the cache is indexed by (GroupKey, StateFile),
     # we first see if the cohomology ring is already there.
     # But there is a complication: Typically, we will move
-    # data from a potentially write protected public database
-    # to a writeable private database, by means of symbolic
-    # links. Hence, the root of the statefile will be public,
-    # but we want it in private.
+    # data from potentially write protected local data
+    # to a writeable workspace, by means of symbolic
+    # links. Hence, the root of the statefile will point to
+    # local sources, but we want it to point to the workspace.
     from pGroupCohomology import CohomologyRing
     _cache = CohomologyRing._cache
     if not StateFile.endswith('.sobj'):
@@ -134,18 +134,18 @@ def COHO_unpickle(GroupKey, StateFile):
     original_GStem = os.path.split(os.path.split(os.path.split(StateFile)[0])[0])[1] # this is like StateFile.split('/')[-3]
 
     if original_root == '@user_db@': # Probably data have been moved.
-        StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.user_db, original_GStem, "dat", os.path.split(StateFile)[1])
-        root = coho_options.get('@use_this_root@') or COHO.user_db
-    elif original_root == '@public_db@' and os.access(coho_options.get('@use_this_root@') or COHO.public_db,os.W_OK):
+        StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])
+        root = coho_options.get('@use_this_root@') or COHO.workspace
+    elif original_root == '@public_db@' and os.access(coho_options.get('@use_this_root@') or COHO.local_sources,os.W_OK):
         # realpath here?
-        # We can use the public database only if we have write permission
-        StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.public_db, original_GStem, "dat", os.path.split(StateFile)[1])
-        root = coho_options.get('@use_this_root@') or COHO.public_db
-    elif os.path.realpath(StateFile) == os.path.realpath(os.path.join(coho_options.get('@use_this_root@') or COHO.user_db, original_GStem, "dat", os.path.split(StateFile)[1])):  # Moving to the private data base
-        # Here it *is* realpath, because we want to know whether we have a symlink to the public data base
-        coho_logger.warn("WARNING: Moving %r to private data base", None, original_GStem)
-        StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.user_db, original_GStem, "dat", os.path.split(StateFile)[1])
-        root = coho_options.get('@use_this_root@') or COHO.user_db
+        # We can use the local sources only if we have write permission
+        StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.local_sources, original_GStem, "dat", os.path.split(StateFile)[1])
+        root = coho_options.get('@use_this_root@') or COHO.local_sources
+    elif os.path.realpath(StateFile) == os.path.realpath(os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])):  # Moving to the workspace
+        # Here it *is* realpath, because we want to know whether we have a symlink to the local sources
+        coho_logger.warn("WARNING: Moving %r to the workspace", None, original_GStem)
+        StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])
+        root = coho_options.get('@use_this_root@') or COHO.workspace
     else:
         StateFile = os.path.join(coho_options.get('@use_this_root@') or original_root, original_GStem, "dat", os.path.split(StateFile)[1])
         root = coho_options.get('@use_this_root@') or original_root
@@ -680,7 +680,7 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.cohomology import explore_one_parameter
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(32,33)
         sage: H.make()
         sage: H.set_ring()
@@ -1354,7 +1354,7 @@ class permanent_result(object):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(184,5, prime=2)
         sage: H.make()
         sage: type(H.essential_ideal)
@@ -1728,7 +1728,7 @@ class temporary_result(permanent_result):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(8,4, from_scratch=True)
         sage: H.make(1)
         sage: CohomologyRing.global_options('info')
@@ -1791,7 +1791,7 @@ class temporary_result(permanent_result):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
             sage: H.make(1)
             sage: H.poincare_series()
@@ -1846,7 +1846,7 @@ class temporary_result(permanent_result):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
             sage: H.make(1)
             sage: p = H.poincare_series(); p
@@ -1956,7 +1956,7 @@ class COHO(Ring):
 
     When setting up the cohomology ring, the cohomology of various
     elementary abelian subgroups is computed first. But if they'd
-    happen to be part of the public database, they would simply be
+    happen to be found in the local sources, they would simply be
     loaded from there. In order to make the doctest independent of the
     contents of this database, we compute the two rings in question
     separately and insist on a computation from scratch. For one of them,
@@ -1965,7 +1965,7 @@ class COHO(Ring):
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
         sage: CohomologyRing.reset()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: X = CohomologyRing(4,2, from_scratch=True)
         sage: X.make()
         sage: X = CohomologyRing(2,1, from_scratch=True, options='info')
@@ -2191,7 +2191,7 @@ class COHO(Ring):
     We return to our standard example, the cohomology of the dihedral
     group of order 8::
 
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
 
@@ -2580,11 +2580,11 @@ class COHO(Ring):
                  (625, 14): ['E125*C25', 'Central product E125 * C_25'],
                  (729, 498): ['E27xV27', 'Direct product E27 x V_27'],
                  (729, 499): ['M27xV27', 'Direct product M27 x V_27 ']}
-## Determine the standard locations for the public and the private data bases
-    # private
-    user_db = os.path.join(DOT_SAGE,'pGroupCohomology','db')
+## Determine the standard locations for workspace and sources
+    # workspace
+    workspace = os.path.join(DOT_SAGE,'pGroupCohomology','db')
 
-    # public
+    # local
     try:
         from sage.env import SAGE_SHARE
     except ImportError:
@@ -2593,10 +2593,10 @@ class COHO(Ring):
         except ImportError:
             from sage.misc.misc import SAGE_DATA as SAGE_SHARE
 
-    public_db = os.path.join(SAGE_SHARE,'pGroupCohomology')
+    local_sources = os.path.join(SAGE_SHARE,'pGroupCohomology')
 
-    # web
-    web_db = 'http://cohomology.uni-jena.de/db/'
+    # remote
+    remote_sources = ('http://cohomology.uni-jena.de/db/',)
 
 ####################
 ## init, repr, str
@@ -2653,7 +2653,7 @@ class COHO(Ring):
 
         self.setprop('KeepBases',kwds.get('KeepBases'))
         Subgroups = kwds.get('Subgroups',True)
-        root = kwds.get('root',COHO.user_db)
+        root = kwds.get('root',COHO.workspace)
         coho_logger.debug("Group data are rooted at %r", None, root)
         Hfinal = None
         if len(args) == 1:
@@ -2936,7 +2936,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.Gen
@@ -2996,7 +2996,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.from_base_ring(GF(2)(1))
@@ -3017,7 +3017,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.coerce_map_from(ZZ)   # indirect doctest
@@ -3057,7 +3057,7 @@ class COHO(Ring):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H2 = CohomologyRing(gap('DihedralGroup(8)'), GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H1.Hom(H2)
@@ -3110,7 +3110,7 @@ class COHO(Ring):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
@@ -3221,7 +3221,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H is loads(dumps(H))    # indirect doctest
@@ -3238,9 +3238,9 @@ class COHO(Ring):
             self.delprop('_dont_save_the_State')
         else:
             safe_save(self.__getstate__(), os.path.join(self.dat_folder,'State.sobj'))
-        if self.root == COHO.user_db:
+        if self.root == COHO.workspace:
             StateFile = os.path.join('@user_db@',self.GStem,'dat','State')
-        elif self.root == COHO.public_db:
+        elif self.root == COHO.local_sources:
             StateFile = os.path.join('@public_db@',self.GStem,'dat','State')
         else:
             StateFile = self._key[1]
@@ -3263,7 +3263,7 @@ class COHO(Ring):
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cohomology import COHO
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)
@@ -3356,7 +3356,7 @@ class COHO(Ring):
         ######
         ## ROOT: Should be explicitly defined as a property of self.
         ## If it isn't it can still be infered.
-        ## We have a special location for public and private data bases.
+        ## We have a special location for local sources and workspace.
         ## We handle these explicitly. It is possible for the user to
         ## copy the data to a completely different location -- then
         ## we are confident that loading still works, but we can't give
@@ -3364,9 +3364,9 @@ class COHO(Ring):
         root = self.root
         if root is None: # try to infer the root
             root = os.path.split(self.gps_folder)[0]
-        if root == COHO.user_db:
+        if root == COHO.workspace:
             self.setprop('root','@user_db@')
-        elif root == COHO.public_db:
+        elif root == COHO.local_sources:
             self.setprop('root','@public_db@')
         else:
             self.setprop('root',root)
@@ -3408,7 +3408,7 @@ class COHO(Ring):
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cohomology import COHO
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)
@@ -3513,12 +3513,12 @@ class COHO(Ring):
 
             ##########
             ## Try to find the folder in which the cohomology data are rooted.
-            ## We have special places for public and private data bases
+            ## We have special places for workspace and local sources
             root = self.root
             if root == '@user_db@':
-                root = COHO.user_db
+                root = COHO.workspace
             elif root == '@public_db@':
-                root = COHO.public_db
+                root = COHO.local_sources
             oldroot = None
 
             if (newroot is not None) and (root!=newroot):
@@ -3705,7 +3705,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: K=load(H.autosave_name())
@@ -3750,7 +3750,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: L1 = H.Monomials.items()
@@ -3797,7 +3797,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: L1 = H.Monomials.items()
@@ -3843,7 +3843,7 @@ class COHO(Ring):
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.decomposable_classes(3)
@@ -3950,7 +3950,7 @@ class COHO(Ring):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H=CohomologyRing(8,3)
 
         In this example, we do not want that the cohomology rings are cached.
@@ -4094,7 +4094,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H      # indirect doctest
             H^*(D8; GF(2))
@@ -4165,7 +4165,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H._html_()
             'H<sup>*</sup>(D8; GF(2))'
@@ -4199,7 +4199,7 @@ class COHO(Ring):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)       # indirect doctest
@@ -4261,7 +4261,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,5)
             sage: latex(H)      # indirect doctest
             H^\ast(SmallGroup(8,5); \mathbb F_2)
@@ -4317,7 +4317,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: G = H.group()
@@ -4385,7 +4385,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: print(H.foobar)
             None
@@ -4420,7 +4420,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: [a for a in dir(H) if a.startswith('f')]    #indirect doctest
@@ -4464,11 +4464,11 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
-            sage: import sage.interfaces.tab_completion as s
-            sage: s.completions('H.f',globals())  # indirect doctest
+            sage: import sage.interfaces.tab_completion as tc
+            sage: tc.completions('H.f',globals())  # indirect doctest
             ['H.filter_degree_type',
              'H.filter_regular_parameters',
              'H.find_dickson',
@@ -4498,7 +4498,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print(H.foobar)      # indirect doctest
             None
@@ -4510,8 +4510,8 @@ Minimal list of algebraic relations:
             False
             sage: 'foobar' in dir(H)
             False
-            sage: import sage.interfaces.tab_completion as s
-            sage: s.completions('H.f',globals())
+            sage: import sage.interfaces.tab_completion as tc
+            sage: tc.completions('H.f',globals())
             ['H.filter_degree_type',
              'H.filter_regular_parameters',
              'H.find_dickson',
@@ -4627,7 +4627,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.setprop('_foobar_', 'It works!')
             sage: print(H._foobar_)
@@ -4654,7 +4654,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: sorted(H.properties())
             ['DicksonExp',
@@ -4706,7 +4706,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
 
         If there are no generators computed yet, a cohomology class
@@ -4744,7 +4744,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -4783,7 +4783,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.ngens()
@@ -4812,7 +4812,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: H.gens()
@@ -4847,7 +4847,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: H.rels()
@@ -4883,7 +4883,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3, from_scratch=True)
             sage: H.make(2)
             sage: H.rels()
@@ -4918,7 +4918,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3, from_scratch=True)
             sage: H.make(2)
             sage: H.nrels()
@@ -4945,7 +4945,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(192,1493,prime=2, from_scratch=True)
             sage: H.make(4)
             sage: H.set_ring()
@@ -4997,7 +4997,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
 
         In our example, we compute the mod-2 cohomology of the
         Mathieu group `M_{11}`.
@@ -5050,7 +5050,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(32,6, from_scratch=True)
             sage: H.make(2)
             sage: H.order_matrix()
@@ -5070,7 +5070,7 @@ Minimal list of algebraic relations:
             [ 0  0  0  0  0 -1  0  0]
             [ 0  0  0  0  0  0 -1  0]
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(32,6, from_scratch=True)
             sage: H.setprop('use_dp',True)
             sage: H.make(2)
@@ -5147,7 +5147,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: D = CohomologyRing(8,3, from_scratch=True)
             sage: D.make()
             sage: Q = CohomologyRing(8,4, from_scratch=True)
@@ -5253,7 +5253,7 @@ Minimal list of algebraic relations:
 
         We now consider a more difficult example: The Sylow 2-subgroup
         of `U_3(4)`, which is of order 64 and is thus contained in
-        the public data base.
+        the local sources.
         ::
 
             sage: H = CohomologyRing(64,245)
@@ -5394,7 +5394,7 @@ Minimal list of algebraic relations:
 
         EXAMPLE:
 
-        We choose a group of order 64 (that is contained in the public database
+        We choose a group of order 64 (that is contained in the local sources
         shipped with this package), and verify Carlson's conjecture::
 
             sage: from pGroupCohomology import CohomologyRing
@@ -5439,7 +5439,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: sorted(H.subgroups().items())
             [((4, 2), H^*(SmallGroup(4,2); GF(2))), ((8, 5), H^*(SmallGroup(8,5); GF(2)))]
@@ -5467,7 +5467,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: sorted(H.restriction_maps().items())
             [(1,
@@ -5495,7 +5495,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,5, from_scratch=True)
             sage: H
             H^*(SmallGroup(16,5); GF(2))
@@ -5530,7 +5530,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.item2html(H.1)
@@ -5579,7 +5579,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: H.htmlpage()
@@ -5833,7 +5833,7 @@ Minimal list of algebraic relations:
             n=self._key[0][1]
         else:
             n=None
-        root = self.root or self.user_db
+        root = self.root or self.workspace
 
         quaternion_case = q.is_prime_power() and self.pRank==1
         abelian_case = self.group_is_abelian()
@@ -6349,7 +6349,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(8,1)
             sage: H._gb_command()
             'groebner'
@@ -6389,7 +6389,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: H.MonToProd([0,2,1])
@@ -6465,7 +6465,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(2)
             sage: H._makeStdMon(3,'M')
@@ -6570,7 +6570,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: c=H.standardCochain(3,2,rdeg=1,ydeg=0,name='X')
@@ -6616,7 +6616,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,4, from_scratch=True)
             sage: H.make(2)
             sage: H.standard_monomials(2)
@@ -6697,7 +6697,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: c=H.standardCochain(3,3)
@@ -6820,7 +6820,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: sorted(H.subgroups().items())
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
@@ -6910,8 +6910,8 @@ Minimal list of algebraic relations:
         else:
             saveopts = coho_options.items()
             coho_logger.info("Inserting SmallGroup(%d,%d) as a subgroup", self, q,nr)
-            # we take the group from the private data base, since there might
-            # be problems with write permission, and not from the web, since
+            # we take the group from the workspace, since there might
+            # be problems with write permission, and not from any remote source, since
             # that really doesn't make much sense for abelian groups
             h = CohomologyRing(q,nr, Subgroups= False, websource = False)
             h.make()
@@ -6953,7 +6953,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
 
         Now we destroy and reconstruct the subgroups and the respective
@@ -7056,7 +7056,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7123,7 +7123,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7189,7 +7189,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.nil_preimage(2)
@@ -7275,7 +7275,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: N = H.nil_radical()
@@ -7498,7 +7498,7 @@ Minimal list of algebraic relations:
 
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: H._makeOrderMatrix_()
@@ -7571,7 +7571,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7746,7 +7746,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(32,27, from_scratch=True)
 
         The Dickson invariants for the maximal elementary abelian
@@ -7840,7 +7840,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print(H.lift_dickson(0,0))
             1-Cocycle in H^*(D8; GF(2)),
@@ -7921,7 +7921,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(64,33, useElimination=True, from_scratch=True)
 
         The group is of `p`-rank 3 and its center has rank 1. So, we
@@ -8059,7 +8059,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(64,33, useElimination=True, from_scratch=True)
             sage: H.make(3)
             sage: H.find_dickson_in_subgroup(2)
@@ -8147,7 +8147,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(144,186,prime=3, from_scratch=True)
             sage: H.sylow_cohomology().duflot_regular_sequence()
             ['c_2_1', 'c_2_2']
@@ -8230,7 +8230,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(64,138,from_scratch=True)
             sage: X.make()
             sage: G = gap('AlternatingGroup(8)')
@@ -8299,7 +8299,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: H.duflot_regular_sequence()
@@ -8368,7 +8368,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: print(H)
@@ -8453,7 +8453,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(64,201)
 
         If the restrictions are of Krull dimension zero on all subgroups,
@@ -8570,7 +8570,7 @@ Minimal list of algebraic relations:
         We use an example of order 64, that is thus contained in our database::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(64,201)
             sage: H._get_obvious_parameter(frozenset(['c_2_8', 'c_4_21']), 2)
             'b_1_2^2+b_1_1*b_1_2+b_1_1^2'
@@ -8752,7 +8752,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: print(H)
@@ -9065,7 +9065,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('AlternatingGroup(8)')
             sage: H = CohomologyRing(G,prime=2,GroupName='A8', from_scratch=True)
             sage: H.make(7)
@@ -9180,7 +9180,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.gens()
@@ -9298,7 +9298,7 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first load a cohomology ring of order 64 from the public data base
+        We first load a cohomology ring of order 64 from the local sources
         shipped with this package.
         ::
 
@@ -9463,7 +9463,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(32,32, from_scratch=True)
             sage: H.make(2)
 
@@ -9582,7 +9582,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.subgroups()[4,2].set_ring()
@@ -9630,7 +9630,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
             sage: H.make(3)
 
@@ -9718,7 +9718,7 @@ Minimal list of algebraic relations:
         The following used to fail in at some point in the development of this package.
         ::
 
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(48,50, prime=2)
             sage: H.make()
             sage: c = H.subgroup_cohomology()('c_1_1*c_1_2^2*c_1_3^3+c_1_1*c_1_2^4*c_1_3+c_1_1*c_1_2^5+c_1_1^2*c_1_3^4+c_1_1^2*c_1_2*c_1_3^3+c_1_1^2*c_1_2^3*c_1_3+c_1_1^3*c_1_2^2*c_1_3+c_1_1^3*c_1_2^3+c_1_1^4*c_1_3^2+c_1_1^4*c_1_2*c_1_3+c_1_1^4*c_1_2^2+c_1_1^5*c_1_2+c_1_0*c_1_3^5+c_1_0*c_1_2^2*c_1_3^3+c_1_0*c_1_2^3*c_1_3^2+c_1_0*c_1_1^2*c_1_2*c_1_3^2+c_1_0*c_1_1^2*c_1_2^2*c_1_3+c_1_0*c_1_1^2*c_1_2^3+c_1_0*c_1_1^3*c_1_3^2+c_1_0*c_1_1^3*c_1_2^2+c_1_0*c_1_1^4*c_1_3+c_1_0*c_1_1^5+c_1_0^2*c_1_3^4+c_1_0^2*c_1_2^2*c_1_3^2+c_1_0^2*c_1_2^3*c_1_3+c_1_0^2*c_1_2^4+c_1_0^2*c_1_1*c_1_3^3+c_1_0^2*c_1_1*c_1_2^2*c_1_3+c_1_0^2*c_1_1^2*c_1_2*c_1_3+c_1_0^2*c_1_1^2*c_1_2^2+c_1_0^2*c_1_1^3*c_1_2+c_1_0^3*c_1_2*c_1_3^2+c_1_0^3*c_1_1*c_1_2^2+c_1_0^3*c_1_1^2*c_1_3+c_1_0^3*c_1_1^3+c_1_0^4*c_1_3^2+c_1_0^4*c_1_2*c_1_3+c_1_0^4*c_1_2^2+c_1_0^4*c_1_1*c_1_2+c_1_0^4*c_1_1^2+c_1_0^5*c_1_3+c_1_0^5*c_1_1')
@@ -9833,7 +9833,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: R1 = singular(H); R1
@@ -9907,7 +9907,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3, from_scratch=True)
             sage: H.make(3)
             sage: CohomologyRing.global_options('info')
@@ -9976,7 +9976,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.dimension()
             2
@@ -9993,7 +9993,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_public_db(tmp_dir())
+            sage: CohomologyRing.set_local_sources(tmp_dir())
 
         For the cohomology ring of a group that is not of prime
         power order, the depth of the cohomology ring of the
@@ -10024,7 +10024,7 @@ Minimal list of algebraic relations:
             3
             sage: H._lower_bound_depth()
             3
-            sage: CohomologyRing.set_public_db(False)
+            sage: CohomologyRing.set_local_sources(False)
 
         """
         try:
@@ -10057,7 +10057,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(32,27)
             sage: H.make()
             sage: H.dimension()
@@ -10144,7 +10144,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print(H.filter_degree_type())
             None
@@ -10216,7 +10216,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: H.make()
             sage: H.a_invariants()
@@ -10298,7 +10298,7 @@ Minimal list of algebraic relations:
         approximation::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(8,4, from_scratch=True)
 
         Computed out to degree 1, the ring approximation is a polynomial ring
@@ -10449,7 +10449,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.poincare_series()
@@ -10515,7 +10515,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.poincare_without_parameters()
@@ -10553,7 +10553,7 @@ Minimal list of algebraic relations:
             ....:     if H.poincare_series() != H._poincare_series_old_implementation(): # indirect doctest
             ....:         print(n)
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: for n in range(1,16):
             ....:     H = CohomologyRing(81, n)
             ....:     H.make()
@@ -10923,7 +10923,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.2
@@ -11070,7 +11070,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H64 = CohomologyRing(64,6, useElimination=True, from_scratch=True)
             sage: H64.make(3)
             sage: H64.next()
@@ -11227,7 +11227,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(64,6, useElimination=True, from_scratch=True)
             sage: H.next()
 
@@ -11357,7 +11357,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3, from_scratch=True)
             sage: H.make(3)
             sage: H.expect_last_relation()
@@ -11421,7 +11421,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3, useElimination=False, from_scratch=True)
 
         The computational steps in this example will internally be done
@@ -11623,7 +11623,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: H.next()
             sage: H.next()
@@ -11741,7 +11741,7 @@ Minimal list of algebraic relations:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(64,32, from_scratch=True)
             sage: H.next()
             sage: H.next()
@@ -11824,7 +11824,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -12347,7 +12347,7 @@ Minimal list of algebraic relations:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(32,5, from_scratch=True)
             sage: H.make(2)
             sage: print(H)

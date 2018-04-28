@@ -500,7 +500,7 @@ class RESL_sparse_unpickle_class:
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: R = H.resolution()
@@ -519,7 +519,7 @@ class RESL_sparse_unpickle_class:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: R = H.resolution()
@@ -538,7 +538,7 @@ class RESL_sparse_unpickle_class:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,2)
             sage: H.make()
             sage: R = H.resolution()
@@ -564,14 +564,15 @@ class RESL_sparse_unpickle_class:
         res_folder = os.path.realpath(res_folder)
         # This is the root that was saved:
         r = os.path.realpath(os.path.split(gps_folder)[0])
-        # We have a special treatment for the public and the private cohomology data base:
+        # We have a special treatment for the workspace and local sources:
         if ROOT is not None:
             from pGroupCohomology.cohomology import COHO
             if ROOT == '@user_db@':
-                newroot = newroot or COHO.user_db
+                newroot = newroot or COHO.workspace
                 oldroot = r
             elif ROOT == '@public_db@':
-                newroot = newroot or COHO.public_db
+                newroot = newroot or COHO.local_sources[0]  # local_sources is a tuple, we take the
+                                                            # first, unless we know the location explicitly
                 oldroot = r
         if (newroot is not None):
             if oldroot is not None and (r!=oldroot) and (r!=newroot):
@@ -967,7 +968,7 @@ cdef class RESL:
 
         sage: from pGroupCohomology.cochain import COCH
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3, from_scratch=True)
         sage: C = COCH(H,2,'C',[1,0,1])
         sage: C*C
@@ -1229,9 +1230,9 @@ cdef class RESL:
             Lifts.append((X,s))
         r = os.path.split(self.gps_folder)[0]
         from pGroupCohomology.cohomology import COHO
-        if r == COHO.public_db:
+        if r == COHO.local_sources:
             return resl_sparse_unpickle, (self.gstem,self.gps_folder,self.res_folder,self.deg(),Lifts,self.Autolift,self.Action,'@public_db@')
-        if r == COHO.user_db:
+        if r == COHO.workspace:
             return resl_sparse_unpickle, (self.gstem,self.gps_folder,self.res_folder,self.deg(),Lifts,self.Autolift,self.Action, '@user_db@')
         return resl_sparse_unpickle, (self.gstem,self.gps_folder,self.res_folder,self.deg(),Lifts,self.Autolift,self.Action)
 
@@ -1612,7 +1613,7 @@ cdef class RESL:
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True, options='sparse')
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1669,7 +1670,7 @@ cdef class RESL:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1852,7 +1853,7 @@ cdef class RESL:
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True, options='sparse')
             sage: C = COCH(H,1,'C',[0,1])
             sage: print(C*C)
@@ -1902,7 +1903,7 @@ cdef class RESL:
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1962,7 +1963,7 @@ cdef class RESL:
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -2216,7 +2217,7 @@ cdef class RESL:
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -2345,7 +2346,7 @@ cdef class RESL:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: P,K,D = H.resolution()._get_yoneda_liftdata(2)
@@ -2385,7 +2386,7 @@ cdef class RESL:
         the result obtained using a different matrix backend::
 
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, options="nouseMTX")
             sage: H.make()
             sage: P2,K2,D2 = H.resolution()._get_yoneda_liftdata(2)
@@ -2626,7 +2627,7 @@ cdef class RESL:
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: R = H.resolution()
@@ -3130,7 +3131,7 @@ cdef class RESL:
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: YC = (H.2.yoneda_cocycle()*H.3.yoneda_cocycle()).find_cobounding_yoneda_cochains()
@@ -3993,7 +3994,7 @@ cdef class G_ALG:
             sage: G_ALG(gstem,folder=gps_folder,dependent=False, groupname="D_8")
             GF(2)[D_8]
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(64,82)
             sage: H.resolution().G_ALG()
             GF(2)[Syl2(Sz(8))]
@@ -4352,7 +4353,7 @@ class MasseyDefiningSystems:
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.resolution import MasseyDefiningSystems
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: H.rels()
@@ -4404,7 +4405,7 @@ class MasseyDefiningSystems:
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y1 = H.2.yoneda_cocycle()
@@ -4476,7 +4477,7 @@ class MasseyDefiningSystems:
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y1 = H.2.yoneda_cocycle()
@@ -4558,7 +4559,7 @@ class MasseyDefiningSystems:
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(9,2)
             sage: H.make()
             sage: H.3

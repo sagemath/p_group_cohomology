@@ -215,7 +215,7 @@ class BarCode2d(SageObject):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: B = H.bar_code('UpperCentralSeries')  # indirect doctest
@@ -338,7 +338,7 @@ class BarCode2d(SageObject):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -365,7 +365,7 @@ class BarCode2d(SageObject):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -389,7 +389,7 @@ class BarCode2d(SageObject):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -412,7 +412,7 @@ class BarCode2d(SageObject):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -465,7 +465,7 @@ class BarCode2d(SageObject):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -505,7 +505,7 @@ class BarCode:
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: B = H.bar_code('UpperCentralSeries')    # indirect doctest
@@ -601,7 +601,7 @@ class BarCode:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
@@ -621,7 +621,7 @@ class BarCode:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
@@ -648,7 +648,7 @@ class BarCode:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
@@ -672,7 +672,7 @@ class BarCode:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: B = H.bar_code('LowerCentralSeries')
@@ -695,7 +695,7 @@ class BarCode:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: B = H.bar_code('LowerCentralSeries')
@@ -751,7 +751,7 @@ class BarCode:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: B = H.bar_code('LowerCentralSeries')

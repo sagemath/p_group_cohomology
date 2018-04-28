@@ -111,7 +111,7 @@ def _IdGroup(G, D, Client, ring=True):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(8,3)
         sage: from pGroupCohomology.modular_cohomology import _IdGroup
         sage: D = {'prime':3}
@@ -241,7 +241,7 @@ class MODCOHO(COHO):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: G = gap('SmallGroup(48,36)')
         sage: H1 = CohomologyRing(G, prime=2, GroupName='SomeGroup', from_scratch=True)
         sage: H1.make()
@@ -299,7 +299,7 @@ class MODCOHO(COHO):
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.modular_cohomology import MODCOHO
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G = gap('SymmetricGroup(6)')
             sage: S = G.SylowSubgroup(3)
             sage: P = G.Normalizer(S.Centre())
@@ -665,7 +665,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(48,48,prime=3, from_scratch=True)
             sage: H.make()
             sage: loads(dumps(H)) is H   #indirect doctest
@@ -729,7 +729,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(48,48,prime=2, from_scratch=True)
             sage: H.make(2)
             sage: H.set_ring()
@@ -792,7 +792,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
             sage: G = gap('SymmetricGroup(6)')
             sage: Y = CohomologyRing(G,prime=2,GroupName='SymmetricGroup(6)', from_scratch=True)
@@ -804,7 +804,7 @@ class MODCOHO(COHO):
             '.../HSymmetricGroup_6_mod2.sobj'
 
         """
-        return os.path.join(self.user_db,'H'+self.GStem+'mod%d.sobj'%self._prime)
+        return os.path.join(self.workspace,'H'+self.GStem+'mod%d.sobj'%self._prime)
 
     def group(self):
         """
@@ -820,7 +820,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
             sage: G = X.group()
             sage: G
@@ -848,7 +848,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.sylow_subgroup().IdGroup()
             [ 32, 3 ]
@@ -872,7 +872,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.subgroup().IdGroup()
             [ 288, 46 ]
@@ -911,7 +911,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
             sage: X.duflot_regular_sequence()
@@ -965,7 +965,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.sylow_subgroup().IdGroup()
             [ 32, 3 ]
@@ -983,7 +983,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.subgroup().IdGroup()
             [ 288, 46 ]
@@ -1015,7 +1015,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(48,50, prime=2)
             sage: len(H.Cosets)
             2
@@ -1080,7 +1080,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(48,50,prime=2)
             sage: len(H._PtoPcapCPdirect)
             2
@@ -1239,12 +1239,11 @@ class MODCOHO(COHO):
 
         Since the construction depends on data in the cohomology
         ring of a subgroup, we ensure that this ring is not simply
-        taken from an outdated version of the public database, and
-        compute it from scratch::
+        taken from the local sources, and compute it from scratch::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(64,138,from_scratch=True)
             sage: H = CohomologyRing(576,204,prime=2)
             sage: H.make()
@@ -1597,7 +1596,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('MathieuGroup(11)')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
 
@@ -1834,7 +1833,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(162,19,prime=3)
             sage: sorted(H.subgroups().items())
             [((3, 1), H^*(SmallGroup(3,1); GF(3))),
@@ -1896,7 +1895,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
 
         We destroy the subgroup information...
@@ -2005,7 +2004,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('MathieuGroup(11)')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(4)
@@ -2101,7 +2100,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(3)
@@ -2370,7 +2369,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_public_db(tmp_dir())
+            sage: CohomologyRing.set_local_sources(tmp_dir())
             sage: H = CohomologyRing(384,5602, prime=2, from_scratch=True)
 
         In the following line, we are cheating a bit. Without it, other
@@ -2417,7 +2416,7 @@ class MODCOHO(COHO):
             7
             sage: H._method
             'Hilbert-Poincar&eacute;'
-            sage: CohomologyRing.set_public_db(False)
+            sage: CohomologyRing.set_local_sources(False)
 
         """
         # Prove the existence of parameters over a finite field extension.
@@ -2542,7 +2541,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(384, 5602, prime=2, from_scratch=True)
 
         In the following line, we are cheating a bit. Without it, other
@@ -2719,7 +2718,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(81,7, from_scratch=True)
             sage: X.make()
             sage: H = CohomologyRing(324,39, prime=3, from_scratch=True)
@@ -2953,7 +2952,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
 
         There are no generators yet, and by consequence there are no
@@ -3140,7 +3139,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
 
         We compute the ring structure only to degree 2 and then ask for
@@ -3220,7 +3219,7 @@ class MODCOHO(COHO):
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M12', from_scratch=True)
             sage: H.make()
@@ -3351,7 +3350,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H.1*H.2+H.3+H.4
@@ -3411,7 +3410,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
             sage: H.make(4)
 
@@ -3501,7 +3500,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
             sage: H.make(3)
             sage: singular(H.restriction_maps()[1][1].codomain()).set_ring()
@@ -3600,12 +3599,12 @@ class MODCOHO(COHO):
         First, we take care that the state of the cohomology rings of
         the elementary abelian subgroups and of the Sylow subgroup are
         in a well defined state, independent of the content of the
-        public database. In this example, we also illustrate logging.
+        local sources. In this example, we also illustrate logging.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(4,2, from_scratch=True)
             sage: X.make()
             sage: X = CohomologyRing(8,5, from_scratch=True)
@@ -4152,7 +4151,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6),(1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=3,GroupName='M12', from_scratch=True)
 
@@ -4396,7 +4395,7 @@ def COHO_from_key(key):
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.modular_cohomology import COHO_from_key
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
         sage: H.make(3)
 
@@ -4480,7 +4479,7 @@ def COHO_from_key(key):
     from pGroupCohomology.cohomology import COHO
     import os
     try:
-        HP = load(os.path.join(COHO.user_db, 'H'+key[1]+'mod%d.sobj'%key[-1]))  # realpath here?
+        HP = load(os.path.join(COHO.workspace, 'H'+key[1]+'mod%d.sobj'%key[-1]))  # realpath here?
     except:
         HP = CohomologyRing(gap(key[0][0]), prime=key[-1], GStem=key[1],SubgpCohomology=HN)
     coho_logger.setLevel(logging_level)
@@ -4496,7 +4495,7 @@ def MODCOHO_unpickle(*L):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
         sage: H.make(3)
         sage: H is loads(dumps(H)) #indirect doctest

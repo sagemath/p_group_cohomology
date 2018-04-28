@@ -109,8 +109,8 @@ right away.
 The package is shipped with the cohomology rings for all groups of
 order 64; the data are stored in folders and can simply be retrieved
 by calling :func:`~pGroupCohomology.CohomologyRing` with appropriate
-keys.  These data are provided to *all* users of the Sage installation,
-thus we refer to it as the *public database*.
+keys.  These data are provided to *all* users of the Sage installation
+and we refer to it as the *local sources*.
 
 In addition, we provide the cohomology rings for all groups of order
 128 and for all but six groups of order 243 in a web repository.
@@ -118,10 +118,12 @@ Unless the user requires a recomputation from scratch, these data will
 be automatically downloaded. In future versions, this will also be
 possible for various non prime power groups.
 
-Any user can construct new databases; we refer to them as *private
-database*. There is a default location for a private database,
-namely in a sub-directory of ``DOT_SAGE``. But any location may be
-chosen as well, provided that the user has write permission.
+Any user can construct new databases; we refer to them as a *workspace*.
+At each time, there only is a single workspace, and it is used to
+store all data created in cohomology computations. It is possible to
+switch between workspaces. There is a default location in a sub-directory
+of ``DOT_SAGE``. But any location may be chosen as well, provided that
+the user has write permission.
 
 Cohomology rings are parent structures and are cached. That means, if
 two groups are essentially equal then their cohomology rings will be
@@ -138,24 +140,19 @@ searched, in order:
 
 1. It is first tried to find the result in the cache.
 
-2. It is tried to load it from the current private database.
+2. It is tried to load it from the current workspace.
 
-3. If it is not there, the default is to try to find it in the public database.
+3. If it is not there, the default is to try to find it in the local sources.
 
 4. Finally, by default it is attempted to download the result from a web
-   repository.
+   repository, which we refer to as *remote sources*.
 
-The user has not necessarily write permission fo the public
-database. Therefore, if data are found, symbolic links are created in
-the private database that link to the known data in the public
-database. If further computation requires more data, they are created
-and stored in the private database.
-
-If all this fails, a new ring is initialized in the current private
-database. So, unless
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.public_db` is used, the
-data for any cohomology ring will eventually be in the current private
-database.
+Data from either local or remote sources are mirrored in the workspace,
+which is because the user does not necessarily have write permissions to
+alter the local sources. To be precise, symbolic links are created in
+the workspace that link to data in the local sources. If further
+computation requires more data, they are created and stored in the workspace.
+If all this fails, a new ring is initialized in the current workspace.
 
 The data belonging to the cohomology ring of a prime power group (e.g., a minimal
 free resolution, information on embedding of elementary abelian subgroups, standard
@@ -163,8 +160,8 @@ monomials etc.) are distributed in a folder tree, one tree for each group.
 
 In the non prime power case, the situation is easier. It is not needed to
 store small data pieces during the computation, and eventually the main
-data are saved in a single file. Its default location is in the currently activated
-private database. The computation does, however, rely on the cohomology rings
+data are saved in a single file. Its default location is in the current
+workspace. The computation does, however, rely on the cohomology rings
 of various subgroups, e.g., a Sylow subgroup. So, again the data are distributed.
 
 Creating a cohomology ring
@@ -182,8 +179,8 @@ changed at any time using the method
 
 Usually, the package attempts to make use of existing data. However,
 if the optional parameter ``from_scratch`` is set to ``True`` then
-this cohomology ring is not loaded from the public database or the web
-repository. Note, however, that this option only takes effect on the
+this cohomology ring is not loaded from local or remote sources.
+Note, however, that this option only takes effect on the
 ring itself, but not for cohomology rings of certain subgroups that
 might be created during the computation.
 
@@ -193,18 +190,17 @@ Further options are described in the documentation of
 ... using the SmallGroups library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In our examples, we choose a temporary directory for our private data
-base. Of course, in reality, a permanent directory would be chosen for
-the databases. We do so in order to avoid a conflict with an existing
-private database.
+In our examples, we put the workspace into a temporary directory.
+Of course, in reality, a permanent directory would be chosen instead.
+We do so in order to avoid a conflict with an existing workspace.
 ::
 
     sage: from pGroupCohomology import CohomologyRing
-    sage: CohomologyRing.set_user_db(tmp_dir())
+    sage: CohomologyRing.set_workspace(tmp_dir())
     sage: H0 = CohomologyRing(8,3)
 
 Since the cohomology ring of ``SmallGroup(8,3)``, which is the
-Dihedral Group of order 8, is in the public database shipped with our
+Dihedral Group of order 8, is in the local sources shipped with our
 package, it is simply loaded and already completely computed. It is
 not needed to specify a prime to determine the coefficients, since the
 group is of prime power order. Note that we also have a list of group
@@ -249,22 +245,21 @@ rings of *the same* group in *the same* database are unique::
     sage: H0 is loads(dumps(H0))
     True
 
-We set up a different private database in a temporary directory, and
-show that indeed two cohomology rings are only identical if their data
-are stored in the same place. Moreover, we use an optional argument to
-avoid that the ring is loaded from the public database or from a web
-repository::
+We set up a different workspace in a temporary directory, and show that
+indeed two cohomology rings are only identical if their data are stored
+in the same place. Moreover, we use an optional argument to avoid that
+the ring is loaded from the local or remote sources::
 
     sage: tmp = tmp_dir()
-    sage: CohomologyRing.set_user_db(tmp)
+    sage: CohomologyRing.set_workspace(tmp)
     sage: H1 = CohomologyRing(8,3,from_scratch=True)
     sage: H1 is H0
     False
 
 Since we used the option ``from_scratch=True``, it was not attempted
-to download the cohomology ring from the web or load it from the
-public database. Hence, beyond the basic setup, ``H1`` is unknown and
-is thus not even equal to ``H0``::
+to download the cohomology ring from local or remote sources. Hence,
+beyond the basic setup, ``H1`` is unknown and is thus not even equal
+to ``H0``::
 
     sage: H0 == H1
     False
@@ -1047,7 +1042,7 @@ computations from scratch, using a temporary directory.
 
     sage: from pGroupCohomology import CohomologyRing
     sage: tmp = tmp_dir()
-    sage: CohomologyRing.set_user_db(tmp)
+    sage: CohomologyRing.set_workspace(tmp)
     sage: H = CohomologyRing(8,3,from_scratch=True)
     sage: H.make()
 
@@ -1062,7 +1057,7 @@ only creates a new reference to ``H``::
     sage: loads(dumps(H)) is H
     True
 
-By the command ``CohomologyRing.set_user_db(tmp)``, all data in the
+By the command ``CohomologyRing.set_workspace(tmp)``, all data in the
 user database are stored in sub-folders of the folder ``tmp``. The
 names of these folders are composed as follows.
 
@@ -1103,9 +1098,10 @@ The situation for non prime power groups is different. Here, the data
 structure for the ring itself is somewhat easier, so, main data are
 saved in just one file.  On the other hand, the computations rely on
 the stable element method and thus involve the cohomology rings of
-various subgroups. When reloading, these are searched in the cache or
-in the public or private databases or in the web repository, and are
-re-computed if necessary. Here, we show that the rings are cached::
+various subgroups. When reloading, these are sought in the cache or
+in the workspace or local sources or remote sources, and are
+re-computed if they can nowhere be found. Here, we show that the rings
+are cached::
 
     sage: HS6a = CohomologyRing(720,763,prime=2)
     sage: HS6a.make()
@@ -1122,9 +1118,8 @@ If you wish to transfer data of a cohomology ring ``H`` to a different
 location, you may do so. But please make sure that (in the case of prime power
 groups) ``H.gps_folder`` keeps its name (only the parent directory is allowed
 to change!), and that all files in ``H.gps_folder`` and its sub-folders are
-preserved. Then, by
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_user_db`, one can
-activate the private database in the new location, and reload the ring.  In
+preserved. Then, by :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_workspace`,
+one can set up the workspace in the new location, and reload the ring.  In
 order to demonstrate that it really is the same ring, we provide ``H`` with an
 additional attribute before saving and moving the data::
 
@@ -1133,7 +1128,7 @@ additional attribute before saving and moving the data::
     sage: tmp2 = tmp_dir()
     sage: import os
     sage: os.rename(tmp,tmp2)
-    sage: CohomologyRing.set_user_db(tmp2)
+    sage: CohomologyRing.set_workspace(tmp2)
     sage: M = CohomologyRing(8,3)
     sage: M is H
     False
@@ -1632,7 +1627,7 @@ cohomology data::
 
     sage: gap.quit()
     sage: singular.quit()
-    sage: CohomologyRing.set_user_db(tmp_dir())
+    sage: CohomologyRing.set_workspace(tmp_dir())
 
 Since we are using the stable element method, we first need to get the
 cohomology ring of a Sylow 2-subgroup. It is of order 128::
@@ -1645,7 +1640,7 @@ We set up the computation of its cohomology ring (requesting a computation
 from scratch in a new temporary directory)::
 
     sage: from pGroupCohomology import CohomologyRing
-    sage: CohomologyRing.set_user_db(tmp_dir())
+    sage: CohomologyRing.set_workspace(tmp_dir())
     sage: HSyl = CohomologyRing(128, 928, from_scratch=True)
 
 Note that the program has a list of names of interesting groups, and so group

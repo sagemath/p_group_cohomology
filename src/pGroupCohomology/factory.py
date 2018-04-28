@@ -108,7 +108,7 @@ def unit_test_64(**kwds):
     a serious test, which should take 5--30 minutes.
 
     Since doctests are supposed to be much shorter, we allow here to
-    retrieve the data from the public database (``from_scratch=False``).
+    retrieve the data from the local sources (``from_scratch=False``).
     By consequence, the cohomology rings are simply reloaded and we merely
     test that pickling works.
     ::
@@ -131,10 +131,10 @@ def unit_test_64(**kwds):
     CohomologyRing.reset()
     from sage.all import tmp_dir, walltime, cputime, singular, gap
     if kwds.has_key('root'):
-        CohomologyRing.set_user_db(kwds['root'])
+        CohomologyRing.set_workspace(kwds['root'])
         del kwds['root']
     else:
-        CohomologyRing.set_user_db(tmp_dir())
+        CohomologyRing.set_workspace(tmp_dir())
     wt0 = walltime()
     ct0 = cputime()
     st = int(singular.eval('timer'))
@@ -193,7 +193,7 @@ def _symlink_to_database(publ, priv):
 
     EXAMPLES:
 
-    We link to an entry of the public database.
+    We link to an entry of the local sources.
     ::
 
         sage: from pGroupCohomology import CohomologyRing
@@ -201,7 +201,7 @@ def _symlink_to_database(publ, priv):
         sage: tmp = tmp_dir()
         sage: from pGroupCohomology.factory import _symlink_to_database
         sage: os.mkdir(os.path.join(tmp,'8gp3'))
-        sage: _symlink_to_database(os.path.join(CohomologyRing.get_public_db(),'8gp3'), os.path.join(tmp,'8gp3'))
+        sage: _symlink_to_database(os.path.join(CohomologyRing.get_local_sources(),'8gp3'), os.path.join(tmp,'8gp3'))
         sage: L = os.listdir(os.path.join(tmp, '8gp3'))
         sage: '8gp3.nontips' in L
         True
@@ -266,7 +266,7 @@ class CohomologyRingFactory:
 
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.reset()
-        sage: CohomologyRing.set_user_db(tmp_dir())
+        sage: CohomologyRing.set_workspace(tmp_dir())
         sage: H0 = CohomologyRing(8,3)   #indirect doctest
         sage: print(H0)
         Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -286,7 +286,7 @@ class CohomologyRingFactory:
 
             sage: from pGroupCohomology.factory import CohomologyRingFactory
             sage: CR = CohomologyRingFactory()   #indirect doctest
-            sage: CR.set_user_db(tmp_dir())
+            sage: CR.set_workspace(tmp_dir())
             sage: H = CR(8,3)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -304,7 +304,7 @@ class CohomologyRingFactory:
         ## Cohomology rings will be unique parent structures
         from weakref import WeakValueDictionary
         self._cache = WeakValueDictionary({})
-        self._use_public_db = False
+        self._create_local_sources = False
 
     def reset(self):
         """Reset the cohomology ring machinery's initial state.
@@ -353,10 +353,10 @@ class CohomologyRingFactory:
         CohomologyRing.logger.setLevel(logging.WARN)
         CohomologyRing.logger.handlers[0].formatter.reset()
         CohomologyRing._cache.clear()
-        self.set_public_db(True)  # Defines the default location of the public data base
-        self.set_public_db(False) # make the public data base read-only
-        self.set_user_db(None)    # Defines the default location of the private data base
-        self.set_web_db(None)     # Defines the default location of the data base in the web
+        self.set_local_sources(True)  # Defines the default location of the local sources
+        self.set_local_sources(False) # make the local sources read-only
+        self.set_workspace(None)    # Defines the default location of the workspace
+        self.set_remote_sources(None)     # Defines the default location of the remote sources
         from pGroupCohomology.auxiliaries import default_options, coho_options
         coho_options.clear()
         coho_options.update(default_options)
@@ -436,9 +436,9 @@ class CohomologyRingFactory:
                 raise TypeError("option must be a string")
         coho_options.update(kwds)
 
-    def get_public_db(self):
+    def get_local_sources(self):
         """
-        Return the location of the currently used public database.
+        Return the location of the current local sources.
 
         EXAMPLE::
 
@@ -451,37 +451,37 @@ class CohomologyRingFactory:
             ....:         from sage.misc.misc import SAGE_SHARE
             ....:     except ImportError:
             ....:         from sage.misc.misc import SAGE_DATA as SAGE_SHARE
-            sage: CohomologyRing.get_public_db().startswith(os.path.realpath(SAGE_SHARE))
+            sage: CohomologyRing.get_local_sources().startswith(os.path.realpath(SAGE_SHARE))
             True
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_public_db(tmp)
-            sage: CohomologyRing.get_public_db().startswith(os.path.realpath(tmp))
+            sage: CohomologyRing.set_local_sources(tmp)
+            sage: CohomologyRing.get_local_sources().startswith(os.path.realpath(tmp))
             True
 
         """
-        return COHO.public_db
+        return COHO.local_sources
 
-    def get_private_db(self):
+    def get_workspace(self):
         """
-        Return the location of the current private database.
+        Return the location of the current workspace.
 
         EXAMPLE::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.get_private_db().startswith(os.path.realpath(DOT_SAGE))
+            sage: CohomologyRing.get_workspace().startswith(os.path.realpath(DOT_SAGE))
             True
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
-            sage: CohomologyRing.get_private_db().startswith(os.path.realpath(tmp))
+            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.get_workspace().startswith(os.path.realpath(tmp))
             True
 
         """
-        return COHO.user_db
+        return COHO.workspace
 
-    def set_public_db(self, folder=True):
+    def set_local_sources(self, folder=True):
         """
-        Choose a public database to be used.
+        Define which local sources to be used.
 
         INPUT:
 
@@ -490,16 +490,16 @@ class CohomologyRingFactory:
         OUTPUT:
 
         - If ``folder`` is a non-empty string, it will be used as the root
-          directory of a public database in subsequent cohomology computations.
+          directory of local sources in subsequent cohomology computations.
         - If the user has write permissions in this folder, it is actually
           used to create rings. Otherwise, it is only used to read existing
           cohomology data, but all new computations will still be done in
-          the private database.
-        - If ``folder`` is ``True`` then the default location of the public
-          database is reset; this is a sub-directory of ``SAGE_SHARE``.
-        - If ``bool(folder)`` is ``False`` then the private database will
+          the user's workspace.
+        - If ``folder`` is ``True`` then the default location of the local
+          sources is reset; this is a sub-directory of ``SAGE_SHARE``.
+        - If ``bool(folder)`` is ``False`` then the user's workspace will
           be used to create new data in subsequent computations, even if
-          the user has write permission for the public database.
+          the user has write permission for the local sources.
 
         EXAMPLES::
 
@@ -507,35 +507,36 @@ class CohomologyRingFactory:
             sage: CohomologyRing.reset()
             sage: tmp_priv = tmp_dir()
             sage: tmp_publ = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_priv)
+            sage: CohomologyRing.set_workspace(tmp_priv)
 
-        If the public database is set, then it is used
+        If the local sources are set by the user to a location
+        for which s/he has write permissions, then it is used
         for creating a cohomology ring::
 
-            sage: CohomologyRing.set_public_db(tmp_publ)
+            sage: CohomologyRing.set_local_sources(tmp_publ)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.root.startswith(os.path.realpath(tmp_publ))
             True
 
-        After unsetting it, the private database is used instead::
+        After unsetting it, the workspace is used instead::
 
-            sage: CohomologyRing.set_public_db(False)
+            sage: CohomologyRing.set_local_sources(False)
             sage: H2 = CohomologyRing(8,3)
             sage: H2.root.startswith(os.path.realpath(tmp_priv))
             True
 
-        ``CohomologyRing.set_public_db(False)`` did not reset the
-        default public library (that by default is read-only); but
-        ``CohomologyRing.set_public_db(True)`` does::
+        ``CohomologyRing.set_local_sources(False)`` did not reset the
+        default local sources (that by default are read-only); but
+        ``CohomologyRing.set_local_sources(True)`` does::
 
-            sage: CohomologyRing.set_public_db(True)
+            sage: CohomologyRing.set_local_sources(True)
             sage: from sage.env import SAGE_SHARE
-            sage: CohomologyRing.get_public_db().startswith(os.path.realpath(SAGE_SHARE))
+            sage: CohomologyRing.get_local_sources().startswith(os.path.realpath(SAGE_SHARE))
             True
 
         """
         if folder:
-            self._use_public_db = True
+            self._create_local_sources = True
             if not isinstance(folder,basestring):
                 try:
                     from sage.env import SAGE_SHARE
@@ -551,25 +552,25 @@ class CohomologyRingFactory:
                 if os.path.isdir(folder):
                     if not os.access(folder,os.W_OK):
                        coho_logger.warn("WARNING: '%s' is not writeable", None, folder)
-                       self._use_public_db = False
+                       self._create_local_sources = False
                 else:
                     raise OSError("'%s' is no folder"%folder)
             else:
                 os.makedirs(folder)  # may produce an error
-            COHO.public_db = folder
+            COHO.local_sources = folder
         else:
-            self._use_public_db = False
+            self._create_local_sources = False
 
-    def public_db(self, *args, **kwds):
+    def local_sources(self, *args, **kwds):
         """
-        Retrieve/create a cohomology ring in the public database
+        Retrieve/create a cohomology ring in the local sources
 
         NOTE:
 
-        - The public database can be chosen using :meth:`set_public_db`.
-        - Write permissions to the public database are required.
-        - Subsequent computations will use the public database as well,
-          until ``CohomologyRing.set_public_db(False)`` is used.
+        - The local sources can be chosen using :meth:`set_local_sources`.
+        - Write permissions to the local sources are required in this method.
+        - All subsequent computations will modify data in the local sources,
+          until ``CohomologyRing.set_local_sources(False)`` is used.
 
         EXAMPLES::
 
@@ -577,37 +578,36 @@ class CohomologyRingFactory:
             sage: CohomologyRing.reset()
             sage: tmp_priv = tmp_dir()
             sage: tmp_publ = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_priv)
+            sage: CohomologyRing.set_workspace(tmp_priv)
 
-        If the public database is set, then it is used
-        for creating a cohomology ring::
+        We demonstrate how to put data into the local sources::
 
-            sage: CohomologyRing.set_public_db(tmp_publ)
+            sage: CohomologyRing.set_local_sources(tmp_publ)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.root.startswith(os.path.realpath(tmp_publ))
             True
 
-        After unsetting it, the private database is used instead::
+        After unsetting it, the user's workspace is used instead::
 
-            sage: CohomologyRing.set_public_db(False)
+            sage: CohomologyRing.set_local_sources(False)
             sage: H2 = CohomologyRing(8,4)
             sage: H2.root.startswith(os.path.realpath(tmp_priv))
             True
 
-        But it is possible to access the public database directly::
+        But it is possible to access the local sources directly::
 
-            sage: H3 = CohomologyRing.public_db(8,2)
+            sage: H3 = CohomologyRing.local_sources(8,2)
             sage: H3.root.startswith(os.path.realpath(tmp_publ))
             True
 
         """
-        use_public_db = self._use_public_db
-        if not self._use_public_db:
-            self.set_public_db(self.get_public_db())
+        create_local_sources = self._create_local_sources
+        if not self._create_local_sources:
+            self.set_local_sources(self.get_local_sources())
         try:
             return self(*args,**kwds)
         finally:
-            self._use_public_db = use_public_db
+            self._create_local_sources = create_local_sources
 
     def gstem(self, G, GStem=None, GroupName=None, GroupId=None):
         """
@@ -779,7 +779,7 @@ class CohomologyRingFactory:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3)
             sage: H.group()
             Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] )
@@ -827,7 +827,7 @@ class CohomologyRingFactory:
         involves some trickery, and it is certainly better to not rely on
         trickery). Here, we demonstrate that the given keys are correctly converted::
 
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: X = CohomologyRing(gap(8),gap(3), from_scratch=True)
             sage: type(X._key[0][0])
             <type 'sage.rings.integer.Integer'>
@@ -971,7 +971,7 @@ class CohomologyRingFactory:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3)
             sage: CohomologyRing.global_options('info')
             sage: CohomologyRing._check_compatibility(H._key,H)
@@ -987,10 +987,10 @@ class CohomologyRingFactory:
         """
         if not isinstance(R, COHO):
             raise TypeError('The second argument must be a Cohomology ring')
-        if self._use_public_db:
-            root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
+        if self._create_local_sources:
+            root_workspace = COHO.local_sources # SAGE_SHARE+'pGroupCohomology'
         else:
-            root_user_db = COHO.user_db #DOT_SAGE+'pGroupCohomology/db/'
+            root_workspace = COHO.workspace #DOT_SAGE+'pGroupCohomology/db/'
         # test if R is compatible with the key CacheKey.
         # May print a warning or raise an error,
         # and if it succeeds, return R
@@ -1012,28 +1012,26 @@ class CohomologyRingFactory:
           the cohomology ring of a finite `p`-group.
         - ``KEY``, a descriptor for the equivalence class of a group (see :meth:`create_group_key`)
         - ``from_scratch`` -- (optional bool) If ``True``, it is not attempted to
-          copy data from a public database or web repository, and an error is raised
-          if the requested cohomology ring is not in the cache but already exists
-          in the private database.
+          copy data from local or remote sources, and an error is raised if the requested
+          cohomology ring is not in the cache but already exists in the user's workspace.
         - ``websource`` -- (optional) provides the location of an alternative cohomology
           repository from which data will be downloaded if they can not be found in the cache,
-          the private database or the public database.
+          the workspace or the local sources.
 
         OUTPUT:
 
         The cohomology ring associated with the given arguments, or ``None``, if it can
-        not be found in the cache, the private database, the public database or the web
-        repository.
+        not be found in the cache, the workspace, or the local or remote sources.
 
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
 
         Since the cohomology of the dihedral group of order 8 is shipped with this
-        package, it can be taken from the public database::
+        package, it can be taken from the local sources::
 
             sage: H = CohomologyRing._get_p_group_from_cache_or_db('8gp3',(8,3)); H
             H^*(D8; GF(2))
@@ -1046,7 +1044,7 @@ class CohomologyRingFactory:
 
         However, if we remove the ring from the cache and request a computation from
         scratch again, an error is raise because the data for ``H`` can still be found
-        on disk in the private database::
+        on disk in the workspace::
 
             sage: import os
             sage: del CohomologyRing._cache[H._key]
@@ -1061,17 +1059,11 @@ class CohomologyRingFactory:
             sage: H is CohomologyRing._get_p_group_from_cache_or_db('8gp3',(8,3), from_scratch=True)
             True
 
-        Of course it is possible to take the cohomology ring from the private database
-        without the option ``from_scratch``. To demonstrate this, we disable the use of the
-        private database (by setting it to a non-existing folder) and disallow the use of
-        a web repository::
-
-            sage: CohomologyRing.set_public_db(tmp_dir())
-
-        If the location of the public database is explicitly set and write permission
+        If the location of the local sources is explicitly set and write permission
         is granted (which is the case here), it is attempted to get the data from there.
-        Since this is impossible, ``None`` is returned::
+        If this is impossible and remote sources are not being used, ``None`` is returned::
 
+            sage: CohomologyRing.set_local_sources(tmp_dir())
             sage: CohomologyRing._get_p_group_from_cache_or_db('8gp3',(8,3), websource=False) is None
             True
 
@@ -1079,14 +1071,14 @@ class CohomologyRingFactory:
         # If data for the given GStem and KEY are available,
         # they are returned, otherwise None.
         ####################
-        ## Since v2.1, we insist on always using the private database,
-        ## but it may be that we have to link to the public database
+        ## Since v2.1, we insist on always using the user's workspace,
+        ## but it may be that we have to link to the local sources
         from exceptions import RuntimeError
-        root_public_db = COHO.public_db
-        if self._use_public_db:
-            root_user_db = COHO.public_db
+        root_local_sources = COHO.local_sources
+        if self._create_local_sources:
+            root_workspace = COHO.local_sources
         else:
-            root_user_db = COHO.user_db
+            root_workspace = COHO.workspace
         file_name = os.path.join(GStem,'H%s.sobj'%GStem)
         OUT = None
         from_scratch = kwds.get('from_scratch')
@@ -1094,7 +1086,7 @@ class CohomologyRingFactory:
             coho_options['use_web'] = False
 
         ## 1. Cache
-        CacheKey = (KEY, os.path.join(root_user_db,GStem,'dat','State'))
+        CacheKey = (KEY, os.path.join(root_workspace,GStem,'dat','State'))
         if self._cache.has_key(CacheKey):
             OUT = self._cache[CacheKey]
             if os.access(OUT.autosave_name(), os.R_OK):
@@ -1103,46 +1095,46 @@ class CohomologyRingFactory:
             coho_logger.error("Found in cache, but not on disk. Removing cache item %s", OUT, CacheKey[1])
             del self._cache[CacheKey]
             OUT = None
-        ## 2. Directly load from private db
-        if os.access(os.path.join(root_user_db,file_name), os.R_OK):
-            coho_logger.debug("Data found at %s", None, os.path.join(root_user_db,file_name))
+        ## 2. Directly load from workspace
+        if os.access(os.path.join(root_workspace,file_name), os.R_OK):
+            coho_logger.debug("Data found at %s", None, os.path.join(root_workspace,file_name))
             if from_scratch:
                 from exceptions import RuntimeError
-                raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_user_db,GStem)))
+                raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_workspace,GStem)))
             try:
-                coho_options['@use_this_root@'] = root_user_db
-                OUT = load(os.path.join(root_user_db,file_name)) # realpath here?
+                coho_options['@use_this_root@'] = root_workspace
+                OUT = load(os.path.join(root_workspace,file_name)) # realpath here?
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
             except BaseException, msg:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_user_db,file_name), msg))
-        ## 3. Link with public db and load from there
-        elif os.access(os.path.join(root_public_db,file_name), os.R_OK) and not from_scratch:
-            coho_logger.debug("Public data found at %s", None, os.path.join(root_public_db,file_name))
+                raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_workspace,file_name), msg))
+        ## 3. Link with local sources and load from there
+        elif os.access(os.path.join(root_local_sources,file_name), os.R_OK) and not from_scratch:
+            coho_logger.debug("Local data found at %s", None, os.path.join(root_local_sources,file_name))
             try:
-                coho_logger.debug('Creating symbolic links from %s to %s', None, os.path.join(root_user_db,GStem), os.path.join(root_public_db,GStem))
-                _symlink_to_database(os.path.join(root_public_db,GStem), os.path.join(root_user_db,GStem))
+                coho_logger.debug('Creating symbolic links from %s to %s', None, os.path.join(root_workspace,GStem), os.path.join(root_local_sources,GStem))
+                _symlink_to_database(os.path.join(root_local_sources,GStem), os.path.join(root_workspace,GStem))
             except BaseException:
-                raise ValueError("Can not create a symbolic link to the public database. Please remove %s"%(os.path.join(root_user_db,GStem)))
+                raise ValueError("Can not create a symbolic link to the local sources. Please remove %s"%(os.path.join(root_workspace,GStem)))
             # now try to load from the new entry in the database
             try:
-                coho_options['@use_this_root@'] = root_user_db
-                OUT = load(os.path.join(root_user_db,file_name)) # realpath here?
+                coho_options['@use_this_root@'] = root_workspace
+                OUT = load(os.path.join(root_workspace,file_name)) # realpath here?
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
             except BaseException, msg:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_public_db,file_name), msg))
+                raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_local_sources,file_name), msg))
         ## 4. Search web repository
         elif kwds.get('websource')!=False and (not from_scratch):
             try:
                 if isinstance(kwds.get('websource'), basestring):
-                    OUT = self.web_db(GStem, websource=kwds.get('websource'))
+                    OUT = self.remote_sources(GStem, websource=kwds.get('websource'))
                 else:
-                    OUT = self.web_db(GStem)
+                    OUT = self.remote_sources(GStem)
             except urllib2.URLError, msg:
                 if "HTTP Error 404" in str(msg):
                     coho_logger.info("Cohomology ring can not be found in web database.", None)
@@ -1190,7 +1182,7 @@ class CohomologyRingFactory:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H1 = CohomologyRing._get_p_group_from_scratch((8,3), 8, '8gp3', 'Group1'); H1
             H^*(Group1; GF(2))
             sage: H2 = CohomologyRing._get_p_group_from_scratch(('DihedralGroup(8)',), 8, 'D8', 'Group2'); H2
@@ -1205,18 +1197,18 @@ class CohomologyRingFactory:
         """
         from pGroupCohomology.auxiliaries import gap
         coho_logger.info('We compute this cohomology ring from scratch', None)
-        if self._use_public_db:
-            root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
+        if self._create_local_sources:
+            root_workspace = COHO.local_sources # SAGE_SHARE+'pGroupCohomology'
         else:
-            root_user_db = COHO.user_db #DOT_SAGE+'pGroupCohomology/db/'
-        CacheKey = (KEY, os.path.join(root_user_db,GStem,'dat','State'))
+            root_workspace = COHO.workspace #DOT_SAGE+'pGroupCohomology/db/'
+        CacheKey = (KEY, os.path.join(root_workspace,GStem,'dat','State'))
         extras = {}
         for k in kwds.items():
             extras[k[0]] = k[1]
         extras['GroupName'] = GroupName
         extras['GStem'] = GStem
         extras['key'] = CacheKey
-        extras['root'] = root_user_db
+        extras['root'] = root_workspace
         if len(KEY)==1:
             extras['gap_input'] = q # we must specify the group order
             OUT = COHO(gap(KEY[0]), **extras)
@@ -1242,7 +1234,7 @@ class CohomologyRingFactory:
           ring is stored
         - ``pr``: A prime number, the modulus of the cohomology ring
         - ``from_scratch``: (optional bool) If ``True``, raise a ``RuntimeError`` if
-          data for that ring are already stored in the private database.
+          data for that ring are already stored in the workspace.
         - ``websource``: (optional string or ``False``) Determines the location of a
           web repository of cohomology rings, or disables the use of a web repository.
 
@@ -1257,7 +1249,7 @@ class CohomologyRingFactory:
         the computation of certain subgroups and can be very difficult.
 
         However, *if* data for that ring are in the cache, then they are usually in the
-        private database as well. Since the file in the database provides the information
+        workspace as well. Since the file in the workspace provides the information
         needed to create the key, caching is possible, as seen in the examples below.
 
         TESTS::
@@ -1265,7 +1257,7 @@ class CohomologyRingFactory:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H1 = CohomologyRing(18,3,prime=2)
             sage: H1.make(); H1
             H^*(SmallGroup(18,3); GF(2))
@@ -1283,48 +1275,48 @@ class CohomologyRingFactory:
             None
 
         """
-        root_public_db = COHO.public_db
-        if self._use_public_db:
-            root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
+        root_local_sources = COHO.local_sources
+        if self._create_local_sources:
+            root_workspace = COHO.local_sources # SAGE_SHARE+'pGroupCohomology'
         else:
-            root_user_db = COHO.user_db #DOT_SAGE+'pGroupCohomology/db/'
+            root_workspace = COHO.workspace #DOT_SAGE+'pGroupCohomology/db/'
         file_name = 'H%smod%d.sobj'%(GStem,pr)
         OUT = None
         from_scratch = kwds.get('from_scratch')
 
-        ## 1. Directly load from private db
-        if os.access(os.path.join(root_user_db,file_name), os.R_OK):
+        ## 1. Directly load from workspace
+        if os.access(os.path.join(root_workspace,file_name), os.R_OK):
             if from_scratch:
-                raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_user_db,file_name)))
+                raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_workspace,file_name)))
             try:
-                coho_options['@use_this_root@'] = root_user_db
-                OUT = load(os.path.join(root_user_db,file_name)) # realpath here?
+                coho_options['@use_this_root@'] = root_workspace
+                OUT = load(os.path.join(root_workspace,file_name)) # realpath here?
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
             except BaseException:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError("Saved data at %s are not readable"%(os.path.join(root_user_db,file_name)))
-        ## 2. Link with public db and load from there
-        elif os.access(os.path.join(root_public_db,file_name), os.R_OK) and not from_scratch:
-            os.symlink(os.path.join(root_public_db,file_name), os.path.join(root_user_db,file_name))
+                raise IOError("Saved data at %s are not readable"%(os.path.join(root_workspace,file_name)))
+        ## 2. Link with local sources and load from there
+        elif os.access(os.path.join(root_local_sources,file_name), os.R_OK) and not from_scratch:
+            os.symlink(os.path.join(root_local_sources,file_name), os.path.join(root_workspace,file_name))
             # now try to load from the new entry in the database
             try:
-                coho_options['@use_this_root@'] = root_user_db
-                OUT = load(os.path.join(root_user_db,file_name))  # realpath here?
+                coho_options['@use_this_root@'] = root_workspace
+                OUT = load(os.path.join(root_workspace,file_name))  # realpath here?
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
             except BaseException, msg:
                 if coho_options.has_key('@use_this_root@'):
                     del coho_options['@use_this_root@']
-                raise IOError("%. Saved data at %s are not readable"%(msg, os.path.join(root_public_db,file_name)))
+                raise IOError("%. Saved data at %s are not readable"%(msg, os.path.join(root_local_sources,file_name)))
         # 3. Unless the user forbids it, try to obtain it from some web source
         elif kwds.get('websource')!=False and not kwds.get('from_scratch'):
             try:
                 if isinstance(kwds.get('websource'), basestring):
-                    OUT = self.web_db(GStem, websource=kwds.get('websource'))
+                    OUT = self.remote_sources(GStem, websource=kwds.get('websource'))
                 else:
-                    OUT = self.web_db(GStem)
+                    OUT = self.remote_sources(GStem)
             except:
                 coho_logger.info("No cohomology ring found in web repository.", None)
         if OUT is not None:
@@ -1365,10 +1357,10 @@ class CohomologyRingFactory:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
 
         Since the cohomology of the dihedral group of order 8 is
-        part of the public database, the ring is complete::
+        part of the local sources, the ring is complete::
 
             sage: H0 = CohomologyRing(8,3) # indirect doctest
             sage: print(H0)
@@ -1385,7 +1377,7 @@ class CohomologyRingFactory:
         Choosing a different root directory results in another copy
         of the same ring::
 
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H1 = CohomologyRing(8,3)
             sage: H0 is H1
             False
@@ -1393,12 +1385,12 @@ class CohomologyRingFactory:
             True
 
         Creating a third location, we can ask that the ring will
-        not be loaded from the public database or a web repository.
+        not be loaded from either local or remote sources.
         By consequence, the returned ring is not complete yet and
         is therefor not equal to the previous rings, unless we
         complete it::
 
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H2 = CohomologyRing(8,3,from_scratch=True)
             sage: H0 == H2
             False
@@ -1410,11 +1402,11 @@ class CohomologyRingFactory:
         from pGroupCohomology.modular_cohomology import MODCOHO
         import os
         global coho_options
-        root_public_db = COHO.public_db
-        if self._use_public_db:
-            root_user_db = COHO.public_db # SAGE_SHARE+'pGroupCohomology'
+        root_local_sources = COHO.local_sources
+        if self._create_local_sources:
+            root_workspace = COHO.local_sources # SAGE_SHARE+'pGroupCohomology'
         else:
-            root_user_db = COHO.user_db #DOT_SAGE+'pGroupCohomology/db/'
+            root_workspace = COHO.workspace #DOT_SAGE+'pGroupCohomology/db/'
         # Basic idea:
         # The key shall both be a unique pointer to the data in the file
         # system and a descriptor of the group-with-minimal-generators.
@@ -1429,7 +1421,7 @@ class CohomologyRingFactory:
         # any cohomology ring: The options are not associated with the
         # ring that we are returning below.
         if kwds.has_key('root'):
-            raise ValueError("The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_user_db`` method instead")
+            raise ValueError("The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_workspace`` method instead")
         opts = kwds.get('options')
         if opts is not None:
             if isinstance(opts, basestring):
@@ -1488,7 +1480,7 @@ class CohomologyRingFactory:
                 extras[k] = v
 
         if q.is_prime_power():
-            CacheKey = (KEY, os.path.join(root_user_db,GStem,'dat','State'))
+            CacheKey = (KEY, os.path.join(root_workspace,GStem,'dat','State'))
             OUT = self._check_compatibility(CacheKey, self._get_p_group_from_cache_or_db(GStem, KEY, **extras) or self._get_p_group_from_scratch(KEY, q, GStem, GroupName, **extras))
             return OUT
 
@@ -1742,7 +1734,7 @@ class CohomologyRingFactory:
             coho_logger.error("Unable to save basic ring setup", OUT, exc_info=1)
         return OUT
 
-    def set_user_db(self, s = None):
+    def set_workspace(self, s = None):
         """
         Define the location of a user-dependent cohomology database
 
@@ -1753,10 +1745,9 @@ class CohomologyRingFactory:
         OUTPUT:
 
         If ``s`` is a string, a cohomology database in the folder
-        ``s`` will be activated as the user's private cohomology data
-        base. Write permission for that folder is required. If it
-        is ``None``, a private database in a default location will
-        be activated.
+        ``s`` will be activated as the user's workspace. Write permission
+        for that folder is required. If it is ``None``, a workspacee in
+        a default location will be activated.
 
         NOTE:
 
@@ -1773,7 +1764,7 @@ class CohomologyRingFactory:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.root.startswith(os.path.realpath(tmp_root))
             True
@@ -1791,34 +1782,35 @@ class CohomologyRingFactory:
                 raise OSError("The folder %s is not writeable"%s)
         else:
             os.makedirs(s)
-        COHO.user_db = s
+        COHO.workspace = s
 
-    def user_db(self,*args, **kwds):
+    def workspace(self,*args, **kwds):
         """
-        Retrieve a cohomology ring from a user-dependent cohomology database
+        Retrieve a cohomology ring from the workspace.
 
         NOTE:
 
-        By default, the currently activated private (user-dependent)
+        By default, the currently activated user-dependent workspace
         cohomology database is hosting the computation anyway. However,
-        if the user happens to have used :meth:`user_db`, the default
-        has changed. So, this method is a convenient way to return to
-        the original default.
+        it is possible that the data is in fact copied from local sources
+        outside of the workspace. This method temporarily disallows the
+        use of other local sources, so that it is guaranteed that only
+        "fresh" data in the workspace are used.
 
         EXAMPLES:
 
         We create a cohomology ring, whose data files are rooted in a
         temporary directory; it will be removed as soon as Sage is
         quit. We use the optional parameter ``from_scratch=True`` in
-        order to ensure that it is not loaded from the public database
-        or downloaded from the web.
+        order to ensure that it is not loaded from the local or remote
+        sources.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
-            sage: H = CohomologyRing.user_db(8,3, from_scratch=True)
+            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: H = CohomologyRing.workspace(8,3, from_scratch=True)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
@@ -1829,24 +1821,26 @@ class CohomologyRingFactory:
             []
 
         """
-        use_public_db = self._use_public_db
-        self.set_public_db(False)
+        create_local_sources = self._create_local_sources
+        self.set_local_sources(False)
         try:
             return self(*args, **kwds)
         finally:
-            self._use_public_db = use_public_db
+            self._create_local_sources = create_local_sources
 
-    def set_web_db(self, s = None):
+    def set_remote_sources(self, URLs = None):
         """
-        Redefine the default location of a web source for cohomology rings
+        Redefine the default locations of web repositories for cohomology rings
 
         INPUT:
 
-        ``s``, a string providing a folder name, or ``None``.
+        ``URLs``, a tuple of strings providing a URLs, or ``None``.
 
-        If ``s`` is a string, then cohomology rings will be searched
-        in a web source named by ``s``. If it is ``None``, the web
-        source is reset to some default location.
+        If ``URLs`` is a tuple, then cohomology rings will be sought
+        in the repositories denoted by the URLs (in the order given).
+        In particular, if the tuple is empty, no web repositories will
+        be used.
+        If it is ``None``, the locations are reset to some default.
 
         EXAMPLES:
 
@@ -1864,8 +1858,8 @@ class CohomologyRingFactory:
         Therefore, we simulate the use of a web database by accessing
         local files::
 
-            sage: CohomologyRing.set_web_db('file://'+os.path.join(SAGE_SHARE,'pGroupCohomology'))
-            sage: H = CohomologyRing.web_db('8gp3')
+            sage: CohomologyRing.set_remote_sources(('file://'+os.path.join(SAGE_SHARE,'pGroupCohomology',)))
+            sage: H = CohomologyRing.remote_sources('8gp3')
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
@@ -1878,16 +1872,16 @@ class CohomologyRingFactory:
             [b_1_0*b_1_1]
 
         """
-        if s is None:
-            s = 'http://cohomology.uni-jena.de/db/'
-        if isinstance(s,basestring):
-            COHO.web_db = s
+        if URLs is None:
+            URLs = ('http://cohomology.uni-jena.de/db/',)
+        if isinstance(URLs, tuple):
+            COHO.remote_sources = URLs
         else:
-            raise TypeError("String expected")
+            raise TypeError("Tuple expected")
 
 
     # TODO: non prime power groups
-    def web_db(self, GStem, websource = None, prime=None):
+    def remote_sources(self, GStem, websource = None, prime=None):
         """
         Import a cohomology ring from a web source.
 
@@ -1903,11 +1897,11 @@ class CohomologyRingFactory:
         - ``GStem``, a string so that ``GStem+'.tar.gz'`` can be found
           in the web source, if it is a prime power group, or
           ``'H'+GStem+'mod%d.sobj'%prime`` otherwise.
-        - ``websource``: If ``None`` (default), a default location
-          (respectively the location provided by
-          :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_web_db`)
-          is chosen. If ``False``, no web source is used. Otherwise, it
-          should be a web address.
+        - ``websource``: If ``None`` (default), the currently known
+          URLs of web repositories (those provided by
+          :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_remote_sources`)
+          are chosen. If ``False``, no remote source is used. Otherwise, it
+          should be a single URL.
         - ``prime``: An optional prime, the modulus of the cohomology
           ring. It must be provided if ond *only* if the group is not
           a prime power group.
@@ -1928,14 +1922,14 @@ class CohomologyRingFactory:
             sage: from sage.env import SAGE_SHARE
             sage: CohomologyRing.reset()
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: CohomologyRing.global_options('info')
 
         During package installation, and thus also during its doctests,
         web access is blocked. Therefore, we simulate a data base using
         a local file that is installed together with the package::
 
-            sage: H = CohomologyRing.web_db('8gp3', websource='file://'+os.path.join(SAGE_SHARE,'pGroupCohomology'))
+            sage: H = CohomologyRing.remote_sources('8gp3', websource='file://'+os.path.join(SAGE_SHARE,'pGroupCohomology'))
             Press Ctrl-c to interrupt web access.
             Accessing .../8gp3.tar.gz
             Downloading and extracting archive file
@@ -1962,35 +1956,72 @@ class CohomologyRingFactory:
         from pGroupCohomology.resolution import coho_options
         if not coho_options.get('use_web'):
             return None
-        if self._use_public_db:
-            root = COHO.public_db
+        if self._create_local_sources:
+            root = COHO.local_sources
         else:
-            root = COHO.user_db
+            root = COHO.workspace
         if websource is None:
-            websource = COHO.web_db
-        if not websource:
-            return None
-        if not websource.endswith('/'):
-            websource = websource + '/'
+            websource = COHO.remote_sources
+            if not websource:
+                return None
+        else:
+            if not websource:
+                return None
+            if not websource.endswith('/'):
+                websource = websource + '/'
+            websource = (websource,)
 
-        coho_logger.debug("Accessing web", None)
+        coho_logger.info("Accessing web", None)
         # First step: Download the tar file from the web and unpack it to root
         coho_logger.info("Press Ctrl-c to interrupt web access.", None)
-        if prime is None:
-            coho_logger.info( "Accessing "+websource + GStem + '.tar.gz', None)
-            f = urllib2.urlopen(websource + GStem + '.tar.gz')
-            coho_logger.info( "Downloading and extracting archive file", None)
-            T = tarfile.open(fileobj=f, mode='r|*')
-            T.extractall(path=root)
-        else:
-            if not (hasattr(prime,'is_prime') and prime.is_prime()):
-                raise ValueError('``prime`` must be a prime number')
-            coho_logger.info( "Accessing "+websource + 'H'+GStem + 'mod%d.sobj'%prime, None)
-            f = urllib2.urlopen(websource + 'H'+GStem + 'mod%d.sobj'%prime)
+        OUT = None
+        for URL in websource:
+            if not URL.endswith('/'):
+                URL = URL + '/'
+            if prime is None:
+                coho_logger.debug( "Accessing "+URL, None)
+                f = urllib2.urlopen(URL + GStem + '.tar.gz')
+                coho_logger.info( "Downloading and extracting archive file", None)
+                T = tarfile.open(fileobj=f, mode='r|*')
+                T.extractall(path=root)
+            else:
+                if not (hasattr(prime,'is_prime') and prime.is_prime()):
+                    raise ValueError('``prime`` must be a prime number')
+                coho_logger.debug( "Accessing "+URL + 'H'+GStem + 'mod%d.sobj'%prime, None)
+                f = urllib2.urlopen(URL + 'H'+GStem + 'mod%d.sobj'%prime)
+                coho_options['@use_this_root@'] = root
+                try:
+                    coho_logger.info( "Downloading and reading cohomology ring", None)
+                    OUT = loads(f.read())
+                except:
+                    OUT = None
+                if isinstance(OUT,COHO):
+                    GStemList = GStem.split('gp')
+                    if len(GStemList)==2:
+                        if GStemList[0].isdigit() and GStemList[1].isdigit():
+                            q = int(GStemList[0])
+                            n = int(GStemList[1])
+                            if OUT.GroupNames.has_key((q,n)):
+                                if OUT.GroupName!=OUT.GroupNames[q,n][0] or OUT.GroupDescr!=OUT.GroupNames[q,n][1]:
+                                    OUT.setprop('GroupName',OUT.GroupNames[q,n][0])
+                                    OUT.setprop('GroupDescr',OUT.GroupNames[q,n][1])
+                    if coho_options.get('save', True):
+                        safe_save(OUT,os.path.join(root,'H'+GStem + 'mod%d.sobj'%prime))
+                    _gap_init(OUT.group().parent())
+                    return OUT
+                else:
+                    coho_logger.debug("Cohomology ring H*({}, GF({})) not found in {}".format(GStem, prime, URL), None)
+                    continue
+                    # raise RuntimeError("No cohomology ring found in "+URL + 'H'+GStem + 'mod%d.sobj'%prime)
+
+            ## Second step: load the cohomology ring and return it
+            ## It is now the prime power case.
+            coho_logger.info("Trying to read downloaded data", None)
             coho_options['@use_this_root@'] = root
             try:
-                coho_logger.info( "Downloading and extracting cohomology ring", None)
-                OUT = loads(f.read())
+                OUT = load(os.path.join(root, GStem, 'H'+GStem))  # realpath here?
+                r = OUT.root # this line may have the side-effect to change the unpacked data
+                             # to make them match the name of the current workspace
             except:
                 OUT = None
             if isinstance(OUT,COHO):
@@ -2003,35 +2034,13 @@ class CohomologyRingFactory:
                             if OUT.GroupName!=OUT.GroupNames[q,n][0] or OUT.GroupDescr!=OUT.GroupNames[q,n][1]:
                                 OUT.setprop('GroupName',OUT.GroupNames[q,n][0])
                                 OUT.setprop('GroupDescr',OUT.GroupNames[q,n][1])
-                if coho_options.get('save', True):
-                    safe_save(OUT,os.path.join(root,'H'+GStem + 'mod%d.sobj'%prime))
-                _gap_init(OUT.group().parent())
-                return OUT
+                                if coho_options.get('save', True):
+                                    safe_save(OUT, OUT.autosave_name())
             else:
-                raise RuntimeError("No cohomology ring found in "+websource + 'H'+GStem + 'mod%d.sobj'%prime)
-
-        ## Second step: load the cohomology ring and return it
-        ## It is now the prime power case.
-        coho_options['@use_this_root@'] = root
-        try:
-            OUT = load(os.path.join(root, GStem, 'H'+GStem))  # realpath here?
-            r = OUT.root # this line may imply that the downloaded data are changed on disk in order to make them fit
-        except:
-            OUT = None
-        if isinstance(OUT,COHO):
-            GStemList = GStem.split('gp')
-            if len(GStemList)==2:
-                if GStemList[0].isdigit() and GStemList[1].isdigit():
-                    q = int(GStemList[0])
-                    n = int(GStemList[1])
-                    if OUT.GroupNames.has_key((q,n)):
-                        if OUT.GroupName!=OUT.GroupNames[q,n][0] or OUT.GroupDescr!=OUT.GroupNames[q,n][1]:
-                            OUT.setprop('GroupName',OUT.GroupNames[q,n][0])
-                            OUT.setprop('GroupDescr',OUT.GroupNames[q,n][1])
-                            if coho_options.get('save', True):
-                                safe_save(OUT, OUT.autosave_name())
-        else:
-            raise RuntimeError("No cohomology ring found in "+websource + GStem + '.tar.gz')
+                coho_logger.debug("No cohomology ring H*({}) not found in {}".format(GStem, URL), None)
+                continue
+        if OUT is None:
+            raise RuntimeError("The requested cohomology ring could not be found in any repository")
         _gap_init(OUT.group().parent())
         try:
             # The original data have to be on disc, since otherwise
@@ -2068,7 +2077,7 @@ def _IsKeyEquivalent(k1, k2):
         sage: CohomologyRing.reset()
         sage: from pGroupCohomology.factory import _IsKeyEquivalent
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: G = gap('SymmetricGroup(6)')
         sage: G.IdGroup()
         [ 720, 763 ]
@@ -2156,13 +2165,13 @@ part of some database, or whether it can be downloaded. If this is
 not the case, a new cohomology ring is created, being part of a
 user defined database.
 
-Using :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_user_db`, the
+Using :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_workspace`, the
 location of the user defined database can be determined. By
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.user_db`, one can
+:meth:`~pGroupCohomology.factory.CohomologyRingFactory.workspace`, one can
 explicitly ask for taking data from the user defined database. The
 input formats for calling :func:`~pGroupCohomology.CohomologyRing` and
-for calling :meth:`~pGroupCohomology.factory.CohomologyRingFactory.user_db`
-or :meth:`~pGroupCohomology.factory.CohomologyRingFactory.public_db` are the same.
+for calling :meth:`~pGroupCohomology.factory.CohomologyRingFactory.workspace`
+or :meth:`~pGroupCohomology.factory.CohomologyRingFactory.local_sources` are the same.
 
 INPUT:
 
@@ -2192,10 +2201,10 @@ INPUT:
   data in the local file system, and if this fails then it is attempted to
   download the data from some default location in the web.
 - ``from_scratch`` (default ``False``): If it is ``True``, this cohomology
-  ring may be taken from the cache or from the private database, but will
-  not be taken from the public database nor from a web repository. Note that
-  this will only take effect on this ring; cohomology rings of subgroups,
-  occuring during the computation, will still be reloaded.
+  ring may be taken from the cache or from the workspace, but will
+  not be copied from local or remote sources. Note that this will only
+  take effect on this single ring; cohomology rings of subgroups,
+  occuring during the computation, will still be loaded.
 
 **Parameters modifying the algorithm**
 

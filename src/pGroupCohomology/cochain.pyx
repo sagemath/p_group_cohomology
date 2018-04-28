@@ -70,7 +70,7 @@ deleted when sage is closed.
 
     sage: from pGroupCohomology import CohomologyRing
     sage: tmp = tmp_dir()
-    sage: CohomologyRing.set_user_db(tmp)
+    sage: CohomologyRing.set_workspace(tmp)
     sage: S = gap('SymmetricGroup(6)')
     sage: D = gap('DihedralGroup(8)')
     sage: HS = CohomologyRing(S, prime=2, GroupName='Sym6', from_scratch=True)
@@ -176,7 +176,7 @@ class COCH_unpickle_class:
 
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3, from_scratch=True)
         sage: H.make()
         sage: C=H.2
@@ -215,7 +215,7 @@ class COCH_unpickle_class:
             sage: CU = COCH_unpickle_class()
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,2, from_scratch=True)
             sage: C = CU(H,2,'foo',[0,1,1],0,1)      # indirect doctest
             sage: C
@@ -238,7 +238,7 @@ class COCH_unpickle_class:
             sage: CU = COCH_unpickle_class()
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: C = CU(H,2,'foo',[0,1,1],0,1)   # indirect doctest
             sage: C
@@ -304,7 +304,7 @@ cdef class COCH(RingElement):
 
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: C = H.2
@@ -520,7 +520,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C = H.2+H.3
@@ -543,7 +543,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: C = H.2+H.3
@@ -566,7 +566,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C = H.2+H.3
@@ -587,7 +587,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C = H.2+H.3
@@ -612,7 +612,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: singular(H.1)   # indirect doctest
@@ -647,7 +647,7 @@ cdef class COCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(32,4)
             sage: H.make()
             sage: c = H.1+H.3*H.4; c
@@ -689,7 +689,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: latex(H.2)
@@ -711,7 +711,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: latex(H.2*H.1+H.2*H.3^2) # indirect doctest
@@ -738,7 +738,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: from pGroupCohomology.cochain import COCH
             sage: C=COCH(H,2,'foo',(1,1,0))
@@ -766,7 +766,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C=H.2*H.1
@@ -787,7 +787,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C = H.2*H.1
@@ -808,7 +808,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y21 = H.2.yoneda_cocycle()*H.1.yoneda_cocycle()
@@ -843,7 +843,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C=H.2*H.1
@@ -882,7 +882,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: C=H.2*H.1
@@ -911,7 +911,7 @@ cdef class COCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: c = H.1*H.2+H.3^3
@@ -950,7 +950,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.1.rdeg()
@@ -980,7 +980,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: print(H)
@@ -1020,7 +1020,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
 
         An example in even characteristic::
 
@@ -1101,7 +1101,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(64,18)
             sage: H.make()
             sage: H.nil_radical()
@@ -1174,7 +1174,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.1.deg()
@@ -1249,7 +1249,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: C = H.2
@@ -1275,7 +1275,7 @@ cdef class COCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(32,4)
             sage: H.make()
             sage: H.1.is_zero() #indirect doctest
@@ -1300,7 +1300,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.1+H.2
@@ -1356,7 +1356,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.1-H.2   # indirect doctest
@@ -1397,7 +1397,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: - H.1    # indirect doctest
@@ -1450,7 +1450,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.1*2   # indirect doctest
@@ -1471,7 +1471,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: 2*H.1   # indirect doctest
@@ -1492,7 +1492,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.1*int(0)      # indirect doctest
@@ -1548,7 +1548,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.gens()
@@ -1668,7 +1668,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: print(H.2)
@@ -1705,7 +1705,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.3^4     # indirect doctest
@@ -1744,7 +1744,7 @@ cdef class COCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)
@@ -1799,7 +1799,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: C=2*H.1+H.2
@@ -1873,7 +1873,7 @@ cdef class COCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(9,2)
             sage: H.make()
             sage: H.gens()
@@ -2055,7 +2055,7 @@ def MODCOCH_unpickle(L0,L1,L2,L3,L4,L5,L6=False,L7=None):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(720,763,prime=2)
         sage: H.make()
         sage: H.1 == loads(dumps(H.1)) #indirect doctest
@@ -2077,7 +2077,7 @@ class MODCOCH(RingElement):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp)
+        sage: CohomologyRing.set_workspace(tmp)
         sage: H = CohomologyRing(720,763,prime=2)
         sage: H.make()
         sage: H.2
@@ -2190,7 +2190,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H('c_3_2^2+c_3_2*b_3_3+c_2_1*c_1_0*c_3_2')
@@ -2220,7 +2220,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: print(H)
@@ -2339,7 +2339,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: H.2      # indirect doctest
@@ -2356,7 +2356,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: print(H.2)     # indirect doctest
@@ -2385,7 +2385,7 @@ class MODCOCH(RingElement):
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: latex(H.2)
@@ -2408,7 +2408,7 @@ class MODCOCH(RingElement):
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: latex((H.1*H.2*H.3+H.3*H.4)) # indirect doctest
@@ -2435,7 +2435,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: H.2 is copy(H.2)   # indirect doctest
@@ -2459,7 +2459,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: H('c_3_2^2+b_3_3*c_3_2+c_2_1*c_1_0*c_3_2').deg()
@@ -2489,7 +2489,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: [t.rdeg() for t in H.Gen]
@@ -2531,7 +2531,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=3)
             sage: H.make()
             sage: [t.ydeg() for t in H.Gen]
@@ -2567,7 +2567,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H.2
@@ -2605,7 +2605,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H.2
@@ -2632,7 +2632,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H.2
@@ -2672,7 +2672,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: singular(H.subgroup_cohomology()).set_ring()
@@ -2721,7 +2721,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: (H.1*H.2)._NF_().val_str()
@@ -2769,7 +2769,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: singular(H).set_ring()
@@ -2797,7 +2797,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: print(H.6*H.8)
@@ -2859,7 +2859,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('AlternatingGroup(8)')
             sage: H = CohomologyRing(G,prime=2,GroupName='A8')
             sage: H.make()
@@ -2908,7 +2908,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: G = gap('AlternatingGroup(8)')
             sage: H = CohomologyRing(G,prime=2,GroupName='A8')
             sage: H.make()
@@ -2936,7 +2936,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: print(H.2)
@@ -2973,7 +2973,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: print(H.2)
@@ -3010,7 +3010,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(252,10,prime=2)
             sage: H.make()
             sage: H.1.is_zero() #indirect doctest
@@ -3031,7 +3031,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
             sage: print(X.3+X.4) #indirect doctest
@@ -3080,7 +3080,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: print(H.5)
@@ -3130,7 +3130,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: H.1*2   # indirect doctest
@@ -3166,7 +3166,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: print(H.5)
@@ -3224,7 +3224,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: print(H.1)
@@ -3267,7 +3267,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(60,3,prime=2)
             sage: H.make()
             sage: singular(H).set_ring()
@@ -3328,7 +3328,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(60,3,prime=2)
             sage: H.make()
             sage: singular(H).set_ring()
@@ -3405,7 +3405,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(432,234,prime=3)
             sage: H.make()
             sage: c = H.5; c
@@ -3452,7 +3452,7 @@ class MODCOCH(RingElement):
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H.1*H.2
@@ -3520,13 +3520,13 @@ class MODCOCH(RingElement):
 
         Since this test relies on the ring presentation of the
         cohomology of a certain subgroup, we compute it from scratch,
-        rather than relying on potentially outdated data in the public
-        database.
+        rather than relying on potentially outdated data in the local
+        sources.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(81,8, from_scratch=True)
             sage: X.make()
             sage: H = CohomologyRing(648,132,prime=3, from_scratch=True)
@@ -3581,7 +3581,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: singular(H.subgroup_cohomology()).set_ring()
@@ -3619,7 +3619,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(72,40,prime=3)
             sage: H.make()
             sage: H.4.lm_string()
@@ -3656,7 +3656,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(72,40,prime=3)
             sage: H.make()
             sage: singular(H.subgroup_cohomology()).set_ring()
@@ -3700,7 +3700,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: singular(H.subgroup_cohomology()).set_ring()
@@ -3744,7 +3744,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: c = H.2*H.3*H.1
@@ -3804,7 +3804,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(400,206,prime=5)
             sage: H.make()
             sage: c = H.2*H.3*H.1
@@ -3906,7 +3906,7 @@ cdef class YCOCH:
         sage: from pGroupCohomology.cochain import YCOCH
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: R = H.resolution()
@@ -4152,7 +4152,7 @@ cdef class YCOCH:
             sage: from pGroupCohomology.cochain import YCOCH
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
@@ -4200,7 +4200,7 @@ cdef class YCOCH:
             sage: from pGroupCohomology.cochain import YCOCH
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y = YCOCH(H.resolution(),2,H.resolution().CochainToChainmap(2,H.1.MTX())[2])
@@ -4222,7 +4222,7 @@ cdef class YCOCH:
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y = YCOCH(H.resolution(),2,H.resolution().CochainToChainmap(2,H.1.MTX())[2])
@@ -4241,7 +4241,7 @@ cdef class YCOCH:
             sage: from pGroupCohomology.cochain import YCOCH
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y = YCOCH(H.resolution(),2,H.resolution().CochainToChainmap(2,H.1.MTX())[2])
@@ -4279,7 +4279,7 @@ cdef class YCOCH:
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
@@ -4335,7 +4335,7 @@ cdef class YCOCH:
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
@@ -4424,7 +4424,7 @@ cdef class YCOCH:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.gens()
@@ -4570,7 +4570,7 @@ cdef class YCOCH:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(9,2)
             sage: H.make()
             sage: X = H.1.yoneda_cocycle()
@@ -4618,7 +4618,7 @@ cdef class YCOCH:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(9,2)
             sage: H.make()
             sage: X = H.3.yoneda_cocycle()
@@ -4651,7 +4651,7 @@ cdef class YCOCH:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(9,2)
             sage: H.make()
             sage: X = H.3.yoneda_cocycle()
@@ -4733,7 +4733,7 @@ cdef class YCOCH:
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: from pGroupCohomology.cochain import YCOCH
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: tmpM1 = MTX(MatrixSpace(GF(2),2,8, implementation=MTX), [[1,0,1,0,1,0,1,0],[1,0,1,0,1,0,1,0]])
@@ -4866,7 +4866,7 @@ class CohomologyHomset(RingHomset_generic):
 
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
 
     We consider the dihedral group of order 8 and will study the restriction
     maps to representatives for all conjugacy classes of non-trivial subgroups.
@@ -4972,7 +4972,7 @@ class CohomologyHomset(RingHomset_generic):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5119,7 +5119,7 @@ class CohomologyHomset(RingHomset_generic):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.restriction_maps()[2][1].parent()   # indirect doctest
@@ -5146,7 +5146,7 @@ class ChMap_unpickle_class:
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: G1 = gap('SmallGroup(8,3)')
         sage: H1 = CohomologyRing(8,3, from_scratch=True)
         sage: H1.make()
@@ -5170,7 +5170,7 @@ class ChMap_unpickle_class:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5194,7 +5194,7 @@ class ChMap_unpickle_class:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5236,7 +5236,7 @@ cdef class ChMap(RingHomomorphism):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_user_db(tmp_root)
+        sage: CohomologyRing.set_workspace(tmp_root)
         sage: G1 = gap('SmallGroup(8,3)')
         sage: H1 = CohomologyRing(8,3, from_scratch=True)
         sage: H1.make()
@@ -5329,7 +5329,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G = gap('Group([(3,4,5,6,7,8,9,10),(1,2)])')
             sage: V = gap('Group([(1,2),(3,4)])')
             sage: phi = V.GroupHomomorphismByImages(G,V.GeneratorsOfGroup(),[G.1^4,G.2])
@@ -5424,7 +5424,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5444,7 +5444,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5471,7 +5471,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5504,7 +5504,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5535,7 +5535,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5637,7 +5637,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -5697,7 +5697,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5732,7 +5732,7 @@ cdef class ChMap(RingHomomorphism):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5766,7 +5766,7 @@ cdef class ChMap(RingHomomorphism):
             sage: G1 = gap('SmallGroup(8,3)')
             sage: G2 = gap('DihedralGroup(8)')
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H1.make()
@@ -5818,7 +5818,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5846,7 +5846,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5898,7 +5898,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5933,7 +5933,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -5970,7 +5970,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -6007,7 +6007,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G = gap('DihedralGroup(8)')
@@ -6126,7 +6126,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_user_db(tmp_dir())
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: r = H.restriction_maps()[1][1]
             sage: r is copy(r)
@@ -6178,7 +6178,7 @@ cdef class ChMap(RingHomomorphism):
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: f = H.2.right_multiplication()
@@ -6236,7 +6236,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
@@ -6388,7 +6388,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H1 = CohomologyRing(8,3)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: G2 = gap('DihedralGroup(8)')
@@ -6427,7 +6427,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(576,7443,prime=2)
 
         This cohomology ring computation is based on two automorphisms of the
@@ -6477,7 +6477,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -6550,7 +6550,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
@@ -6706,7 +6706,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp)
+            sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: r = H.restriction_maps()[1][1]
@@ -6968,7 +6968,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7053,7 +7053,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_user_db(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
