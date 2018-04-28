@@ -1491,6 +1491,8 @@ class CohomologyRingFactory:
 
         if q.is_prime_power():
             CacheKey = (KEY, os.path.join(root_workspace,GStem,'dat','State'))
+            if q < 128:
+                extras['websource'] = False
             OUT = self._check_compatibility(CacheKey, self._get_p_group_from_cache_or_db(GStem, KEY, **extras) or self._get_p_group_from_scratch(KEY, q, GStem, GroupName, **extras))
             return OUT
 
