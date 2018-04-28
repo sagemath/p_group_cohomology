@@ -110,8 +110,7 @@ def _IdGroup(G, D, Client, ring=True):
     TESTS::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: from pGroupCohomology.modular_cohomology import _IdGroup
         sage: D = {'prime':3}
@@ -240,8 +239,7 @@ class MODCOHO(COHO):
     EXAMPLES::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: G = gap('SmallGroup(48,36)')
         sage: H1 = CohomologyRing(G, prime=2, GroupName='SomeGroup', from_scratch=True)
         sage: H1.make()
@@ -298,8 +296,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.modular_cohomology import MODCOHO
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = gap('SymmetricGroup(6)')
             sage: S = G.SylowSubgroup(3)
             sage: P = G.Normalizer(S.Centre())
@@ -664,8 +661,7 @@ class MODCOHO(COHO):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,48,prime=3, from_scratch=True)
             sage: H.make()
             sage: loads(dumps(H)) is H   #indirect doctest
@@ -728,8 +724,7 @@ class MODCOHO(COHO):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,48,prime=2, from_scratch=True)
             sage: H.make(2)
             sage: H.set_ring()
@@ -791,6 +786,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
@@ -819,8 +815,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(720,763,prime=2)
             sage: G = X.group()
             sage: G
@@ -847,8 +842,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.sylow_subgroup().IdGroup()
             [ 32, 3 ]
@@ -871,8 +865,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.subgroup().IdGroup()
             [ 288, 46 ]
@@ -910,8 +903,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
             sage: X.duflot_regular_sequence()
@@ -964,8 +956,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(1440,80,prime=2)
             sage: H.sylow_subgroup().IdGroup()
             [ 32, 3 ]
@@ -982,6 +973,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_workspace(tmp)
             sage: H = CohomologyRing(1440,80,prime=2)
@@ -1014,8 +1006,7 @@ class MODCOHO(COHO):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,50, prime=2)
             sage: len(H.Cosets)
             2
@@ -1079,8 +1070,7 @@ class MODCOHO(COHO):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,50,prime=2)
             sage: len(H._PtoPcapCPdirect)
             2
@@ -1242,8 +1232,7 @@ class MODCOHO(COHO):
         taken from the local sources, and compute it from scratch::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(64,138,from_scratch=True)
             sage: H = CohomologyRing(576,204,prime=2)
             sage: H.make()
@@ -1595,8 +1584,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = gap('MathieuGroup(11)')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
 
@@ -1832,8 +1820,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(162,19,prime=3)
             sage: sorted(H.subgroups().items())
             [((3, 1), H^*(SmallGroup(3,1); GF(3))),
@@ -1894,8 +1881,7 @@ class MODCOHO(COHO):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
 
         We destroy the subgroup information...
@@ -2003,8 +1989,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = gap('MathieuGroup(11)')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(4)
@@ -2099,8 +2084,7 @@ class MODCOHO(COHO):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(3)
@@ -2257,7 +2241,6 @@ class MODCOHO(COHO):
             0
             sage: singular.ideal(H.parameters()+H.rels()).groebner().dim()
             0
-            sage: CohomologyRing.reset()
 
         """
         if self.suffDeg>-1 and self.knownDeg >= self.suffDeg:
@@ -2369,7 +2352,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_local_sources(tmp_dir())
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(384,5602, prime=2, from_scratch=True)
 
         In the following line, we are cheating a bit. Without it, other
@@ -2540,8 +2523,7 @@ class MODCOHO(COHO):
         happens behind the scenes when launching :meth:`make`. ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(384, 5602, prime=2, from_scratch=True)
 
         In the following line, we are cheating a bit. Without it, other
@@ -2717,8 +2699,7 @@ class MODCOHO(COHO):
         a well defined behaviour in this doctest::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(81,7, from_scratch=True)
             sage: X.make()
             sage: H = CohomologyRing(324,39, prime=3, from_scratch=True)
@@ -2870,7 +2851,6 @@ class MODCOHO(COHO):
             ([-1, -1, 79, 85],
              [[0], [0], [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 1, 0, 1, 3, 2, 0, 1, 3, 2, 0, 2, 4, 2, 0, 2, 5, 3, 0, 2, 5, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 5, 2, 0, 3, 5, 2, 0, 2, 4, 2, 0, 2, 3, 1, 0, 2, 3, 1, 0, 1, 2, 1, 0, 1, 1, 0, 0, 1, 1], [1, 0, 0, 3, 2, 0, 2, 5, 3, 1, 5, 8, 4, 1, 7, 11, 5, 2, 9, 13, 6, 3, 12, 16, 7, 3, 14, 19, 8, 4, 16, 21, 9, 5, 19, 24, 9, 5, 21, 24, 9, 6, 21, 24, 9, 6, 21, 24, 8, 6, 21, 21, 7, 6, 19, 19, 6, 5, 16, 16, 5, 5, 14, 13, 4, 4, 12, 11, 3, 3, 9, 8, 2, 3, 7, 5, 1, 2, 5, 3, 0, 1, 2, 0, 0, 1]],
              [36, 48, 4])
-            sage: CohomologyRing.reset()
 
         """
         if self._final_parameters:
@@ -2951,8 +2931,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
 
         There are no generators yet, and by consequence there are no
@@ -3138,8 +3117,7 @@ class MODCOHO(COHO):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
 
         We compute the ring structure only to degree 2 and then ask for
@@ -3217,9 +3195,7 @@ class MODCOHO(COHO):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()   # Reset and disallow web access
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M12', from_scratch=True)
             sage: H.make()
@@ -3349,8 +3325,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(720,763,prime=2)
             sage: H.make()
             sage: c = H.1*H.2+H.3+H.4
@@ -3409,8 +3384,7 @@ class MODCOHO(COHO):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
             sage: H.make(4)
 
@@ -3499,8 +3473,7 @@ class MODCOHO(COHO):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,50,prime=2, from_scratch=True)
             sage: H.make(3)
             sage: singular(H.restriction_maps()[1][1].codomain()).set_ring()
@@ -3603,8 +3576,7 @@ class MODCOHO(COHO):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(4,2, from_scratch=True)
             sage: X.make()
             sage: X = CohomologyRing(8,5, from_scratch=True)
@@ -3737,7 +3709,6 @@ class MODCOHO(COHO):
             True
             sage: H.completed
             True
-            sage: CohomologyRing.reset()
 
         """
         cdef RESL R = self.Resl
@@ -4150,8 +4121,7 @@ class MODCOHO(COHO):
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6),(1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=3,GroupName='M12', from_scratch=True)
 
@@ -4394,8 +4364,7 @@ def COHO_from_key(key):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.modular_cohomology import COHO_from_key
-        sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
         sage: H.make(3)
 
@@ -4494,8 +4463,7 @@ def MODCOHO_unpickle(*L):
     TESTS::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
         sage: H.make(3)
         sage: H is loads(dumps(H)) #indirect doctest

@@ -73,8 +73,6 @@ cdef MTX makeMTX(Matrix_t *Data):
 
     EXAMPLES:
 
-    The example produces files. For safety reasons, we choose files
-    in a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
     (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -179,8 +177,6 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
 
     EXAMPLES:
 
-    This example produces files. For safety reasons, we choose files
-    in a temporary directory; it will be removed as soon as Sage is quit.
     We construct the data for the dihedral group of order 8, which is
     number 3 in the SmallGroups library. For illustration, we use logging::
 
@@ -236,7 +232,6 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         [0 0 0 1 1 1 1 1]
         [0 1 0 0 0 0 0 0]
         [0 0 0 0 0 1 0 1]
-        sage: CohomologyRing.reset()
 
     """
     import os
@@ -345,10 +340,8 @@ def makeSpecialGroupData(H, GStem, folder):
 
     EXAMPLES:
 
-    This example produces files. For safety reasons, we choose files
-    in a temporary directory; it will be removed as soon as Sage is quit.
     We construct the data for the dihedral group of order 8. In contrast
-    to the example for makeGroupData, we define it directly in the Gap
+    to the example for :func:`~pGroupCohomology.resolution.makeGroupData`, we define it directly in the Gap
     interface::
 
         sage: G = gap('DihedralGroup(8)')
@@ -399,7 +392,6 @@ def makeSpecialGroupData(H, GStem, folder):
         [0 0 0 0 1 0 0 0]
         [0 1 1 1 0 0 0 0]
         [0 0 0 0 0 1 1 1]
-        sage: CohomologyRing.reset()
 
     Note that the result is different from the result obtained with
     ``makeGroupData(8,3)`` (see
@@ -491,16 +483,10 @@ class RESL_sparse_unpickle_class:
     """
     Used for unpickling class instances of :class:`~pGroupCohomology.resolution.RESL`.
 
-    EXAMPLES:
-
-    The examples produce files. For safety reasons, we choose
-    files in a temporary directory; it will be removed as soon
-    as Sage is quit.
-    ::
+    EXAMPLES::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: R = H.resolution()
@@ -518,8 +504,7 @@ class RESL_sparse_unpickle_class:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: R = H.resolution()
@@ -537,8 +522,7 @@ class RESL_sparse_unpickle_class:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,2)
             sage: H.make()
             sage: R = H.resolution()
@@ -666,8 +650,6 @@ cdef class RESL:
 
     **Creating a RESL object**
 
-    The examples produce files. For safety reasons, we choose files in
-    a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
     (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -968,6 +950,7 @@ cdef class RESL:
 
         sage: from pGroupCohomology.cochain import COCH
         sage: from pGroupCohomology import CohomologyRing
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: CohomologyRing.set_workspace(tmp_root)
         sage: H = CohomologyRing(8,3, from_scratch=True)
         sage: C = COCH(H,2,'C',[1,0,1])
@@ -1054,8 +1037,6 @@ cdef class RESL:
 
         TESTS:
 
-        The examples produce files. For safety reasons, we choose files in
-        a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1107,8 +1088,6 @@ cdef class RESL:
 
         TESTS:
 
-        The examples produce files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1141,8 +1120,7 @@ cdef class RESL:
         Return a copy of ``self``.
 
         TESTS:
-        The examples produce files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
+
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1190,8 +1168,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The examples produce files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1242,8 +1218,6 @@ cdef class RESL:
 
         TESTS:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1312,8 +1286,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1350,7 +1322,6 @@ cdef class RESL:
             sage: R.__getitem_name__(1)
             [0 1 0 0 0 0 0 0]
             [0 0 1 0 0 0 0 0]
-            sage: CohomologyRing.reset()
 
         """
         return self.Diff[key-1]
@@ -1361,8 +1332,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1402,7 +1371,6 @@ cdef class RESL:
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: MTX(R.__getitem_name__(3))==R[3]
             True
-            sage: CohomologyRing.reset()
 
         See  :class:`~pGroupCohomology.resolution.RESL` for further examples.
 
@@ -1424,8 +1392,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1448,8 +1414,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1477,7 +1441,6 @@ cdef class RESL:
              '.../8gp3/dat/Res8gp3d02.bin',
              '.../8gp3/dat/Res8gp3d03.bin'
             ]
-            sage: CohomologyRing.reset()
 
         """
         return self.Diff
@@ -1488,8 +1451,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1526,8 +1487,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1553,8 +1512,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1577,8 +1534,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1604,16 +1559,11 @@ cdef class RESL:
         That function was only created in order to provide a
         doc test for :meth:`setLift`.
 
-        EXAMPLE:
+        EXAMPLE::
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True, options='sparse')
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1644,7 +1594,6 @@ cdef class RESL:
             2, 1, [0 0 0 0 0 0 0 0]
             ),
                 2)})]
-            sage: CohomologyRing.reset()
 
         """
         return self.Lifts.out()
@@ -1662,15 +1611,10 @@ cdef class RESL:
 
         This function should only be of internal use
 
-        EXAMPLE:
+        EXAMPLE::
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1718,8 +1662,6 @@ cdef class RESL:
 
         EXAMPLE:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1772,7 +1714,6 @@ cdef class RESL:
             sage: R.makeAutolift(2)
             Resolution of GF(2)[8gp3]:
                       Make degree 2 autolift data
-            sage: CohomologyRing.reset()
 
         """
         if self.Action:
@@ -1797,8 +1738,6 @@ cdef class RESL:
 
         EXAMPLE:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -1828,7 +1767,6 @@ cdef class RESL:
                       > import action matrices
             sage: R.makeAutolift(2)
                       Make degree 2 autolift data
-            sage: CohomologyRing.reset()
 
         """
         if not self.Action:
@@ -1844,16 +1782,11 @@ cdef class RESL:
         """
         Save cached lifts into files.
 
-        EXAMPLE:
+        EXAMPLE::
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True, options='sparse')
             sage: C = COCH(H,1,'C',[0,1])
             sage: print(C*C)
@@ -1885,7 +1818,6 @@ cdef class RESL:
             sage: sorted(R.getLifts().items())
             [((1, 1), {'file': '.../8gp3/dat/L8gp3n1d1'}),
              ((2, 1), {'file': '.../8gp3/dat/L8gp3n2d1'})]
-            sage: CohomologyRing.reset()
 
         """
         self.Lifts.export()
@@ -1894,16 +1826,11 @@ cdef class RESL:
         """
         Deallocate the currently loaded Urbild Groebner basis.
 
-        EXAMPLE:
+        EXAMPLE::
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1939,11 +1866,6 @@ cdef class RESL:
                       Lift with Urbild Groebner basis in degree 1
                       load Urbild Groebner basis
 
-        Finally, let us reset the machinery, in order to not break other
-        doctests in this module.
-
-            sage: CohomologyRing.reset()
-
         """
         if self.ugb_deg:
             coho_logger.debug("deallocate Urbild Groebner basis", self)
@@ -1954,16 +1876,11 @@ cdef class RESL:
         """
         Load Urbild Groebner basis for lifts from degree `d-1` to `d`.
 
-        EXAMPLE:
+        EXAMPLE::
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -1996,11 +1913,6 @@ cdef class RESL:
                           Lift with Urbild Groebner basis in degree 1
                           load Urbild Groebner basis
 
-            Finally, let us reset the machinery, in order to not break other
-            doctests in this module.
-
-                sage: CohomologyRing.reset()
-
         """
         if d<1:
             raise ValueError("Degree must be at least 1")
@@ -2021,8 +1933,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -2070,8 +1980,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -2111,8 +2019,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The examples produce files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -2208,16 +2114,11 @@ cdef class RESL:
 
         d -- the degree into which it shall be lifted
 
-        EXAMPLE:
+        EXAMPLE::
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cochain import COCH
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: R = H.resolution()
             sage: R.nextDiff()
@@ -2250,11 +2151,6 @@ cdef class RESL:
                       Compute C*C
                       Compose chain maps R_2 -> R_1 -> R_0
                       > Lift with the autolift method
-
-        Finally, let us reset the machinery, in order to not break other
-        doctests in this module.
-
-            sage: CohomologyRing.reset()
 
         """
         coho_logger.info('Make degree %d autolift data'%(d), self)
@@ -2345,8 +2241,7 @@ cdef class RESL:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: P,K,D = H.resolution()._get_yoneda_liftdata(2)
@@ -2385,8 +2280,7 @@ cdef class RESL:
         We make sure that the previously computed result coincides with
         the result obtained using a different matrix backend::
 
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(8,3, options="nouseMTX")
             sage: H.make()
             sage: P2,K2,D2 = H.resolution()._get_yoneda_liftdata(2)
@@ -2552,8 +2446,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -2617,17 +2509,11 @@ cdef class RESL:
         :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix, where `s`
         is the projective rank of the `n`-th term of self.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose
-        files in a temporary directory; it will be removed as soon
-        as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: R = H.resolution()
@@ -2734,8 +2620,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -2824,8 +2708,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -2932,8 +2814,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3038,8 +2918,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3130,8 +3008,7 @@ cdef class RESL:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: YC = (H.2.yoneda_cocycle()*H.3.yoneda_cocycle()).find_cobounding_yoneda_cochains()
@@ -3168,8 +3045,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3234,8 +3109,6 @@ cdef class RESL:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3393,8 +3266,6 @@ cdef class LIFTcontainer:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3448,8 +3319,6 @@ cdef class LIFTcontainer:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3548,8 +3417,6 @@ cdef class LIFTcontainer:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3635,8 +3502,6 @@ cdef class LIFTcontainer:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3713,8 +3578,6 @@ cdef class LIFTcontainer:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3741,8 +3604,6 @@ cdef class LIFTcontainer:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3878,8 +3739,6 @@ cdef class G_ALG:
 
     EXAMPLES:
 
-    The example produces files. For safety reasons, we choose files
-    in a temporary directory; it will be removed as soon as Sage is quit.
     First, we create the basic data for the dihedral group of order 8
     (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3972,8 +3831,6 @@ cdef class G_ALG:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
         First, we create the basic data for the dihedral group of order 8
         (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
 
@@ -3994,7 +3851,8 @@ cdef class G_ALG:
             sage: G_ALG(gstem,folder=gps_folder,dependent=False, groupname="D_8")
             GF(2)[D_8]
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: CohomologyRing.set_workspace(tmp_root)  # use the temporary workspace defined earlier
             sage: H = CohomologyRing(64,82)
             sage: H.resolution().G_ALG()
             GF(2)[Syl2(Sz(8))]
@@ -4015,11 +3873,7 @@ cdef class G_ALG:
         It is only tested whether the underlying finite prime field is
         the same and whether the given "gstem" (group stem name) coincides.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
@@ -4093,11 +3947,7 @@ cdef class G_ALG:
         """
         Return order of the group.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
@@ -4115,11 +3965,7 @@ cdef class G_ALG:
         """
         Return the characteristic of the base field.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
@@ -4150,11 +3996,7 @@ cdef class G_ALG:
         given element on the group algebra. The result of the action is obtained by matrix multiplication
         from the right side.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
@@ -4205,11 +4047,7 @@ cdef class G_ALG:
         given element on the group algebra. The result of the left action is obtained by matrix
         multiplication from the *right* side.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
@@ -4263,11 +4101,7 @@ cdef class G_ALG:
         A `(s \times |G|)` :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix representing the image of ``x``
         under the map represented by ``M``
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose files
-        in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, G_ALG
@@ -4345,15 +4179,11 @@ class MasseyDefiningSystems:
     The method :meth:`value` returns a list of all possible values (given by Yoneda cochains) for defining
     systems of the Massey products of ``Y_1,Y2,...``.
 
-    EXAMPLES:
-
-    The example produces files. For safety reasons, we choose files
-    in a temporary directory; it will be removed as soon as Sage is quit::
+    EXAMPLES::
 
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.resolution import MasseyDefiningSystems
-        sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: H.rels()
@@ -4404,8 +4234,7 @@ class MasseyDefiningSystems:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y1 = H.2.yoneda_cocycle()
@@ -4476,8 +4305,7 @@ class MasseyDefiningSystems:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: Y1 = H.2.yoneda_cocycle()
@@ -4552,14 +4380,11 @@ class MasseyDefiningSystems:
 
         EXAMPLES:
 
-        We use an example with a non-commutative cohomology ring. The example
-        produces files. For safety reasons, we choose files in a temporary
-        directory; it will be removed as soon as Sage is quit::
+        We use an example with a non-commutative cohomology ring.::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.resolution import MasseyDefiningSystems
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(9,2)
             sage: H.make()
             sage: H.3

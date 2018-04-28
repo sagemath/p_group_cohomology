@@ -53,7 +53,6 @@ shipped with this package.
 ::
 
     sage: from pGroupCohomology import CohomologyRing
-    sage: CohomologyRing.reset()
     sage: H158 = CohomologyRing(64,158)
     sage: H160 = CohomologyRing(64,160)
 
@@ -214,8 +213,7 @@ class BarCode2d(SageObject):
     ::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: B = H.bar_code('UpperCentralSeries')  # indirect doctest
@@ -337,8 +335,7 @@ class BarCode2d(SageObject):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -364,8 +361,7 @@ class BarCode2d(SageObject):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -388,8 +384,7 @@ class BarCode2d(SageObject):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -411,8 +406,7 @@ class BarCode2d(SageObject):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -464,8 +458,7 @@ class BarCode2d(SageObject):
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries',degree=3)
@@ -504,8 +497,7 @@ class BarCode:
     ::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: B = H.bar_code('UpperCentralSeries')    # indirect doctest
@@ -575,6 +567,7 @@ class BarCode:
         TESTS::
 
             sage: from pGroupCohomology.barcode import BarCode
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: R.<t> = ZZ[]
             sage: L = [((-1, -1), -1/(t - 1)), ((-1, 0), -1/(t^2 - 1)), ((-1, 1), 1), ((0, 0), 1/(t^2 - 2*t + 1)), ((0, 1), (-t - 1)/(t - 1)), ((1, 1), 1/(t^2 - 2*t + 1))]
             sage: B = BarCode(L,ring='some ring')    # indirect doctest
@@ -600,8 +593,7 @@ class BarCode:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
@@ -620,8 +612,7 @@ class BarCode:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
@@ -647,8 +638,7 @@ class BarCode:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
@@ -671,8 +661,7 @@ class BarCode:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: B = H.bar_code('LowerCentralSeries')
@@ -694,8 +683,7 @@ class BarCode:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: B = H.bar_code('LowerCentralSeries')
@@ -750,8 +738,7 @@ class BarCode:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: B = H.bar_code('LowerCentralSeries')

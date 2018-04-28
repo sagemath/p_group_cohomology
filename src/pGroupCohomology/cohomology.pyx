@@ -109,9 +109,8 @@ def COHO_unpickle(GroupKey, StateFile):
 
     TESTS::
 
-        sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: H is loads(dumps(H)) # indirect doctest
@@ -679,8 +678,7 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: from pGroupCohomology.cohomology import explore_one_parameter
-        sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(32,33)
         sage: H.make()
         sage: H.set_ring()
@@ -1353,8 +1351,7 @@ class permanent_result(object):
     are involved::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(184,5, prime=2)
         sage: H.make()
         sage: type(H.essential_ideal)
@@ -1727,8 +1724,7 @@ class temporary_result(permanent_result):
     ::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: tmp = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,4, from_scratch=True)
         sage: H.make(1)
         sage: CohomologyRing.global_options('info')
@@ -1769,7 +1765,6 @@ class temporary_result(permanent_result):
         H^*(Q8; GF(2)):
           Compute poincare_series
         (-t - 1)/(t - 1)
-        sage: CohomologyRing.reset()
 
     """
     # assumption: If it is data in Singular, then it belongs
@@ -1790,8 +1785,7 @@ class temporary_result(permanent_result):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,4, from_scratch=True)
             sage: H.make(1)
             sage: H.poincare_series()
@@ -1845,8 +1839,7 @@ class temporary_result(permanent_result):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,4, from_scratch=True)
             sage: H.make(1)
             sage: p = H.poincare_series(); p
@@ -1963,8 +1956,8 @@ class COHO(Ring):
     we show details of the computation by logging::
 
         sage: from pGroupCohomology import CohomologyRing
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.reset()
         sage: CohomologyRing.set_workspace(tmp_root)
         sage: X = CohomologyRing(4,2, from_scratch=True)
         sage: X.make()
@@ -2149,8 +2142,7 @@ class COHO(Ring):
          'a_3_3^2']
 
     An example with `p=3`, so that the cohomology ring is
-    non-commutative. It is required that Singular be installed at
-    least in version 3-1-0::
+    non-commutative::
 
         sage: R = COHO(27,3,root=tmp_root)
         sage: R.make()
@@ -2928,15 +2920,10 @@ class COHO(Ring):
         If all of the above fails, a ``TypeError`` is raised.
 
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.Gen
@@ -2994,9 +2981,8 @@ class COHO(Ring):
 
         EXAMPLES::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.from_base_ring(GF(2)(1))
@@ -3015,9 +3001,8 @@ class COHO(Ring):
 
         EXAMPLES::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.coerce_map_from(ZZ)   # indirect doctest
@@ -3050,14 +3035,11 @@ class COHO(Ring):
         EXAMPLES:
 
         We first create the cohomology rings for two different
-        presentations of the dihedral group of order 8. We use a
-        temporary directory for saving data; it will be removed as
-        soon as Sage is quit.
+        presentations of the dihedral group of order 8.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H2 = CohomologyRing(gap('DihedralGroup(8)'), GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H1.Hom(H2)
@@ -3103,14 +3085,11 @@ class COHO(Ring):
         EXAMPLES:
 
         We first create the cohomology rings for two different
-        presentations of the dihedral group of order 8. We use a
-        temporary directory for saving data; it will be removed as
-        soon as Sage is quit.
+        presentations of the dihedral group of order 8.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G1 = gap('SmallGroup(8,3)')
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
@@ -3219,9 +3198,8 @@ class COHO(Ring):
 
         TESTS::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H is loads(dumps(H))    # indirect doctest
@@ -3254,16 +3232,11 @@ class COHO(Ring):
 
         A list of length 35
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: from pGroupCohomology.cohomology import COHO
-            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)
@@ -3399,16 +3372,11 @@ class COHO(Ring):
         Pickles did change (previously, __getstate__() returned a list of length 34),
         but old pickles can still be processed.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.cohomology import COHO
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)
@@ -3474,7 +3442,6 @@ class COHO(Ring):
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
             sage: K.__dict__.has_key('subgps')
             True
-            sage: CohomologyRing.reset()
 
         """
         if len(s)==34:
@@ -3697,15 +3664,10 @@ class COHO(Ring):
         """
         Return the name of the file under which ``self`` is automatically saved.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory for creating our cohomology ring.
-        The directory will be removed, when Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: K=load(H.autosave_name())
@@ -3742,15 +3704,10 @@ class COHO(Ring):
         monomials can be reloaded with :meth:`importMonomials`, but this requires
         that the dictionary ``self.Monomials`` has the key ``'bla'``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: L1 = H.Monomials.items()
@@ -3789,15 +3746,10 @@ class COHO(Ring):
         key ``'bla'``.  Otherwise, the monomials, that are stored in
         some standard location, will not be reloaded.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: L1 = H.Monomials.items()
@@ -3834,16 +3786,10 @@ class COHO(Ring):
         """
         Return a basis for the degree `n` cohomology, expressed by monomials.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.decomposable_classes(3)
@@ -3942,15 +3888,10 @@ class COHO(Ring):
         It is not necessary to call this function manually. It is
         done automaticall as soon as the subgroups are requested.
 
-        EXAMPLES:
-
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H=CohomologyRing(8,3)
 
         In this example, we do not want that the cohomology rings are cached.
@@ -3992,7 +3933,6 @@ class COHO(Ring):
                       Inserting SmallGroup(2,1) as a subgroup
                       Reconstructing subgroup data
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
-            sage: CohomologyRing.reset()
 
         """
         from pGroupCohomology import CohomologyRing
@@ -4046,11 +3986,7 @@ class COHO(Ring):
         the *same* group with data stored in the *same* location are
         not only equal but identical.
 
-        TESTS:
-
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
+        TESTS::
 
             sage: from pGroupCohomology.cohomology import COHO
             sage: tmp_root1 = tmp_dir()
@@ -4086,15 +4022,9 @@ class COHO(Ring):
         """
         Return a brief desctiption of the cohomology ring.
 
-        TESTS:
+        TESTS::
 
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
             sage: H      # indirect doctest
             H^*(D8; GF(2))
@@ -4139,6 +4069,7 @@ class COHO(Ring):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.label()
             'H^*(8gp3; GF(2))'
@@ -4157,15 +4088,10 @@ class COHO(Ring):
         """
         Return a brief html desctiption of the cohomology ring.
 
-        TESTS:
+        TESTS::
 
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H._html_()
             'H<sup>*</sup>(D8; GF(2))'
@@ -4191,15 +4117,10 @@ class COHO(Ring):
         """
         Return detailed information on the cohomology ring.
 
-        TESTS:
+        TESTS::
 
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: print(H)       # indirect doctest
@@ -4260,8 +4181,7 @@ Minimal list of algebraic relations:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,5)
             sage: latex(H)      # indirect doctest
             H^\ast(SmallGroup(8,5); \mathbb F_2)
@@ -4309,15 +4229,10 @@ Minimal list of algebraic relations:
         in the following example.
 
 
-        EXAMPLES:
-
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: G = H.group()
@@ -4354,6 +4269,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: CohomologyRing(8,3).group_is_abelian()
             False
             sage: CohomologyRing(8,2).group_is_abelian()
@@ -4377,15 +4293,10 @@ Minimal list of algebraic relations:
 
         ``value`` is now available as an attribute ``key`` of self.
 
-        EXAMPLES:
-
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: print(H.foobar)
             None
@@ -4419,8 +4330,7 @@ Minimal list of algebraic relations:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: [a for a in dir(H) if a.startswith('f')]    #indirect doctest
@@ -4463,8 +4373,7 @@ Minimal list of algebraic relations:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: import sage.interfaces.tab_completion as tc
@@ -4490,15 +4399,10 @@ Minimal list of algebraic relations:
         starts and ends with an underscore. Tab completion and introspection
         are implemented.
 
-        TESTS:
-
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
+        TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print(H.foobar)      # indirect doctest
             None
@@ -4619,15 +4523,10 @@ Minimal list of algebraic relations:
         """
         Delete a property of ``self``.
 
-        TESTS:
-
-        We use a temporary file, that will be automatically removed when
-        Sage is quit.
-        ::
+        TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.setprop('_foobar_', 'It works!')
             sage: print(H._foobar_)
@@ -4645,16 +4544,10 @@ Minimal list of algebraic relations:
         """
         List the names of the custom attributes set with :meth:`setprop`.
 
-        EXAMPLES:
-
-        We use a temporary root directory, that will be removed when
-        sage is quit. Also, we make sure that the ring will not be downloaded
-        from the web.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: sorted(H.properties())
             ['DicksonExp',
@@ -4705,8 +4598,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
 
         If there are no generators computed yet, a cohomology class
@@ -4736,15 +4628,10 @@ Minimal list of algebraic relations:
         """
         Return generators of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -4775,15 +4662,10 @@ Minimal list of algebraic relations:
 
         We consider the scalar ``1`` as a generator.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.ngens()
@@ -4804,15 +4686,10 @@ Minimal list of algebraic relations:
         list of generators may change if an incomplete
         cohomology computation is continued.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: H.gens()
@@ -4839,15 +4716,10 @@ Minimal list of algebraic relations:
         package, we list only the non-obvious relations, but this might change
         in future versions.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3)
             sage: H.make()
             sage: H.rels()
@@ -4875,15 +4747,10 @@ Minimal list of algebraic relations:
         package, we list only the non-obvious relations, but this might change
         in future versions.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3, from_scratch=True)
             sage: H.make(2)
             sage: H.rels()
@@ -4910,15 +4777,10 @@ Minimal list of algebraic relations:
         package, we count only the non-obvious relations, but this might change
         in future versions.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3, from_scratch=True)
             sage: H.make(2)
             sage: H.nrels()
@@ -4944,8 +4806,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(192,1493,prime=2, from_scratch=True)
             sage: H.make(4)
             sage: H.set_ring()
@@ -4996,8 +4857,7 @@ Minimal list of algebraic relations:
         EXAMPLE::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
 
         In our example, we compute the mod-2 cohomology of the
         Mathieu group `M_{11}`.
@@ -5049,8 +4909,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(32,6, from_scratch=True)
             sage: H.make(2)
             sage: H.order_matrix()
@@ -5146,8 +5005,7 @@ Minimal list of algebraic relations:
         is not of prime power order::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: D = CohomologyRing(8,3, from_scratch=True)
             sage: D.make()
             sage: Q = CohomologyRing(8,4, from_scratch=True)
@@ -5431,15 +5289,10 @@ Minimal list of algebraic relations:
         which self is defined. The dictionary is indexed by addresses
         for the SmallGroups libarary.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3)
             sage: sorted(H.subgroups().items())
             [((4, 2), H^*(SmallGroup(4,2); GF(2))), ((8, 5), H^*(SmallGroup(8,5); GF(2)))]
@@ -5459,15 +5312,10 @@ Minimal list of algebraic relations:
         The greatest central elementary abelian subgroup is available
         with the index ``1``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,3)
             sage: sorted(H.restriction_maps().items())
             [(1,
@@ -5487,15 +5335,10 @@ Minimal list of algebraic relations:
         Of course, when computing the cohomology ring in increasing
         degree, more and more terms of the resolution will be computed.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be
-        removed when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(16,5, from_scratch=True)
             sage: H
             H^*(SmallGroup(16,5); GF(2))
@@ -5522,15 +5365,10 @@ Minimal list of algebraic relations:
         Any object; but its intended use is for cohomology elements or
         for strings defining a polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed
-        when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.item2html(H.1)
@@ -5571,15 +5409,10 @@ Minimal list of algebraic relations:
         A html file describing the cohomology ring ``H`` is written
         to ``os.path.join(H.root,repr(H.group().Order()),'web',H.GStem+'.html')``
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We use a temporary root directory, that will be removed
-        when quitting Sage.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: H.htmlpage()
@@ -6349,7 +6182,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,1)
             sage: H._gb_command()
             'groebner'
@@ -6381,15 +6214,10 @@ Minimal list of algebraic relations:
         An element of ``self`` (:class:`~pGroupCohomology.cochain.COCH`), given by
         a power product of generators.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: H.MonToProd([0,2,1])
@@ -6457,15 +6285,10 @@ Minimal list of algebraic relations:
         - ``n`` (integer): The degree of the requested standard monomials
         - ``s`` (string): Name of an ideal in the Singular interface into which the monomials are stored
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(2)
             sage: H._makeStdMon(3,'M')
@@ -6562,15 +6385,10 @@ Minimal list of algebraic relations:
         (counting from zero) and name ``'c_%d_%d'%(n,i)``. The letter ``'c'`` in
         the name can be changed with the optional parameter 'name'.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: c=H.standardCochain(3,2,rdeg=1,ydeg=0,name='X')
@@ -6615,8 +6433,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,4, from_scratch=True)
             sage: H.make(2)
             sage: H.standard_monomials(2)
@@ -6688,16 +6505,10 @@ Minimal list of algebraic relations:
         optional parameter ``KeepBases`` is ``True``  when
         creating the cohomology ring, the memory is not cleared.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: c=H.standardCochain(3,3)
@@ -6812,15 +6623,10 @@ Minimal list of algebraic relations:
           number 1. Moreover, representatives for the conjugacy classes
           of maximal elementary subgroups will be inserted.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: sorted(H.subgroups().items())
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
@@ -6945,15 +6751,10 @@ Minimal list of algebraic relations:
         the presence of a certain GAP-readable file that is
         created during initialisation of the cohomology ring.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
 
         Now we destroy and reconstruct the subgroups and the respective
@@ -7048,15 +6849,10 @@ Minimal list of algebraic relations:
         A list of cochains of the specified subgroup, obtained by restricting
         the generators of self
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7115,15 +6911,10 @@ Minimal list of algebraic relations:
         cohomology of the specified subgroup, yielding the restriction
         of the generators of self to that subgroup
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7177,19 +6968,13 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit.
-
         We need to choose a `p`-group with `p>2`, since we would
         like to have an example where the cohomology of elementary
-        abelian groups has non-trivial nil radical. However, this
-        requires Singular 3-1-0 being installed.
+        abelian groups has non-trivial nil radical.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.nil_preimage(2)
@@ -7273,9 +7058,8 @@ Minimal list of algebraic relations:
 
         EXAMPLES::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: N = H.nil_radical()
@@ -7489,16 +7273,10 @@ Minimal list of algebraic relations:
         The matrix is defined in the Singular interface under the
         name ``self.prefix+'M'``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit.
-        ::
-
-        sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.set_workspace(tmp_root)
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H = CohomologyRing(8,3)
         sage: H.make()
         sage: H._makeOrderMatrix_()
@@ -7562,16 +7340,10 @@ Minimal list of algebraic relations:
         A cochain that has restrictions prescribed in ``L``,
         or ``None``, if such cochain doesn't exist.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
 
@@ -7739,14 +7511,11 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first create a cohomology ring, whose data files are rooted
-        in a temporary directory; it will be removed as soon as Sage
-        is quit. We choose a group that has two different isomorphism
-        classes of maximal elementary abelian subgroups::
+        We choose a group that has two different isomorphism classes
+        of maximal elementary abelian subgroups::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(32,27, from_scratch=True)
 
         The Dickson invariants for the maximal elementary abelian
@@ -7831,16 +7600,10 @@ Minimal list of algebraic relations:
         subgroups, potentially modified by nilpotent classes, then
         this cochain is returned.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create the cohomology ring of an elementary abelian
-        group, whose data files are rooted in a temporary directory;
-        it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print(H.lift_dickson(0,0))
             1-Cocycle in H^*(D8; GF(2)),
@@ -7912,16 +7675,12 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first create a cohomology ring, whose data files are rooted
-        in a temporary directory; it will be removed as soon as Sage
-        is quit. We use the option ``useElimination``, in order to
-        avoid that the Dickson classes will be lifted by a different
-        method.
+        We use the option ``useElimination``, in order to avoid that the
+        Dickson classes will be lifted by a different method.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(64,33, useElimination=True, from_scratch=True)
 
         The group is of `p`-rank 3 and its center has rank 1. So, we
@@ -8050,16 +7809,12 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit. We use the option ``useElimination``,
-        in order to avoid that the Dickson classes will be lifted
-        by a different method.
+        We use the option ``useElimination``, in order to avoid that the
+        Dickson classes will be lifted by a different method.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(64,33, useElimination=True, from_scratch=True)
             sage: H.make(3)
             sage: H.find_dickson_in_subgroup(2)
@@ -8146,8 +7901,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(144,186,prime=3, from_scratch=True)
             sage: H.sylow_cohomology().duflot_regular_sequence()
             ['c_2_1', 'c_2_2']
@@ -8229,8 +7983,7 @@ Minimal list of algebraic relations:
         we will force its computation from scratch first::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(64,138,from_scratch=True)
             sage: X.make()
             sage: G = gap('AlternatingGroup(8)')
@@ -8298,8 +8051,7 @@ Minimal list of algebraic relations:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: H.duflot_regular_sequence()
@@ -8367,8 +8119,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: print(H)
@@ -8453,7 +8204,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(64,201)
 
         If the restrictions are of Krull dimension zero on all subgroups,
@@ -8570,7 +8321,7 @@ Minimal list of algebraic relations:
         We use an example of order 64, that is thus contained in our database::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(64,201)
             sage: H._get_obvious_parameter(frozenset(['c_2_8', 'c_4_21']), 2)
             'b_1_2^2+b_1_1*b_1_2+b_1_1^2'
@@ -8751,8 +8502,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: print(H)
@@ -9064,8 +8814,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = gap('AlternatingGroup(8)')
             sage: H = CohomologyRing(G,prime=2,GroupName='A8', from_scratch=True)
             sage: H.make(7)
@@ -9170,17 +8919,10 @@ Minimal list of algebraic relations:
         factorisation software, interruption might yield to a crash of
         Sage.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted
-        in a temporary directory; it will be removed as soon as Sage
-        is quit. We use a non-commutative example, which requires that
-        Singular 3-1-0 be installed.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(27,3)
             sage: H.make()
             sage: H.gens()
@@ -9462,8 +9204,7 @@ Minimal list of algebraic relations:
         EXAMPLE::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(32,32, from_scratch=True)
             sage: H.make(2)
 
@@ -9574,15 +9315,10 @@ Minimal list of algebraic relations:
         You can obtain a ring in the Singular interface isomorphic to a cohomology
         ring ``H`` by simply doing ``singular(H)``.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create the cohomology ring of an elementary abelian group, whose data files are
-        rooted in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.subgroups()[4,2].set_ring()
@@ -9629,8 +9365,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(720,763,prime=2, from_scratch=True)
             sage: H.make(3)
 
@@ -9711,14 +9446,13 @@ Minimal list of algebraic relations:
             //        block   2 : ordering C
             // quotient ring from ideal
             _[1]=b_3_3*c_3_2+c_2_1*c_1_0*b_3_3
-            sage: CohomologyRing.reset()
 
         TESTS:
 
         The following used to fail in at some point in the development of this package.
         ::
 
-            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: CohomologyRing.doctest_setup()        # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(48,50, prime=2)
             sage: H.make()
             sage: c = H.subgroup_cohomology()('c_1_1*c_1_2^2*c_1_3^3+c_1_1*c_1_2^4*c_1_3+c_1_1*c_1_2^5+c_1_1^2*c_1_3^4+c_1_1^2*c_1_2*c_1_3^3+c_1_1^2*c_1_2^3*c_1_3+c_1_1^3*c_1_2^2*c_1_3+c_1_1^3*c_1_2^3+c_1_1^4*c_1_3^2+c_1_1^4*c_1_2*c_1_3+c_1_1^4*c_1_2^2+c_1_1^5*c_1_2+c_1_0*c_1_3^5+c_1_0*c_1_2^2*c_1_3^3+c_1_0*c_1_2^3*c_1_3^2+c_1_0*c_1_1^2*c_1_2*c_1_3^2+c_1_0*c_1_1^2*c_1_2^2*c_1_3+c_1_0*c_1_1^2*c_1_2^3+c_1_0*c_1_1^3*c_1_3^2+c_1_0*c_1_1^3*c_1_2^2+c_1_0*c_1_1^4*c_1_3+c_1_0*c_1_1^5+c_1_0^2*c_1_3^4+c_1_0^2*c_1_2^2*c_1_3^2+c_1_0^2*c_1_2^3*c_1_3+c_1_0^2*c_1_2^4+c_1_0^2*c_1_1*c_1_3^3+c_1_0^2*c_1_1*c_1_2^2*c_1_3+c_1_0^2*c_1_1^2*c_1_2*c_1_3+c_1_0^2*c_1_1^2*c_1_2^2+c_1_0^2*c_1_1^3*c_1_2+c_1_0^3*c_1_2*c_1_3^2+c_1_0^3*c_1_1*c_1_2^2+c_1_0^3*c_1_1^2*c_1_3+c_1_0^3*c_1_1^3+c_1_0^4*c_1_3^2+c_1_0^4*c_1_2*c_1_3+c_1_0^4*c_1_2^2+c_1_0^4*c_1_1*c_1_2+c_1_0^4*c_1_1^2+c_1_0^5*c_1_3+c_1_0^5*c_1_1')
@@ -9831,9 +9565,8 @@ Minimal list of algebraic relations:
 
         TESTS::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make(1)
             sage: R1 = singular(H); R1
@@ -9898,16 +9631,10 @@ Minimal list of algebraic relations:
         would only result in a re-computation if the relation ideal
         has changed in the meantime.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in
-        a temporary directory; it will be removed as soon as Sage is quit.
-        We enable logging.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(27,3, from_scratch=True)
             sage: H.make(3)
             sage: CohomologyRing.global_options('info')
@@ -9927,7 +9654,6 @@ Minimal list of algebraic relations:
         which can be seen by the absence of any log messages::
 
             sage: H.make_groebner(5)
-            sage: CohomologyRing.reset()
 
         """
         if self.completeGroebner:
@@ -9968,15 +9694,10 @@ Minimal list of algebraic relations:
 
         It is known that the dimension of self equals the `p`-rank of the underlying group.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create the cohomology ring of an elementary abelian group, whose data files are
-        rooted in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.dimension()
             2
@@ -9993,6 +9714,7 @@ Minimal list of algebraic relations:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: CohomologyRing.set_local_sources(tmp_dir())
 
         For the cohomology ring of a group that is not of prime
@@ -10049,15 +9771,10 @@ Minimal list of algebraic relations:
         is a lower bound for the depth. The `p`-rank of the group is equal to the
         dimension of the cohomology ring, and thus is an upper bound.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create the cohomology ring of an elementary abelian group, whose data files are
-        rooted in a temporary directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(32,27)
             sage: H.make()
             sage: H.dimension()
@@ -10135,16 +9852,10 @@ Minimal list of algebraic relations:
         system of parameters of self, or ``None``, if the cohomology
         computation is not finished yet.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: print(H.filter_degree_type())
             None
@@ -10207,16 +9918,10 @@ Minimal list of algebraic relations:
         However, in some cases it is needed to raise the parameters
         occuring in Benson's criterion to some power.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are
-        rooted in a temporary directory; it will be removed as
-        soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: H.make()
             sage: H.a_invariants()
@@ -10298,7 +10003,7 @@ Minimal list of algebraic relations:
         approximation::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,4, from_scratch=True)
 
         Computed out to degree 1, the ring approximation is a polynomial ring
@@ -10440,16 +10145,10 @@ Minimal list of algebraic relations:
         Cohen-Macaulay, a self consistence check is applied, based on
         Benson-Carlson duality [BensonCarlson]_.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted
-        in a temporary directory; it will be removed as soon as Sage
-        is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.poincare_series()
@@ -10506,16 +10205,10 @@ Minimal list of algebraic relations:
         Cohen-Macaulay, a self consistence check is applied, based on
         Benson-Carlson duality [BensonCarlson]_.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted
-        in a temporary directory; it will be removed as soon as Sage
-        is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.poincare_without_parameters()
@@ -10546,14 +10239,13 @@ Minimal list of algebraic relations:
         We test commutative and non-commutative cohomology rings::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()    # this is to clear the cache
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: for n in range(1,268):
             ....:     H = CohomologyRing(64, n)
             ....:     H.make()
             ....:     if H.poincare_series() != H._poincare_series_old_implementation(): # indirect doctest
             ....:         print(n)
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: for n in range(1,16):
             ....:     H = CohomologyRing(81, n)
             ....:     H.make()
@@ -10869,7 +10561,7 @@ Minimal list of algebraic relations:
         ###########################
         C = {0:self} # Cohomology rings
         from pGroupCohomology import CohomologyRing
-        from sage.all import tmp_dir
+        from sage.misc.temporary_file import tmp_dir
         tmp_root = tmp_dir()
         for i from 0 < i < l-1:
             C[-i] = CohomologyRing(G[-i][1][0], G[-i][1][1])
@@ -10916,14 +10608,10 @@ Minimal list of algebraic relations:
 
         The set valued Massey product of ``C_1,C_2,...``
 
-        EXAMPLES:
+        EXAMPLES::
 
-        The example produces files. For safety reasons, we choose files in a
-        temporary directory; it will be removed as soon as Sage is quit::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: H.2
@@ -11068,9 +10756,8 @@ Minimal list of algebraic relations:
         execution of this method.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H64 = CohomologyRing(64,6, useElimination=True, from_scratch=True)
             sage: H64.make(3)
             sage: H64.next()
@@ -11219,15 +10906,10 @@ Minimal list of algebraic relations:
 
         See [GreenKing]_ and the outline we gave in :mod:`pGroupCohomology`.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a temporary
-        directory; it will be removed as soon as Sage is quit.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(64,6, useElimination=True, from_scratch=True)
             sage: H.next()
 
@@ -11348,16 +11030,10 @@ Minimal list of algebraic relations:
            is obvious for `d` odd and is not counted, and only part 1. applies.
 
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We first create a cohomology ring, whose data files are rooted in a temporary directory;
-        it will be removed as soon as Sage is quit. As the example is non-commutative, we
-        require that Singular 3-1-0 be installed.
-        ::
-
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(27,3, from_scratch=True)
             sage: H.make(3)
             sage: H.expect_last_relation()
@@ -11412,16 +11088,12 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first create a cohomology ring, whose data files are rooted
-        in a temporary directory; it will be removed as soon as Sage
-        is quit. For constructing Dickson classes, we use the linear
-        algebra method. The example is non-commutative, so, it is
-        required that Singular 3-1-0 be installed.
+        We first create a cohomology ring. For constructing Dickson classes,
+        we use the linear algebra method.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(27,3, useElimination=False, from_scratch=True)
 
         The computational steps in this example will internally be done
@@ -11616,14 +11288,12 @@ Minimal list of algebraic relations:
 
         EXAMPLES:
 
-        We first create a cohomology ring, whose data files are rooted in
-        a temporary directory; it will be removed as soon as Sage is quit.
-        For constructing Dickson classes, we use the elimination method.
+        We first create a cohomology ring. For constructing Dickson classes,
+        we use the elimination method.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: H.next()
             sage: H.next()
@@ -11740,8 +11410,7 @@ Minimal list of algebraic relations:
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(64,32, from_scratch=True)
             sage: H.next()
             sage: H.next()
@@ -11818,13 +11487,11 @@ Minimal list of algebraic relations:
 
         TESTS:
 
-        We first create a cohomology ring, whose data files are rooted in a temporary
-        directory; it will be removed as soon as Sage is quit.
+        We first create a cohomology ring.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, useElimination=True, from_scratch=True)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -12341,13 +12008,11 @@ Minimal list of algebraic relations:
 
         TESTS:
 
-        We first create a cohomology ring, whose data files are rooted in a temporary
-        directory; it will be removed as soon as Sage is quit.
+        We first create a cohomology ring.
         ::
 
-            sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(32,5, from_scratch=True)
             sage: H.make(2)
             sage: print(H)

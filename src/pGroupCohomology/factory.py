@@ -197,7 +197,6 @@ def _symlink_to_database(publ, priv):
     ::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.reset()
         sage: tmp = tmp_dir()
         sage: from pGroupCohomology.factory import _symlink_to_database
         sage: os.mkdir(os.path.join(tmp,'8gp3'))
@@ -265,8 +264,7 @@ class CohomologyRingFactory:
     TESTS::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.reset()
-        sage: CohomologyRing.set_workspace(tmp_dir())
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: H0 = CohomologyRing(8,3)   #indirect doctest
         sage: print(H0)
         Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -286,7 +284,7 @@ class CohomologyRingFactory:
 
             sage: from pGroupCohomology.factory import CohomologyRingFactory
             sage: CR = CohomologyRingFactory()   #indirect doctest
-            sage: CR.set_workspace(tmp_dir())
+            sage: CR.doctest_setup()
             sage: H = CR(8,3)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -353,15 +351,38 @@ class CohomologyRingFactory:
         CohomologyRing.logger.setLevel(logging.WARN)
         CohomologyRing.logger.handlers[0].formatter.reset()
         CohomologyRing._cache.clear()
-        self.set_local_sources(True)  # Defines the default location of the local sources
+        self.set_local_sources(True)  # use the default location of the local sources
         self.set_local_sources(False) # make the local sources read-only
-        self.set_workspace(None)    # Defines the default location of the workspace
-        self.set_remote_sources(None)     # Defines the default location of the remote sources
+        self.set_workspace(None)      # use the default location of the workspace
+        self.set_remote_sources(None) # use the default location of the remote sources
         from pGroupCohomology.auxiliaries import default_options, coho_options
         coho_options.clear()
         coho_options.update(default_options)
         singular.option('noqringNF')
         _gap_init()
+
+    def doctest_setup(self):
+        """Block web access and put the workspace into a temporary directory.
+
+        This is essential when doctesting computations that would
+        access web repositories of cohomology data.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
+            sage: from pGroupCohomology.cohomology import COHO
+            sage: COHO.remote_sources
+            ('http://cohomology.uni-jena.de/db/',)
+            sage: CohomologyRing.doctest_setup()
+            sage: COHO.remote_sources
+            ()
+
+        """
+        self.reset()
+        self.set_remote_sources(())  # we don't want to access the web in tests
+        from sage.misc.temporary_file import tmp_dir
+        self.set_workspace(tmp_dir()) # we don't want that tests alter the user's workspace
 
     def global_options(self, *args, **kwds):
         """Set global options for cohomology computations.
@@ -504,7 +525,7 @@ class CohomologyRingFactory:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: tmp_priv = tmp_dir()
             sage: tmp_publ = tmp_dir()
             sage: CohomologyRing.set_workspace(tmp_priv)
@@ -575,7 +596,7 @@ class CohomologyRingFactory:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: tmp_priv = tmp_dir()
             sage: tmp_publ = tmp_dir()
             sage: CohomologyRing.set_workspace(tmp_priv)
@@ -777,9 +798,7 @@ class CohomologyRingFactory:
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.group()
             Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] )
@@ -969,9 +988,7 @@ class CohomologyRingFactory:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: CohomologyRing.global_options('info')
             sage: CohomologyRing._check_compatibility(H._key,H)
@@ -1026,9 +1043,7 @@ class CohomologyRingFactory:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
 
         Since the cohomology of the dihedral group of order 8 is shipped with this
         package, it can be taken from the local sources::
@@ -1180,9 +1195,7 @@ class CohomologyRingFactory:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing._get_p_group_from_scratch((8,3), 8, '8gp3', 'Group1'); H1
             H^*(Group1; GF(2))
             sage: H2 = CohomologyRing._get_p_group_from_scratch(('DihedralGroup(8)',), 8, 'D8', 'Group2'); H2
@@ -1255,9 +1268,7 @@ class CohomologyRingFactory:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: tmp = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(18,3,prime=2)
             sage: H1.make(); H1
             H^*(SmallGroup(18,3); GF(2))
@@ -1356,8 +1367,7 @@ class CohomologyRingFactory:
         TESTS::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: CohomologyRing.set_workspace(tmp_dir())
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
 
         Since the cohomology of the dihedral group of order 8 is
         part of the local sources, the ring is complete::
@@ -1754,15 +1764,10 @@ class CohomologyRingFactory:
         If necessary, the folder will be created as soon as data from
         ``s`` are requested.
 
-        EXAMPLES:
-
-        We create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is
-        quit.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: tmp_root = tmp_dir()
             sage: CohomologyRing.set_workspace(tmp_root)
             sage: H = CohomologyRing(8,3)
@@ -1799,17 +1804,13 @@ class CohomologyRingFactory:
 
         EXAMPLES:
 
-        We create a cohomology ring, whose data files are rooted in a
-        temporary directory; it will be removed as soon as Sage is
-        quit. We use the optional parameter ``from_scratch=True`` in
-        order to ensure that it is not loaded from the local or remote
-        sources.
+        We create a cohomology ring, using the optional parameter
+        ``from_scratch=True`` in order to ensure that it is not loaded
+        from the local or remote sources.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.reset()
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing.workspace(8,3, from_scratch=True)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -1842,17 +1843,11 @@ class CohomologyRingFactory:
         be used.
         If it is ``None``, the locations are reset to some default.
 
-        EXAMPLES:
-
-        The example produces files. For safety reasons, we choose
-        files in a temporary directory; it will be removed as soon as
-        Sage is quit.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.env import SAGE_SHARE
-            sage: CohomologyRing.reset()
-            sage: tmp_root = tmp_dir()
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
 
         During package installation, internet access is impossible.
         Therefore, we simulate the use of a web database by accessing
@@ -1912,17 +1907,13 @@ class CohomologyRingFactory:
 
         EXAMPLES:
 
-        The example produces files. For safety reasons, we choose
-        files in a temporary directory; it will be removed as soon as
-        Sage is quit. We choose a low logging level, so that it is visible
-        what happens behind the scenes.
+        We choose a low logging level, so that it is visible what happens
+        behind the scenes.
         ::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: from sage.env import SAGE_SHARE
-            sage: CohomologyRing.reset()
-            sage: tmp_root = tmp_dir()
-            sage: CohomologyRing.set_workspace(tmp_root)
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: CohomologyRing.global_options('info')
 
         During package installation, and thus also during its doctests,
@@ -2074,10 +2065,8 @@ def _IsKeyEquivalent(k1, k2):
     EXAMPLES::
 
         sage: from pGroupCohomology import CohomologyRing
-        sage: CohomologyRing.reset()
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
         sage: from pGroupCohomology.factory import _IsKeyEquivalent
-        sage: tmp_root = tmp_dir()
-        sage: CohomologyRing.set_workspace(tmp_root)
         sage: G = gap('SymmetricGroup(6)')
         sage: G.IdGroup()
         [ 720, 763 ]

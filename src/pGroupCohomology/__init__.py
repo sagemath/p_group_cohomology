@@ -196,7 +196,7 @@ We do so in order to avoid a conflict with an existing workspace.
 ::
 
     sage: from pGroupCohomology import CohomologyRing
-    sage: CohomologyRing.set_workspace(tmp_dir())
+    sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
     sage: H0 = CohomologyRing(8,3)
 
 Since the cohomology ring of ``SmallGroup(8,3)``, which is the
@@ -1041,6 +1041,7 @@ computations from scratch, using a temporary directory.
 ::
 
     sage: from pGroupCohomology import CohomologyRing
+    sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
     sage: tmp = tmp_dir()
     sage: CohomologyRing.set_workspace(tmp)
     sage: H = CohomologyRing(8,3,from_scratch=True)
@@ -1627,7 +1628,6 @@ cohomology data::
 
     sage: gap.quit()
     sage: singular.quit()
-    sage: CohomologyRing.set_workspace(tmp_dir())
 
 Since we are using the stable element method, we first need to get the
 cohomology ring of a Sylow 2-subgroup. It is of order 128::
@@ -1640,7 +1640,7 @@ We set up the computation of its cohomology ring (requesting a computation
 from scratch in a new temporary directory)::
 
     sage: from pGroupCohomology import CohomologyRing
-    sage: CohomologyRing.set_workspace(tmp_dir())
+    sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
     sage: HSyl = CohomologyRing(128, 928, from_scratch=True)
 
 Note that the program has a list of names of interesting groups, and so group
