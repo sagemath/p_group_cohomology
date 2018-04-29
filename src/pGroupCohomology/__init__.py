@@ -175,7 +175,7 @@ the use of databases. For example, it might be instructive to use logging;
 the log gives detailed information on how data are computed (the "debug"
 logging level is of course even more verbous). Global options can be
 changed at any time using the method
-:meth:`~pGroupCohomology.CohomologyRing.factory.global_options`.
+:meth:`~pGroupCohomology.factory.CohomologyRingFactory.global_options`.
 
 Usually, the package attempts to make use of existing data. However,
 if the optional parameter ``from_scratch`` is set to ``True`` then
@@ -238,7 +238,7 @@ ring in the Singular interface::
     _[1]=b_1_0*b_1_1
 
 In Sage, parent structures should be unique. And indeed, cohomology
-rings of *the same* group in *the same* database are unique::
+rings of *the same* group in *the same* workspace are unique::
 
     sage: H0 is CohomologyRing(8,3)
     True

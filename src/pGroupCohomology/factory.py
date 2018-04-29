@@ -582,7 +582,7 @@ class CohomologyRingFactory:
         else:
             self._create_local_sources = False
 
-    def local_sources(self, *args, **kwds):
+    def from_local_sources(self, *args, **kwds):
         """
         Retrieve/create a cohomology ring in the local sources
 
@@ -1164,16 +1164,16 @@ class CohomologyRingFactory:
         elif kwds.get('websource')!=False and (not from_scratch):
             try:
                 if isinstance(kwds.get('websource'), basestring):
-                    OUT = self.remote_sources(GStem, websource=kwds.get('websource'))
+                    OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
                 else:
-                    OUT = self.remote_sources(GStem)
+                    OUT = self.from_remote_sources(GStem)
             except urllib2.URLError, msg:
                 if "HTTP Error 404" in str(msg):
-                    coho_logger.info("Cohomology ring can not be found in web database.", None)
+                    coho_logger.info("Cohomology ring can not be found in web repository.", None)
                 else:
                     coho_logger.debug("Websource %r is not available.", None, kwds.get('websource', 'http://cohomology.uni-jena.de/db/'))
             except (ValueError, RuntimeError):
-                coho_logger.info("Cohomology ring can not be found in web database.", None)
+                coho_logger.info("Cohomology ring can not be found in web repository.", None)
             except KeyboardInterrupt:
                 coho_logger.warn("Access to websource was interrupted.", None)
         if OUT is not None:
@@ -1342,9 +1342,9 @@ class CohomologyRingFactory:
         elif kwds.get('websource')!=False and not kwds.get('from_scratch'):
             try:
                 if isinstance(kwds.get('websource'), basestring):
-                    OUT = self.remote_sources(GStem, websource=kwds.get('websource'))
+                    OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
                 else:
-                    OUT = self.remote_sources(GStem)
+                    OUT = self.from_remote_sources(GStem)
             except:
                 coho_logger.info("No cohomology ring found in web repository.", None)
         if OUT is not None:
@@ -1785,7 +1785,7 @@ class CohomologyRingFactory:
 
     def set_workspace(self, s = None):
         """
-        Define the location of a user-dependent cohomology database
+        Define the location of the user's workspace.
 
         INPUT:
 
@@ -1828,29 +1828,23 @@ class CohomologyRingFactory:
             os.makedirs(s)
         COHO.workspace = s
 
-    def workspace(self,*args, **kwds):
+    def from_workspace(self,*args, **kwds):
         """
         Retrieve a cohomology ring from the workspace.
 
         NOTE:
 
-        By default, the currently activated user-dependent workspace
-        cohomology database is hosting the computation anyway. However,
-        it is possible that the data is in fact copied from local sources
-        outside of the workspace. This method temporarily disallows the
-        use of other local sources, so that it is guaranteed that only
-        "fresh" data in the workspace are used.
+        By default, the user's current workspace is hosting the
+        computation anyway. However, it is possible that the data is in
+        fact copied from local sources outside of the workspace. This
+        method temporarily disallows the use of other local sources, so
+        that it is guaranteed that only "fresh" data in the workspace are used.
 
-        EXAMPLES:
-
-        We create a cohomology ring, using the optional parameter
-        ``from_scratch=True`` in order to ensure that it is not loaded
-        from the local or remote sources.
-        ::
+        EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: H = CohomologyRing.workspace(8,3, from_scratch=True)
+            sage: H = CohomologyRing.from_workspace(8,3)
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
@@ -1889,11 +1883,11 @@ class CohomologyRingFactory:
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
 
         During package installation, internet access is impossible.
-        Therefore, we simulate the use of a web database by accessing
+        Therefore, we simulate the use of a web repository by accessing
         local files that are available during package installation::
 
             sage: CohomologyRing.set_remote_sources(('file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'),))
-            sage: H = CohomologyRing.remote_sources('8gp3')
+            sage: H = CohomologyRing.from_remote_sources('8gp3')
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
@@ -1915,7 +1909,7 @@ class CohomologyRingFactory:
 
 
     # TODO: non prime power groups
-    def remote_sources(self, GStem, websource = None, prime=None):
+    def from_remote_sources(self, GStem, websource = None, prime=None):
         """
         Import a cohomology ring from a web source.
 
@@ -1935,7 +1929,7 @@ class CohomologyRingFactory:
           URLs of web repositories (those provided by
           :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_remote_sources`)
           are chosen. If ``False``, no remote source is used. Otherwise, it
-          should be a single URL.
+          should be a single URL (string) or tuple of URLs.
         - ``prime``: An optional prime, the modulus of the cohomology
           ring. It must be provided if ond *only* if the group is not
           a prime power group.
@@ -1959,7 +1953,7 @@ class CohomologyRingFactory:
         web access is blocked. Therefore, we simulate a data base using
         local files that are available during package installation::
 
-            sage: H = CohomologyRing.remote_sources('8gp3', websource='file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'))
+            sage: H = CohomologyRing.from_remote_sources('8gp3', websource='file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'))
             Accessing web
             Press Ctrl-c to interrupt web access.
             Downloading and extracting archive file
@@ -2191,16 +2185,16 @@ and see :mod:`pGroupCohomology` for more examples.
 The constructor can be called directly. Then, it is first checked
 whether the completely computed cohomology ring of the given group is
 part of some database, or whether it can be downloaded. If this is
-not the case, a new cohomology ring is created, being part of a
-user defined database.
+not the case, a new cohomology ring is created, being part of the user's
+workspace.
 
 Using :meth:`~pGroupCohomology.factory.CohomologyRingFactory.set_workspace`, the
-location of the user defined database can be determined. By
-:meth:`~pGroupCohomology.factory.CohomologyRingFactory.workspace`, one can
-explicitly ask for taking data from the user defined database. The
+location of the user's workspace can be changed. By
+:meth:`~pGroupCohomology.factory.CohomologyRingFactory.from_workspace`, one can
+explicitly ask for taking data from the workspace. The
 input formats for calling :func:`~pGroupCohomology.CohomologyRing` and
-for calling :meth:`~pGroupCohomology.factory.CohomologyRingFactory.workspace`
-or :meth:`~pGroupCohomology.factory.CohomologyRingFactory.local_sources` are the same.
+for calling :meth:`~pGroupCohomology.factory.CohomologyRingFactory.from_workspace`
+or :meth:`~pGroupCohomology.factory.CohomologyRingFactory.from_local_sources` are the same.
 
 INPUT:
 
@@ -2224,11 +2218,12 @@ INPUT:
 **Parameters describing the database**
 
 - ``websource``: If it is ``False``, it is not attempted to download data
-  from some database in the web. If it is a string providing the location
-  of a database in the web, then it is attempted to download the data from
-  there. If ``websource`` is not given then first it is tried to look up
-  data in the local file system, and if this fails then it is attempted to
-  download the data from some default location in the web.
+  from a web repository. If it is a URL (string) or tuple of URLs
+  providing the location(s) of a database in the web, then it is attempted
+  to download the data from there. If ``websource`` is not given then first
+  it is tried to look up data in the local file system, and if this fails
+  then it is attempted to download the data from some default location in the
+  web.
 - ``from_scratch`` (default ``False``): If it is ``True``, this cohomology
   ring may be taken from the cache or from the workspace, but will
   not be copied from local or remote sources. Note that this will only
@@ -2279,10 +2274,9 @@ Each option is set by a string, and unset by prepending ``'no'`` to that string.
 
   * ``'warn'`` [default], ``'info'``, ``'debug'``, logging level
   * ``'useMTX'`` [default], use :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
-    matrices for linear algebra over finite fields, when computing
-    the ring structure. Note that the resolutions will always be
-    computed using the Aachen
-    `C MeatAxe <http://www.math.rwth-aachen.de/homes/MTX/>`_. By
+    matrices for linear algebra over finite fields, which rely on
+    `SharedMeatAxe <http://users.minet.uni-jena.de/~king/SharedMeatAxe/>`_.
+    Note that the resolutions will always be computed using the SharedMeatAxe. By
     consequence, if ``useMTX`` is turned off, time is wasted for
     conversions between different matrix types.
   * ``'save'`` [default], automatically save ring approximations,
@@ -2316,6 +2310,6 @@ the different options had the following effect:
 * With ``options="nosave"``, the computation time decreases.
 
 The options can also be (un)set later, by using the method
-:meth:`~pGroupCohomology.CohomologyRing.global_options`.
+:meth:`~pGroupCohomology.factory.CohomologyRingFactory.global_options`.
 
 """

@@ -780,7 +780,7 @@ class MODCOHO(COHO):
 
         NOTE:
 
-        The default folder is the currently activated user database.
+        The default folder is in the current workspace.
         The file name is derived from the given group name.
 
         EXAMPLES::
