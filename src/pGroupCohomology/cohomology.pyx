@@ -3994,6 +3994,8 @@ class COHO(Ring):
             sage: from pGroupCohomology.cohomology import COHO
             sage: tmp_root1 = tmp_dir()
             sage: tmp_root2 = tmp_dir()
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: H1 = COHO(8,3,root=tmp_root1)
             sage: H2 = COHO(8,3,root=tmp_root2)
             sage: H1.make()
@@ -4042,6 +4044,7 @@ class COHO(Ring):
         EXAMPLES::
 
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: CohomologyRing(8,3).printed_group_name()
             'D8'
             sage: CohomologyRing(64,167).printed_group_name()
@@ -4447,12 +4450,12 @@ Minimal list of algebraic relations:
             It works!
             sage: '_foobar_' in dir(H)
             True
-            sage: 'H._foobar_' in s.completions('H._f',globals(),system='python')
+            sage: 'H._foobar_' in tc.completions('H._f',globals())
             True
             sage: H.delprop('_foobar_')
             sage: '_foobar_' in dir(H)
             False
-            sage: 'H._foobar_' in s.completions('H._f',globals(),system='python')
+            sage: 'H._foobar_' in tc.completions('H._f',globals())
             False
 
         """

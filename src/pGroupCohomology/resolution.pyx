@@ -1744,6 +1744,7 @@ cdef class RESL:
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL, coho_logger
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: CohomologyRing.global_options('sparse')
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
@@ -1938,6 +1939,8 @@ cdef class RESL:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -1985,6 +1988,8 @@ cdef class RESL:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
@@ -2024,6 +2029,8 @@ cdef class RESL:
 
             sage: tmp_root = tmp_dir()
             sage: from pGroupCohomology.resolution import makeGroupData, RESL
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: makeGroupData(8,3,folder=tmp_root)
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)

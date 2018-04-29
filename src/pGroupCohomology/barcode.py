@@ -567,6 +567,7 @@ class BarCode:
         TESTS::
 
             sage: from pGroupCohomology.barcode import BarCode
+            sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: R.<t> = ZZ[]
             sage: L = [((-1, -1), -1/(t - 1)), ((-1, 0), -1/(t^2 - 1)), ((-1, 1), 1), ((0, 0), 1/(t^2 - 2*t + 1)), ((0, 1), (-t - 1)/(t - 1)), ((1, 1), 1/(t^2 - 2*t + 1))]

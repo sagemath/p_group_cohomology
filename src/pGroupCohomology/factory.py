@@ -1436,8 +1436,7 @@ class CohomologyRingFactory:
             Computing basic setup for Small Group number 2 of order 25
             Computing basic setup for Small Group number 3 of order 125
             ...
-            sage: print H
-            sage: print H
+            sage: print(H)
             Cohomology ring of Extraspecial 5-group of order 125 and exponent 5 with coefficients in GF(5)
             <BLANKLINE>
             Computed up to degree 0
@@ -1891,9 +1890,9 @@ class CohomologyRingFactory:
 
         During package installation, internet access is impossible.
         Therefore, we simulate the use of a web database by accessing
-        local files::
+        local files that are available during package installation::
 
-            sage: CohomologyRing.set_remote_sources(('file://'+os.path.join(os.path.realpath(os.path.curdir),'tests'),))
+            sage: CohomologyRing.set_remote_sources(('file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'),))
             sage: H = CohomologyRing.remote_sources('8gp3')
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -1958,12 +1957,13 @@ class CohomologyRingFactory:
 
         During package installation, and thus also during its doctests,
         web access is blocked. Therefore, we simulate a data base using
-        a local file that is installed together with the package::
+        local files that are available during package installation::
 
-            sage: H = CohomologyRing.remote_sources('8gp3', websource='file://'+os.path.join(SAGE_SHARE,'pGroupCohomology'))
+            sage: H = CohomologyRing.remote_sources('8gp3', websource='file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'))
+            Accessing web
             Press Ctrl-c to interrupt web access.
-            Accessing .../8gp3.tar.gz
             Downloading and extracting archive file
+            Trying to read downloaded data
             Resolution of GF(2)[8gp3]:
                       Differential reloaded
                       > rk P_02 =   3

@@ -190,6 +190,7 @@ class CohoFormatter(logging.Formatter):
 
         sage: from pGroupCohomology.auxiliaries import coho_logger
         sage: from pGroupCohomology import CohomologyRing
+        sage: CohomologyRing.reset()
         sage: L = [ZZ, ZZ, ZZ['x'], ZZ['x'], ZZ['x'], ZZ, ZZ]
         sage: for i,P in enumerate(L):
         ....:     coho_logger.warn('warning %d', P, i)
@@ -226,6 +227,7 @@ class CohoFormatter(logging.Formatter):
 
             sage: from pGroupCohomology.auxiliaries import coho_logger
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: coho_logger.warn('message 1', ZZ)
             Integer Ring:
                       message 1
@@ -272,6 +274,7 @@ class CohoFormatter(logging.Formatter):
 
             sage: from pGroupCohomology.auxiliaries import coho_logger
             sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.reset()
             sage: L = [ZZ, ZZ, ZZ['x'], ZZ['x'], ZZ['x'], ZZ, ZZ]
             sage: for i,P in enumerate(L):
             ....:     coho_logger.warn('warning %d', P, i)  # indirect doctest
