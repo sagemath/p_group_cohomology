@@ -55,6 +55,8 @@ from pGroupCohomology.cochain cimport COCH
 from libc.string cimport memcpy
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
+#~ from sage.cpython.string cimport str_to_bytes
+#~ from sage.cpython.string import FS_ENCODING
 #~ include 'sage/ext/stdsage.pxi'
 
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
@@ -226,7 +228,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     ::
 
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-        sage: M = MTX(os.path.join(tmp_root,'8gp3','sgp','8gp3sg3.ima'))
+        sage: M = MTX.from_filename(os.path.join(tmp_root,'8gp3','sgp','8gp3sg3.ima'))
         sage: print(M)
         [1 0 0 0 0 0 0 0]
         [0 0 0 1 1 1 1 1]
@@ -304,13 +306,18 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     for sg in range(1,NumSubgps+1):
         cr = 0
         filename = os.path.join(inc_folder,GStem+'sg%d.ima'%sg)
+#~         if type(filename) is not bytes:
+#~             filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+        # There is a race condition. So, we need to try reading until
+        # the gap subprocess is done writing the file.
         while(1):
             cr += 1
             if cr >= 1000000:
                 raise IOError('File "%s" has not been created')
-            M = MTX(filename)
-            if M.ncols():  # finally the file is written!
+            mat = MatLoad(filename)
+            if mat != NULL:  # finally the file is written and readable!
                 break
+        M = makeMTX(mat)
 
 def makeSpecialGroupData(H, GStem, folder):
     """
@@ -386,7 +393,7 @@ def makeSpecialGroupData(H, GStem, folder):
          'DihedralGroupsg3.ima',
          'DihedralGroupsg3.irg']
         sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-        sage: M = MTX(os.path.join(tmp_root,GStem,'sgp',GStem+'sg3.ima'))
+        sage: M = MTX.from_filename(os.path.join(tmp_root,GStem,'sgp',GStem+'sg3.ima'))
         sage: print(M)
         [1 0 0 0 0 0 0 0]
         [0 0 0 0 1 0 0 0]
@@ -464,10 +471,10 @@ def makeSpecialGroupData(H, GStem, folder):
     NumSubgps = Integer(L[1])
     for sg in range(1,NumSubgps+1):
         filename = os.path.join(inc_folder,GStem+'sg%d.ima'%sg)
-        M = MTX(filename)
+        M = MTX.from_filename(filename)
         if not M.ncols():
             sleep(1)
-            M = MTX(filename)
+            M = MTX.from_filename(filename)
             if not M.ncols():
                 raise IOError, 'File "%s" has not been created'%filename
 
@@ -1313,7 +1320,7 @@ cdef class RESL:
         differential::
 
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: MTX(R.__getitem_name__(3))==R[3]
+            sage: MTX.from_filename(R.__getitem_name__(3))==R[3]
             True
 
         However, if the differential is kept in memory, then ``__getitem_name__`` will
@@ -1369,7 +1376,7 @@ cdef class RESL:
             sage: isinstance(R.__getitem_name__(3),basestring)
             True
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: MTX(R.__getitem_name__(3))==R[3]
+            sage: MTX.from_filename(R.__getitem_name__(3))==R[3]
             True
 
         See  :class:`~pGroupCohomology.resolution.RESL` for further examples.
@@ -1380,7 +1387,7 @@ cdef class RESL:
                 raise IndexError("Index out of range")
             else:
                 if isinstance(self.Diff[key-1],basestring):
-                    return MTX(self.Diff[key-1])
+                    return MTX.from_filename(self.Diff[key-1])
                 else:
                     return self.Diff[key-1]
         else:
@@ -2079,7 +2086,7 @@ cdef class RESL:
             self.firstDiff()
             return
         try:
-            M = MTX(differentialFile(self.Data, n),mutable=False)
+            M = MTX.from_filename(differentialFile(self.Data, n))
         except OSError:
             M = None
         if M is not None: # if the differential was computed before

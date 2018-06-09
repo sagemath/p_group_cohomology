@@ -150,6 +150,8 @@ from sage.all import MatrixSpace
 from sage.structure.element cimport RingElement
 from sage.rings.homset import RingHomset_generic
 
+from sage.matrix.matrix_gfpn_dense cimport new_mtx
+
 # auxiliary class from pGroupCohomology (the Cython classes are imported in cochain.pxd
 from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
 
@@ -1544,9 +1546,7 @@ cdef class COCH(RingElement):
             # compose self with the lift of C
             # OUT = R.composeChainMaps(CM2,CM1,self.deg()+C.deg(),self.deg(),0)
             # the following should be MUCH faster:
-            OUT = self.Data._new(R.Data.projrank[self.deg()+Cdeg], nontips)
-            OUT.Data = MatAlloc(self.Data.Data.Field, R.Data.projrank[self.deg()+Cdeg], nontips)
-            OUT.set_immutable()
+            OUT = new_mtx(MatAlloc(self.Data.Data.Field, R.Data.projrank[self.deg()+Cdeg], nontips), self.Data)
             rk = R.Data.projrank[self.deg()]
             RK = R.Data.projrank[self.deg()+Cdeg]
             # CM2 should have rk*RK rows
@@ -1556,6 +1556,7 @@ cdef class COCH(RingElement):
                 if self_f != FF_ZERO:
                     for j in range(RK): # loop through the entries of the lift of C
                         FfAddMulRow(MatGetPtr(OUT.Data, j), MatGetPtr(CM2.Data, i+rk*j), self_f)
+            OUT.set_immutable()
             return COCH(self._parent, self.Deg+Cdeg, '('+self.Name+')*('+C.name()+')', \
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
         else:
@@ -4645,8 +4646,7 @@ cdef class YCOCH:
         cdef MTX OUT1 = L[0]
         cdef MTX tmp
         fl = OUT1.Data.Field
-        OUT1 = OUT1._new(sum([M.nrows() for M in L]), OUT1._ncols)
-        OUT1.Data = MatAlloc(fl, OUT1._nrows, OUT1._ncols)
+        OUT1 = new_mtx(MatAlloc(fl, sum([M.nrows() for M in L]), OUT1._ncols), OUT1)
         cdef Py_ssize_t row = 0
         FfSetField(fl)
         FfSetNoc(OUT1.Data.Noc)
@@ -4893,7 +4893,7 @@ class CohomologyHomset(RingHomset_generic):
                         print("If this persists, hit <Ctrl-c> and inform the author")
                     else:
                         break
-                GMap = MTX(IStem+'.ima')
+                GMap = MTX.from_filename(IStem+'.ima')
                 os.unlink(IStem+'.ima')
                 os.unlink(IStem+'.irg')
                 GMap.set_immutable()

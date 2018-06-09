@@ -6681,12 +6681,12 @@ Minimal list of algebraic relations:
         the inclusions are, of course, different::
 
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
-            sage: print(MTX(os.path.join(H.inc_folder,H.GStem+'sg2.ima')))
+            sage: print(MTX.from_filename(os.path.join(H.inc_folder,H.GStem+'sg2.ima')))
             [1 0 0 0 0 0 0 0]
             [0 0 0 1 1 1 1 1]
             [0 0 1 0 0 0 0 0]
             [0 0 0 0 0 0 1 1]
-            sage: print(MTX(os.path.join(H.inc_folder,H.GStem+'sg3.ima')))
+            sage: print(MTX.from_filename(os.path.join(H.inc_folder,H.GStem+'sg3.ima')))
             [1 0 0 0 0 0 0 0]
             [0 0 0 1 1 1 1 1]
             [0 1 0 0 0 0 0 0]
@@ -6717,7 +6717,7 @@ Minimal list of algebraic relations:
         if not ((isinstance(q,int) or isinstance(q,Integer)) and (isinstance(nr,int) or isinstance(nr,Integer)) and (isinstance(n,int) or isinstance(n,Integer))):
             raise TypeError("Subgroup and imbedding have to be defined by three integers")
         if self.subgps.has_key((q,nr)): # that isomorphism type is known
-            M = MTX(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
+            M = MTX.from_filename(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
             ch = self.hom(M, self.subgps[(q,nr)])
         else:
             saveopts = coho_options.items()
@@ -6729,7 +6729,7 @@ Minimal list of algebraic relations:
             h.make()
             coho_options.clear()
             coho_options.update(saveopts)
-            M = MTX(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
+            M = MTX.from_filename(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
             ch = self.hom(M,h)
             CurrDeg = self.Resl.deg()
             while h.knownDeg < CurrDeg:

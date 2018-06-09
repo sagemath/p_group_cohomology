@@ -617,7 +617,7 @@ class CohomologyRingFactory:
 
         But it is possible to access the local sources directly::
 
-            sage: H3 = CohomologyRing.local_sources(8,2)
+            sage: H3 = CohomologyRing.from_local_sources(8,2)
             sage: H3.root.startswith(os.path.realpath(tmp_publ))
             True
 
@@ -1143,7 +1143,7 @@ class CohomologyRingFactory:
                     del coho_options['@use_this_root@']
                 raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_workspace,file_name), msg))
         ## 3. Link with local sources and load from there
-        elif os.access(os.path.join(root_local_sources,file_name), os.R_OK) and not from_scratch:
+        elif root_local_sources and os.access(os.path.join(root_local_sources,file_name), os.R_OK) and not from_scratch:
             coho_logger.debug("Local data found at %s", None, os.path.join(root_local_sources,file_name))
             try:
                 coho_logger.debug('Creating symbolic links from %s to %s', None, os.path.join(root_workspace,GStem), os.path.join(root_local_sources,GStem))
@@ -1326,7 +1326,7 @@ class CohomologyRingFactory:
                     del coho_options['@use_this_root@']
                 raise IOError("Saved data at %s are not readable"%(os.path.join(root_workspace,file_name)))
         ## 2. Link with local sources and load from there
-        elif os.access(os.path.join(root_local_sources,file_name), os.R_OK) and not from_scratch:
+        elif root_local_sources and os.access(os.path.join(root_local_sources,file_name), os.R_OK) and not from_scratch:
             os.symlink(os.path.join(root_local_sources,file_name), os.path.join(root_workspace,file_name))
             # now try to load from the new entry in the database
             try:
@@ -1837,8 +1837,9 @@ class CohomologyRingFactory:
         By default, the user's current workspace is hosting the
         computation anyway. However, it is possible that the data is in
         fact copied from local sources outside of the workspace. This
-        method temporarily disallows the use of other local sources, so
-        that it is guaranteed that only "fresh" data in the workspace are used.
+        method temporarily disallows the use of other local or remote
+        sources, so that it is guaranteed that only "fresh" data in the
+        workspace are used.
 
         EXAMPLES::
 
@@ -1856,11 +1857,17 @@ class CohomologyRingFactory:
 
         """
         create_local_sources = self._create_local_sources
+        old_local_sources = COHO.local_sources
+        COHO.local_sources = None
+        old_remote_sources = COHO.remote_sources
+        COHO.remote_sources = ()
         self.set_local_sources(False)
         try:
             return self(*args, **kwds)
         finally:
             self._create_local_sources = create_local_sources
+            COHO.local_sources = old_local_sources
+            COHO.remote_sources = old_remote_sources
 
     def set_remote_sources(self, URLs = None):
         """
