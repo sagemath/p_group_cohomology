@@ -60,48 +60,11 @@ from cysignals.signals cimport sig_check, sig_on, sig_off
 #~ include 'sage/ext/stdsage.pxi'
 
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
-from sage.matrix.matrix_gfpn_dense cimport FieldConverter_class, FieldConverter
+from sage.matrix.matrix_gfpn_dense cimport FieldConverter_class, FieldConverter, new_mtx
 from sage.matrix.matrix0 cimport Matrix as Matrix0
 
 ####################
 ## MTX related auxiliary functions
-cdef MTX makeMTX(Matrix_t *Data):
-    """
-    Make a mutable MTX-matrix out of the genuine MeatAxe-type <Matrix_t>.
-
-    We can hardly test this method, since this cdef'd function and
-    the MeatAxe-types can not be imported in Python. So, we only device
-    an indirect test.
-
-    EXAMPLES:
-
-    First, we create the basic data for the dihedral group of order 8
-    (compare :func:`~pGroupCohomology.resolution.makeGroupData`)::
-
-        sage: tmp_root = tmp_dir()
-        sage: from pGroupCohomology.resolution import makeGroupData, RESL
-        sage: makeGroupData(8,3,folder=tmp_root)
-        sage: gstem='8gp3'
-        sage: gps_folder=os.path.join(tmp_root,gstem)
-        sage: res_folder=os.path.join(gps_folder,'dat')
-        sage: R = RESL(gstem,gps_folder,res_folder)
-        sage: R.firstDiff()   # indirect doctest
-        sage: R
-        Resolution of GF(2)[8gp3]
-        sage: print(R)
-        Resolution:
-        0 <- GF(2) <- GF(2)[8gp3] <- rank 2
-
-    """
-    cdef MTX M = MTX.__new__(MTX)
-    BR = GF(Data.Field, 'x')
-    M._parent = MatrixSpace(BR, Data.Nor, Data.Noc, implementation=MTX)
-    M._ncols  = Data.Noc
-    M._nrows  = Data.Nor
-    M._base_ring = BR
-    M._converter = <FieldConverter_class>FieldConverter(BR)
-    M.Data=Data
-    return M
 
 def baseMTX(f, m,n, i,j):
     r"""
@@ -317,7 +280,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
             mat = MatLoad(filename)
             if mat != NULL:  # finally the file is written and readable!
                 break
-        M = makeMTX(mat)
+#~         M = new_mtx(mat)
 
 def makeSpecialGroupData(H, GStem, folder):
     """
@@ -2021,7 +1984,7 @@ cdef class RESL:
         cdef MTX M
         if len(self.Diff):
             raise IndexError("First differential is already computed")
-        M = makeMTX(makeFirstDifferential(self.Data))
+        M = new_mtx(makeFirstDifferential(self.Data),None)
         M.set_immutable()
         self.Diff = [M]
 
@@ -2110,7 +2073,7 @@ cdef class RESL:
         setRankProj(self.Data, n, numberOfHeadyVectors(ker.ngs))
         sig_off()
         coho_logger.info("> rk P_%02ld = %3ld"%(n, self.Data.projrank[n]), self)
-        M = makeMTX(getMinimalGenerators(ker, G))
+        M = new_mtx(getMinimalGenerators(ker, G), M)
         M.set_immutable()
         saveUrbildGroebnerBasis(nRgs, urbildGBFile(self.Data, n-1), G)
         MatSave(M.Data, differentialFile(self.Data, n))
@@ -2193,7 +2156,7 @@ cdef class RESL:
         cdef MTX DGj
 
         if coho_options['useMTX']:
-            Mmtx = makeMTX(MatAlloc(fl, RK*nt, (rk+RK)*nt))
+            Mmtx = new_mtx(MatAlloc(fl, RK*nt, (rk+RK)*nt), D)
             FfSetField(fl)
             FfSetNoc(Mmtx.Data.Noc)
             for j in range(nt): # "short rows" within a long row of Mmtx
@@ -2228,7 +2191,7 @@ cdef class RESL:
                     L = Mmtx._rowlist_(i)[rknt:]
                 else:
                     L = list(M[i])[rknt:]
-                M2 = makeMTX(MatMulScalar(rawMatrix(fl, [L[k*nt:(k+1)*nt] for k in range(RK)]), mtx_tmultinv[M[i,Piv[i]]]))
+                M2 = new_mtx(MatMulScalar(rawMatrix(fl, [L[k*nt:(k+1)*nt] for k in range(RK)]), mtx_tmultinv[M[i,Piv[i]]]), M)
                 M2.set_immutable()
                 Autolift[Piv[i]] = [()] + [M2._mul_long(ff+1) for ff in range(fl-1)]
         Autolift['Piv'] = tuple(sorted(X for X in Piv if X<rknt))
@@ -2346,7 +2309,7 @@ cdef class RESL:
         cdef Matrix0 M
         baseK = GF(fl)
         if coho_options['useMTX']:
-            Mmtx = makeMTX(MatAlloc(fl, (RK+RK*rk)*nt, (RK+Rk+RK*rk)*nt))
+            Mmtx = new_mtx(MatAlloc(fl, (RK+RK*rk)*nt, (RK+Rk+RK*rk)*nt), Dn)
             M = Mmtx
         else:
             M = Matrix(baseK, (RK+RK*rk)*nt, (RK+Rk+RK*rk)*nt, 0)  # we begin with zero.
@@ -2412,9 +2375,9 @@ cdef class RESL:
                 # and Z:P_n->P_1 is encoded in the third block of M (rows RKnt+RK*nt,...,RKnt+Rk*nt+RK*rk*nt)
                 LY = L[:Rk*nt]
                 LZ = L[Rk*nt:]
-                Y = makeMTX(MatMulScalar(rawMatrix(fl, [LY[k*nt:(k+1)*nt] for k in range(Rk)]), mtx_tmultinv[M[i,Piv[i]]]))
+                Y = new_mtx(MatMulScalar(rawMatrix(fl, [LY[k*nt:(k+1)*nt] for k in range(Rk)]), mtx_tmultinv[M[i,Piv[i]]]), None)
                 Y.set_immutable()
-                Z = makeMTX(MatMulScalar(rawMatrix(fl, [LZ[k*nt:(k+1)*nt] for k in range(RK*rk)]), mtx_tmultinv[M[i,Piv[i]]]))
+                Z = new_mtx(MatMulScalar(rawMatrix(fl, [LZ[k*nt:(k+1)*nt] for k in range(RK*rk)]), mtx_tmultinv[M[i,Piv[i]]]), Y)
                 Z.set_immutable()
                 D[Piv[i]] = (Y, Z)
             else: # kernel
@@ -2433,9 +2396,9 @@ cdef class RESL:
                     # and Z:P_n->P_1 is encoded in the third block of M (rows RKnt+RK*nt,...,RKnt+Rk*nt+RK*rk*nt)
                     LY = L[:Rk*nt]
                     LZ = L[Rk*nt:]
-                    Y = makeMTX(MatMulScalar(rawMatrix(fl, [LY[k*nt:(k+1)*nt] for k in range(Rk)]), mtx_tmultinv[M[i,Piv[i]]]))
+                    Y = new_mtx(MatMulScalar(rawMatrix(fl, [LY[k*nt:(k+1)*nt] for k in range(Rk)]), mtx_tmultinv[M[i,Piv[i]]]), None)
                     Y.set_immutable()
-                    Z = makeMTX(MatMulScalar(rawMatrix(fl, [LZ[k*nt:(k+1)*nt] for k in range(RK*rk)]), mtx_tmultinv[M[i,Piv[i]]]))
+                    Z = new_mtx(MatMulScalar(rawMatrix(fl, [LZ[k*nt:(k+1)*nt] for k in range(RK*rk)]), mtx_tmultinv[M[i,Piv[i]]]), Y)
                     Z.set_immutable()
                     K.append((Y, Z))
 
@@ -2581,7 +2544,7 @@ cdef class RESL:
         cdef list Z
         cdef int k
         ##########################
-        TMP = makeMTX(MatAlloc(fl, rk, nt))
+        TMP = new_mtx(MatAlloc(fl, rk, nt), M)
         Z = M._rowlist_(0, rk_1-1)
 
         if check or (Autolift=={}):
@@ -2678,7 +2641,7 @@ cdef class RESL:
             raise ValueError("Matrices representing chain maps must be defined over GF(%d)"%(self.G_Alg.Data.p))
         coho_logger.info('Compose chain maps R_%d -> R_%d -> R_%d', self, s,r,q)
         cdef MTX OUT
-        OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[s]*self.Data.projrank[q],self.G_Alg.Data.nontips))
+        OUT = new_mtx(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[s]*self.Data.projrank[q],self.G_Alg.Data.nontips), M1)
         cdef Matrix_t *L
         cdef int i,j,k
         cdef int RK = self.Data.projrank[s]
@@ -2785,7 +2748,7 @@ cdef class RESL:
         cdef PTR IN1d, OUT1d, M1d
         FfSetNoc(nontips)
         # line ik of OUT[a] is the sum over j of line ij of M1 times line jk of L2[a][2].
-        OUT = [[s, L2[a][1], makeMTX(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[s]*rk[a],self.G_Alg.Data.nontips))] for a in range(len(L2))]
+        OUT = [[s, L2[a][1], new_mtx(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[s]*rk[a],self.G_Alg.Data.nontips), M1)] for a in range(len(L2))]
         M1d = M1.Data.Data
         for k from 0 <= k < RK:
             for j from 0 <= j < Rk:
@@ -2890,7 +2853,7 @@ cdef class RESL:
         cdef int rk_1= self.Data.projrank[d]
         cdef long fl  = self.G_Alg.Data.p
         cdef long nt  = self.G_Alg.Data.nontips
-        cdef MTX OUT = makeMTX(MatAlloc(fl, RK*rk, nt))
+        cdef MTX OUT = new_mtx(MatAlloc(fl, RK*rk, nt), M)
         cdef MTX  TMP, DUMMY
         cdef list Z
         cdef int i,k
@@ -2900,7 +2863,7 @@ cdef class RESL:
         # Lift each "long row"
         for i in range(RK):
             Z = Compos._rowlist_(i*rk_1, (i+1)*rk_1-1)
-            TMP = makeMTX(MatAlloc(fl, rk, nt))
+            TMP = new_mtx(MatAlloc(fl, rk, nt), M)
             for j in Piv:
                 if Z[j]:
                     DUMMY = Autolift[j][Z[j]]
@@ -2980,7 +2943,7 @@ cdef class RESL:
         # which, in turn, unfolds to:
         cdef MTX OUT
         sig_on()
-        OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[d]*self.Data.projrank[n], self.G_Alg.Data.nontips))
+        OUT = new_mtx(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[d]*self.Data.projrank[n], self.G_Alg.Data.nontips), M)
         sig_off()
         self.load_ugb(d)
         if (self.nRgs.ngs.r!=self.Data.projrank[d-1]) or (self.nRgs.ngs.s != self.Data.projrank[d]):
@@ -3091,7 +3054,7 @@ cdef class RESL:
             raise ValueError("Matrix must be defined over GF(%d)"%(self.G_Alg.Data.p))
         cdef MTX OUT
         cdef FEL Coc_f
-        OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[n], self.G_Alg.Data.nontips))
+        OUT = new_mtx(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[n], self.G_Alg.Data.nontips), Coc)
         cdef int i
         cdef int projrk = self.Data.projrank[n]
         FfSetField(OUT.Data.Field)
@@ -3158,7 +3121,7 @@ cdef class RESL:
             raise ValueError("expect (%d x %d) matrix"%(self.Data.projrank[n],self.G_Alg.Data.nontips))
         if (CM.Data.Field != self.G_Alg.Data.p):
             raise ValueError("Matrix must be defined over GF(%d)"%(self.G_Alg.Data.p))
-        OUT = makeMTX(MatAlloc(self.G_Alg.Data.p, 1, CM._nrows))
+        OUT = new_mtx(MatAlloc(self.G_Alg.Data.p, 1, CM._nrows), None)
         FfSetField(OUT.Data.Field)
         FfSetNoc(OUT.Data.Noc)
         for i from 0 <= i < CM._nrows:
@@ -4041,7 +4004,7 @@ cdef class G_ALG:
         if (M.Data.Field != self.Data.p):
             raise ValueError("Matrix must be defined over GF(%d)"%(self.Data.p))
         cdef MTX OUT
-        OUT  = makeMTX(MatAlloc(self.Data.p, self.Data.nontips,self.Data.nontips))
+        OUT  = new_mtx(MatAlloc(self.Data.p, self.Data.nontips,self.Data.nontips), M)
         innerRightActionMatrix(self.Data, M.Data.Data, OUT.Data.Data)
         OUT.set_immutable()
         return OUT
@@ -4092,7 +4055,7 @@ cdef class G_ALG:
         if (M.Data.Field != self.Data.p):
             raise ValueError("Matrix must be defined over GF(%d)"%(self.Data.p))
         cdef MTX OUT
-        OUT  = makeMTX(MatAlloc(self.Data.p, self.Data.nontips,self.Data.nontips))
+        OUT  = new_mtx(MatAlloc(self.Data.p, self.Data.nontips,self.Data.nontips), M)
         innerLeftActionMatrix(self.Data, M.Data.Data, OUT.Data.Data)
         OUT.set_immutable()
         return OUT
@@ -4152,7 +4115,7 @@ cdef class G_ALG:
         s = int(M.nrows()/r)
 
         cdef MTX OUT
-        OUT = makeMTX(MatAlloc(self.Data.p, s,self.Data.nontips))
+        OUT = new_mtx(MatAlloc(self.Data.p, s,self.Data.nontips), M)
         cdef PTR scratch
         scratch = FfAlloc(self.Data.nontips+1)
         innerRightCompose(self.Data, x.Data.Data, M.Data.Data, 1,r,s, scratch, OUT.Data.Data)

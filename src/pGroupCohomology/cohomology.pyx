@@ -80,6 +80,7 @@ from sage.interfaces.singular import SingularElement
 
 from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
+from sage.matrix.matrix_gfpn_dense cimport new_mtx
 from sage.libs.meataxe cimport *
 from pGroupCohomology.auxiliaries import singular
 
@@ -902,7 +903,7 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
         if isinstance(ElAb.NilBasis[d], MTX):
             nil_basis = ElAb.NilBasis[d]
         else:
-            nil_basis = makeMTX(rawMatrix(Field,ElAb.NilBasis[d]))
+            nil_basis = new_mtx(rawMatrix(Field,ElAb.NilBasis[d]), None)
             nil_basis.echelonize()
             ElAb.NilBasis[d] = nil_basis
         pivots_nilbasis = nil_basis.pivots()
@@ -7439,7 +7440,7 @@ Minimal list of algebraic relations:
                         ttmpL.append(tmpM[j*RK+i,0])
                 tmpL.append(ttmpL + i*[0]+[1]+(RK-i-1)*[0])
             tmpMTX = rawMatrix(p, tmpL)
-            M = makeMTX(tmpMTX)
+            M = new_mtx(tmpMTX, None)
         else:
             coho_logger.debug("> Construct matrix for elimination", self)
             M = Matrix(GF(p), RK, sum_rk+RK, 0)
@@ -7450,8 +7451,8 @@ Minimal list of algebraic relations:
         coho_logger.debug("> > echelon is computed", self)
         cdef tuple Piv = M.pivots()
         cdef list RestL = add([X[1].MTX()._rowlist_(0) for X in L],[])
-        cdef MTX RestM = makeMTX(MatAlloc(p, 1, sum_rk))
-        Lift = makeMTX(MatAlloc(p, 1, RK))
+        cdef MTX RestM = new_mtx(MatAlloc(p, 1, sum_rk), M)
+        Lift = new_mtx(MatAlloc(p, 1, RK), M)
         cdef int lenPiv = len(Piv)
         cdef list RowL
         cdef Matrix_t *delM
@@ -11562,6 +11563,7 @@ Minimal list of algebraic relations:
         cdef int i,k,m,j
         cdef FEL fel, fel2
         cdef int lenDecGen,lenMonExp
+        cdef MTX template = None
 
         ######################################
         ## Main Procedure
@@ -11738,7 +11740,8 @@ Minimal list of algebraic relations:
                         p_tmpX0 += FfCurrentRowSize
                     tmpMTX = nil_preimages([self.RestrMaps[mpos][1] for mpos in self.MaxelPos], list(DecGen))
                     tmpMTXout = MatMulStrassen(MatAlloc(R.G_Alg.Data.p, tmpMTX.Nor, tmpMTX0.Noc), tmpMTX, tmpMTX0)
-                    NilDec = makeMTX(tmpMTXout)
+                    NilDec = new_mtx(tmpMTXout, template)
+                    template = NilDec
                     NilDec.echelonize()
                     FfSetNoc(NilDec.Data.Noc)
                     MatFree(tmpMTX0)
@@ -11748,7 +11751,8 @@ Minimal list of algebraic relations:
                         assert j>=0
                         ZN_comp[j]=0
                 ## Now we compute a basis in echelon form of a complement of decomposable nilpotent classes in the nilpotent classes
-                NilNonDec = makeMTX(nil_preimages([self.RestrMaps[mpos][1] for mpos in self.MaxelPos], [[n,i] for i in range(len(ZN_comp)) if ZN_comp[i]]))
+                NilNonDec = new_mtx(nil_preimages([self.RestrMaps[mpos][1] for mpos in self.MaxelPos], [[n,i] for i in range(len(ZN_comp)) if ZN_comp[i]]), template)
+                template = NilNonDec
                 NilNonDec.set_immutable()
                 # The rows of this matrix yield (ydeg=1,rdeg=0)-generators (i.e., nilpotent but nondecomposable classes).
                 # We need to insert the normalised entries of NilNonDec at the places where ZN_comp has coefficient 1.
@@ -11760,7 +11764,8 @@ Minimal list of algebraic relations:
                             CandL.append(NilL.pop(0))
                         else:
                             CandL.append(0)
-                    CandM = makeMTX(rawMatrix(R.G_Alg.Data.p, [CandL]))
+                    CandM = new_mtx(rawMatrix(R.G_Alg.Data.p, [CandL]), template)
+                    template = CandM
                     CandM.set_immutable()
                     FfSetNoc(CandM.Data.Noc)
                     j = FfFindPivot(CandM.Data.Data, &fel)
@@ -11795,7 +11800,8 @@ Minimal list of algebraic relations:
                         p_tmpX0 += FfCurrentRowSize
                     tmpMTX = nil_preimages([self.RestrMaps[self.CElPos][1]], DecGen+NewGen)
                     tmpMTXout = MatMulStrassen(MatAlloc(R.G_Alg.Data.p, tmpMTX.Nor, tmpMTX0.Noc), tmpMTX, tmpMTX0)
-                    NilDec = makeMTX(tmpMTXout)
+                    NilDec = new_mtx(tmpMTXout, template)
+                    template = NilDec
                     NilDec.echelonize()
                     MatFree(tmpMTX0)
                     MatFree(tmpMTX)
@@ -11804,7 +11810,8 @@ Minimal list of algebraic relations:
                         j = FfFindPivot(MatGetPtr(NilDec.Data, i), &fel)
                         assert j>=0
                         RdegPiv[j] = 0 # no regular element has that pivot, because some decomposables or nilpotents have
-                NilNonDec = makeMTX(nil_preimages([self.RestrMaps[self.CElPos][1]], [[n,i] for i in range(len(ZN_comp)) if RdegPiv[i]]))
+                NilNonDec = new_mtx(nil_preimages([self.RestrMaps[self.CElPos][1]], [[n,i] for i in range(len(ZN_comp)) if RdegPiv[i]]), template)
+                template = NilNonDec
                 NilNonDec.set_immutable()
                 # The rows of this matrix yield (ydeg=rdeg=0)-generators (i.e., nondecomposable non-nilpotent classes with nilpotent restr. on CElAb).
                 # We need to insert the normalised entries of NilNonDec at the places where RdegPiv has coefficient 1.
@@ -11818,7 +11825,7 @@ Minimal list of algebraic relations:
                             k += 1
                         else:
                             CandL.append(0)
-                    CandM = makeMTX(rawMatrix(R.G_Alg.Data.p, [CandL]))
+                    CandM = new_mtx(rawMatrix(R.G_Alg.Data.p, [CandL]), template)
                     CandM.set_immutable()
                     FfSetNoc(CandM.Data.Noc)
                     j = FfFindPivot(CandM.Data.Data, &fel)
@@ -11846,7 +11853,8 @@ Minimal list of algebraic relations:
                     for X in NewGen:
                         memcpy(p_tmpX0, X.Data.Data.Data, FfCurrentRowSizeIo)
                         p_tmpX0 += FfCurrentRowSize
-                    NilDec = makeMTX(tmpMTX0)
+                    NilDec = new_mtx(tmpMTX0, template)
+                    template = NilDec
                     NilDec.echelonize()
                     NilDec.set_immutable()
                     FfSetNoc(NilDec.Data.Noc)

@@ -477,7 +477,7 @@ cdef class COCH(RingElement):
             self.Resl = R
             self.Deg = n
             self.Name = str(Nick)
-            self.Data = makeMTX(rawMatrix(R.G_Alg.Data.p, [L]))
+            self.Data = new_mtx(rawMatrix(R.G_Alg.Data.p, [L]), None)
             self.Data.set_immutable()
         elif isinstance(L,MTX):
             LMTX = L
@@ -1668,7 +1668,7 @@ cdef class COCH(RingElement):
         cdef RESL R = self.Resl
         nt = R.G_Alg.Data.nontips
         fd = R.G_Alg.Data.p
-        I = makeMTX(MatId(fd,nt))
+        I = new_mtx(MatId(fd,nt), None)
         I.set_immutable()
         M = R.CochainToChainmap(self.Deg,self.Data)[2]
         name = '(.*%s)'%(self.Name)
@@ -4326,8 +4326,8 @@ cdef class YCOCH:
         cdef MTX X = self[0]
         if X._nrows != RK or X._ncols != nt or X.Data.Field != fl:
             raise RuntimeError("Theoretical error, please inform the author")
-        cdef MTX Y = makeMTX(MatAlloc(fl, Rk, nt))
-        cdef MTX Z = makeMTX(MatAlloc(fl, RK*rk, nt))
+        cdef MTX Y = new_mtx(MatAlloc(fl, Rk, nt), X)
+        cdef MTX Z = new_mtx(MatAlloc(fl, RK*rk, nt), X)
         cdef int i, m
         coho_logger.info( "Try to find a cobounding Yoneda cochain for %r", self._R, self)
         for i in P: # these are the pivots of the "autolift" data
@@ -4744,7 +4744,7 @@ class CohomologyHomset(RingHomset_generic):
         if (X.Resl.coef()<>Y.Resl.coef()):
             raise TypeError("Domain and Codomain must be defined over the same base field")
         self._cache = {}  # caches different maps between the same rings
-        self._H0Map = makeMTX(MatAlloc(X.Resl.coef(), 1, X.Resl.G_ALG().order()))
+        self._H0Map = new_mtx(MatAlloc(X.Resl.coef(), 1, X.Resl.G_ALG().order()), None)
         self._H0Map[0,0] = 1
         self._H0Map.set_immutable()
         RingHomset_generic.__init__(self, X, Y, category=category)
@@ -5978,9 +5978,9 @@ cdef class ChMap(RingHomomorphism):
             raise ValueError("A chain must be represented by a matrix with %d columns"%Snontips)
         if C.nrows()!=RK:
             raise ValueError("A %d-chain must be represented by a matrix with %d rows"%(d,RK))
-        cdef MTX OUT = makeMTX(MatAlloc(T.G_Alg.Data.p, rk, Tnontips))
+        cdef MTX OUT = new_mtx(MatAlloc(T.G_Alg.Data.p, rk, Tnontips), C)
         cdef int i
-        cdef MTX row = makeMTX(MatAlloc(OUT.Data.Field, 1, self.GMap.Data.Noc))
+        cdef MTX row = new_mtx(MatAlloc(OUT.Data.Field, 1, self.GMap.Data.Noc), C)
         FfSetField(OUT.Data.Field)
         for i from 0 <= i < RK:
             FfSetNoc(row.Data.Noc)
@@ -6050,6 +6050,7 @@ cdef class ChMap(RingHomomorphism):
             # of self; upper-lowercase means stuff in the middle resolution; double lowercase denotes the
             # target resolution, the image of the underlying chain map of x. base_deg is the degree in the middle.
             nt = x.G_map().ncols()
+            xMTX = None
             # Will have a map of degree self.Deg+x.deg(), first self then x.
             # We must distinguish five cases:
             if (x.deg() <= 0) and (self.deg() <= 0):
@@ -6091,7 +6092,7 @@ cdef class ChMap(RingHomomorphism):
                     Rk = xMTX.nrows()
                     rk = selfMTX.nrows()//Rk
                     base_deg = self.deg()
-            OUT_M = makeMTX(MatAlloc(self.Tgt.G_Alg.Data.p, RK*rk, nt))
+            OUT_M = new_mtx(MatAlloc(self.Tgt.G_Alg.Data.p, RK*rk, nt), xMTX)
             for i from 0 <= i < RK:
                 OUT_M[i*rk] = x.apply_to_chain(base_deg, selfMTX.get_slice(i*Rk, (i+1)*Rk))
             OUT = x.domain().hom(self.G_map()*x.G_map(), self.codomain(),OUT_M,self.Deg+x.deg())
@@ -6132,7 +6133,7 @@ cdef class ChMap(RingHomomorphism):
                 raise RuntimeError("Theoretical Error")
             if (xMTX.Data.Noc<>t_rk):
                 raise RuntimeError("Theoretical Error")
-            OUT_M = makeMTX(MatAlloc(self.Src.coef(), 1,s_rk))
+            OUT_M = new_mtx(MatAlloc(self.Src.coef(), 1,s_rk), xMTX)
             for i from 0 <= i < s_rk:
                 cf = 0
                 i_trk = i*t_rk
@@ -6368,7 +6369,7 @@ cdef class ChMap(RingHomomorphism):
         cdef long TgtNontips = self.Tgt.G_Alg.Data.nontips
         FfSetField(self.Src.coef())
         sig_on()
-        Compos = makeMTX(MatAlloc(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips))
+        Compos = new_mtx(MatAlloc(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips), M1)
         sig_off()
         cdef Matrix_t *L
 
@@ -6395,7 +6396,7 @@ cdef class ChMap(RingHomomorphism):
         cdef long nt = TgtNontips
         d = TgtDeg # will lift to that degree in the target resolution
         cdef MTX OUT
-        OUT = makeMTX(MatAlloc(fl, RK*rk, nt))
+        OUT = new_mtx(MatAlloc(fl, RK*rk, nt), M1)
         cdef MTX TMP, DUMMY
         cdef tuple Piv
         cdef list Z
@@ -6408,7 +6409,7 @@ cdef class ChMap(RingHomomorphism):
             for i in range(RK):
                 # 'lift long row ',i
                 Z = Compos._rowlist_(i*rk_1, (i+1)*rk_1-1)
-                TMP = makeMTX(MatAlloc(fl, rk, nt))
+                TMP = new_mtx(MatAlloc(fl, rk, nt), M1)
                 FfSetNoc(nt)
                 for J in Piv:
                     if Z[J]:
@@ -6849,7 +6850,7 @@ cdef class ChMap(RingHomomorphism):
             rk = Tgt.rank(d)
         if M.nrows() != RK*rk:
             raise RuntimeError("wrong implementation")
-        cdef MTX N = makeMTX(MatAlloc(Tgt.coef(), rk, RK))
+        cdef MTX N = new_mtx(MatAlloc(Tgt.coef(), rk, RK), M)
         for i from 0 <= i < rk:
             for j from 0 <= j < RK:
                 N[i,j] = M[j*rk+i,0]

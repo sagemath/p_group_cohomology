@@ -60,6 +60,7 @@ from sage.all import Infinity
 from pGroupCohomology.resolution_bindings cimport *
 from sage.libs.meataxe cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
+from sage.matrix.matrix_gfpn_dense cimport new_mtx
 from pGroupCohomology.auxiliaries import gap, singular
 from pGroupCohomology.cohomology import unpickle_gap_data, pickle_gap_data
 from pGroupCohomology.resolution cimport *
@@ -1737,9 +1738,9 @@ class MODCOHO(COHO):
                 Restr[-1].extend(L)
         coho_logger.info( "Solving equations", self)
         if Restr and Restr[0]:
-            M = makeMTX(MatNullSpace__(rawMatrix(self._prime, Restr)))
+            M = new_mtx(MatNullSpace__(rawMatrix(self._prime, Restr)), None)
         else:
-            M = makeMTX(MatId(self._prime, len(Monomials)))
+            M = new_mtx(MatId(self._prime, len(Monomials)), None)
         if M.nrows():
             L = [M._rowlist_(i) for i in range(M.nrows())]
         else:
@@ -3762,7 +3763,6 @@ class MODCOHO(COHO):
                            # that have already been used by decomposable classes
         cdef list StableNonDec
         cdef tuple PivotsNilDec
-        cdef MTX CandM
 
         cdef list MonExp,lastPiv, newRelations
         if self.Gen!=[]:  # there can only be decomposables if there are generators, yet
@@ -3865,7 +3865,7 @@ class MODCOHO(COHO):
                     assert MatMulStrassen(tmpMTXout, tmpMTX, tmpMTX0)!=NULL, "Strassen multiplication failed"
                     MatFree(tmpMTX)
                     MatFree(tmpMTX0)
-                    NilDec = makeMTX(tmpMTXout)
+                    NilDec = new_mtx(tmpMTXout, None)
                     NilDec.echelonize()
                     NilDec.set_immutable()
                     PivotsNilDec = NilDec.pivots() # these are indices of the list 'Monomials'
@@ -3880,12 +3880,12 @@ class MODCOHO(COHO):
                 # using the basis given by those elements of "StableList" that have
                 # no "decomposable" pivot.
                 SHP.set_ring()
-                StablesNonDec = makeMTX(rawMatrix(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]))
+                StablesNonDec = new_mtx(rawMatrix(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]), None)
                 StablesNonDec.set_immutable()
                 tmpMTX = MatNullSpace__(rawMatrix(self._prime,[add([(self.RestrMaps[mpos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[mpos][0]]) for mpos in self.MaxelPos],[]) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]))
                 tmpMTXout = MatAlloc(tmpMTX.Field, tmpMTX.Nor, StablesNonDec.Data.Noc)
                 assert MatMulStrassen(tmpMTXout, tmpMTX, StablesNonDec.Data)!=NULL, "Strassen multiplication failed"
-                NilNonDec = makeMTX(tmpMTXout)
+                NilNonDec = new_mtx(tmpMTXout, StablesNonDec)
                 NilNonDec.echelonize()
                 MatFree(tmpMTX)
                 # The rows of this matrix yield (ydeg=1,rdeg=0)-generators
@@ -3920,7 +3920,7 @@ class MODCOHO(COHO):
                 # with those that have nilpotent restriction to the greatest
                 # elementary abelian subgroup in the center of the Sylow group,
                 # using the basis given by StableList
-                StablesNonDec = makeMTX(rawMatrix(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]))
+                StablesNonDec = new_mtx(rawMatrix(self._prime, [X.coef_list(Monomials) for X in StableList if ZN_comp.get(X.lm_string(),0)==1]), None)
                 StablesNonDec.set_immutable()
                 tmpMatrix_t = rawMatrix(R.G_Alg.Data.p,[(self.RestrMaps[self.CElPos][1]*X).nilreduce().coef_list(SubgpMonomials[self.RestrMaps[self.CElPos][0]]) for X in StableList if ZN_comp.get(X.lm_string(),0)==1])
                 assert tmpMatrix_t != NULL, "Could not create matrix"
@@ -3929,7 +3929,7 @@ class MODCOHO(COHO):
                 tmpProduct = MatAlloc(R.G_Alg.Data.p, tmpMatrix_t.Nor, StablesNonDec.Data.Noc)
                 MatMulStrassen(tmpProduct, tmpMatrix_t, StablesNonDec.Data)
                 MatFree(tmpMatrix_t)
-                NilNonDec = makeMTX(tmpProduct)
+                NilNonDec = new_mtx(tmpProduct, None)
                 NilNonDec.echelonize()
 
                 # The rows of this matrix yield boring (ydeg=rdeg=0)-generators

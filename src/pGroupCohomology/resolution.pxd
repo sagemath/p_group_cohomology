@@ -55,5 +55,3 @@ cdef class RESL:
     cdef object gps_folder # folder for group data...
     cdef object res_folder # ... and resolution data
     cpdef tuple CochainToChainmap(self, long n, MTX Coc)
-
-cdef MTX makeMTX(Matrix_t *Data)
