@@ -466,7 +466,7 @@ class BarCode2d(SageObject):
             Graphics object consisting of 7 graphics primitives
 
         """
-        from sage.plot.plot import circle, line
+        from sage.plot.line import line
         l = len(self._bars)
         G = line([(X,l+1) for X in range(self._bars[0][0],self._bars[0][1]+1)], thickness=2, marker='.', markersize=15)
         for B in range(1,l):

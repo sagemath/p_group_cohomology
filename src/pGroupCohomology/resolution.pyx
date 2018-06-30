@@ -2191,7 +2191,7 @@ cdef class RESL:
                     L = Mmtx._rowlist_(i)[rknt:]
                 else:
                     L = list(M[i])[rknt:]
-                M2 = new_mtx(MatMulScalar(rawMatrix(fl, [L[k*nt:(k+1)*nt] for k in range(RK)]), mtx_tmultinv[M[i,Piv[i]]]), M)
+                M2 = new_mtx(MatMulScalar(rawMatrix(fl, [L[k*nt:(k+1)*nt] for k in range(RK)]), mtx_tmultinv[M[i,Piv[i]]]), None)
                 M2.set_immutable()
                 Autolift[Piv[i]] = [()] + [M2._mul_long(ff+1) for ff in range(fl-1)]
         Autolift['Piv'] = tuple(sorted(X for X in Piv if X<rknt))
