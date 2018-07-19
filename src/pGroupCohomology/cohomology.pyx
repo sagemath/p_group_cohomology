@@ -396,6 +396,220 @@ def pickle_gap_data(G):
 ## Auxiliary functions
 ####################################################################
 
+def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
+    r"""
+    Find a parameter for the quotient ring given by an ideal.
+
+    INPUT:
+
+    - ``Id`` -- Ideal in a graded commutative ring of prime characteristic `p`.
+              Must be a Groebner basis.
+    - ``L``  -- a list of monomials (given by strings) of the same degree.
+    - ``p``  -- a prime.
+    - ``BreakPoint`` -- (optional integer or infinity) test at most that many candidates
+                      for a parameter (default: infinity).
+    - ``regularity`` -- (optional int, default ``0``) If ``1`` (not default), find
+                      a parameter that is filter regular modulo ``Id``.
+                      If ``2``, find a parameter that is regular modulo ``Id``.
+
+    OUTPUT:
+
+    - 1. An element `v` in Singular that lowers the dimension of ``Id`` by one (aka
+         "parameter" for ``Id``),
+      2. a list of integers, namely the list of coefficients that defines ``v`` as
+         linear combination of the monomials in ``L`` (the element zero is returned
+         if ``Id`` is of dimension zero).
+      3. The return value of ``is_freg`` as a list of integers, if ``regularity==1``,
+         or ``[]``.
+    - ``False, False, []``, if no linear combination of elements of ``L`` provides a
+      parameter for ``Id``, or
+    - ``None, None, []``, if the search for a parameter was stopped since the number
+      of candidates exceeded ``BreakPoint``.
+
+    NOTE:
+
+    If the characteristic is odd and if the Singular version is less than 3-1-1,
+    only filter regular parameters can be found, due to a bug in the computation
+    of Gelfand-Kirillov dimension.
+
+    TESTS::
+
+        sage: from pGroupCohomology import CohomologyRing
+        sage: from pGroupCohomology.cohomology import explore_one_parameter
+        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+        sage: H = CohomologyRing(32,33)
+        sage: H.make()
+        sage: H.set_ring()
+        sage: Id = H.relation_ideal()
+        sage: L = H.standard_monomials(3)
+        sage: explore_one_parameter(Id,L,2)
+        (b_1_0^3, (0, 0, 1, 0, 0))
+        sage: explore_one_parameter(Id,L,2, regularity=1)
+        (False, False)
+        sage: Id.dim()
+        3
+        sage: Id.std('b_1_0^3').dim()
+        2
+
+    Now, we use two non-commutative examples. We do not need to
+    distinguish Singular versions 3-1-1 and older versions, since in this
+    example there are regular respectively filter-regular parameters.
+    ::
+
+        sage: H = CohomologyRing(27,4)
+        sage: H.make()
+        sage: H.dimension()
+        2
+        sage: H.depth()
+        1
+        sage: H.set_ring()
+        sage: Id = H.relation_ideal()
+        sage: L = H.standard_monomials(6)
+        sage: explore_one_parameter(Id,L,3,regularity=2)
+        (c_6_2, (0, 0, 1))
+        sage: Id = Id.std('c_6_2')
+        sage: L = H.standard_monomials(2)
+        sage: explore_one_parameter(Id,L,3)
+        (b_2_1, (1, 0))
+        sage: explore_one_parameter(Id,L,3,regularity=1)
+        (b_2_1, (1, 0))
+        sage: explore_one_parameter(Id,L,3,regularity=2)
+        (False, False)
+
+    """
+    cdef list CE, CO
+    cdef list Kicked
+    cdef tuple EssT, OptT
+    cdef j
+    if BreakPoint is None:
+        from sage.all import Infinity
+        BreakPoint = Infinity
+    from sage.all import cartesian_product_iterator
+    dgb = singular.eval('degBound')
+    singular.eval('degBound=0')
+    d0 = int(getattr(Id,'dim' if p==2 else 'GKdim')())
+    if d0 <= 0:
+        return '0',[0]*len(L),[]
+    cdef size_t lenL, lenEss, lenOpt, total
+    lenL = len(L)
+    if lenL==0:
+        return False,False,[]
+    Optional  = singular.ideal(0)
+    if regularity:
+        Optional[lenL] = 0
+    if lenL<50:
+        Essential = singular.ideal(L)
+    else:
+        Essential = singular.ideal(0)
+        Essential[lenL] = 0
+        for j in range(lenL):#from 0<=j<lenL:
+            Essential[j+1] = L[j]
+    counter = 0
+    Poly_tmp = singular.poly(0)
+
+    try:
+        if (int(singular('%s(std(%s,%s))'%('dim' if p==2 else 'GKdim',Id.name(),Essential.name()))) >= d0):
+            return False,False,None
+        # Detect the monomials that *must* appear in a parameter.
+        Kicked = []
+        for j in range(1,lenL+1):#from 1 <=j <=lenL:
+            singular.eval('%s=%s[%d]'%(Poly_tmp.name(),Essential.name(),j))
+            singular.eval('%s[%d]=0'%(Essential.name(),j))
+            # std(...,...) was buggy at some point
+            if int(singular('%s(std(%s,%s))'%('dim' if p==2 else 'GKdim', Id.name(),Essential.name()))) >= d0:
+                singular.eval('%s[%d]=%s'%(Essential.name(),j,Poly_tmp.name()))
+            else:
+                coho_logger.debug("%s will be optional", singular, singular.eval(Poly_tmp.name()))
+                Kicked.append(j-1)
+                if regularity:
+                    singular.eval('%s[%d]=%s'%(Optional.name(),j,Poly_tmp.name()))
+        singular.eval('%s=simplify(%s,2)'%(Essential.name(),Essential.name()))
+        singular.eval('%s=simplify(%s,2)'%(Optional.name(),Optional.name()))
+        if singular.eval('%s[1]'%Essential.name()) == '0':
+            return False,[]
+        lenEss = int(singular.eval('size(%s)'%Essential.name()))
+        if singular.eval('%s[1]'%Optional.name()) == '0':
+            lenOpt = 0
+        else:
+            lenOpt = int(singular.eval('size(%s)'%Optional.name()))
+        total = (p-1)**lenEss*p**lenOpt
+        if lenOpt:
+            coho_logger.info('%d = (%d-1)^%d*%d^%d parameter candidates',singular, total, p, lenEss , p, lenOpt)
+        else:
+            coho_logger.info('%d = (%d-1)^%d parameter candidates',singular, total, p, lenEss)
+        if BreakPoint < total:
+            coho_logger.info('Will break after %d candidates', singular, BreakPoint)
+        got_something = False
+        from sage.all import add
+        # we kicked stuff, so, we don't need coefficient zero
+        EssIter = cartesian_product_iterator([range(1,p)]*lenEss)
+        reg_vec = []
+        for EssT in EssIter:
+            v = singular.intmat(singular.intvec(*EssT),lenEss,1)
+            xp = Essential*v
+            OptIter = cartesian_product_iterator([range(p)]*lenOpt)
+            for OptT in OptIter:
+                if OptT:
+                    v = singular.intmat(singular.intvec(*OptT),lenOpt,1)
+                    vp = xp + Optional*v
+                else:
+                    vp = xp
+                counter +=1
+                # Did we find something?
+                if int(singular.eval('%s(std(%s,ideal(%s[1][1])))'%('dim' if p==2 else 'GKdim', Id.name(), vp.name())))<d0:
+                    #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
+                    coho_logger.info("We found a parameter.",singular)
+                    if regularity==1:
+                        reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s)'%(vp.name(),Id.name())).split(',')]
+                        if reg_vec_tmp != [-1]:
+                            coho_logger.info('> It is filter-regular.',singular)
+                            got_something = True
+                            reg_vec = reg_vec_tmp
+                            break
+                        else:
+                            coho_logger.info('> But it is not filter-regular.',singular)
+                    elif regularity>1:
+                        reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s)'%(vp.name(),Id.name())).split(',')]
+                        if reg_vec_tmp == [0]:
+                            coho_logger.info('> It is regular.',singular)
+                            got_something = True
+                            reg_vec = reg_vec_tmp
+                            break
+                        else:
+                            coho_logger.info('> But it is not regular.', singular)
+                    else:
+                        got_something = True
+                        break
+                if counter >= BreakPoint:
+                    singular.eval('degBound='+dgb)
+                    return None, None, []
+            if got_something:
+                break
+        if not got_something: # Means: We didn't hit the breakpoint, so, it is proved that there is nothing
+            singular.eval('degBound='+dgb)
+            return False,False,[]
+        # get the coefficients related with the original list of monomials
+        if not Kicked:
+            singular.eval('degBound='+dgb)
+            return vp[1][1], Essential, reg_vec
+        CE = list(Essential)
+        CO = list(Optional)
+        Coef = []
+        for i in range(len(L)):
+            if i in Kicked:
+                if regularity:
+                    Coef.append(CO.pop(0))
+            else:
+                Coef.append(CE.pop(0))
+        singular.eval('degBound='+dgb)
+        return vp[1][1],tuple(Coef),reg_vec
+    except BaseException:
+        try:
+            singular.eval('degBound='+dgb)
+        except:
+            pass
+        raise
+
 def FilterDegreeType(dv, rt):
     """
     Compute the filter degree type.
@@ -641,186 +855,6 @@ def HV2Poly(L):
     R = PolynomialRing(QQ,'t')
     t = R('t')
     return sum([L[i]*t**i for i in range(len(L))])
-
-def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
-    """
-    Find a parameter for the quotient ring given by an ideal.
-
-    INPUT:
-
-    - ``Id`` -- Ideal in a graded commutative ring of prime characteristic `p`.
-              Must be a Groebner basis.
-    - ``L``  -- a list of monomials (maybe given by strings) of the same degree.
-    - ``p``  -- a prime.
-    - ``BreakPoint`` -- (optional integer or infinity) test at most that many candidates
-                      for a parameter (default: infinity).
-    - ``regularity`` -- (optional int, default ``0``) If ``1`` (not default), find
-                      a parameter that is filter regular modulo ``Id``.
-                      If ``2``, find a parameter that is regular modulo ``Id``.
-
-    OUTPUT:
-
-    - An element `v` in Singular that lowers the dimension of ``Id`` by one (aka
-      "parameter" for ``Id``), and a list of integers, namely the list of
-      coefficients that defines ``v`` as linear combination of the monomials in
-      ``L`` (the element zero is returned if ``Id`` is of dimension zero).
-    - ``False, False``, if no linear combination of elements of ``L`` provides a
-      parameter for ``Id``, or
-    - ``None, None``, if the search for a parameter was stopped since the number
-      of candidates exceeded ``BreakPoint``.
-
-    NOTE:
-
-    If the characteristic is odd and if the Singular version is less than 3-1-1,
-    only filter regular parameters can be found, due to a bug in the computation
-    of Gelfand-Kirillov dimension.
-
-    TESTS::
-
-        sage: from pGroupCohomology import CohomologyRing
-        sage: from pGroupCohomology.cohomology import explore_one_parameter
-        sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-        sage: H = CohomologyRing(32,33)
-        sage: H.make()
-        sage: H.set_ring()
-        sage: Id = H.relation_ideal()
-        sage: L = H.standard_monomials(3)
-        sage: explore_one_parameter(Id,L,2)
-        (b_1_0^3, (0, 0, 1, 0, 0))
-        sage: explore_one_parameter(Id,L,2, regularity=1)
-        (False, False)
-        sage: Id.dim()
-        3
-        sage: Id.std('b_1_0^3').dim()
-        2
-
-    Now, we use two non-commutative examples. We do not need to
-    distinguish Singular versions 3-1-1 and older versions, since in this
-    example there are regular respectively filter-regular parameters.
-    ::
-
-        sage: H = CohomologyRing(27,4)
-        sage: H.make()
-        sage: H.dimension()
-        2
-        sage: H.depth()
-        1
-        sage: H.set_ring()
-        sage: Id = H.relation_ideal()
-        sage: L = H.standard_monomials(6)
-        sage: explore_one_parameter(Id,L,3,regularity=2)
-        (c_6_2, (0, 0, 1))
-        sage: Id = Id.std('c_6_2')
-        sage: L = H.standard_monomials(2)
-        sage: explore_one_parameter(Id,L,3)
-        (b_2_1, (1, 0))
-        sage: explore_one_parameter(Id,L,3,regularity=1)
-        (b_2_1, (1, 0))
-        sage: explore_one_parameter(Id,L,3,regularity=2)
-        (False, False)
-
-    """
-    cdef list Kicked
-    cdef tuple C
-    cdef j
-    if BreakPoint is None:
-        from sage.all import Infinity
-        BreakPoint = Infinity
-    from sage.all import cartesian_product_iterator
-    dgb = singular.eval('degBound')
-    singular.eval('degBound=0')
-    d0 = int(getattr(Id,'dim' if p==2 else 'GKdim')())
-    if d0 <= 0:
-        return '0',[0]*len(L)
-    cdef int lenL = len(L)
-    if lenL==0:
-        return False,False
-    if lenL<50:
-        S = singular.ideal(L)
-    else:
-        S = singular.ideal(0)
-        S[lenL] = 0
-        for j from 0<=j<lenL:
-            S[j+1] = L[j]
-    counter = 0
-    Poly_tmp = singular.poly(0)
-    gb_command = "groebner" # todo: allow to choose between slimgb, std, groebner
-
-    try:
-        if (int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim',gb_command, Id.name(),S.name()))) >= d0):
-            return False,False
-        # S might be by far too long. So, try to eliminate
-        # some of its elements.
-        Kicked = []
-        for j from 1 <=j <=lenL:
-            singular.eval('%s=%s[%d]'%(Poly_tmp.name(),S.name(),j))
-            singular.eval('%s[%d]=0'%(S.name(),j))
-            # std(...,...) was buggy at some point
-            if int(singular('%s(%s(%s+%s))'%('dim' if p==2 else 'GKdim', gb_command, Id.name(),S.name()))) >= d0:
-                singular.eval('%s[%d]=%s'%(S.name(),j,Poly_tmp.name()))
-            else:
-                Kicked.append(j-1)
-        singular.eval('%s=simplify(%s,2)'%(S.name(),S.name()))
-        lenL = int(singular.eval('size(%s)'%S.name()))
-        if lenL == 0:
-            return False,False
-        coho_logger.info('%d = (%d-1)^%d parameter candidates',singular, (p-1)**lenL,p,lenL)
-        if BreakPoint < (p-1)**lenL:
-            coho_logger.info('Will break after %d candidates', singular, BreakPoint)
-        got_something = False
-        from sage.all import add
-        # we kicked stuff, so, we don't need coefficient zero
-        ProdIter = cartesian_product_iterator([range(1,p)]*lenL)
-        for C in ProdIter:
-            v = singular.intmat(singular.intvec(*C),lenL,1)
-            vp = S*v
-            counter +=1
-            # Did we find something?
-            if int(singular.eval('%s(%s(%s+ideal(%s[1][1])))'%('dim' if p==2 else 'GKdim',gb_command,Id.name(),vp.name())))<d0:
-                #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
-                coho_logger.info("We found a parameter.",singular)
-                if regularity==1:
-                    if singular.eval('is_freg(%s[1][1],%s)!=intvec(-1)'%(vp.name(),Id.name()))=='1':
-                        coho_logger.info('> It is filter-regular.',singular)
-                        got_something = True
-                        break
-                    else:
-                        coho_logger.info('> But it is not filter-regular.',singular)
-                elif regularity>1:
-                    if singular.eval('is_freg(%s[1][1],%s)==intvec(0)'%(vp.name(),Id.name()))=='1':
-                        coho_logger.info('> It is regular.',singular)
-                        got_something = True
-                        break
-                    else:
-                        coho_logger.info('> But it is not regular.', singular)
-                else:
-                    got_something = True
-                    break
-            if counter >= BreakPoint:
-                singular.eval('degBound='+dgb)
-                return None, None
-        if not got_something: # Means: We didn't hit the breakpoint, so, it is proved that there is nothing
-            singular.eval('degBound='+dgb)
-            return False,False
-        # get the coefficients related with the original list L
-        if not Kicked:
-            singular.eval('degBound='+dgb)
-            return vp[1][1], C
-        CL = list(C)
-        Coef = []
-        for i in range(len(L)):
-            if i in Kicked:
-                Coef.append(0)
-            else:
-                Coef.append(CL.pop(0))
-        singular.eval('degBound='+dgb)
-        return vp[1][1],tuple(Coef)
-    except BaseException:
-        try:
-            singular.eval('degBound='+dgb)
-        except:
-            pass
-        raise
 
 cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
     """
@@ -7939,6 +7973,101 @@ Minimal list of algebraic relations:
         return [t.name() for t in self.Gen if (t.name() not in totalRel)]
 
     @permanent_result
+    def smallest_parameters(self, BreakPoint=None, regularity=0):
+        r"""
+        Try to find smallest degree algebraically independent parameters.
+
+        ..NOTE::
+
+            It is assumed that the completeness of the ring has already been proved.
+            The function starts with a Duflot regular sequence and finds the
+            new parameters by enumerating potential parameters in a greedy way.
+
+        """
+        assert self.completed, "%r is not complete, search for smallest parameters doesn't apply"%self
+        P = list(self.duflot_regular_sequence())
+        if regularity<0:
+            regularity = 0
+        self.set_ring()
+        dgb = singular.eval("degBound")
+        singular.eval('degBound=0')
+        Id = self.relation_ideal()
+        singular.eval('attrib(%s,"isSB",1)'%Id.name())
+        if P:
+            coho_logger.info('Computing quotient modulo Duflot regular sequence %s', self, P)
+            sP = singular.ideal(P)
+            singular.eval('%s=std(%s,%s)'%(Id.name(),Id.name(),sP.name()))
+        p = self.base_ring().characteristic()
+        HV = [[0] for para in P]
+        DV = [Integer(singular.eval('deg(%s)'%para)) for para in P]
+        taste = {0:'', 1:'filter-regular', 2:'regular'}
+        try:
+            while len(P) < self.dimension():
+                maxdim = p**self.dimension() - p**(self.dimension()-len(P))
+                for d in range(1, 2*maxdim+1):
+                    coho_logger.info('Exploring %s %s parameter in degree %d', self, Integer(len(P)).ordinal_str(), taste[regularity], d)
+                    para, x, reg_vec = explore_one_parameter(Id, self.standard_monomials(d), p, BreakPoint, regularity)
+                    if para:
+                        P.append(singular.eval(para))
+                        if regularity == 1 or len(P) < self.dimension():
+#~                             Id = Id.std(para)
+                            singular.eval('%s=std(%s,%s)'%(Id.name(), Id.name(), para.name()))
+                        HV.append(reg_vec)
+                        DV.append(Integer(singular.eval('deg(%s)'%para.name())))
+                        break
+                assert para or (regularity==2), "Theoretical error: We should be able to find a system of %s parameters"%taste[regularity]
+
+            if regularity == 1:
+                # rfdt = vector of maximal degrees in the kernel resp. quotient
+                quotdim = Integer(singular.eval('vdim(%s)'%Id.name()))
+                assert quotdim > -1, 'Theoretical error: We should have a system of parameters at this point'
+                rw = singular('ringweights(basering)')
+                hv = []
+                sumdim = 0
+                dim_cmd = 'size(weightKB('+Id.name()+',%d,'+rw.name()+'))'
+                d = 0
+                while sumdim < quotdim:
+                    hv.append(Integer(singular.eval(dim_cmd%d)))
+                    sumdim += hv[-1]
+                    d += 1
+                HV.append(hv)
+                rfdt = []
+                for X in HV:
+                    if X==[0]:
+                        rfdt.append(-1)
+                    else:
+                        rfdt.append(len(X)-1)
+                fdt = FilterDegreeType(DV,rfdt)
+                if self.fdt:
+                    assert self.fdt == fdt, 'Theoretical error: The filter degree type cannot depend on the f.r. parameters'
+                else:
+                    alpha = False
+                    for i in range(1,len(fdt)):
+                        if fdt[i] > -i:
+                            alpha = True
+                    if fdt[-1] > -len(fdt)+1:
+                        alpha = True
+                    if fdt[-1] < -len(fdt)+1:
+                        raise RuntimeError("Theoretical error: We got a filter degree type %s, but the last value must not be smaller than %d!"%(repr(fdt),-len(fdt)+1))
+                    if self.alpha>-1:
+                        raise RuntimeError("""
+This result contradicts the weak form
+of Benson's regularity conjecture, that
+was proved by Peter Symonds. So, there
+is an error. Please inform the author!""")
+                    if alpha:
+                        print("###########################################")
+                        print("## COUNTEREXAMPLE FOR THE STRONG FORM OF ##")
+                        print("## BENSON'S REGULARITY CONJECTURE!!!     ##")
+                        print("###########################################")
+                        print("Please inform the author")
+                    self.setprop('fdt',fdt)
+                    self.alpha = max([fdt[i]+i for i in range(len(fdt)-1)])
+            return P
+        finally:
+            singular.eval('degBound='+dgb)
+
+    @permanent_result
     def filter_regular_parameters(self):
         r"""
         Return reasonably small filter regular parameters of the ring approximation guaranteed to yield parameters in cohomology.
@@ -8652,8 +8781,7 @@ Minimal list of algebraic relations:
                 try:
                     for cod_s, phi_s, I_s in restrictions:
                         cod_s.set_ring()
-                        if int(singular.eval('vdim(%s(%s+%s(%s)))'%(gb_command,
-                                                                    I_s.name(),
+                        if int(singular.eval('vdim(std(%s,%s(%s)))'%(I_s.name(),
                                                                     phi_s.name(),
                                                                     I.name()))) == -1:
                             return False
@@ -9134,8 +9262,8 @@ Minimal list of algebraic relations:
                 self.set_ring()
                 I = singular(self.prefix+'I')
                 if [X.name() for X in self.Gen if X.ydeg()]:
-                    # std(...,...) is buggy. Avoid it!
-                    singular.eval('%s=%s(%s+ideal(%s))'%(I.name(),gb_command,I.name(),','.join([X.name() for X in self.Gen if X.ydeg()])))
+                    # std(...,...) was buggy at some point.
+                    singular.eval('%s=std(%s,ideal(%s))'%(I.name(), I.name(), ','.join([X.name() for X in self.Gen if X.ydeg()])))
                 for i from 1<=i<=mdeg:
                     L = [t for t in self.standard_monomials(i) if singular('%s/%s!=0'%(poly.name(),t))]
                     lenL = len(L)
@@ -9836,7 +9964,8 @@ Minimal list of algebraic relations:
                     coho_logger.debug("  yes!", self)
                     d+=1
                     if p!=P[-1]:
-                        singular.eval('%s=%s(%s+ideal(%s))'%(I.name(),gb_command,I.name(),p))
+                        # std(id,p) was buggy at some point
+                        singular.eval('%s=std(%s,ideal(%s))'%(I.name(), I.name(), p))
                 else:
                     coho_logger.debug("  no!", self)
                     break
@@ -11460,11 +11589,11 @@ Minimal list of algebraic relations:
             dgb = singular.eval('degBound')
             singular.eval('degBound=0')
             self.make_groebner()
-            # Unfortunately, the following hits a bug in
-            # singular-3-1-1
-            #I = singular('std(%sI,groebner(ideal(%s)))'%(self.prefix,','.join(hsop)))
-            gb_command = self._gb_command()
-            I = singular('%s(%sI+ideal(%s))'%(gb_command, self.prefix,','.join(hsop)))
+            # The following was a bug in singular-3-1-1
+            I = singular('std(%sI,ideal(%s))'%(self.prefix,','.join(hsop)))
+#~             #Work-around was:
+#~             gb_command = self._gb_command()
+#~             I = singular('%s(%sI+ideal(%s))'%(gb_command, self.prefix,','.join(hsop)))
             if singular.eval('vdim(%s)'%I.name())=='-1':
                 coho_logger.info("The ring approximation is not finite over the given parameters", self)
                 return False

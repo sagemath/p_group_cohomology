@@ -3538,7 +3538,7 @@ class MODCOHO(COHO):
         from pGroupCohomology.cohomology import explore_one_parameter
         HGS.set_ring()
         while(1):
-            val, Coef = explore_one_parameter(singular('%sRegTest'%self.prefix),L,self._prime,regularity=2)
+            val, Coef, reg_vec = explore_one_parameter(singular('%sRegTest'%self.prefix), L, self._prime, 2)
             if val:
                 coho_logger.info('Found extension of the Duflot regular sequence', self)
                 self.set_ring()
