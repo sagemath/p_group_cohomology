@@ -4884,6 +4884,8 @@ Minimal list of algebraic relations:
         self.set_ring()
         I = singular(self.prefix+'I')
         br.set_ring()
+        if self.completed:
+            singular.eval('attrib(%s,"isSB",1)'%I.name())
         return I
 
     def last_interesting_degree(self):
@@ -6387,12 +6389,18 @@ Minimal list of algebraic relations:
             MonCount = 0
             for I in self.StdMon[Integer(n-int(singular.eval('deg(%s)'%x.name())))].items():
                 if singular.eval(I[0]+'<=%s'%(x._name))=='1':
-                    tmp = Integer(I[1].ncols())
-                    if tmp > 1:
-                        # working around a bug in non-commutative Singular (Normalize is now defined in filterregular.lib
-                        singular.eval('%s[%d..%d] = Normalize(ideal(%s*%s),LeadGB)'%(self.StdMon[n][str(x)].name(),MonCount+1,MonCount+tmp,I[1].name(),str(x)))
+                    if singular.eval('typeof(%s)'%(I[1].name()))=='int':
+                        tmp = 0
                     else:
+                        tmp = Integer(I[1].ncols())
+                    if tmp > 1:
+                        # working around a bug in non-commutative Singular (Normalize is defined in filterregular.lib)
+                        singular.eval('%s[%d..%d] = Normalize(ideal(%s*%s),LeadGB)'%(self.StdMon[n][str(x)].name(),MonCount+1,MonCount+tmp,I[1].name(),str(x)))
+                    elif tmp == 1:
                         singular.eval('%s[%d] = normalize(NF(%s[1]*%s,LeadGB))'%(self.StdMon[n][str(x)].name(),MonCount+1,I[1].name(),str(x)))
+                    else:
+                        tmp = 1
+                        singular.eval('%s[%d] = normalize(NF(%s*%s,LeadGB))'%(self.StdMon[n][str(x)].name(),MonCount+1,I[1].name(),str(x)))
                     MonCount=MonCount+tmp
             tmp = Integer(self.StdMon[n][str(x)].ncols())
             singular.eval('%s[%d..%d] = %s[1..%d]'%(s,sCount+1,sCount+tmp,self.StdMon[n][str(x)].name(),tmp))
@@ -8005,7 +8013,7 @@ Minimal list of algebraic relations:
             while len(P) < self.dimension():
                 maxdim = p**self.dimension() - p**(self.dimension()-len(P))
                 for d in range(1, 2*maxdim+1):
-                    coho_logger.info('Exploring %s %s parameter in degree %d', self, Integer(len(P)).ordinal_str(), taste[regularity], d)
+                    coho_logger.info('Exploring %s %s parameter in degree %d', self, Integer(len(P)+1).ordinal_str(), taste[regularity], d)
                     para, x, reg_vec = explore_one_parameter(Id, self.standard_monomials(d), p, BreakPoint, regularity)
                     if para:
                         P.append(singular.eval(para))
