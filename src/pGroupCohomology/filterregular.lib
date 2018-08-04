@@ -40,6 +40,7 @@ NOTE:       R+S yields an error message, and it seems that
   L[4] = ideal(0);
   def r = ring(list(L[1..4])); // this is a commutative non-quotient version of R 
   def rS = r+S;
+  kill r;
   int i, fo, lo;
   for (i=1; i<=nvars(R); i++)
     { if ((fo == 0) and (deg(var(i))%2)) { fo = i; }
@@ -78,14 +79,15 @@ ASSUMPTION: id is given by a Groebner basis
   //if (NF(f^2,id)==0)
   //  { nc=1;
   //  }
+  ring r = char(br),(@t),wp(deg(f));
+  def R = gcRingSum(br,r);
   if (char(br)==2) 
     {
       // We have a commutative rings and hence the Hilbert function is
       // available.
-      ring r = char(br),(@t),wp(deg(f));
-      def R = gcRingSum(br,r);
       intvec   hv;
       def RHilb = r+br;
+      kill r;
       setring RHilb;
       ideal id = imap(br,id)+ideal(imap(br,f)-@t);
       attrib(id,"isSB",1); // It should be standard actually without std
@@ -97,7 +99,9 @@ ASSUMPTION: id is given by a Groebner basis
       setring R;
       // ideal id = imap(RHilb,id);
       kill RHilb;
-      ideal id = std(imap(br,id)+ideal(imap(br,f)-@t),hv,ringweights(R));
+      ideal id = imap(br,id);
+      attrib(id,"isSB",1);
+      id = std(id,ideal(imap(br,f)-@t),hv,ringweights(R));
       ideal filter = NF(id,std(ideal(@t)));
       ideal schnitt;
       for (int i=1;i<=ncols(id);i++)
@@ -108,15 +112,30 @@ ASSUMPTION: id is given by a Groebner basis
       setring br;
       ideal id_ev = maxideal(1),f;
       map ev = R,id_ev;
-      return(interred(ev(schnitt)));
+      id_ev = interred(ev(schnitt));
+      attrib(id_ev,"isSB",1);
+      kill R;
+      return(id_ev);
     }
   else
-    { // setring R;
-      // ideal id = imap(br,id);
-      // attrib(id,"isSB",1);
-      // id=std(id,imap(br,f)-@t);
-      // id=slimgb(id+ideal(imap(br,f)-@t));
-      return(intersect(id, ideal(f)));
+    { setring R;
+      ideal id = imap(br,id);
+      attrib(id,"isSB",1);
+      id=std(id,imap(br,f)-@t);
+      ideal filter = NF(id,std(ideal(@t)));
+      ideal schnitt;
+      for (int i=1;i<=ncols(id);i++)
+	{ if (filter[i]==0) // i.e., it is a multiple of @t
+	    { schnitt = schnitt,id[i];
+	    }
+	}
+      setring br;
+      ideal id_ev = maxideal(1),f;
+      map ev = R,id_ev;
+      id_ev = interred(ev(schnitt));
+      kill R;
+      return(id_ev);
+      // return(intersect(id, ideal(f)));
     }
 }
 
@@ -212,9 +231,9 @@ EXAMPLE: example is_freg; shows an example
   // Singular! So, if you use an old version of Singular, you should replace
   // "if (1)" by "if (0)".
   if (1)
-    { def q = intersectOnce(id,f);}
+    { ideal q = intersectOnce(id,f);}
   else
-    { def q = intersect(id,ideal(f)); }
+    { ideal q = intersect(id,ideal(f)); }
   for (ii=1;ii<=ncols(q);ii++)
     { q[ii]=q[ii]/f;
     }
@@ -226,7 +245,7 @@ EXAMPLE: example is_freg; shows an example
     { qw[ii] = deg(q[ii]);
     }
   //id=std(id); // not needed, since we assume that it is already Groebner!
-  def m = std(modulo(q,id));
+  def m = groebner(modulo(q,id));
   int mdeg;
   int mvdim;
   int mdim = vdim(m);
@@ -268,6 +287,7 @@ EXAMPLE: example is_fregs; shows an example
   { print("Optional argument must be an ideal"); 
     return;
   }
+  attrib(id,"isSB",1);
   intvec rw = ringweights(basering);
   def br = basering;
   if( size(i)==0 ) { return(0); }
@@ -290,7 +310,7 @@ EXAMPLE: example is_fregs; shows an example
        dbprint(p,"// "+string(ii)+" is not filter regular");
        return(0);
      }
-     if (0) //(char(br)==2)
+     if (1) //(char(br)==2)
        { id=std(id,i[ii]); }
      else
        { id=std(id+ideal(i[ii])); 
