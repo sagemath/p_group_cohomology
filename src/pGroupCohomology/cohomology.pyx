@@ -7981,21 +7981,120 @@ Minimal list of algebraic relations:
         return [t.name() for t in self.Gen if (t.name() not in totalRel)]
 
     @permanent_result
-    def smallest_parameters(self, BreakPoint=None, regularity=0):
+    def filter_regular_gready_parameters(self, BreakPoint=None):
         r"""
-        Try to find smallest degree algebraically independent parameters.
+        Greadily explore smallest degree filter regular parameters.
 
-        ..NOTE::
+        INPUT:
+
+        - BreakPoint (optional integer) -- maximal number of parameter candidates
+          tested in each degree. Default ``None`` means unbounded.
+
+        OUTPUT:
+
+        - A system of filter regular parameters.
+        - The filter degree type is computed and stored. If the filter degree
+          type of this ring has been computed before, it is asserted that the
+          results are equal. Also it is tested whether the result contradicts
+          the strong form of Dave Benson's regularity conjecture.
+
+        ..ALGORITHM::
 
             It is assumed that the completeness of the ring has already been proved.
             The function starts with a Duflot regular sequence and finds the
             new parameters by enumerating potential parameters in a greedy way.
 
+        ..WARNING::
+
+            We do not guarantee that this routine will always succeed, as we have
+            no proof. However, on all groups of order 64 and 81, it works, and
+            on about 10 percent of cases it yields filter regular parameters in
+            smaller degrees than our previous methods.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()        # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(64,32,from_scratch=True)
+            sage: H.make()
+            sage: H.filter_regular_parameters()
+            ['c_4_11',
+             'b_1_1*b_3_6+b_1_1^4+b_2_3^2+b_2_2^2+b_2_1^2',
+             'b_1_1^3*b_3_6+b_2_3^2*b_1_1^2+b_2_2*b_1_1*b_3_6+b_2_2*b_2_3^2+b_2_2^2*b_1_1^2+b_2_1*b_2_3^2',
+             'b_1_1']
+
+        So, we have parameters in degrees 4, 4, 6 and 1. Note that after
+        computing the filter degree type, the ring is automatically stored,
+        in order to preserve the result of this potentially very difficult
+        computation (a warning is logged)::
+
+            sage: H.filter_degree_type()
+            H^*(SmallGroup(64,32); GF(2)):
+                      Updating stored data after computation of filter degree type
+            [-1, -2, -3, -4, -4]
+
+        We delete the previous result, compute filter regular parameters in
+        degrees 4, 2, 2 and 1, and find that the filter degree type coincides
+        with what was computed above::
+
+            sage: H.delprop('fdt')
+            sage: CohomologyRing.global_options('info')
+            sage: H.filter_regular_gready_parameters()
+            H^*(SmallGroup(64,32); GF(2)):
+                      Compute filter_regular_gready_parameters
+                      Computing quotient modulo Duflot regular sequence ['c_4_11']
+                      Exploring 2nd filter-regular parameter in degree 1
+                      Determine degree 1 standard monomials
+            Singular: 2 = (2-1)^1*2^1 parameter candidates
+                      We found a parameter.
+                      > But it is not filter-regular.
+                      We found a parameter.
+                      > But it is not filter-regular.
+            H^*(SmallGroup(64,32); GF(2)):
+                      Exploring 2nd filter-regular parameter in degree 2
+                      Determine degree 2 standard monomials
+            Singular: 8 = (2-1)^1*2^3 parameter candidates
+                      We found a parameter.
+                      > But it is not filter-regular.
+                      We found a parameter.
+                      > It is filter-regular.
+            H^*(SmallGroup(64,32); GF(2)):
+                      Exploring 3rd filter-regular parameter in degree 1
+                      Determine degree 1 standard monomials
+            Singular: 2 = (2-1)^1*2^1 parameter candidates
+                      We found a parameter.
+                      > But it is not filter-regular.
+                      We found a parameter.
+                      > But it is not filter-regular.
+            H^*(SmallGroup(64,32); GF(2)):
+                      Exploring 3rd filter-regular parameter in degree 2
+                      Determine degree 2 standard monomials
+            Singular: 8 = (2-1)^1*2^3 parameter candidates
+                      We found a parameter.
+                      > It is filter-regular.
+            H^*(SmallGroup(64,32); GF(2)):
+                      Exploring 4th filter-regular parameter in degree 1
+                      Determine degree 1 standard monomials
+            Singular: 2 = (2-1)^1*2^1 parameter candidates
+                      We found a parameter.
+                      > It is filter-regular.
+            ['c_4_11', 'b_2_2+b_2_1', 'b_2_3', 'b_1_1']
+            sage: H.fdt
+            [-1, -2, -3, -4, -4]
+
         """
         assert self.completed, "%r is not complete, search for smallest parameters doesn't apply"%self
         P = list(self.duflot_regular_sequence())
-        if regularity<0:
-            regularity = 0
+        # We originally coded this routine so that plain algebraically independent
+        # parameters or regular parameters could be found.
+        # - regularity==0: plain
+        # - regularity==1: filter regular
+        # - regularity==2: regular.
+        # But we don't see a use case for it. Internally, we keep the code as
+        # flexibly, but for now we hardcode regularity=1
+        regularity = 1
+#~         if regularity<0:
+#~             regularity = 0
         self.set_ring()
         dgb = singular.eval("degBound")
         singular.eval('degBound=0')
@@ -8018,7 +8117,6 @@ Minimal list of algebraic relations:
                     if para:
                         P.append(singular.eval(para))
                         if regularity == 1 or len(P) < self.dimension():
-#~                             Id = Id.std(para)
                             singular.eval('%s=std(%s,%s)'%(Id.name(), Id.name(), para.name()))
                         HV.append(reg_vec)
                         DV.append(Integer(singular.eval('deg(%s)'%para.name())))
@@ -8073,7 +8171,10 @@ is an error. Please inform the author!""")
                     self.alpha = max([fdt[i]+i for i in range(len(fdt)-1)])
             return P
         finally:
-            singular.eval('degBound='+dgb)
+            try:
+                singular.eval('degBound='+dgb)
+            except RuntimeError:
+                pass
 
     @permanent_result
     def filter_regular_parameters(self):
