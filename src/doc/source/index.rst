@@ -74,7 +74,7 @@ So, it is a build-time dependency. You can install it in your copy of Sage by
 
     sage -i meataxe
 
-By `trac ticket 18514 <https://trac.sagemath.org/ticket/18514>`_, the cohomology
+By `trac ticket 26001 <https://trac.sagemath.org/ticket/26001>`_, the cohomology
 package can then be installed in your copy of Sage by
 ::
 

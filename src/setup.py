@@ -67,7 +67,7 @@ ext_mods = [
 
 setup(
   name = "pGroupCohomology",
-  version = "3.0",
+  version = "3.0.1",
   author = "Simon A. King, David J. Green",
   author_email = "simon.king@uni-jena.de, david.green@uni-jena.de",
   license = 'GPLv2+',
