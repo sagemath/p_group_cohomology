@@ -416,9 +416,8 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
 
     - 1. An element `v` in Singular that lowers the dimension of ``Id`` by one (aka
          "parameter" for ``Id``),
-      2. a list of integers, namely the list of coefficients that defines ``v`` as
-         linear combination of the monomials in ``L`` (the element zero is returned
-         if ``Id`` is of dimension zero).
+      2. A tuple of integers, namely the list of coefficients that defines ``v`` as
+         linear combination of the monomials in ``L``.
       3. The return value of ``is_freg`` as a list of integers, if ``regularity==1``,
          or ``[]``.
     - ``False, False, []``, if no linear combination of elements of ``L`` provides a
@@ -443,9 +442,9 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         sage: Id = H.relation_ideal()
         sage: L = H.standard_monomials(3)
         sage: explore_one_parameter(Id,L,2)
-        (b_1_0^3, (0, 0, 1, 0, 0))
+        (b_1_0^3, (0, 0, 1, 0, 0), [])
         sage: explore_one_parameter(Id,L,2, regularity=1)
-        (False, False)
+        (False, False, [])
         sage: Id.dim()
         3
         sage: Id.std('b_1_0^3').dim()
@@ -466,15 +465,15 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         sage: Id = H.relation_ideal()
         sage: L = H.standard_monomials(6)
         sage: explore_one_parameter(Id,L,3,regularity=2)
-        (c_6_2, (0, 0, 1))
+        (c_6_2, (0, 0, 1), [0])
         sage: Id = Id.std('c_6_2')
         sage: L = H.standard_monomials(2)
         sage: explore_one_parameter(Id,L,3)
-        (b_2_1, (1, 0))
+        (b_2_1, (1, 0), [])
         sage: explore_one_parameter(Id,L,3,regularity=1)
-        (b_2_1, (1, 0))
+        (b_2_1, (1, 0), [0, 1, 1, 1, 1])
         sage: explore_one_parameter(Id,L,3,regularity=2)
-        (False, False)
+        (False, False, [])
 
     """
     cdef list CE, CO
@@ -526,7 +525,7 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         singular.eval('%s=simplify(%s,2)'%(Essential.name(),Essential.name()))
         singular.eval('%s=simplify(%s,2)'%(Optional.name(),Optional.name()))
         if singular.eval('%s[1]'%Essential.name()) == '0':
-            return False,[]
+            return False, False, []
         lenEss = int(singular.eval('size(%s)'%Essential.name()))
         if singular.eval('%s[1]'%Optional.name()) == '0':
             lenOpt = 0
@@ -545,12 +544,12 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         EssIter = cartesian_product_iterator([range(1,p)]*lenEss)
         reg_vec = []
         for EssT in EssIter:
-            v = singular.intmat(singular.intvec(*EssT),lenEss,1)
+            v  = singular.intmat(singular.intvec(*EssT),lenEss,1)
             xp = Essential*v
             OptIter = cartesian_product_iterator([range(p)]*lenOpt)
             for OptT in OptIter:
                 if OptT:
-                    v = singular.intmat(singular.intvec(*OptT),lenOpt,1)
+                    v  = singular.intmat(singular.intvec(*OptT),lenOpt,1)
                     vp = xp + Optional*v
                 else:
                     vp = xp
@@ -591,14 +590,16 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
         # get the coefficients related with the original list of monomials
         if not Kicked:
             singular.eval('degBound='+dgb)
-            return vp[1][1], Essential, reg_vec
-        CE = list(Essential)
-        CO = list(Optional)
+            return vp[1][1], EssT, reg_vec
+        CE = list(EssT)
+        CO = list(OptT)
         Coef = []
         for i in range(len(L)):
             if i in Kicked:
                 if regularity:
                     Coef.append(CO.pop(0))
+                else:
+                    Coef.append(0)
             else:
                 Coef.append(CE.pop(0))
         singular.eval('degBound='+dgb)
@@ -4880,12 +4881,20 @@ Minimal list of algebraic relations:
             b_2_1^2*b_2_2*b_1_0^2+b_2_1^3*b_1_0^2+b_2_1^4+b_2_0*b_2_1*b_2_2*b_1_0^2+b_2_0*b_2_1^2*b_1_0^2+b_2_0^2*b_2_2^2+c_4_10*b_1_0^4
 
         """
-        br = singular('basering')
-        self.set_ring()
-        I = singular(self.prefix+'I')
-        br.set_ring()
-        if self.completed:
-            singular.eval('attrib(%s,"isSB",1)'%I.name())
+        try:
+            br = singular('basering')
+        except TypeError:
+            br = None
+        try:
+            self.set_ring()
+            I = singular(self.prefix+'I')
+            if self.completed:
+                singular.eval('attrib(%s,"isSB",1)'%I.name())
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
         return I
 
     def last_interesting_degree(self):
@@ -6358,7 +6367,7 @@ Minimal list of algebraic relations:
             return
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self.set_ring()
         if n==0:
@@ -6585,9 +6594,9 @@ Minimal list of algebraic relations:
         if n==0:
             return C
         coho_logger.debug("Express cochain of degree %d as polynomial", self, n)
-        if singular.eval('defined(basering)')=='1':
-            br = singular("basering")
-        else:
+        try:
+            br = singular('basering')
+        except TypeError:
             br = None
         cdef list DecGen = self.decomposable_classes(n) # triangular basis of the sub space of decomposables of H^n
         cdef list VSGen=self.Resl.rank(n)*[1]
@@ -6626,11 +6635,15 @@ Minimal list of algebraic relations:
                             break
         if j>=0:
             raise ArithmeticError("The set of generators of %s in degree %d is incomplete"%(repr(self), n))
-        self.set_ring()
-        C.setname(singular.eval(Cand.name()), is_polyrep=True)
-        if not (br is None):
-            singular.setring(br)
-        return C
+        try:
+            self.set_ring()
+            C.setname(singular.eval(Cand.name()), is_polyrep=True)
+            return C
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
     ##################
     ## Manage restrictions
@@ -8099,7 +8112,7 @@ Minimal list of algebraic relations:
         dgb = singular.eval("degBound")
         singular.eval('degBound=0')
         Id = self.relation_ideal()
-        singular.eval('attrib(%s,"isSB",1)'%Id.name())
+#~         singular.eval('attrib(%s,"isSB",1)'%Id.name())
         if P:
             coho_logger.info('Computing quotient modulo Duflot regular sequence %s', self, P)
             sP = singular.ideal(P)
@@ -8408,19 +8421,28 @@ is an error. Please inform the author!""")
             return False
         if self._parameters_do_exist:
             return True
-        R = singular('basering')
+        try:
+            R = singular('basering')
+        except TypeError:
+            R = None
         cdef list L
-        coho_logger.info("Testing whether parameters of the cohomology ring can be found", self)
-        gb_command = self._gb_command()
-        for i in self.MaxelPos:
-            L = self.restrictions_as_string(i)
-            self.RestrMaps[i][1].codomain().set_ring()
-            if singular.eval('vdim(%s(ideal(%s)))'%(gb_command,','.join(L)))=='-1':
-                coho_logger.info("> Nein", self)
-                return False
-        self.setprop('_parameters_do_exist',True)
-        coho_logger.info("> Yes", self)
-        return True
+        try:
+            coho_logger.info("Testing whether parameters of the cohomology ring can be found", self)
+            gb_command = self._gb_command()
+            for i in self.MaxelPos:
+                L = self.restrictions_as_string(i)
+                self.RestrMaps[i][1].codomain().set_ring()
+                if singular.eval('vdim(%s(ideal(%s)))'%(gb_command,','.join(L)))=='-1':
+                    coho_logger.info("> Nein", self)
+                    return False
+            self.setprop('_parameters_do_exist',True)
+            coho_logger.info("> Yes", self)
+            return True
+        finally:
+            try:
+                R.set_ring()
+            except:
+                pass
 
 ##########################################
 # A potentially expensive heuristics to find small last parameters
@@ -8495,7 +8517,7 @@ is an error. Please inform the author!""")
             dgb = singular.eval('degBound')
             try:
                 br = singular('basering')
-            except:
+            except TypeError:
                 br = None
             singular.eval('degBound=0')
             self_s.set_ring()
@@ -8833,7 +8855,7 @@ is an error. Please inform the author!""")
 
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self_s = singular(self)
         self.set_ring()
@@ -9205,45 +9227,53 @@ is an error. Please inform the author!""")
         R = PolynomialRing(GF(Resl.G_Alg.Data.p),[X.name() for X in self.Gen])
         cdef list L
         from pGroupCohomology.cochain import MODCOCH
-        if isinstance(C,COCH) or isinstance(C,MODCOCH) or repr(C.parent()) == 'Singular':
-            if repr(C.parent()) == 'Singular':
-                s = C.parent().eval(C)
-            else:
-                s = C.name()
-            ## try to simplify, by killing nilpotent generators
-            dgb = singular.eval("degBound")
-            singular.eval("degBound = %d"%(C.deg()))
-            coho_logger.debug("Simplification modulo nilpotent generators", self)
-            L = [X.name() for X in self.Gen if X.ydeg()]
-            br = singular('basering')
-            self.set_ring()
-            if L:
-                I = (singular("%sI"%(self.prefix))+singular.ideal(L)).groebner()
-                s = str(singular("NF(%s,%s)"%(s,I.name())))
-            else:
-                s = str(singular("NF(%s,%sI)"%(s,self.prefix)))
-        else:
-            raise TypeError("Cochain expected")
-        singular.eval('degBound = '+dgb)
-        if s=='0':
-            br.set_ring()
-            return '0'
-        F=[(R(s),1)]
-        coho_logger.info("Factorising an element; it can be interrupted with Ctrl-c", self)
-        stopped = False
+        br = None
         try:
-            F=F[0][0].factor(proof=False)
-        except:
-            coho_logger.warn("You interrupted the factorisation of a cochain (don't worry...)", self)
-            stopped = True
-        mindeg = min([Integer(singular.eval("deg(%s)"%(str(Nr[0])))) for Nr in F])
-        for Nr in F:
-            if (Integer(singular.eval("deg(%s)"%(str(Nr[0]))))==mindeg):
-                OUT_STR = singular.eval('normalize(%s)'%str(Nr[0]))
+            if isinstance(C,COCH) or isinstance(C,MODCOCH) or repr(C.parent()) == 'Singular':
+                if repr(C.parent()) == 'Singular':
+                    s = C.parent().eval(C)
+                else:
+                    s = C.name()
+                ## try to simplify, by killing nilpotent generators
+                dgb = singular.eval("degBound")
+                singular.eval("degBound = %d"%(C.deg()))
+                coho_logger.debug("Simplification modulo nilpotent generators", self)
+                L = [X.name() for X in self.Gen if X.ydeg()]
+                try:
+                    br = singular('basering')
+                except TypeError:
+                    pass
+                self.set_ring()
+                if L:
+                    I = (singular("%sI"%(self.prefix))+singular.ideal(L)).groebner()
+                    s = str(singular("NF(%s,%s)"%(s,I.name())))
+                else:
+                    s = str(singular("NF(%s,%sI)"%(s,self.prefix)))
+            else:
+                raise TypeError("Cochain expected")
+            singular.eval('degBound = '+dgb)
+            if s=='0':
+                return '0'
+            F=[(R(s),1)]
+            coho_logger.info("Factorising an element; it can be interrupted with Ctrl-c", self)
+            stopped = False
+            try:
+                F=F[0][0].factor(proof=False)
+            except:
+                coho_logger.warn("You interrupted the factorisation of a cochain (don't worry...)", self)
+                stopped = True
+            mindeg = min([Integer(singular.eval("deg(%s)"%(str(Nr[0])))) for Nr in F])
+            for Nr in F:
+                if (Integer(singular.eval("deg(%s)"%(str(Nr[0]))))==mindeg):
+                    OUT_STR = singular.eval('normalize(%s)'%str(Nr[0]))
+                    if stopped:
+                        return [OUT_STR]
+                    return OUT_STR
+        finally:
+            try:
                 br.set_ring()
-                if stopped:
-                    return [OUT_STR]
-                return OUT_STR
+            except:
+                pass
 
     def small_factor(self,C, enumerate=False):
         """
@@ -9340,7 +9370,7 @@ is an error. Please inform the author!""")
         from pGroupCohomology.cochain import MODCOCH
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         if repr(C.parent()) == 'Singular' or isinstance(C,COCH) or isinstance(C,MODCOCH):
             s = self._factorise(C)
@@ -9497,7 +9527,7 @@ is an error. Please inform the author!""")
         singular = self.GenS.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self_s = singular(self)
         self_s.set_ring()
@@ -9734,7 +9764,7 @@ is an error. Please inform the author!""")
         singular = self.GenS.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         p = self._prime or self.Resl.coef()
         n = self.lastRelevantDeg or self.knownDeg
@@ -10049,7 +10079,7 @@ is an error. Please inform the author!""")
 
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self.make_groebner()
 
@@ -10124,7 +10154,6 @@ is an error. Please inform the author!""")
             if self.completed:
                 coho_logger.info('Computing filter degree type', self)
                 coho_logger.info('Interruptible with Ctrl-c', self)
-                br = singular('basering')
                 # A small trick: Often the (smaller) parameters happen to be filter regular.
                 P = self.parameters()
                 if isinstance(P,KeyboardInterrupt):

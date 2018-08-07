@@ -1286,27 +1286,30 @@ class MODCOHO(COHO):
         singular = self.GenS.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         HS.set_ring()
-        if self.knownDeg < max([int(singular.eval('deg(%s)'%p)) for p in HS.Dickson if p is not None] or [0]):
+        try:
+            if self.knownDeg < max([int(singular.eval('deg(%s)'%p)) for p in HS.Dickson if p is not None] or [0]):
+                return None
             if br is not None:
                 br.set_ring()
-            return None
-        if br is not None:
-            br.set_ring()
-        coho_logger.info( "Trying to lift the parameters of %r",self, HS)
-        from pGroupCohomology.cochain import MODCOCH
-        D = [self.small_factor(self.stable_to_polynomial(MODCOCH(HS,t,name=t,S=self.GenS.parent(), is_polyrep=True), verify=True)) if t is not None else None for t in HS.Dickson]
-        if D.count(None)==1:
-            coho_logger.info( "One parameter could not be lifted", self)
-        elif D.count(None)==0:
-            coho_logger.info( "All parameters could be lifted", self)
-        else:
-            coho_logger.info("%d parameters could not be lifted",self, D.count(None))
-        self.setprop('_params_from_sylow',[t.name() for t in self._DuflotRegSeq]+D)
-        return [t.name() for t in self._DuflotRegSeq]+D
-
+            coho_logger.info( "Trying to lift the parameters of %r",self, HS)
+            from pGroupCohomology.cochain import MODCOCH
+            D = [self.small_factor(self.stable_to_polynomial(MODCOCH(HS,t,name=t,S=self.GenS.parent(), is_polyrep=True), verify=True)) if t is not None else None for t in HS.Dickson]
+            if D.count(None)==1:
+                coho_logger.info( "One parameter could not be lifted", self)
+            elif D.count(None)==0:
+                coho_logger.info( "All parameters could be lifted", self)
+            else:
+                coho_logger.info("%d parameters could not be lifted",self, D.count(None))
+            self.setprop('_params_from_sylow',[t.name() for t in self._DuflotRegSeq]+D)
+            return [t.name() for t in self._DuflotRegSeq]+D
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
     #################################
     #
@@ -2044,20 +2047,29 @@ class MODCOHO(COHO):
         if not L:
             coho_logger.info("> No degree bound available, yet", self)
             return
-        br = singular('basering')
+        try:
+            br = singular('basering')
+        except TypeError:
+            br = None
         singular(self._HP).set_ring()
-        I = singular.ideal(L).groebner()
-        if singular.eval('vdim(%s)'%I.name())=='-1':
+        try:
+            I = singular.ideal(L).groebner()
+            if singular.eval('vdim(%s)'%I.name())=='-1':
+                br.set_ring()
+                return
+            m = max([Integer(singular.eval('deg(%s)'%t.name())) for t in I.kbase()])
             br.set_ring()
-            return
-        m = max([Integer(singular.eval('deg(%s)'%t.name())) for t in I.kbase()])
-        br.set_ring()
-        self.setprop('degbound_for_gens', m)
-        if self.knownDeg>=m:
-            coho_logger.info("> The generating set is complete", self)
-            self.setprop('all_generators_found',True)
-        else:
-            coho_logger.info( "> New generators will be found at most in degree %d"%(m), self)
+            self.setprop('degbound_for_gens', m)
+            if self.knownDeg>=m:
+                coho_logger.info("> The generating set is complete", self)
+                self.setprop('all_generators_found',True)
+            else:
+                coho_logger.info( "> New generators will be found at most in degree %d"%(m), self)
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
     def test_for_completion(self,forced = False):
         """
@@ -2417,71 +2429,80 @@ class MODCOHO(COHO):
         # Since we assume that all generators are found, the following
         # parameters for the ring *approximation* give rise to
         # parameters for the whole ring.
-        br = singular('basering')
-        D = self._HP._lower_bound_depth()
-        if isinstance(D,list):
-            D = D[0]
-            self.set_ring()
-        hsop = self.parameters_from_sylow_subgroup()
         try:
-            if (hsop is None) or (hsop.count(None)>1):
-                hsop = self.parameters(forced=forced)
-                if hsop is None and self.find_dickson():
-                    hsop = self.parameters(forced=self.last_interesting_degree()==self.knownDeg)
-        except KeyboardInterrupt,msg:
-            coho_logger.warn("The existence proof of parameters over a field extension has been interrupted.", self)
-            return None,None,None
+            br = singular('basering')
+        except TypeError:
+            br = None
+        try:
+            D = self._HP._lower_bound_depth()
+            if isinstance(D,list):
+                D = D[0]
+                self.set_ring()
+            hsop = self.parameters_from_sylow_subgroup()
+            try:
+                if (hsop is None) or (hsop.count(None)>1):
+                    hsop = self.parameters(forced=forced)
+                    if hsop is None and self.find_dickson():
+                        hsop = self.parameters(forced=self.last_interesting_degree()==self.knownDeg)
+            except KeyboardInterrupt,msg:
+                coho_logger.warn("The existence proof of parameters over a field extension has been interrupted.", self)
+                return None,None,None
 
-        # At this point, it should be impossible that hsop is None.
-        # To be on the safe side:
-        if hsop is None:
-            coho_logger.info("There should be parameters, but apparently it is too difficult to find them.", self)
-            return None, None, None
-        try:
-            hsop[-1] = self.find_small_last_parameter(hsop, self.knownDeg)
-        except KeyboardInterrupt:
-            pass # hence, we may use suboptimal parameters
-        self.make_groebner()
-        self.set_ring()
-        dv = [Infinity if t is None else Integer(singular.eval('deg(%s)'%t)) for t in hsop]
-        ## try to prove that there are smaller parameters
-        ## over a finite field extension.
-        dgb = singular.eval('degBound')
-        singular.eval('degBound=0')
-        I = singular(self.prefix+'I')
-        Hit = []
-        # We will prove the existence of parameters at most out to this degree:
-        maxd = min(max(dv), self.knownDeg)
-        sumd = sum(dv)
-        datapairs = zip(hsop,dv)
-        # This is the bound that we will get without existence proof.
-        optimalbound = sumd - D
-        if optimalbound <= self.knownDeg:
-            return tuple(dv), D, False # False means: Existence proof hasn't been used.
-        hsopdata = (hsop,0)
-        for subpairs in subsets(datapairs):
-            if (None,Infinity) not in subpairs:
-                J = singular(I.name())
-                new_sumd = -D
-                for x,y in subpairs:
-                    singular.eval('%s=std(%s,%s)'%(J.name(),J.name(),x))
-                    new_sumd += y
-                nb_further_params = len(datapairs)-len(subpairs)
-                for n in range(1,maxd):
-                    # Would we improve the degree bound by finding
-                    # parameters in degree n?
-                    if new_sumd + n*nb_further_params < optimalbound:
-                        self._makeStdMon(n,self.prefix+'Mon')
-                        if singular('vdim(std(%s,%sMon))'%(J.name(),self.prefix))!=-1:
-                            optimalbound = new_sumd + n*nb_further_params
-                            hsopdata = (subpairs,n)
+            # At this point, it should be impossible that hsop is None.
+            # To be on the safe side:
+            if hsop is None:
+                coho_logger.info("There should be parameters, but apparently it is too difficult to find them.", self)
+                return None, None, None
+            try:
+                hsop[-1] = self.find_small_last_parameter(hsop, self.knownDeg)
+            except KeyboardInterrupt:
+                pass # hence, we may use suboptimal parameters
+            self.make_groebner()
+            self.set_ring()
+            dv = [Infinity if t is None else Integer(singular.eval('deg(%s)'%t)) for t in hsop]
+            ## try to prove that there are smaller parameters
+            ## over a finite field extension.
+            dgb = singular.eval('degBound')
+            singular.eval('degBound=0')
+            I = singular(self.prefix+'I')
+            Hit = []
+            # We will prove the existence of parameters at most out to this degree:
+            maxd = min(max(dv), self.knownDeg)
+            sumd = sum(dv)
+            datapairs = zip(hsop,dv)
+            # This is the bound that we will get without existence proof.
+            optimalbound = sumd - D
+            if optimalbound <= self.knownDeg:
+                return tuple(dv), D, False # False means: Existence proof hasn't been used.
+            hsopdata = (hsop,0)
+            for subpairs in subsets(datapairs):
+                if (None,Infinity) not in subpairs:
+                    J = singular(I.name())
+                    new_sumd = -D
+                    for x,y in subpairs:
+                        singular.eval('%s=std(%s,%s)'%(J.name(),J.name(),x))
+                        new_sumd += y
+                    nb_further_params = len(datapairs)-len(subpairs)
+                    for n in range(1,maxd):
+                        # Would we improve the degree bound by finding
+                        # parameters in degree n?
+                        if new_sumd + n*nb_further_params < optimalbound:
+                            self._makeStdMon(n,self.prefix+'Mon')
+                            if singular('vdim(std(%s,%sMon))'%(J.name(),self.prefix))!=-1:
+                                optimalbound = new_sumd + n*nb_further_params
+                                hsopdata = (subpairs,n)
+                                break
+                        if optimalbound <= self.knownDeg:
                             break
-                    if optimalbound <= self.knownDeg:
-                        break
-        singular.eval('degBound='+dgb)
-        if hsopdata[1]:
-            return tuple([y for x,y in hsopdata[0]]+[hsopdata[1]]*(len(hsop)-len(hsopdata[0]))), D, True
-        return tuple(dv), D, False
+            singular.eval('degBound='+dgb)
+            if hsopdata[1]:
+                return tuple([y for x,y in hsopdata[0]]+[hsopdata[1]]*(len(hsop)-len(hsopdata[0]))), D, True
+            return tuple(dv), D, False
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
     def HilbertPoincareTest(self, forced=None):
         r"""
@@ -2645,7 +2666,6 @@ class MODCOHO(COHO):
 
         """
         coho_logger.info("Trying the Hilbert-Poincare criterion", self)
-
         dv, D, use_existence_proof = self.parameter_degrees_over_field_extension()
         if dv is None:
             coho_logger.info("No parameters were found, the ring approximation is incomplete.", self)
@@ -2997,102 +3017,106 @@ class MODCOHO(COHO):
             br = singular('basering')
             dgb = singular.eval('degBound')
             singular.eval('degBound=0')
-        except:
+        except TypeError:
             br = None
         if not self.Gen:
             return [],[]
         # First, get standard monomials
         coho_logger.info("Exploring relations in degree %d"%n, self)
         self._makeStdMon(n,"Mon")
-        self.set_ring()
-        cdef int nMon = int(singular.eval('size(Mon)'))
-        if nMon==0:
-            coho_logger.info( "There are no standard monomials in degree %d, thus, no relations"%n, self)
-            return [],[]
-        tmp_r = singular('basering')
-        if nMon>1:
-            coho_logger.info( "Express %d standard monomials as cocycles"%nMon, self)
-        else:
-            coho_logger.info( "Express 1 standard monomial as cocycle", self)
-        # copy the partially constructed ring of self, but with "safe" names:
-        if self._property_dict.get('use_dp'):
-            if len(self.degvec)==1:
-                r = singular.ring(self._prime,'(%s)'%(','.join(['@'+X.name() for X in self.Gen])), '(a(%d),dp)'%(self.degvec[0]))
+        cdef int nMon, lenHP, lenSelf, i
+        cdef list PValues, SelfValues, Indicators
+        try:
+            self.set_ring()
+            nMon = int(singular.eval('size(Mon)'))
+            if nMon==0:
+                coho_logger.info( "There are no standard monomials in degree %d, thus, no relations"%n, self)
+                return [],[]
+            tmp_r = singular('basering')
+            if nMon>1:
+                coho_logger.info( "Express %d standard monomials as cocycles"%nMon, self)
             else:
-                r = singular.ring(self._prime,'(%s)'%(','.join(['@'+X.name() for X in self.Gen])), '(wp%s)'%(str(tuple(self.degvec))))
-        else:
-            self._makeOrderMatrix_()
-            r = singular.ring(self._prime,'(%s)'%(','.join(['@'+X.name() for X in self.Gen])),'M(%sM)'%(self.prefix))
-        singular.eval('ideal Mon = fetch(%s,Mon)'%tmp_r.name()) # hopefully fetch has no memory leak...
-        rQP = singular(self._HP)
-        self._HP.set_ring()
-        rP = singular('basering')
-        # Singular does not do proper interreduction in quotient rings.
-        # Hence, we go to the ring. Hopefully this also works non-commutatively...
-        R = rP + r # hence, interreduction eliminates the "value" of MODCOCH instances
-        R.set_ring()
-        PRels = singular('imap(%s,%sI)'%(rP.name(),self._HP.prefix))
-        if nMon>1:
-            singular.eval('poly p(1..%d) = imap(%s,Mon)'%(nMon,r.name())) # hopefully imap has no memory leak...
-        else:
-            singular.eval('poly p(1) = imap(%s,Mon)[1]'%(r.name())) # hopefully imap has no memory leak...
-        singular.eval('ideal GenI=maxideal(1)')
-        cdef int lenHP=len(self._HP.Gen)
-        cdef int lenSelf=len(self.Gen)
-        cdef int i
-        singular.eval('GenI=GenI[1..%d]'%lenHP)
-        for i from 0<=i<lenSelf:
-            singular.eval('GenI[%d]=imap(%s,%s)'%(i+1+lenHP,rQP.name(),self.Gen[i].value().name()))
-        singular.eval('map Gen=basering,NF(GenI,%s)'%PRels.name())
-        # These are the decomposable generators, with their values in self._HP and in self
-        singular.eval('ideal DecGen')
-        # without normal form computation, the memory consumption grows insanely high for Alternatinggroup(8) mod 2
-        singular.eval('for(int %s_i=%d;%s_i>0;%s_i--){DecGen[%s_i]=NF(Gen(p(%s_i))+p(%s_i),%s);}'%(self.prefix,nMon,self.prefix,self.prefix,self.prefix,self.prefix,self.prefix,PRels.name()))
-        coho_logger.debug( "> Interreduction", self)
-        singular.eval('DecGen=interred(DecGen)')
-        coho_logger.debug( "> Determining decomposable subspace", self)
-        rQP.set_ring()
-        # This is how the interreduced standard monomials look in self._HP:
-        # Values[k]=='0' <=> DecGen[k+1] is a relation
-        PVal=singular('imap(%s,DecGen)'%R.name())
-        cdef list PValues=[PVal[i+1] for i in range(nMon)]
-        cdef list Indicators=[singular.eval('%s==0'%x.name()) for x in PValues]
-        r.set_ring() # names with '@'
-        singular.eval('ideal DecGen=imap(%s,DecGen)'%R.name())
-        self.set_ring()
-        DG = singular('fetch(%s,DecGen)'%r.name()) # usual names - hopefully fetch is correct...
+                coho_logger.info( "Express 1 standard monomial as cocycle", self)
+            # copy the partially constructed ring of self, but with "safe" names:
+            if self._property_dict.get('use_dp'):
+                if len(self.degvec)==1:
+                    r = singular.ring(self._prime,'(%s)'%(','.join(['@'+X.name() for X in self.Gen])), '(a(%d),dp)'%(self.degvec[0]))
+                else:
+                    r = singular.ring(self._prime,'(%s)'%(','.join(['@'+X.name() for X in self.Gen])), '(wp%s)'%(str(tuple(self.degvec))))
+            else:
+                self._makeOrderMatrix_()
+                r = singular.ring(self._prime,'(%s)'%(','.join(['@'+X.name() for X in self.Gen])),'M(%sM)'%(self.prefix))
+            singular.eval('ideal Mon = fetch(%s,Mon)'%tmp_r.name()) # hopefully fetch has no memory leak...
+            rQP = singular(self._HP)
+            self._HP.set_ring()
+            rP = singular('basering')
+            # Singular does not do proper interreduction in quotient rings.
+            # Hence, we go to the ring. Hopefully this also works non-commutatively...
+            R = rP + r # hence, interreduction eliminates the "value" of MODCOCH instances
+            R.set_ring()
+            PRels = singular('imap(%s,%sI)'%(rP.name(),self._HP.prefix))
+            if nMon>1:
+                singular.eval('poly p(1..%d) = imap(%s,Mon)'%(nMon,r.name())) # hopefully imap has no memory leak...
+            else:
+                singular.eval('poly p(1) = imap(%s,Mon)[1]'%(r.name())) # hopefully imap has no memory leak...
+            singular.eval('ideal GenI=maxideal(1)')
+            lenHP=len(self._HP.Gen)
+            lenSelf=len(self.Gen)
+            singular.eval('GenI=GenI[1..%d]'%lenHP)
+            for i from 0<=i<lenSelf:
+                singular.eval('GenI[%d]=imap(%s,%s)'%(i+1+lenHP,rQP.name(),self.Gen[i].value().name()))
+            singular.eval('map Gen=basering,NF(GenI,%s)'%PRels.name())
+            # These are the decomposable generators, with their values in self._HP and in self
+            singular.eval('ideal DecGen')
+            # without normal form computation, the memory consumption grows insanely high for Alternatinggroup(8) mod 2
+            singular.eval('for(int %s_i=%d;%s_i>0;%s_i--){DecGen[%s_i]=NF(Gen(p(%s_i))+p(%s_i),%s);}'%(self.prefix,nMon,self.prefix,self.prefix,self.prefix,self.prefix,self.prefix,PRels.name()))
+            coho_logger.debug( "> Interreduction", self)
+            singular.eval('DecGen=interred(DecGen)')
+            coho_logger.debug( "> Determining decomposable subspace", self)
+            rQP.set_ring()
+            # This is how the interreduced standard monomials look in self._HP:
+            # Values[k]=='0' <=> DecGen[k+1] is a relation
+            PVal=singular('imap(%s,DecGen)'%R.name())
+            PValues=[PVal[i+1] for i in range(nMon)]
+            Indicators=[singular.eval('%s==0'%x.name()) for x in PValues]
+            r.set_ring() # names with '@'
+            singular.eval('ideal DecGen=imap(%s,DecGen)'%R.name())
+            self.set_ring()
+            DG = singular('fetch(%s,DecGen)'%r.name()) # usual names - hopefully fetch is correct...
 
-        cdef list SelfValues
-        # It is a bad idea to ship these new relations to the ring of self
-        # VIA STRINGS. So, we do it here internally in Singular.
-        lenOldRel=int(singular.eval('size(%sI)'%self.prefix))+1
-        j=0
-        for i from 0<=i<nMon:
-            if Indicators[i]=='1':
-                singular.eval('%sI[%d]=%s[%d]'%(self.prefix,lenOldRel+j,DG.name(),i+1))
-                j+=1
-        # "rank is None" means: we request the decomposables.
-        # Otherwise, decomposables are computed only if there are generators in this degree
-        if (rank is None) or (self.all_generators_found is None and (nMon-Indicators.count('1')<rank)):
-            # If there are new generators or if we really want it (rank = None), compute all values
-            # The relations correspond to '1' in the list "Indicators".
-            coho_logger.debug( "> Extracting decomposable cocycles and relations", self)
-            # This is how the interreduced standard monomials look in self:
-            SelfValues = [t.strip() for t in singular.eval('print(%s)'%DG.name()).split(',')]
-            Rels = [SelfValues[i] for i in range(nMon) if Indicators[i]=='1']
-            from pGroupCohomology.cochain import MODCOCH
-            DecGen = [MODCOCH(self, PValues[i], deg=n, name=SelfValues[i], S=singular, is_polyrep=True, is_NF=True) for i in range(nMon) if Indicators[i]=='0']
-        else:
-            # only extract the relations
-            coho_logger.debug( "> Extracting relations", self)
-            DecGen = None
-            Rels = [singular.eval(DG.name()+'[%d]'%(i+1)) for i in range(nMon) if Indicators[i]=='1']
-        singular.eval('kill %s_i,%s,%s,%s'%(self.prefix,R.name(),r.name(),tmp_r.name()))
-        if br is not None:
-            br.set_ring()
-            singular.eval('degBound='+dgb)
-        coho_logger.info("Found %d relations in degree %d", self, len(Rels), n)
-        return DecGen, Rels
+            # It is a bad idea to ship these new relations to the ring of self
+            # VIA STRINGS. So, we do it here internally in Singular.
+            lenOldRel=int(singular.eval('size(%sI)'%self.prefix))+1
+            j=0
+            for i from 0<=i<nMon:
+                if Indicators[i]=='1':
+                    singular.eval('%sI[%d]=%s[%d]'%(self.prefix,lenOldRel+j,DG.name(),i+1))
+                    j+=1
+            # "rank is None" means: we request the decomposables.
+            # Otherwise, decomposables are computed only if there are generators in this degree
+            if (rank is None) or (self.all_generators_found is None and (nMon-Indicators.count('1')<rank)):
+                # If there are new generators or if we really want it (rank = None), compute all values
+                # The relations correspond to '1' in the list "Indicators".
+                coho_logger.debug( "> Extracting decomposable cocycles and relations", self)
+                # This is how the interreduced standard monomials look in self:
+                SelfValues = [t.strip() for t in singular.eval('print(%s)'%DG.name()).split(',')]
+                Rels = [SelfValues[i] for i in range(nMon) if Indicators[i]=='1']
+                from pGroupCohomology.cochain import MODCOCH
+                DecGen = [MODCOCH(self, PValues[i], deg=n, name=SelfValues[i], S=singular, is_polyrep=True, is_NF=True) for i in range(nMon) if Indicators[i]=='0']
+            else:
+                # only extract the relations
+                coho_logger.debug( "> Extracting relations", self)
+                DecGen = None
+                Rels = [singular.eval(DG.name()+'[%d]'%(i+1)) for i in range(nMon) if Indicators[i]=='1']
+            singular.eval('kill %s_i,%s,%s,%s'%(self.prefix,R.name(),r.name(),tmp_r.name()))
+            coho_logger.info("Found %d relations in degree %d", self, len(Rels), n)
+            return DecGen, Rels
+        finally:
+            try:
+                br.set_ring()
+                singular.eval('degBound='+dgb)
+            except:
+                pass
 
     def decomposable_classes(self, int n, forced=False):
         """
@@ -3277,7 +3301,7 @@ class MODCOHO(COHO):
         singular = self.GenS.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         if c.parent() is self:
             try:
@@ -3345,31 +3369,39 @@ class MODCOHO(COHO):
         if not self.Gen:
             raise RuntimeError("no generators known for "+repr(self))
         singular = c._Svalue.parent()
-        br = singular('basering')
-        n = c.deg()
-        DecGen = self.decomposable_classes(n)
-        self.set_ring()
-        outS = singular.poly(0)
-        singular(self._HP).set_ring()
-        outP = singular.poly(0)
-        c._NF_()
-        for X in DecGen:
+        try:
+            br = singular('basering')
+        except TypeError:
+            br = None
+        try:
+            n = c.deg()
+            DecGen = self.decomposable_classes(n)
+            self.set_ring()
+            outS = singular.poly(0)
             singular(self._HP).set_ring()
-            if outP==c._Svalue:
-                break
-            coef = c.coef(X.lm())
-            if coef:
-                singular.eval("%s=%s+%d*%s"%(outP.name(),outP.name(),coef,X.value().name()))
-                self.set_ring()
-                singular.eval("%s=%s+%d*%s"%(outS.name(),outS.name(),coef,X.name()))
+            outP = singular.poly(0)
+            c._NF_()
+            for X in DecGen:
+                singular(self._HP).set_ring()
+                if outP==c._Svalue:
+                    break
+                coef = c.coef(X.lm())
+                if coef:
+                    singular.eval("%s=%s+%d*%s"%(outP.name(),outP.name(),coef,X.value().name()))
+                    self.set_ring()
+                    singular.eval("%s=%s+%d*%s"%(outS.name(),outS.name(),coef,X.name()))
 
-        singular(self._HP).set_ring()
-        if outP!=c._Svalue:
-            raise ValueError("Apparently the given cochain does not belong to "+repr(self))
-        self.set_ring()
-        c.setname(singular.eval('print(%s)'%outS.name()).strip(), is_polyrep=True)
-        br.set_ring()
-        return c
+            singular(self._HP).set_ring()
+            if outP!=c._Svalue:
+                raise ValueError("Apparently the given cochain does not belong to "+repr(self))
+            self.set_ring()
+            c.setname(singular.eval('print(%s)'%outS.name()).strip(), is_polyrep=True)
+            return c
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
     def PrescribedRestrictions(self, L):
         """
@@ -3409,56 +3441,64 @@ class MODCOHO(COHO):
             return None
         if not L:
             return None
-        br0 = singular('basering')
-        self.set_ring()
-        rSelf = singular('basering')
-        self._HP.set_ring()
-        rP = singular('basering')
-        n = L[0][1].deg()
-        DecGen = self.decomposable_classes(n)
-        if not DecGen:
-            return None
+        try:
+            br0 = singular('basering')
+        except TypeError:
+            br0 = None
         cdef int j
-        # create a ring for each of the values
-        rList = []
-        if singular.eval('defined(%s_i)'%self.prefix)=='0':
-            singular.eval('int %s_i'%self.prefix)
-        if singular.eval('defined(%s_j)'%self.prefix)=='0':
-            singular.eval('int %s_j'%self.prefix)
-        for i,C in L:
-            if self.RestrMaps[i][1].codomain() is not C.parent():
-                raise ValueError("Cocycle "+repr(C)+" should belong to "+repr(self.RestrMaps[i][1].codomain()))
-            rList.append(singular.ring(self._prime,'(@x(%d)(1..%d))'%(i,len(self.RestrMaps[i][1].codomain().Gen)),'dp')) # the ring order shouldn't matter
-            name = singular(C.parent()).name()
-            tmpRest = [self.RestrMaps[i][1](X) for X in DecGen]
-            rList[-1].set_ring()
-            singular.eval('poly p=fetch(%s,%s)'%(name,C._Svalue.name()))
-            singular.eval('ideal Rest')
-            for j from len(DecGen)>j>=0:
-                singular.eval('Rest[%d]=fetch(%s,%s)'%(j+1,name,tmpRest[j]._Svalue.name()))
-        # Combine all the restrictions of DecGen into one ideal, and do interreduction
-        singular.eval('setring '+rList[-1].name())
-        Rtotal = singular('+'.join([X.name() for X in rList]) + '+'+rSelf.name())
-        Rtotal.set_ring()
-        tmpRest = [singular('imap(%s,Rest)'%X.name()) for X in rList]
-        G = singular.ideal(0)
-        singular.eval('%s[%d]=0'%(G.name(),len(DecGen)))
-        for X in tmpRest:
-            singular.eval('for (%s_i=%d;%s_i>0;%s_i--){%s[%s_i]=%s[%s_i]+%s[%s_i];}'%(self.prefix,len(DecGen),self.prefix,self.prefix, G.name(),self.prefix, G.name(),self.prefix, X.name(),self.prefix))
-        for i in range(len(DecGen)):
-            singular.eval('%s[%d]=%s[%d]-(%s)'%(G.name(),i+1, G.name(),i+1, DecGen[i].name()))
-        singular.eval('%s=interred(%s)'%(G.name(),G.name()))
-        singular.eval('attrib(%s,"isSB",1)'%G.name())
-        # Now, a reduction by G does the lifting!
-        # So, we combine the given values to one polynomial in Rtotal
-        v = singular.poly(0)
-        for X in rList:
-           singular.eval('%s=%s+imap(%s,p)'%(v.name(),v.name(),X.name()))
-        LiftStr = singular.eval('print(NF(%s,%s))'%(v.name(),G.name()))
-        br0.set_ring()
-        if '@' in LiftStr:
-            return None
-        return self(LiftStr)
+        try:
+            self.set_ring()
+            rSelf = singular('basering')
+            self._HP.set_ring()
+            rP = singular('basering')
+            n = L[0][1].deg()
+            DecGen = self.decomposable_classes(n)
+            if not DecGen:
+                return None
+            # create a ring for each of the values
+            rList = []
+            if singular.eval('defined(%s_i)'%self.prefix)=='0':
+                singular.eval('int %s_i'%self.prefix)
+            if singular.eval('defined(%s_j)'%self.prefix)=='0':
+                singular.eval('int %s_j'%self.prefix)
+            for i,C in L:
+                if self.RestrMaps[i][1].codomain() is not C.parent():
+                    raise ValueError("Cocycle "+repr(C)+" should belong to "+repr(self.RestrMaps[i][1].codomain()))
+                rList.append(singular.ring(self._prime,'(@x(%d)(1..%d))'%(i,len(self.RestrMaps[i][1].codomain().Gen)),'dp')) # the ring order shouldn't matter
+                name = singular(C.parent()).name()
+                tmpRest = [self.RestrMaps[i][1](X) for X in DecGen]
+                rList[-1].set_ring()
+                singular.eval('poly p=fetch(%s,%s)'%(name,C._Svalue.name()))
+                singular.eval('ideal Rest')
+                for j from len(DecGen)>j>=0:
+                    singular.eval('Rest[%d]=fetch(%s,%s)'%(j+1,name,tmpRest[j]._Svalue.name()))
+            # Combine all the restrictions of DecGen into one ideal, and do interreduction
+            singular.eval('setring '+rList[-1].name())
+            Rtotal = singular('+'.join([X.name() for X in rList]) + '+'+rSelf.name())
+            Rtotal.set_ring()
+            tmpRest = [singular('imap(%s,Rest)'%X.name()) for X in rList]
+            G = singular.ideal(0)
+            singular.eval('%s[%d]=0'%(G.name(),len(DecGen)))
+            for X in tmpRest:
+                singular.eval('for (%s_i=%d;%s_i>0;%s_i--){%s[%s_i]=%s[%s_i]+%s[%s_i];}'%(self.prefix,len(DecGen),self.prefix,self.prefix, G.name(),self.prefix, G.name(),self.prefix, X.name(),self.prefix))
+            for i in range(len(DecGen)):
+                singular.eval('%s[%d]=%s[%d]-(%s)'%(G.name(),i+1, G.name(),i+1, DecGen[i].name()))
+            singular.eval('%s=interred(%s)'%(G.name(),G.name()))
+            singular.eval('attrib(%s,"isSB",1)'%G.name())
+            # Now, a reduction by G does the lifting!
+            # So, we combine the given values to one polynomial in Rtotal
+            v = singular.poly(0)
+            for X in rList:
+               singular.eval('%s=%s+imap(%s,p)'%(v.name(),v.name(),X.name()))
+            LiftStr = singular.eval('print(NF(%s,%s))'%(v.name(),G.name()))
+            if '@' in LiftStr:
+                return None
+            return self(LiftStr)
+        finally:
+            try:
+                br0.set_ring()
+            except:
+                pass
 
     def _extend_Duflot_reg_seq(self,d):
         """

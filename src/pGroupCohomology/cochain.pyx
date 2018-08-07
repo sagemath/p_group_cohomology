@@ -2040,7 +2040,7 @@ class MODCOCH(RingElement):
         # self.Resl = parent.Resl
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self._SPparent = singular(parent._HP or parent)
         self._SPparent.set_ring()
@@ -2154,7 +2154,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         dgb = singular.eval('degBound')
         # < 0, <= 1, == 2, != 3, > 4, >= 5
@@ -2598,7 +2598,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         singular(self.parent()._HP or self.parent()).set_ring()
         if singular.eval('typeof(%s)'%self.value().name())=='int':
@@ -2737,7 +2737,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self._NF_()
         singular(P._HP).set_ring()
@@ -3339,7 +3339,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         singular(self.parent()._HP or self.parent()).set_ring()
         if id is None:
@@ -3438,7 +3438,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self._NF_()
         self._SPparent.set_ring()
@@ -3474,7 +3474,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self._NF_()
         self._SPparent.set_ring()
@@ -3515,7 +3515,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self._NF_()
         self._SPparent.set_ring()
@@ -3558,7 +3558,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         self._NF_()
         self._SPparent.set_ring()
@@ -3608,7 +3608,7 @@ class MODCOCH(RingElement):
         singular = self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         try:
             self._SPparent._check_valid()
@@ -3665,7 +3665,7 @@ class MODCOCH(RingElement):
         singular=self._Svalue.parent()
         try:
             br = singular('basering')
-        except:
+        except TypeError:
             br = None
         prefix = self.parent().prefix
         name = self.value().name()
