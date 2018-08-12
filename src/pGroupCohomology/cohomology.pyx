@@ -4377,6 +4377,7 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: [a for a in dir(H) if a.startswith('f')]    #indirect doctest
             ['filter_degree_type',
+             'filter_regular_gready_parameters',
              'filter_regular_parameters',
              'find_dickson',
              'find_dickson_in_subgroup',
@@ -4386,6 +4387,7 @@ Minimal list of algebraic relations:
             sage: H.setprop('foo',1)
             sage: [a for a in dir(H) if a.startswith('f')]
             ['filter_degree_type',
+             'filter_regular_gready_parameters',
              'filter_regular_parameters',
              'find_dickson',
              'find_dickson_in_subgroup',
@@ -4396,6 +4398,7 @@ Minimal list of algebraic relations:
             sage: H.foo_bar = 1
             sage: [a for a in dir(H) if a.startswith('f')]
             ['filter_degree_type',
+             'filter_regular_gready_parameters',
              'filter_regular_parameters',
              'find_dickson',
              'find_dickson_in_subgroup',
@@ -4421,6 +4424,7 @@ Minimal list of algebraic relations:
             sage: import sage.interfaces.tab_completion as tc
             sage: tc.completions('H.f',globals())  # indirect doctest
             ['H.filter_degree_type',
+             'H.filter_regular_gready_parameters',
              'H.filter_regular_parameters',
              'H.find_dickson',
              'H.find_dickson_in_subgroup',
@@ -4459,6 +4463,7 @@ Minimal list of algebraic relations:
             sage: import sage.interfaces.tab_completion as tc
             sage: tc.completions('H.f',globals())
             ['H.filter_degree_type',
+             'H.filter_regular_gready_parameters',
              'H.filter_regular_parameters',
              'H.find_dickson',
              'H.find_dickson_in_subgroup',
@@ -5185,11 +5190,10 @@ Minimal list of algebraic relations:
             sage: singular('NF((a_4_8*a_6_8*a_1_0^3*a_1_3)^2, std(0))')
             0
 
-        The second example was very recently discovered, using
-        this package. It is the direct product of the cyclic group
-        of order two and ``SmallGroup(64,245)``. Again, there is
-        precisely one essential class that can be written
-        as a product of other essential classes.
+        The second example was discovered using this package. It is the direct
+        product of the cyclic group of order two and ``SmallGroup(64,245)``. Again,
+        there is precisely one essential class that can be written as a product
+        of other essential classes.
 
         """
         if not self.completed:
@@ -10514,12 +10518,11 @@ is an error. Please inform the author!""")
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: for n in range(1,268):
+            sage: for n in range(1,268):               #long time
             ....:     H = CohomologyRing(64, n)
             ....:     H.make()
             ....:     if H.poincare_series() != H._poincare_series_old_implementation(): # indirect doctest
             ....:         print(n)
-            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: for n in range(1,16):
             ....:     H = CohomologyRing(81, n)
             ....:     H.make()

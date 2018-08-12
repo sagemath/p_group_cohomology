@@ -2706,7 +2706,7 @@ class MODCOHO(COHO):
         ``True`` or ``False``, if parameters can be found or not.
         The attribute ``_current_parameters`` is assigned to a list
         of parameters (given by strings).
-
+fi
         NOTE:
 
         This is an auxiliary function for
@@ -2854,9 +2854,9 @@ class MODCOHO(COHO):
             sage: (I+singular.ideal(H.parameters())).groebner().GKdim()
             2
 
-        But they *are* parameters for the complete cohomology ring, as we will
-        verify filter regularity below. The ring approximation is thus
-        incomplete, and in fact We expect relations in degree at least 22::
+        But they *are* filter regular parameters for the complete cohomology ring,
+        as we will verify below. The ring approximation is thus incomplete, and
+        in fact We expect relations in degree at least 22::
 
             sage: H.expect_last_relation()
             22
@@ -2866,12 +2866,26 @@ class MODCOHO(COHO):
 
             sage: H.make(22)
 
-        We complete the example by verifying filter regularity::
+        Indeed, we find that the above sequence ``P1`` is filter regular::
 
             sage: H.raw_filter_degree_type(P1)
             ([-1, -1, 79, 85],
              [[0], [0], [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 1, 0, 1, 3, 2, 0, 1, 3, 2, 0, 2, 4, 2, 0, 2, 5, 3, 0, 2, 5, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 6, 3, 0, 3, 5, 2, 0, 3, 5, 2, 0, 2, 4, 2, 0, 2, 3, 1, 0, 2, 3, 1, 0, 1, 2, 1, 0, 1, 1, 0, 0, 1, 1], [1, 0, 0, 3, 2, 0, 2, 5, 3, 1, 5, 8, 4, 1, 7, 11, 5, 2, 9, 13, 6, 3, 12, 16, 7, 3, 14, 19, 8, 4, 16, 21, 9, 5, 19, 24, 9, 5, 21, 24, 9, 6, 21, 24, 9, 6, 21, 24, 8, 6, 21, 21, 7, 6, 19, 19, 6, 5, 16, 16, 5, 5, 14, 13, 4, 4, 12, 11, 3, 3, 9, 8, 2, 3, 7, 5, 1, 2, 5, 3, 0, 1, 2, 0, 0, 1]],
              [36, 48, 4])
+
+        Note that now, as the ring structure is completely known, we are
+        able to find filter regular parameters in very low degrees, which
+        we couldn't before knowing that the ring structure is complete::
+
+            sage: P2 = H.filter_regular_gready_parameters(); P2
+            ['c_12_7', 'b_4_2+b_4_0', 'b_4_1']
+            sage: H.raw_filter_degree_type(P2)
+            ([-1, -1, 11, 17],
+             [[0],
+              [0],
+              [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1],
+              [1, 0, 0, 3, 1, 0, 2, 2, 1, 1, 3, 3, 0, 0, 2, 0, 0, 1]],
+             [12, 4, 4])
 
         """
         if self._final_parameters:
@@ -3534,7 +3548,6 @@ class MODCOHO(COHO):
                       Try to find new Duflot-regular element in degree 3
             Singular: 1 = (2-1)^2 parameter candidates
                       We found a parameter.
-                      > It is regular.
             H^*(SmallGroup(48,50); GF(2)):
                       Found extension of the Duflot regular sequence
             sage: CohomologyRing.global_options('warn')
@@ -3651,7 +3664,6 @@ class MODCOHO(COHO):
                       Try to find new Duflot-regular element in degree 1
             Singular: 1 = (2-1)^1 parameter candidates
                       We found a parameter.
-                      > It is regular.
             H^*(SmallGroup(720,763); GF(2)):
                       Found extension of the Duflot regular sequence
                       Degree 1 of the visible ring structure is computed!
@@ -3684,7 +3696,6 @@ class MODCOHO(COHO):
                       Try to find new Duflot-regular element in degree 2
             Singular: 1 = (2-1)^1 parameter candidates
                       We found a parameter.
-                      > It is regular.
             H^*(SmallGroup(720,763); GF(2)):
                       Found extension of the Duflot regular sequence
                       Degree 2 of the visible ring structure is computed!
