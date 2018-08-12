@@ -174,11 +174,12 @@ EXAMPLE: example is_regular; shows an example
   // // compute the quotient id:ideal(f) -- "manually"
   // def q = intersect(id,ideal(f));
 
-  // attempt to do intersection using Hilbert driven elimination WARNING: In
-  // previous versions, the computation of Hilbert series was buggy in
-  // Singular! So, if you use an old version of Singular, you should replace
-  // "if (1)" by "if (0)".
-  if (1)
+  // At some point we used Hilbert driven elimination.
+  // In some versions, the computation of Hilbert series was buggy in
+  // Singular. Therefore, we by default use the standard routine
+  // to compute intersection. However, if this is slow, you may resort
+  // to replacing "if (0)" by "if (1)".
+  if (0)
     { def q = intersectOnce(id,f);}
   else
     { def q = intersect(id,ideal(f)); }
@@ -226,19 +227,21 @@ EXAMPLE: example is_freg; shows an example
   // // compute the quotient id:ideal(f) -- "manually"
   // def q = intersect(id,ideal(f));
    
-  // attempt to do intersection using Hilbert driven elimination WARNING: In
-  // previous versions, the computation of Hilbert series was buggy in
-  // Singular! So, if you use an old version of Singular, you should replace
-  // "if (1)" by "if (0)".
-  if (1)
-    { ideal q = intersectOnce(id,f);}
-  else
-    { ideal q = intersect(id,ideal(f)); }
-  for (ii=1;ii<=ncols(q);ii++)
-    { q[ii]=q[ii]/f;
-    }
-  //// Standard procedure -- which is buggy for nc rings
-  // def q = quotient(id,ideal(f));
+  // // attempt to do intersection using Hilbert driven elimination WARNING: In
+  // // previous versions, the computation of Hilbert series was buggy in
+  // // Singular! So, if you use an old version of Singular, you should replace
+  // // "if (1)" by "if (0)".
+  // if (1)
+  //   { ideal q = intersectOnce(id,f);}
+  // else
+  //   { ideal q = intersect(id,ideal(f)); }
+  // for (ii=1;ii<=ncols(q);ii++)
+  //   { q[ii]=q[ii]/f;
+  //   }
+  // The standard procedure to compute quotients used to
+  // be buggy for nc rings, but now seems fine. So, there is
+  // no need to compute it manually as above.
+  def q = quotient(id,ideal(f));
   def rw = ringweights(basering);
   intvec qw;
   for (ii=1;ii<=ncols(q);ii++)
