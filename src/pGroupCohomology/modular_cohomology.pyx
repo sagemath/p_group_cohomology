@@ -2742,15 +2742,15 @@ fi
             sage: H.parameters_from_sylow_subgroup()
             ['c_12_7', 'b_4_2^3-b_4_1*b_8_4+b_4_1^3+b_4_0^2*b_4_1-b_4_0^3', None]
 
-        TODO:
+        .. TODO::
 
-        A previous version of our heuristics to find parameters was able to
-        find a parameter in degree 4 that extends the above sequence. The new
-        heuristics can not find it, but succeeds in many other examples. Try
-        to find a heuristics that combines the advantages of both approaches!
+            A previous version of our heuristics to find parameters was able to
+            find a parameter in degree 4 that extends the above sequence. The new
+            heuristics can not find it, but succeeds in many other examples. Try
+            to find a heuristics that combines the advantages of both approaches!
 
-        When we now construct filter regular parameters, the log shows what
-        is happening behind the scenes when we find a last parameter in degree 4::
+        When we now construct filter regular parameters, the first few
+        parameters are in much higher degree than needed::
 
             sage: CohomologyRing.global_options('info')
             sage: H._construct_fr_parameters()

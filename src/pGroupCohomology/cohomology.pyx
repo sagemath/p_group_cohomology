@@ -558,8 +558,16 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
                 if int(singular.eval('%s(std(%s,ideal(%s[1][1])))'%('dim' if p==2 else 'GKdim', Id.name(), vp.name())))<d0:
                     #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
                     coho_logger.info("We found a parameter.",singular)
+                    coho_logger.debug("> %r",singular,vp)
                     if regularity==1:
-                        reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s)'%(vp.name(),Id.name())).split(',')]
+                        try:
+                            reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s,%d)'%(vp.name(), Id.name(), coho_options.get("use_hilbert"))).split(',')]
+                        except RuntimeError, msg:
+                            if ("overflow" in repr(msg)) and coho_options.get("use_hilbert")<0:
+                                coho_logger.warn("%r -- use builtin methods",singular, msg)
+                                reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s,%d)'%(vp.name(), Id.name(), 0)).split(',')]
+                            else:
+                                raise
                         if reg_vec_tmp != [-1]:
                             coho_logger.info('> It is filter-regular.',singular)
                             got_something = True
@@ -568,7 +576,14 @@ def explore_one_parameter(Id, L, p, BreakPoint = None, regularity=0):
                         else:
                             coho_logger.info('> But it is not filter-regular.',singular)
                     elif regularity>1:
-                        reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s)'%(vp.name(),Id.name())).split(',')]
+                        try:
+                            reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s,%d)'%(vp.name(), Id.name(), coho_options.get("use_hilbert"))).split(',')]
+                        except RuntimeError, msg:
+                            if ("overflow" in repr(msg)) and coho_options.get("use_hilbert")<0:
+                                coho_logger.warn("%r -- use builtin methods",singular, msg)
+                                reg_vec_tmp = [Integer(bla.strip()) for bla in singular.eval('is_freg(%s[1][1],%s,%d)'%(vp.name(), Id.name(), 0)).split(',')]
+                            else:
+                                raise
                         if reg_vec_tmp == [0]:
                             coho_logger.info('> It is regular.',singular)
                             got_something = True
@@ -9103,8 +9118,9 @@ is an error. Please inform the author!""")
             sage: H.find_dickson()
             True
 
-        The parameters are cached, but nevertheless the programs find
-        out that we can now find parameters::
+        The result of :meth:`parameters` is cached as long as the ring structure
+        doesn't change. Here, the ring structure *has* changed since the previous
+        call to the method, and indeed we can now find parameters::
 
             sage: H.parameters()
             ['b_2_0^2+c_4_1',
@@ -9117,15 +9133,17 @@ is an error. Please inform the author!""")
         current ring approximation::
 
             sage: I = H.relation_ideal()
-            sage: I.std(singular.ideal(H.parameters())).dim()
-            5
+            sage: singular.eval('degBound = 0')
+            ''
+            sage: print(singular.eval('dim(groebner(%s+ideal(%s)))'%(I.name(), ','.join(H.parameters()))))
+            4
 
         Continuing to degree 14, thus, having more relations, the above
         parameters do indeed turn into parameters for the ring approximation::
 
             sage: H.make(14)
             sage: I = H.relation_ideal()
-            sage: I.std(singular.ideal(H.parameters())).dim()
+            sage: print(singular.eval('dim(groebner(%s+ideal(%s)))'%(I.name(), ','.join(H.parameters()))))
             0
 
         """
@@ -10398,7 +10416,10 @@ is an error. Please inform the author!""")
                 return (-HS.numerator()/(-HS.denominator()))
             return HS
         finally:
-            singular.eval('degBound = %s'%dgb)
+            try:
+                singular.eval('degBound = %s'%dgb)
+            except:
+                pass
 
     @temporary_result
     def poincare_series(self, test_duality=False):
@@ -11621,7 +11642,14 @@ is an error. Please inform the author!""")
         self.make_groebner()
         coho_logger.info("Test filter regularity", self)
         coho_logger.debug("Parameters: %s", self, repr(FRS))
-        DRaw=singular("is_fregs(ideal(%s),%sI)"%(','.join(FRS),self.prefix)).sage_structured_str_list()
+        try:
+            DRaw=singular("is_fregs(ideal(%s),%d,%sI)"%(','.join(FRS), coho_options.get("use_hilbert"), self.prefix)).sage_structured_str_list()
+        except RuntimeError, msg:
+            if ("overflow" in repr(msg)) and coho_options.get("use_hilbert")<0:
+                coho_logger.warn("%r -- use builtin methods",singular, msg)
+                DRaw=singular("is_fregs(ideal(%s),%d,%sI)"%(','.join(FRS), 0, self.prefix)).sage_structured_str_list()
+            else:
+                raise
         self.setprop('lastTested',self.knownDeg)
         if DRaw=='0':
             coho_logger.info("> Sequence is NOT filter regular. Sorry.", self)

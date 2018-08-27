@@ -133,6 +133,8 @@ suggesting to use the Poincaré series in a completeness criterion.
 Versions
 --------
 
+  * v3.0.1: Add a routine to compute filter regular parameters in small degrees
+    by enumeration. Cope with some changes in Singular.
   * v3.0: Turn the cohomology package into a "new style spkg". It is split
     into several smaller parts that are either using an autotoolized build
     system or are pip installable.

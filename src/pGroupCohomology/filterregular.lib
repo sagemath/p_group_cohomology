@@ -24,6 +24,7 @@
 LIB "poly.lib"; // fuer maxdeg1
 LIB "dickson.lib"; // fuer ringweights
 LIB "gkdim.lib"; // fuer Gelfand-Kirillov-Dimension GKdim
+//~ LIB "nctools.lib"; // fuer moduloSlim
 
 proc gcRingSum(def R, def S)
 "USAGE:      gcRingSum(R,S); R a graded commutative ring modeled by a 
@@ -69,19 +70,16 @@ RETURN:     an ideal, with normalize(NF(id[i],GB)) at position i for all i.
 	return(OUT);
 }
 
-proc intersectOnce(ideal id, poly f)
-"USAGE:      intersectOnce(id,f); id homogeneous ideal, f homogeneous poly
-RETURN:     intersection of id and ideal(f)
+proc intersectOnce(ideal id, poly f, int use_hilbert)
+"USAGE:      intersectOnce(id,f,h); id homogeneous ideal, f homogeneous poly, h 0/1
+RETURN:     intersection of id and ideal(f). Use Hilbert driven computation
+            in characteristic two, if h==1
 ASSUMPTION: id is given by a Groebner basis
 "
 { def br = basering;
-  int nc;
-  //if (NF(f^2,id)==0)
-  //  { nc=1;
-  //  }
   ring r = char(br),(@t),wp(deg(f));
   def R = gcRingSum(br,r);
-  if (char(br)==2) 
+  if ((use_hilbert) and (char(br)==2)) 
     {
       // We have a commutative rings and hence the Hilbert function is
       // available.
@@ -105,10 +103,10 @@ ASSUMPTION: id is given by a Groebner basis
       ideal filter = NF(id,std(ideal(@t)));
       ideal schnitt;
       for (int i=1;i<=ncols(id);i++)
-	{ if (filter[i]==0) // i.e., it is a multiple of @t
-	    { schnitt = schnitt,id[i];
-	    }
-	}
+        { if (filter[i]==0) // i.e., it is a multiple of @t
+            { schnitt = schnitt,id[i];
+            }
+        }
       setring br;
       ideal id_ev = maxideal(1),f;
       map ev = R,id_ev;
@@ -125,10 +123,10 @@ ASSUMPTION: id is given by a Groebner basis
       ideal filter = NF(id,std(ideal(@t)));
       ideal schnitt;
       for (int i=1;i<=ncols(id);i++)
-	{ if (filter[i]==0) // i.e., it is a multiple of @t
-	    { schnitt = schnitt,id[i];
-	    }
-	}
+        { if (filter[i]==0) // i.e., it is a multiple of @t
+            { schnitt = schnitt,id[i];
+            }
+        }
       setring br;
       ideal id_ev = maxideal(1),f;
       map ev = R,id_ev;
@@ -180,7 +178,7 @@ EXAMPLE: example is_regular; shows an example
   // to compute intersection. However, if this is slow, you may resort
   // to replacing "if (0)" by "if (1)".
   if (0)
-    { def q = intersectOnce(id,f);}
+    { def q = intersectOnce(id,f,1);}
   else
     { def q = intersect(id,ideal(f)); }
   for (ii=1;ii<=ncols(q);ii++)
@@ -189,14 +187,15 @@ EXAMPLE: example is_regular; shows an example
   if( size(NF(q,id))==0 ){ return(1); } else { return(0); }
 }
 
-proc is_freg (poly f, ideal id)
-"USAGE:   is_freg(f,id); f poly, id ideal
+proc is_freg (poly f, ideal id, int use_builtin)
+"USAGE:   is_freg(f,id,b); f poly, id ideal, b 2/1/0/-1
 RETURN:  The intvec of dimensions of the homogeneous parts of the kernel
          of the multiplication with f, if it is of finite dimension. 
          intvec(-1) is returned otherwise.
 NOTE:    Let R be the basering and id a submodule of R^n. The procedure checks
          injectivity of multiplication with f on R^n/id. The basering may be a
-         quotient ring.
+         quotient ring. Some Hilbert driven computation is used, if
+         b<0; builtin functions are used if b>0.
 ASSUMPTION: We have degBound==0, and id is a Groebner basis.
 EXAMPLE: example is_freg; shows an example
 "
@@ -227,28 +226,40 @@ EXAMPLE: example is_freg; shows an example
   // // compute the quotient id:ideal(f) -- "manually"
   // def q = intersect(id,ideal(f));
    
-  // // attempt to do intersection using Hilbert driven elimination WARNING: In
-  // // previous versions, the computation of Hilbert series was buggy in
-  // // Singular! So, if you use an old version of Singular, you should replace
-  // // "if (1)" by "if (0)".
-  // if (1)
-  //   { ideal q = intersectOnce(id,f);}
-  // else
-  //   { ideal q = intersect(id,ideal(f)); }
-  // for (ii=1;ii<=ncols(q);ii++)
-  //   { q[ii]=q[ii]/f;
-  //   }
+  // Attempt to intersect ideals using Hilbert driven elimination,
+  // in order to computat quotient. WARNING: In previous versions
+  // of Singular, the computation of Hilbert series was buggy!
+  int tt = timer;
+  write("/home/king/Projekte/coho/logs/coho_log.sing","quotient computation, mode "+string(use_builtin));
+  if (use_builtin==2)
+    { def q = quotient(id, ideal(f));
+    }
+  else
+    {
+      if (use_builtin>0)
+        { ideal q = intersect(id,ideal(f));}
+      else
+        { ideal q = intersectOnce(id,f,use_builtin<0); }
+      for (ii=1;ii<=ncols(q);ii++)
+        { q[ii]=q[ii]/f;
+        }
+    }
+  write("/home/king/Projekte/coho/logs/coho_log.sing","-> cpu time: "+string(timer-tt)+"ms");
   // The standard procedure to compute quotients used to
-  // be buggy for nc rings, but now seems fine. So, there is
-  // no need to compute it manually as above.
-  def q = quotient(id,ideal(f));
+  // be buggy for nc rings; we didn't test if it is fine now.
+  // Here would be the code:
+  // def q = quotient(id,ideal(f));
   def rw = ringweights(basering);
   intvec qw;
   for (ii=1;ii<=ncols(q);ii++)
     { qw[ii] = deg(q[ii]);
     }
-  //id=std(id); // not needed, since we assume that it is already Groebner!
-  def m = groebner(modulo(q,id));
+  tt = timer;
+  write("/home/king/Projekte/coho/logs/coho_expl.sing","ring R="+string(basering)+";");
+  write("/home/king/Projekte/coho/logs/coho_expl.sing","ideal id="+string(id)+";");
+  write("/home/king/Projekte/coho/logs/coho_expl.sing","ideal q ="+string(q)+";");
+  def m = groebner(modulo(q,id));  // Turns out tha moduloSlim is a lot slower in important examples than modulo
+  write("/home/king/Projekte/coho/logs/coho_log.sing","modulo computation -> cpu time: "+string(timer-tt)+"ms");
   int mdeg;
   int mvdim;
   int mdim = vdim(m);
@@ -267,8 +278,8 @@ EXAMPLE: example is_freg; shows an example
   return(HV);
 }
 
-proc is_fregs (ideal i, list #)
-"USAGE:   is_fregs(i[,id]); i poly, id ideal (default: id=0)
+proc is_fregs (ideal i, int use_hilbert, list #)
+"USAGE:   is_fregs(i, use_hilbert, [,id]); i poly, use_hilbert 2/1/0/-1, id ideal (default: id=0)
 RETURN:  a list of Hilbert vectors for the kernels of the multiplication
          maps of the elements of i and of the quotient by i, if the elements
          of i form a filter regular homogeneous system of parameters.
@@ -279,6 +290,9 @@ NOTE:    Let R be the basering and id a submodule of R^n. The procedure checks
          The basering may be a quotient ring.
          printlevel >=0: display comments (default)
          printlevel >=1: display comments during computation
+         If use_hilbert<0, a Hilbert driven computation is used, that is buggy
+         though in some versions of Singular (specifically in graded-commutative rings).
+         If use_hilbert>0, more builtin methods are used.
 ASSUMPTION: We have degBound==0, and the (optional) parameter id is a Groebner basis.
 EXAMPLE: example is_fregs; shows an example
 "
@@ -302,7 +316,7 @@ EXAMPLE: example is_fregs; shows an example
   {
      if( p>=2 )
      { "// checking whether element",ii,"is filter regular mod 1 ..",ii-1; }
-     OUT[ii] = is_freg(i[ii],id);
+     OUT[ii] = is_freg(i[ii],id,use_hilbert);
      if( OUT[ii][1]==-1 )
      { if (ii>1) 
        { dbprint(p,"// elements 1.."+string(ii-1)+" are filter regular,");

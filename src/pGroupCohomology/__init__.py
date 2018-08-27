@@ -1622,22 +1622,17 @@ show what is happening behind the scenes.
 The Sylow subgroup
 ------------------
 
-We want to test this example as if it was in a new Sage session and therefore
-restart GAP and Singular and create a new temporary folder for storing
-cohomology data::
-
-    sage: gap.quit()
-    sage: singular.quit()
-
-Since we are using the stable element method, we first need to get the
+To be on the safe side, we first restart GAP to prevent being disturbed by stale
+data. Since we are using the stable element method, we first need to get the
 cohomology ring of a Sylow 2-subgroup. It is of order 128::
 
+    sage: gap.quit()
     sage: G = gap.SymmetricGroup(8)
     sage: G.SylowSubgroup(2).IdGroup()
     [ 128, 928 ]
 
-We set up the computation of its cohomology ring (requesting a computation
-from scratch in a new temporary directory)::
+We want to test this example as if it was in a new Sage session and therefore
+clear all previous computations::
 
     sage: from pGroupCohomology import CohomologyRing
     sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
