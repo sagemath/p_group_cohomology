@@ -6762,36 +6762,46 @@ cdef class ChMap(RingHomomorphism):
         from sage.all import PolynomialRing
         from sage.all import ZZ
         from sage.all import mul
-        from pGroupCohomology.cohomology import MonomialHilbert
+        from pGroupCohomology.cohomology import FirstHilbertSeries
 
         R = PolynomialRing(ZZ,'t')
         t = R('t')
 
         # we make sure that both domain and codomain are completely known
-        self.domain().make()
-        self.codomain().make()
-        phi = singular(self)
-        CS = singular(self.codomain())
-        DS = singular(self.domain())
-        CS.set_ring()
-        dgb = singular.eval('degBound')
-        singular.eval('degBound = 0')
+        try:
+            br = singular('basering')
+        except:
+            br = None
+        try:
+            self.domain().make()
+            self.codomain().make()
+            phi = singular(self)
+            CS = singular(self.codomain())
+            DS = singular(self.domain())
+            CS.set_ring()
+            dgb = singular.eval('degBound')
+            singular.eval('degBound = 0')
 
-        DS.set_ring()
-        K = self.preimage() # the kernel
+            DS.set_ring()
+            K = self.preimage() # the kernel
 
-        # Something goes wrong in the non-commutative case.
-        # Hence, we have to form a commutative version of the basering
-        L = singular.ringlist('basering')
-        tmpI = L[4]
-        tmpR = singular('ring(list(%s[1..3],ideal(0)))'%(L.name()))
-        tmpR.set_ring()
-        HP = MonomialHilbert(singular('lead(fetch(%s,%s)+fetch(%s,%s))'%(DS.name(),K.name(),DS.name(),tmpI.name())))
-        HS = HP/mul([(1-t**X) for X in self.domain().degvec])
-        singular.eval('degBound = '+dgb)
-        if HS.denominator().leading_coefficient()<0:
-            return (-HS.numerator()/(-HS.denominator()))
-        return HS
+            # Something goes wrong in the non-commutative case.
+            # Hence, we have to form a commutative version of the basering
+            L = singular.ringlist('basering')
+            tmpI = L[4]
+            tmpR = singular('ring(list(%s[1..3],ideal(0)))'%(L.name()))
+            tmpR.set_ring()
+            HP = FirstHilbertSeries(singular('fetch(%s,%s)+fetch(%s,%s)'%(DS.name(),K.name(),DS.name(),tmpI.name())))
+            HS = HP/mul([(1-t**X) for X in self.domain().degvec])
+            singular.eval('degBound = '+dgb)
+            if HS.denominator().leading_coefficient()<0:
+                return (-HS.numerator()/(-HS.denominator()))
+            return HS
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
     def rank_of_image(self, d):
         r"""

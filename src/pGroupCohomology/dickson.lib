@@ -21,9 +21,21 @@
 //*****************************************************************************
 
 LIB "general.lib";
-LIB "filterregular.lib";
 LIB "poly.lib";
 //LIB "ring.lib"; // for changeord
+
+// Auxiliar procedure, since NF in non-commutative rings now removes zeroes from ideals:
+proc Normalize(ideal id, ideal GB)
+"USAGE:      Normalize(id,GB); id, GB ideals, GB standard
+RETURN:     an ideal, with normalize(NF(id[i],GB)) at position i for all i.
+"
+{ if (char(basering) == 2) { return(normalize(NF(id,GB))); }
+	ideal OUT;
+	for (int i = ncols(id); i>0; i--)
+	{ OUT[i] = normalize(NF(id[i],GB));
+	}
+	return(OUT);
+}
 
 proc degvec(ideal I)
 "USAGE:  degvec(I);

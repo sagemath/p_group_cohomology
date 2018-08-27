@@ -92,7 +92,7 @@ setup(
                os.path.join("pGroupCohomology","GapMB.g"),
                os.path.join("pGroupCohomology","GapSgs.g")]),
               (os.path.join(SAGE_SHARE,'singular','LIB'),
-               [os.path.join("pGroupCohomology","dickson.lib"), os.path.join("pGroupCohomology","filterregular.lib")])],
+               [os.path.join("pGroupCohomology","dickson.lib")])],
   ext_modules=cythonize(ext_mods, compiler_directives={'embedsignature': True}),
   cmdclass = {'build_ext': build_ext}
 )

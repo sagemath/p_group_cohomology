@@ -924,18 +924,20 @@ class MODCOHO(COHO):
         abelian subgroup of the Sylow subgroup, does not form
         a regular sequence::
 
+            sage: from pGroupCohomology.cohomology import is_filter_regular_parameter_system
             sage: r = X.restriction_maps()[1][1]
             sage: r
             Induced homomorphism of degree 0 from H^*(SmallGroup(720,763); GF(2)) to H^*(SmallGroup(4,2); GF(2))
             sage: rest = [r(X(p)).as_polynomial() for p in X.filter_regular_parameters()]; rest
             ['c_1_0', 'c_1_1^2', 'c_1_0*c_1_1^2']
             sage: singular(r.codomain()).set_ring()
-            sage: for i in range(len(rest)):
-            ....:     print(singular.is_regular(rest[i], 'ideal({})'.format(','.join(rest[:i]))))
-            ....:
-            1
-            1
-            0
+
+        The fact that the annulator of the last parameter has dimension one in
+        degrees zero and one means that the last parameter is filter regular,
+        but not regular.
+
+            sage: is_filter_regular_parameter_system('std(0)', rest)
+            [[0], [0], [1, 1], [1, 1]]
 
         Often, a Duflot regular sequence can be formed by generators
         of the cohomology ring. Actually, to some extent this is how

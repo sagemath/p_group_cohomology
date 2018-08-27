@@ -169,8 +169,7 @@ default_options = (('useMTX',True),
                    ('autoliftElAb',0),
                    ('SingularCutoff',70),
                    ('NrCandidates',1000),
-                   ('use_web',True),
-                   ('use_hilbert',-1))
+                   ('use_web',True))
 
 coho_options = dict(default_options)
 
