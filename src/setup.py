@@ -61,6 +61,10 @@ ext_mods = [
 
     Extension("pGroupCohomology.dickson",
               sources = [os.path.join("pGroupCohomology","dickson.pyx")],
+              include_dirs = sage_include_directories()),
+
+    Extension("pGroupCohomology.hilbert",
+              sources = [os.path.join("pGroupCohomology","hilbert.pyx")],
               include_dirs = sage_include_directories())
     ]
 

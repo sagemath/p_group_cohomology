@@ -298,8 +298,19 @@ class CohoFormatter(logging.Formatter):
             self.obj = weakref.ref(CohoFormatter)
             self.objstr = ""
             objstr = ""
+        elif isinstance(obj, basestring):
+            if self.obj != obj:
+                objstr = obj+': '
+                self.obj = obj
+                if len(objstr)>10:
+                    objstr = objstr+os.linesep+10*" "
+                    self.objstr = "          "
+                else:
+                    self.objstr = " "*len(objstr)
+            else:
+                objstr = self.objstr
         else:
-            if self.obj() is not obj:
+            if isinstance(self.obj, basestring) or (self.obj() is not obj):
                 objstr = "{}: ".format(repr(obj))
                 self.obj = weakref.ref(obj)
                 if len(objstr)>10:

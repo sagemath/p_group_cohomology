@@ -434,3 +434,21 @@ maxExp), and return a whitness
   map f = R, mapI;
   return(matrix(f(Result)));
 }
+
+// The Dickson invariants are used in group cohomology to construct
+// filter regular parameter systems. Filter regularity can be tested
+// using Hilbert functions. Computation of Hilbert functions relies
+// on computing quotients of monomial ideals by monomials. Thus, the
+// following function somehow fits into the scope of this module;
+// it is a lot faster than calling quotient(id,m).
+
+proc monomial_quotient(ideal id, poly m)
+{
+   int i;
+   int sz = ncols(id);
+   id[2*sz]=0;
+   for (i=1;i<=sz;i++)
+   { id[i+sz]=id[i]/gcd(id[i],m);
+   }
+   return(interred(id));
+}

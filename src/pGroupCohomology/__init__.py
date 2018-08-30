@@ -454,8 +454,8 @@ and indeed they vanish::
 
 We can also compute the nil radical, i.e., the ideal formed by all
 nilpotent elements. It is given in the Singular interface, as an ideal
-in a free graded commututive ring. In particular, all elements of the
-relation ideal of the cohomology ring are in the nil radical. For the
+in a free graded commututive ring. So, modulo the relation ideal,
+the returned ideal canonically maps onto the nil radical. For the
 dihedral group of order 8, the nil radical vanishes::
 
     sage: H1.nil_radical()
