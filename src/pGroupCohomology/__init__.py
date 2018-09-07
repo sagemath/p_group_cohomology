@@ -422,12 +422,11 @@ ring of the dihedral group of order 8::
 
 Actually we implemented two essentially different ways of computating
 the Poincaré series. The method
-:meth:`~pGroupCohomology.cohomology.COHO.poincare_without_parameters`
-is usually much slower than
-:meth:`~pGroupCohomology.cohomology.COHO.poincare_series`, but of
-course the results are the same::
+:meth:`~pGroupCohomology.cohomology.COHO._poincare_without_parameters`
+is used if the filter degree type hasn't been computed. Of course, one
+can invoke it directly::
 
-    sage: H2.poincare_without_parameters()
+    sage: H2._poincare_without_parameters()
     1/(t^2 - 2*t + 1)
 
 After computing the ring structure, generators and relations of the
@@ -474,7 +473,7 @@ degree 6::
     [-Infinity, -Infinity, -Infinity, -3]
     sage: HS6a.poincare_series()
     (-t^2 + t - 1)/(t^5 - 2*t^4 + t^3 - t^2 + 2*t - 1)
-    sage: HS6a.poincare_without_parameters()
+    sage: HS6a._poincare_without_parameters()
     (-t^2 + t - 1)/(t^5 - 2*t^4 + t^3 - t^2 + 2*t - 1)
     sage: HS6a.nil_radical()
     0

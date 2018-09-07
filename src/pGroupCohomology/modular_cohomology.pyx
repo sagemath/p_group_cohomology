@@ -61,11 +61,11 @@ from pGroupCohomology.resolution_bindings cimport *
 from sage.libs.meataxe cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.matrix.matrix_gfpn_dense cimport new_mtx
+from sage.rings.polynomial.hilbert import hilbert_poincare_series, first_hilbert_series
 from pGroupCohomology.auxiliaries import gap, singular
 from pGroupCohomology.cohomology import unpickle_gap_data, pickle_gap_data
 from pGroupCohomology.resolution cimport *
 from pGroupCohomology.cochain cimport COCH, ChMap
-from pGroupCohomology.hilbert import FirstHilbertSeries
 
 #############################
 ##                         ##
@@ -2680,7 +2680,7 @@ class MODCOHO(COHO):
                 return
             coho_logger.info("No parameters were found, the ring approximation is incomplete.", self)
             return False
-        p = self.poincare_without_parameters()
+        p = self._poincare_without_parameters()
         R = p.parent()
         t = R.gen(0)
         denom = R(1)
@@ -3593,7 +3593,7 @@ fi
                 singular.eval('ideal %sRegTest = std(0)'%self.prefix)
         from pGroupCohomology.cohomology import explore_one_parameter
         HGS.set_ring()
-        HP0 = FirstHilbertSeries('%sRegTest'%self.prefix)
+        HP0 = first_hilbert_series('%sRegTest'%self.prefix)
         while(1):
             val, Coef, reg_vec = explore_one_parameter(singular('%sRegTest'%self.prefix), L, self._prime, 2, HP0)
             if val:
@@ -3606,7 +3606,7 @@ fi
                     return
                 HGS.set_ring()
                 singular.eval('%sRegTest=std(%sRegTest,%s)'%(self.prefix,self.prefix,val.name()))
-                HP0 = FirstHilbertSeries('%sRegTest'%self.prefix)
+                HP0 = first_hilbert_series('%sRegTest'%self.prefix)
             else:
                 singular.eval('degBound='+dgb)
                 return

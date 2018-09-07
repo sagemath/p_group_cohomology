@@ -75,6 +75,7 @@ from sage.all import QQ
 from sage.all import infinity
 from sage.all import Integer
 from sage.all import Algebras, CommutativeAlgebras
+from sage.rings.polynomial.hilbert import hilbert_poincare_series, first_hilbert_series
 from sage.interfaces.gap import GapElement
 from sage.interfaces.singular import SingularElement
 
@@ -88,7 +89,6 @@ from pGroupCohomology.auxiliaries import singular
 from pGroupCohomology.resolution cimport RESL, G_ALG
 from pGroupCohomology.cochain cimport COCH, ChMap
 from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
-from pGroupCohomology.hilbert import HilbertPoincareSeries, FirstHilbertSeries
 from pGroupCohomology.resolution import resl_sparse_unpickle, makeGroupData, makeSpecialGroupData, gap
 from pGroupCohomology.dickson import DICKSON
 from pGroupCohomology.resolution cimport *
@@ -661,7 +661,7 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
 #############################
 ## Tools to enumerate filter regular parameters
 
-def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None, with_singular=True):
+def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None):
     r"""
     Find a parameter for the quotient ring given by an ideal.
 
@@ -817,9 +817,9 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None,
         # we kicked stuff, so, we don't need coefficient zero
         EssIter = cartesian_product_iterator([range(1,p)]*lenEss)
         reg_vec = []
-        coho_logger.debug('Computing first Hilbert Poincaré series of start ideal', singular)
+        coho_logger.debug('Computing first Hilbert Poincaré series of start ideal', "explore_one_parameter")
         if H1 is None:
-            H1 = FirstHilbertSeries(Id, with_singular)
+            H1 = first_hilbert_series(Id)
         for EssT in EssIter:
             v  = singular.intmat(singular.intvec(*EssT),lenEss,1)
             xp = Essential*v
@@ -835,26 +835,26 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None,
                 Idvp = Id.std(vp.name()+'[1][1]')
                 if int(singular.eval('%s(%s)'%('dim' if p==2 else 'GKdim', Idvp.name())))<d0:
                     #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
-                    coho_logger.info("We found a parameter.",singular)
+                    coho_logger.info("We found a parameter.", "explore_one_parameter")
                     coho_logger.debug("> %r (%d/%d)",singular,vp,counter,total)
                     if regularity==1:
-                        reg_vec_tmp = is_filter_regular(Id, vp, H1, Idvp, with_singular)
+                        reg_vec_tmp = is_filter_regular(Id, vp, H1, Idvp)
                         if reg_vec_tmp:
-                            coho_logger.info('> It is filter-regular.',singular)
+                            coho_logger.info('> It is filter-regular.', "explore_one_parameter")
                             got_something = True
                             reg_vec = reg_vec_tmp
                             break
                         else:
-                            coho_logger.info('> But it is not filter-regular.',singular)
+                            coho_logger.info('> But it is not filter-regular.', "explore_one_parameter")
                     elif regularity>1:
-                        reg_vec_tmp = is_filter_regular(Id, vp, H1, Idvp, with_singular)
+                        reg_vec_tmp = is_filter_regular(Id, vp, H1, Idvp)
                         if reg_vec_tmp == [0]:
-                            coho_logger.info('> It is regular.',singular)
+                            coho_logger.info('> It is regular.', "explore_one_parameter")
                             got_something = True
                             reg_vec = reg_vec_tmp
                             break
                         else:
-                            coho_logger.info('> But it is not regular.', singular)
+                            coho_logger.info('> But it is not regular.', "explore_one_parameter")
                     else:
                         got_something = True
                         break
@@ -945,7 +945,7 @@ def FilterDegreeType(dv, rt):
             i+=1
     return ft
 
-def is_filter_regular(I, f, H1=None, I2=None, with_singular=True):
+def is_filter_regular(I, f, H1=None, I2=None):
     r"""
     Test if `f` is filter-regular with respect to `I`.
 
@@ -980,9 +980,9 @@ def is_filter_regular(I, f, H1=None, I2=None, with_singular=True):
         S.eval('degBound=0')
         I2 = singular('std(%s,%s)'%(nI,nf))
         S.eval('degBound='+dgb)
-    H2 = FirstHilbertSeries(I2, with_singular)
+    H2 = first_hilbert_series(I2)
     if H1 is None:
-        H1 = FirstHilbertSeries(I, with_singular)
+        H1 = first_hilbert_series(I)
     P = H1.parent()
     t = P.gen()
     Den = P.prod([(1-t**d) for d in dv])
@@ -995,7 +995,7 @@ def is_filter_regular(I, f, H1=None, I2=None, with_singular=True):
         return False
     return HA.numerator().list()
 
-def is_filter_regular_parameter_system(I, FRS, with_singular=True):
+def is_filter_regular_parameter_system(I, FRS):
     r"""
     Test if `FRS` is a filter-regular parameter system with respect to `I`.
 
@@ -1031,7 +1031,7 @@ def is_filter_regular_parameter_system(I, FRS, with_singular=True):
     dv = [Integer(d) for d in S('ringweights(basering)')]
     dgb = S.eval('degBound')
     S.eval('degBound=0')
-    H0 = FirstHilbertSeries(I0, with_singular)
+    H0 = first_hilbert_series(I0)
     P = H0.parent()
     t = P.gen()
     Den = P.prod([(1-t**d) for d in dv])
@@ -1040,7 +1040,7 @@ def is_filter_regular_parameter_system(I, FRS, with_singular=True):
         for f in frs:
             nf = f.name()
             I1 = I0.std(f)
-            H1 = FirstHilbertSeries(I1, with_singular)
+            H1 = first_hilbert_series(I1)
             d = Integer(S.eval('deg(%s)'%nf))
             HA = ((H1-H0)/t**d + H0)/Den
             if HA == 0:
@@ -2307,7 +2307,7 @@ class COHO(Ring):
         C: 4-Cocycle in H^*(E27; GF(3))
         sage: R.poincare_series()
         (t^4 + 2*t^2 + 1)/(t^6 - 2*t^5 + 2*t^4 - 2*t^3 + 2*t^2 - 2*t + 1)
-        sage: R.poincare_without_parameters()
+        sage: R._poincare_without_parameters()
         (t^4 + 2*t^2 + 1)/(t^6 - 2*t^5 + 2*t^4 - 2*t^3 + 2*t^2 - 2*t + 1)
 
     We return to our standard example, the cohomology of the dihedral
@@ -8090,26 +8090,6 @@ Minimal list of algebraic relations:
         return [t.name() for t in self.Gen if (t.name() not in totalRel)]
 
     @permanent_result
-    def _singular_for_hilb(self):
-        try:
-            br = singular('basering')
-        except:
-            br = None
-        self.set_ring()
-        try:
-            try:
-                hv = singular('hilb(maxideal(1),1,ringweights(basering))')
-                return True
-            except TypeError:
-                coho_logger.warn('Singular has an int overflow; we are working around', self)
-                return False
-        finally:
-            try:
-                br.set_ring()
-            except:
-                pass
-
-    @permanent_result
     def filter_regular_gready_parameters(self, BreakPoint=None, ignore_nilpotent=False):
         r"""
         Greadily explore smallest degree filter regular parameters.
@@ -8233,7 +8213,7 @@ Minimal list of algebraic relations:
         p = self.base_ring().characteristic()
         HV = [[0] for para in P]
         DV = [Integer(singular.eval('deg(%s)'%para)) for para in P]
-        HP0 = FirstHilbertSeries(Id, self._singular_for_hilb())
+        HP0 = first_hilbert_series(Id, self._singular_for_hilb())
         taste = {0:'', 1:'filter-regular', 2:'regular'}
         cdef list L
         try:
@@ -8250,7 +8230,7 @@ Minimal list of algebraic relations:
                         P.append(singular.eval(para))
                         if regularity == 1 or len(P) < self.dimension():
                             singular.eval('%s=std(%s,%s)'%(Id.name(), Id.name(), para.name()))
-                            HP0 = FirstHilbertSeries(Id, self._singular_for_hilb())
+                            HP0 = first_hilbert_series(Id, self._singular_for_hilb())
                         HV.append(reg_vec)
                         DV.append(Integer(singular.eval('deg(%s)'%para.name())))
                         break
@@ -10497,7 +10477,7 @@ is an error. Please inform the author!""")
             if not in_quotient:
                 I = singular('%sI+%s'%(self.prefix, I.name()))
                 singular.eval('attrib(%s,"isSB",1)'%I.name())
-            HP = FirstHilbertSeries(I, self._singular_for_hilb())
+            HP = first_hilbert_series(I, self._singular_for_hilb())
             t = HP.parent().gen()
             HS = HP/mul([(1-t**d) for d in self.degvec])
             if HS.denominator().leading_coefficient()<0:
@@ -10547,9 +10527,9 @@ is an error. Please inform the author!""")
             self.delprop('POINCARE')  # it is cached differently now
             return POINCARE
         if not self.completed:
-            return self.poincare_without_parameters()
+            return self._poincare_without_parameters()
         if self.CenterRk is None:
-            return self.poincare_without_parameters(test_duality)
+            return self._poincare_without_parameters(test_duality)
         HilbertVectors = None
         # test if there is a cached value
         cdef list DV
@@ -10559,7 +10539,7 @@ is an error. Please inform the author!""")
                     rfdt, HilbertVectors, DV = b[0]
                     break
         if not HilbertVectors:
-            return self.poincare_without_parameters(test_duality)
+            return self._poincare_without_parameters(test_duality)
         cdef int lenHV = len(HilbertVectors)-1
         cdef int i
         PS = HV2Poly(HilbertVectors[-1])
@@ -10577,13 +10557,9 @@ is an error. Please inform the author!""")
             return (-PS)/(-Xtra)
         return OUT
 
-    def poincare_without_parameters(self, test_duality=False):
+    def _poincare_without_parameters(self, test_duality=False):
         r"""
         Return the Poincaré series of ``self``, a univariate rational function.
-
-        ALGORITHM:
-
-        Standard methods implemented in Singular.
 
         INPUT:
 
@@ -10598,7 +10574,7 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: H.poincare_without_parameters()
+            sage: H._poincare_without_parameters()
             1/(t^2 - 2*t + 1)
 
         """
@@ -10610,68 +10586,21 @@ is an error. Please inform the author!""")
             br = singular('basering')
         except:
             br = None
-        self.make_groebner()
-        OUT = HilbertPoincareSeries(self.prefix+'I', self._singular_for_hilb())
-        if test_duality and self.completed and self._lower_bound_depth()==self.dimension():
-            # the poincare series has to satisfy Benson-Carlson duality
-            t = OUT.parent().gen()
-            if OUT(t.__invert__())!=(-t)**self.dimension()*OUT:
-                raise RuntimeError("Theoretical Error: The cohomology ring is Cohen-Macaulay, but Benson-Carlson duality fails to hold.")
-        return OUT
-
-
-#~     def _poincare_series_old_implementation(self):
-#~         r"""
-#~         For testing purposes, we preserve the old implementation
-#~         of computing Poincaré series and can thus compare it with
-#~         the new one.
-
-#~         TESTS:
-
-#~         We test commutative and non-commutative cohomology rings::
-
-#~             sage: from pGroupCohomology import CohomologyRing
-#~             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-#~             sage: for n in range(1,268):               #long time
-#~             ....:     H = CohomologyRing(64, n)
-#~             ....:     H.make()
-#~             ....:     if H.poincare_series() != H._poincare_series_old_implementation(): # indirect doctest
-#~             ....:         print(n)
-#~             sage: for n in range(1,16):
-#~             ....:     H = CohomologyRing(81, n)
-#~             ....:     H.make()
-#~             ....:     if H.poincare_series() != H._poincare_series_old_implementation():
-#~             ....:         print(n)
-
-#~         """
-#~         R = PolynomialRing(QQ,'t')
-#~         t = R('t')
-#~         # Since the computation is complete, it is known that
-#~         # we have a complete Groebner basis
-#~         self.set_ring()
-#~         selfBR = singular('basering')
-#~         dgb = singular.eval('degBound')
-#~         self.make_groebner()
-#~         singular.eval('degBound = 0')
-#~         singular.eval('attrib(%sI,"isSB",1)'%(self.prefix))
-#~         # Something goes wrong in the non-commutative case.
-#~         # Hence, we have to form a commutative version of basering
-#~         L = singular.ringlist('basering')
-#~         tmpI = L[4]
-#~         tmpR = singular('ring(list(%s[1..3],ideal(0)))'%(L.name()))
-#~         tmpR.set_ring()
-#~         HP = FirstHilbertSeries(singular('fetch(%s,%sI)+fetch(%s,%s)'%(selfBR.name(),self.prefix,selfBR.name(),tmpI.name())))
-#~         singular.eval('degBound = '+dgb)
-#~         self.set_ring()
-
-#~         HS = HP/mul([(1-t**X) for X in self.degvec])
-#~         if HS.denominator().leading_coefficient()<0:
-#~             if self.completed:
-#~                 self.setprop('POINCARE',(-HS.numerator()/(-HS.denominator())))
-#~             return (-HS.numerator()/(-HS.denominator()))
-#~         if self.completed:
-#~             self.setprop('POINCARE',HS)
-#~         return HS
+        try:
+            self.make_groebner()
+            self.set_ring()
+            OUT = hilbert_poincare_series(singular(self.prefix+'I'))
+            if test_duality and self.completed and self._lower_bound_depth()==self.dimension():
+                # the poincare series has to satisfy Benson-Carlson duality
+                t = OUT.parent().gen()
+                if OUT(t.__invert__())!=(-t)**self.dimension()*OUT:
+                    raise RuntimeError("Theoretical Error: The cohomology ring is Cohen-Macaulay, but Benson-Carlson duality fails to hold.")
+            return OUT
+        finally:
+            try:
+                br.set_ring()
+            except:
+                pass
 
 #################################
 ## Persistent Group Cohomology ##
