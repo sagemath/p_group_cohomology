@@ -2639,7 +2639,7 @@ cdef class RESL:
             raise ValueError("Matrix representing the second chain map must have %d rows"%(self.Data.projrank[r]*self.Data.projrank[q]))
         if (M1.Data.Field != self.G_Alg.Data.p) or (M2.Data.Field != self.G_Alg.Data.p):
             raise ValueError("Matrices representing chain maps must be defined over GF(%d)"%(self.G_Alg.Data.p))
-        coho_logger.info('Compose chain maps R_%d -> R_%d -> R_%d', self, s,r,q)
+        coho_logger.debug('Compose chain maps R_%d -> R_%d -> R_%d', self, s,r,q)
         cdef MTX OUT
         OUT = new_mtx(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[s]*self.Data.projrank[q],self.G_Alg.Data.nontips), M1)
         cdef Matrix_t *L

@@ -7635,13 +7635,13 @@ Minimal list of algebraic relations:
 ###################################################
 ## Auxiliary methods for Benson's test
 ## -- new version: work with cochains.
-    def dickson_in_subgroup(self,id):#r,z):
+    def dickson_in_subgroup(self,ID):#r,z):
         """
         Compute Dickson classes for an elementary abelian group, considered as subgroup of the group of  `self``.
 
         INPUT:
 
-        - ``id``: the small groups address (pair of integers) of
+        - ``ID``: the small groups address (pair of integers) of
           some elementary abelian subgroup of ``self``.
 
         OUTPUT:
@@ -7650,7 +7650,7 @@ Minimal list of algebraic relations:
         represents. The attribute ``subgbDickson`` of self is changed
         and contains elements of degree `p^{r-z}-p^{r-z-i}` of the
         cohomology ring of the elementary abelian group `V` described
-        by ``id``, where `r` is the `p`-rank of `G`, `z` is the rank
+        by ``ID``, where `r` is the `p`-rank of `G`, `z` is the rank
         of the centre of `G`, and `i = 1,...,r-z`.  These elements are
         constructed using Dickson invariants in the polynomial part of
         the cohomology of `V`, vanishing on the first `z`
@@ -7696,17 +7696,17 @@ Minimal list of algebraic relations:
                (c_1_2)*((c_1_2)*(c_1_3))+(c_1_2)*((c_1_3)*(c_1_3)): 3-Cocycle in H^*(SmallGroup(16,14); GF(2))])]
 
         """
-        if self.subgps[id].knownDeg<2:
-            self.subgps[id].make() #raise RuntimeError, "we need to know the cohomology ring up to degree 2"
+        if self.subgps[ID].knownDeg<2:
+            self.subgps[ID].make() #raise RuntimeError, "we need to know the cohomology ring up to degree 2"
         if self.subgpDickson is None:
             self.subgpDickson = {}
         D = DICKSON(self.Resl.coef())
         r = self.pRank
         z = self.CenterRk
         if self.Resl.coef()==2:
-            t = len(self.subgps[id].Gen) - z
+            t = len(self.subgps[ID].Gen) - z
         else:
-            t = len(self.subgps[id].Gen)/2 - z
+            t = len(self.subgps[ID].Gen)/2 - z
         if t<0:
             raise RuntimeError("The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup")
         if t==0:
@@ -7728,15 +7728,15 @@ Minimal list of algebraic relations:
         cdef list NewDicksonList = []
         for k from 0<=k<m:
             if DicksonList[k]==0: # have to append 0-cochain. self.Gen[0]**(p**(r-z)-p**(r-z-k-1)) always is of the right degree
-                NewDicksonList.append(0*self.subgps[id].Gen[0]**(p**(m)-p**(m-k-1)))
+                NewDicksonList.append(0*self.subgps[ID].Gen[0]**(p**(m)-p**(m-k-1)))
             else:
                 L=DicksonList[k].exponents()
                 C=DicksonList[k].coefficients()
                 if t>1:
-                    NewDicksonList.append(add([ Mul(add([ [self.subgps[id].Gen[z+j]]*(L[i][j]) for j in xrange(t)],[]),int(C[i])) for i in xrange(1,len(L))], Mul(add([ [self.subgps[id].Gen[z+j]]*(L[0][j]) for j in xrange(t)],[]),int(C[0])) )) # Mul (in contrast to mul) collects the product from right to left
+                    NewDicksonList.append(add([ Mul(add([ [self.subgps[ID].Gen[z+j]]*(L[i][j]) for j in xrange(t)],[]),int(C[i])) for i in xrange(1,len(L))], Mul(add([ [self.subgps[ID].Gen[z+j]]*(L[0][j]) for j in xrange(t)],[]),int(C[0])) )) # Mul (in contrast to mul) collects the product from right to left
                 else:
-                    NewDicksonList.append(add([(self.subgps[id].Gen[z]**(L[i]))*int(C[i]) for i in xrange(1,len(L))], (self.subgps[id].Gen[z]**(L[0]))*int(C[0])))
-        self.subgpDickson[id] = NewDicksonList
+                    NewDicksonList.append(add([(self.subgps[ID].Gen[z]**(L[i]))*int(C[i]) for i in xrange(1,len(L))], (self.subgps[ID].Gen[z]**(L[0]))*int(C[0])))
+        self.subgpDickson[ID] = NewDicksonList
 
     def lift_dickson(self,i,j):
         """
@@ -8090,14 +8090,21 @@ Minimal list of algebraic relations:
         return [t.name() for t in self.Gen if (t.name() not in totalRel)]
 
     @permanent_result
-    def filter_regular_gready_parameters(self, BreakPoint=None, ignore_nilpotent=False):
+    def filter_regular_gready_parameters(self, first_parameters=[], BreakPoint=None, ignore_nilpotent=True):
         r"""
         Greadily explore smallest degree filter regular parameters.
 
         INPUT:
 
-        - BreakPoint (optional integer) -- maximal number of parameter candidates
+        - ``first_parameters`` (optional list) -- list of strings defining some
+          filter regular parameters that come after the Duflot elements
+        - ``BreakPoint`` (optional integer) -- maximal number of parameter candidates
           tested in each degree. Default ``None`` means unbounded.
+        - ``ignore_nilpotent`` (optional bool, default True) -- whether to ignore
+          nilpotent generators in the enumeration of filter regular parameters;
+          there are filter regular parameters that can be expressed without nilpotent
+          generators, but we are not sure if the smallest degree parameters can
+          be obtained in that way, too.
 
         OUTPUT:
 
@@ -8213,27 +8220,42 @@ Minimal list of algebraic relations:
         p = self.base_ring().characteristic()
         HV = [[0] for para in P]
         DV = [Integer(singular.eval('deg(%s)'%para)) for para in P]
-        HP0 = first_hilbert_series(Id, self._singular_for_hilb())
+        HP0 = first_hilbert_series(Id)
         taste = {0:'', 1:'filter-regular', 2:'regular'}
         cdef list L
         try:
             while len(P) < self.dimension():
-                maxdim = p**self.dimension() - p**(self.dimension()-len(P))
-                for d in range(1, 2*maxdim+1):
-                    coho_logger.info('Exploring %s %s parameter in degree %d', self, Integer(len(P)+1).ordinal_str(), taste[regularity], d)
-                    if ignore_nilpotent:
-                        L = [s for s in self.standard_monomials(d) if not ('a' in s)]
-                    else:
-                        L = self.standard_monomials(d)
-                    para, x, reg_vec = explore_one_parameter(Id, L, p, BreakPoint, regularity, HP0)
-                    if reg_vec:
-                        P.append(singular.eval(para))
-                        if regularity == 1 or len(P) < self.dimension():
-                            singular.eval('%s=std(%s,%s)'%(Id.name(), Id.name(), para.name()))
-                            HP0 = first_hilbert_series(Id, self._singular_for_hilb())
-                        HV.append(reg_vec)
-                        DV.append(Integer(singular.eval('deg(%s)'%para.name())))
-                        break
+                if first_parameters:
+                    x = first_parameters.pop(0)
+                    para = singular(x)
+                    coho_logger.info('Computing quotient modulo %s %s parameter (user provided)', self, Integer(len(P)+1).ordinal_str(), taste[regularity])
+                    Id2 = Id.std(para)
+                    coho_logger.debug('Testing filter regularity',self)
+                    reg_vec = is_filter_regular(Id, para, HP0, Id2)
+                    assert reg_vec, "{} is supposed to be filte regular.".format(para)
+                    P.append(x)
+                    if regularity == 1 or len(P) < self.dimension():
+                        Id = Id2
+                        HP0 = first_hilbert_series(Id)
+                    HV.append(reg_vec)
+                    DV.append(Integer(singular.eval('deg(%s)'%para.name())))
+                else:
+                    maxdim = p**self.dimension() - p**(self.dimension()-len(P))
+                    for d in range(2, 2*maxdim+1):
+                        coho_logger.info('Exploring %s %s parameter in degree %d', self, Integer(len(P)+1).ordinal_str(), taste[regularity], d)
+                        if ignore_nilpotent:
+                            L = [s for s in self.standard_monomials(d) if not ('a' in s)]
+                        else:
+                            L = self.standard_monomials(d)
+                        para, x, reg_vec = explore_one_parameter(Id, L, p, BreakPoint, regularity, HP0)
+                        if reg_vec:
+                            P.append(singular.eval(para))
+                            if regularity == 1 or len(P) < self.dimension():
+                                singular.eval('%s=std(%s,%s)'%(Id.name(), Id.name(), para.name()))
+                                HP0 = first_hilbert_series(Id)
+                            HV.append(reg_vec)
+                            DV.append(Integer(singular.eval('deg(%s)'%para.name())))
+                            break
                 assert para or (regularity==2), "Theoretical error: We should be able to find a system of %s parameters"%taste[regularity]
 
             if regularity == 1:
@@ -8267,6 +8289,8 @@ Minimal list of algebraic relations:
                         alpha = True
                     if fdt[-1] < -len(fdt)+1:
                         raise RuntimeError("Theoretical error: We got a filter degree type %s, but the last value must not be smaller than %d!"%(repr(fdt),-len(fdt)+1))
+                    self.setprop('fdt',fdt)
+                    self.alpha = max([fdt[i]+i for i in range(len(fdt)-1)])
                     if self.alpha>-1:
                         raise RuntimeError("""
 This result contradicts the weak form
@@ -8279,8 +8303,6 @@ is an error. Please inform the author!""")
                         print("## BENSON'S REGULARITY CONJECTURE!!!     ##")
                         print("###########################################")
                         print("Please inform the author")
-                    self.setprop('fdt',fdt)
-                    self.alpha = max([fdt[i]+i for i in range(len(fdt)-1)])
             return P
         finally:
             try:
@@ -10477,7 +10499,7 @@ is an error. Please inform the author!""")
             if not in_quotient:
                 I = singular('%sI+%s'%(self.prefix, I.name()))
                 singular.eval('attrib(%s,"isSB",1)'%I.name())
-            HP = first_hilbert_series(I, self._singular_for_hilb())
+            HP = first_hilbert_series(I)
             t = HP.parent().gen()
             HS = HP/mul([(1-t**d) for d in self.degvec])
             if HS.denominator().leading_coefficient()<0:
@@ -10601,6 +10623,19 @@ is an error. Please inform the author!""")
                 br.set_ring()
             except:
                 pass
+
+    def verify_consistency_of_dimensions(self, count_standard_monomials=False):
+        from sage.all import PowerSeriesRing, QQ
+        P = PowerSeriesRing(QQ,'t',default_prec=self.knownDeg+1)
+        p = self.poincare_series()
+        dims = P(p.numerator())/P(p.denominator())
+        cdef size_t i
+        cdef RESL R = self.Resl
+        for i in range(self.knownDeg+1):
+            assert R.rank(i) == dims[i], "Degree {}: Rank should be {}, Poincaré series predicts {}".format(i,R.rank(i),dims[i])
+            if count_standard_monomials:
+                lstdmon = len(self.standard_monomials(i))
+                assert dims[i] == lstdmon, "Degree {}: Should have {} standard monoials, got {}".format(i,dims[i],lstdmon)
 
 #################################
 ## Persistent Group Cohomology ##
@@ -11874,6 +11909,7 @@ is an error. Please inform the author!""")
         cdef int i,k,m,j
         cdef FEL fel, fel2
         cdef int lenDecGen,lenMonExp
+        lenMonExp = 0
         cdef MTX template = None
 
         ######################################
@@ -11891,6 +11927,7 @@ is an error. Please inform the author!""")
 
         cdef list MonExp,lastPiv
         FfSetField(self.base_ring().order())
+        previous_number_rels = len(self.Rel)
         if self.Gen!=[]:  # there can only be decomposables if there are generators, yet
             ####################################
             # We must lift self.RelG to the new degree.
@@ -11983,6 +12020,7 @@ is an error. Please inform the author!""")
                         coho_logger.debug('New relation found: %s\n', self, self.Rel[-1])
             else:
                 coho_logger.info("There are no standard monomials in degree %d", self, n)
+
         ###################
         ## RESULT:
         ## I. COCH types
@@ -12192,6 +12230,7 @@ is an error. Please inform the author!""")
                     else:
                         coho_logger.info("> There are %d Duflot regular generators in degree %d", self, LastPiv.count(1),n)
         ## Insert the new generators:
+        previous_number_gens = len(self.Gen)
         if self.ElAb and (R.G_Alg.Data.p!=2) and (n%2):
             self.NilBasis[n].extend([Ca.MTX()._rowlist_(0) for Ca in NewGen])
         if n%2:
@@ -12204,6 +12243,10 @@ is an error. Please inform the author!""")
                 self.Gen.insert(self.firstOdd, CO)
                 self.degvec.insert(self.firstOdd, n)
                 self.firstOdd+=1
+
+        coho_logger.info("Summary: %d relations and %d generators in degree %d", self, len(self.Rel)-previous_number_rels, len(self.Gen)-previous_number_gens, n)
+        assert lenMonExp == len(DecGen)+len(self.Rel)-previous_number_rels, "Relation/Monomial count is wrong, we started with {} monomials".format(lenMonExp)
+        assert R.rank(n) == len(DecGen)+len(self.Gen)-previous_number_gens, "Expected dimension {}, got {}+{}".format(R.rank(n), len(DecGen), len(self.Gen)-previous_number_gens)
 
         self.knownDeg=n
         if (KeepDecomposables) and (self.knownDeg > 1):
