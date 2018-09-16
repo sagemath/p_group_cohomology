@@ -133,8 +133,13 @@ suggesting to use the Poincaré series in a completeness criterion.
 Versions
 --------
 
-  * v3.0.1: Add a routine to compute filter regular parameters in small degrees
-    by enumeration. Cope with some changes in Singular.
+  * 3.1 (Simon King, September 2018):
+    - Vastly improve computation of filter degree type.
+    - A routine to compute filter regular parameters in small degrees
+      by enumeration.
+    - Cope with some changes in Singular.
+    - More self-consistency checks.
+    - A routine to compute a cohomology ring from a tower of subgroups.
   * v3.0: Turn the cohomology package into a "new style spkg". It is split
     into several smaller parts that are either using an autotoolized build
     system or are pip installable.

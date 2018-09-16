@@ -699,6 +699,7 @@ class CohomologyRingFactory:
         except (AttributeError,IndexError):
             pass
         raise ValueError("Cannot infer a short group identifier. Please provide one of the optional arguments ``GStem`` or ``GroupName``")
+
     def group_name(self, G, GroupName=None):
         """
         Determine a name for the given group.
@@ -1208,7 +1209,7 @@ class CohomologyRingFactory:
 
         OUTPUT:
 
-*        A cohomology ring for the given data.
+        - A cohomology ring for the given data.
 
         TESTS::
 

@@ -10630,10 +10630,16 @@ is an error. Please inform the author!""")
         p = self.poincare_series()
         dims = P(p.numerator())/P(p.denominator())
         cdef size_t i
-        cdef RESL R = self.Resl
-        for i in range(self.knownDeg+1):
-            assert R.rank(i) == dims[i], "Degree {}: Rank should be {}, Poincaré series predicts {}".format(i,R.rank(i),dims[i])
-            if count_standard_monomials:
+        cdef RESL R
+        if self._HP is None:
+            R = self.Resl
+            for i in range(self.knownDeg+1):
+                assert R.rank(i) == dims[i], "Degree {}: Rank should be {}, Poincaré series predicts {}".format(i,R.rank(i),dims[i])
+                if count_standard_monomials:
+                    lstdmon = len(self.standard_monomials(i))
+                    assert dims[i] == lstdmon, "Degree {}: Should have {} standard monoials, got {}".format(i,dims[i],lstdmon)
+        else:
+            for i in range(self.knownDeg+1):
                 lstdmon = len(self.standard_monomials(i))
                 assert dims[i] == lstdmon, "Degree {}: Should have {} standard monoials, got {}".format(i,dims[i],lstdmon)
 

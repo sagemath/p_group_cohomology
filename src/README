@@ -97,10 +97,13 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/.
 
 == Changelog ==
 
-  * 3.0.1 (Simon King, August 2018):
-    - Add a routine to compute filter regular parameters in small degrees
+  * 3.1 (Simon King, September 2018):
+    - Vastly improve computation of filter degree type.
+    - A routine to compute filter regular parameters in small degrees
       by enumeration.
-    - Cope with some changes in Singular
+    - Cope with some changes in Singular.
+    - More self-consistency checks.
+    - A routine to compute a cohomology ring from a tower of subgroups.
   * 3.0 (Simon King, January/February 2018):
     - The MeatAxe has been removed from this package and has been replaced
       by "SharedMeatAxe", as an external package.
