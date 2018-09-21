@@ -30,7 +30,7 @@ void freeGeneralVector(gV_t *gv);
 // gV_t *popGeneralVector(ngs_t *ngs);
 void pushGeneralVector(ngs_t *ngs, gV_t *gv);
 int makeVectorMonic(ngs_t *ngs, gV_t *gv);
-void multiply(PTR row, Matrix_t *mat, PTR result, long r);
+int multiply(PTR row, Matrix_t *mat, PTR result, long r);
 int createWordForest(ngs_t *ngs, group_t *group);
 // void freeWordForest(ngs_t *ngs);
 int destroyCurrentDimension(ngs_t *ngs);

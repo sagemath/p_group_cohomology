@@ -98,7 +98,7 @@ static int nFgsExpandThisLevel(nFgs_t *nFgs, group_t *group)
         if (!w) return 1;
         gv = popGeneralVector(ngs);
         if (!gv) return 1;
-        multiply(w, group->action[a], gv->w, nor);
+        if (multiply(w, group->action[a], gv->w, nor)) return 1;
         findLeadingMonomial(gv, ngs->r, group);
         if (gv->coeff != FF_ZERO)
         {
@@ -146,7 +146,7 @@ static int nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
         if (!w) return 1;
         gv = popGeneralVector(ngs);
         if (!gv) return 1;
-        multiply(w, group->action[a], gv->w, nor);
+        if (multiply(w, group->action[a], gv->w, nor)) return 1;
         findLeadingMonomial(gv, ngs->r, group);
         if (!gv->dim)
         {   MTX_ERROR("Wrong multiplication!\n");

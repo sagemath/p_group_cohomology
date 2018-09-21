@@ -140,8 +140,10 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
   }
 }
 
-/******************************************************************************/
-void multiply(PTR row, Matrix_t *mat, PTR result, long r)
+/****
+ * 1 on error
+ ******************************************************************************/
+int multiply(PTR row, Matrix_t *mat, PTR result, long r)
 {
   register long i;
   register PTR p1 = row;
@@ -150,6 +152,7 @@ void multiply(PTR row, Matrix_t *mat, PTR result, long r)
   {
     FfMapRow(p1, mat->Data, FfNoc, p2);
   }
+  return 0;
 }
 
 /****
@@ -388,7 +391,7 @@ static int calculateNextProducts(ngs_t *ngs, group_t *group)
         if (node->child[a])
         {
           dest = FfGetPtr(ngs->theseProds, nor * offset++);
-          multiply(w, group->action[a], dest, nor);
+          if (multiply(w, group->action[a], dest, nor)) return 1;
           nops++;
           if (offset == ngs->blockSize)
           {
