@@ -130,7 +130,7 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
       rootcol = group->root[col];
       if (rootcol.depth < gv->len)
       {
-        gv->dim = rootcol.dim;
+        gv->dim = rootcol.depth;
         gv->coeff = coeff;
         gv->len = rootcol.depth;
         gv->block = b;
@@ -146,33 +146,10 @@ void multiply(PTR row, Matrix_t *mat, PTR result, long r)
   register long i;
   register PTR p1 = row;
   register PTR p2 = result;
-  if (FfCurrentRowSizeIo<100)
+  for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
   {
-    for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
-    {
-      FfMapRow(p1, mat->Data, FfNoc, p2);
-    }
-    return;
+    FfMapRow(p1, mat->Data, FfNoc, p2);
   }
-  Matrix_t Res;
-  Matrix_t Src;
-  memset(result, 0, r*FfCurrentRowSize);
-  Res.Magic = mat->Magic;
-  Res.Field = mat->Field;
-  Res.Nor = r;
-  Res.Noc = mat->Noc;
-  Res.PivotTable = NULL;
-  Res.Data = result;
-  Res.RowSize = FfCurrentRowSize;
-
-  Src.Magic = mat->Magic;
-  Src.Field = mat->Field;
-  Src.Nor = r;
-  Src.Noc = mat->Noc;
-  Src.PivotTable = NULL;
-  Src.Data = row;
-  Src.RowSize = FfCurrentRowSize;
-  MatMulStrassen(&Res, &Src, mat);
 }
 
 /****

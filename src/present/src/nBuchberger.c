@@ -148,6 +148,10 @@ static int nRgsExpandThisLevel(nRgs_t *nRgs, group_t *group)
         if (!gv) return 1;
         multiply(w, group->action[a], gv->w, nor);
         findLeadingMonomial(gv, ngs->r, group);
+        if (!gv->dim)
+        {   MTX_ERROR("Wrong multiplication!\n");
+            return 1;
+        }
         if (gv->coeff != FF_ZERO)
         {
           if (makeVectorMonic(ngs, gv)) return 1;
