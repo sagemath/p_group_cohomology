@@ -19,7 +19,7 @@
 #~     along with p_group_cohomoloy.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.69])
-AC_INIT([modular_resolution], [1.0], [simon.king@uni-jena.de])
+AC_INIT([modular_resolution], [1.1], [simon.king@uni-jena.de])
 AM_INIT_AUTOMAKE([check-news dist-bzip2 -Wall])
 AM_PROG_AR
 LT_INIT([disable-static])

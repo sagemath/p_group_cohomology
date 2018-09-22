@@ -1,3 +1,4 @@
+Version 1.1: Extended usage of SharedMeatAxe's Strassen multiplication.
 Version 1.0: Autotools support. Error propagation. Rebased on top of MeatAxe-2.4.24
 Without version: Executables written in C that compute, for a given group G of
   order p^n, a presentation and a minimal free resolution of the modular group
