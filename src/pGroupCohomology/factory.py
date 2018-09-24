@@ -752,7 +752,7 @@ class CohomologyRingFactory:
             g = G[0]
             gap = g.parent()
             if g.HasName():
-                return gap.eval('Name(%s)'%g.name())
+                return gap.eval('Name(%s)'%g.name())[1:-1]
         except (AttributeError, IndexError):
             pass
         # It is not always needed to have a group name, so, we do not

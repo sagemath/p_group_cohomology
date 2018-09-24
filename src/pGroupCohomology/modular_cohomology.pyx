@@ -414,13 +414,13 @@ class MODCOHO(COHO):
         if GStem is None: # explicit advice of the user has preference.
             # If nothing else is found, use Name from gap
             if G.HasName():
-                GStem = gap.eval('Name(%s)'%G.name())
+                GStem = gap.eval('Name(%s)'%G.name())[1:-1]
             else:
                 raise ValueError("Can not infer group name: Optional argument <GStem> must be provided")
         self.GStem = GStem
 
         if GroupName or G.HasName():
-            self.setprop('GroupName',GroupName or gap.eval('Name(%s)'%G.name()))
+            self.setprop('GroupName',GroupName or gap.eval('Name(%s)'%G.name())[1:-1])
 
         # Find an *equivalent* PermutationGroup
         if GPerm is None:

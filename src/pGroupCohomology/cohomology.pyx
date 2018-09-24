@@ -4163,7 +4163,7 @@ class COHO(Ring):
             H^*(D8; GF(2))
 
         """
-        return "H^*(%s; GF(%d))"%(self.printed_group_name(), self.Resl.coef())
+        return "H^*({}; GF({}))".format(self.printed_group_name(), self.Resl.coef())
 
     def printed_group_name(self):
         """
@@ -10611,7 +10611,7 @@ is an error. Please inform the author!""")
         try:
             self.make_groebner()
             self.set_ring()
-            OUT = hilbert_poincare_series(singular(self.prefix+'I'))
+            OUT = hilbert_poincare_series(singular.ideal(self.prefix+'I'))
             if test_duality and self.completed and self._lower_bound_depth()==self.dimension():
                 # the poincare series has to satisfy Benson-Carlson duality
                 t = OUT.parent().gen()
