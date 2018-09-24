@@ -3593,7 +3593,7 @@ fi
                 singular.eval('ideal %sRegTest = std(0)'%self.prefix)
         from pGroupCohomology.cohomology import explore_one_parameter
         HGS.set_ring()
-        HP0 = first_hilbert_series('%sRegTest'%self.prefix)
+        HP0 = first_hilbert_series(singular.ideal('%sRegTest'%self.prefix))
         while(1):
             val, Coef, reg_vec = explore_one_parameter(singular('%sRegTest'%self.prefix), L, self._prime, 2, HP0)
             if val:
@@ -3606,7 +3606,7 @@ fi
                     return
                 HGS.set_ring()
                 singular.eval('%sRegTest=std(%sRegTest,%s)'%(self.prefix,self.prefix,val.name()))
-                HP0 = first_hilbert_series('%sRegTest'%self.prefix)
+                HP0 = first_hilbert_series(singular.ideal('%sRegTest'%self.prefix))
             else:
                 singular.eval('degBound='+dgb)
                 return

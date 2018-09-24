@@ -102,6 +102,7 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/.
     - A routine to compute filter regular parameters in small degrees
       by enumeration.
     - Cope with some changes in Singular.
+    - Some fixes in modular_resolution, which was upgraded to version 1.1.
     - More self-consistency checks.
     - A routine to compute a cohomology ring from a tower of subgroups.
   * 3.0 (Simon King, January/February 2018):
