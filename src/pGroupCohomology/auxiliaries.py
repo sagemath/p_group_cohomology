@@ -332,9 +332,9 @@ coho_logger.setLevel(logging.WARN)
 ## Initialisation of Gap
 ## The other modules import gap from `auxiliaries`
 
-from sage.all import gap
+from sage.libs.gap.libgap import libgap as gap
 
-class GAP_INIT:
+def _gap_init(seed=100):
     """
     Resets the random seed of GAP and (if necessary) reads three libraries.
 
@@ -353,7 +353,7 @@ class GAP_INIT:
     ::
 
         sage: gap.quit()
-        sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
+        sage: gap.eval('exportMTXLIB') == "MTXLIB=%s; export MTXLIB; "%os.environ['MTXLIB']
         Traceback (most recent call last):
         ...
         RuntimeError: Gap produced error output
@@ -364,136 +364,27 @@ class GAP_INIT:
         sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
         True
 
-    Moreover, the random seed of GAP is reset. Note that this also works
-    with a different Instance of GAP.
+    Moreover, the random seed of GAP is reset.
     ::
 
-        sage: gap.eval('List([1..10],i->Random(1,100000))')
-        '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
+        sage: libgap.eval('List([1..10],i->Random(1,100000))')
+        [ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]
         sage: _gap_init()
-        sage: gap.eval('List([1..10],i->Random(1,100000))')
-        '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
-        sage: G2 = sage.interfaces.gap.Gap()
-        sage: _gap_init(G2)
-        sage: G2.eval('List([1..10],i->Random(1,100000))')
-        '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
+        sage: libgap.eval('List([1..10],i->Random(1,100000))')
+        [ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]
 
     """
-    def __init__(self):
-        """
-        TESTS::
+    from sage.all import set_random_seed
+    set_random_seed(seed)
+    # Read the library, if it deems needed
+    if not gap.IsBoundGlobal("exportMTXLIB"):
+        gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g'))
+        gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g'))
+        gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g'))
+        #~ gap.eval('DeclareGlobalVariable("exportMTXLIB")') # exportMTXLIB is declared in GapMB.g
+        gap.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
+    # Reset the random generator
+    gap.eval('Reset(GlobalMersenneTwister, {})'.format(seed))
+    gap.eval('Reset(GlobalRandomSource, {})'.format(seed))
 
-            sage: from pGroupCohomology.auxiliaries import GAP_INIT
-            sage: g = GAP_INIT()  # indirect doctest
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
-
-        """
-        from sage.all import set_random_seed, current_randstate, gap
-        if not hasattr(self,'_seed'):
-            self._seed = 100
-        set_random_seed(self._seed)
-        current_randstate().set_seed_gap()
-        self.mersenne = gap.State('GlobalMersenneTwister')
-        self.classical = gap.State('GlobalRandomSource')
-
-    def set_seed(self, seed=100):
-        """
-        Set the random seed.
-
-        INPUT:
-
-        An optional integer (default 100).
-
-        EXAMPLE::
-
-            sage: from pGroupCohomology.auxiliaries import _gap_init
-            sage: _gap_init()
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
-
-        We now use a different seed::
-
-            sage: _gap_init.set_seed(50)
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
-
-        Return to the default seed::
-
-            sage: _gap_init.set_seed()
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]'
-
-        After setting a seed, it will be used when the random generator
-        is reset::
-
-            sage: _gap_init.set_seed(50)
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
-            sage: _gap_init()
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
-
-        """
-        self._seed = seed
-        self.__init__()
-
-    def __call__(self, G=None):
-        """
-        INPUT:
-
-        ``G`` -- optional instance of the GAP interface
-
-        OUTPUT:
-
-        Reset the random generators of ``G`` (or of ``sage.all.gap``
-        if ``G`` is not provided). If necessary, also load the
-        GAP programs that are needed for our cohomology computations.
-
-        TESTS::
-
-            sage: from pGroupCohomology.auxiliaries import _gap_init
-            sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
-            True
-            sage: _gap_init()
-            sage: gap.eval('List([1..10],i->Random(1,100000))')
-            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
-            sage: G2 = sage.interfaces.gap.Gap()
-            sage: G2.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
-            Traceback (most recent call last):
-            ...
-            RuntimeError: Gap produced error output
-            Error, Variable: 'exportMTXLIB' must have a value
-            <BLANKLINE>
-               executing exportMTXLIB;
-            sage: _gap_init(G2)   # indirect doctest
-            sage: G2.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
-            True
-            sage: G2.eval('List([1..10],i->Random(1,100000))')
-            '[ 83653, 8053, 99110, 37581, 73132, 24628, 1859, 33921, 12261, 81897 ]'
-
-        """
-        if G is None:
-            G = gap
-        # Read the library, if it deems needed
-        if not G('IsBoundGlobal("exportMTXLIB")'):
-            G.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g')))
-            G.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g')))
-            G.eval('Read("{}");'.format(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g')))
-            G.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
-        # Reset the random generator
-        try:
-            self.mersenne._check_valid()
-            self.classical._check_valid()
-        except ValueError: # gap crashed
-            self.__init__()
-        if G is not self.mersenne.parent():
-            # we got a different gap instance,
-            # thus we update our random seed
-            self.mersenne = G(self.mersenne)
-            self.classical = G(self.classical)
-        G.Reset('GlobalMersenneTwister',self.mersenne)
-        G.Reset('GlobalRandomSource',self.classical)
-
-_gap_init = GAP_INIT()
 _gap_init()

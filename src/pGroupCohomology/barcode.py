@@ -82,8 +82,8 @@ We consider here the bar codes associated with the upper central series. It turn
 out that the non-trivial terms of the upper central series and the resulting factor
 groups are isomorphic::
 
-    sage: G158 = gap('SmallGroup(64,158)')
-    sage: G160 = gap('SmallGroup(64,160)')
+    sage: G158 = libgap.SmallGroup(64,158)
+    sage: G160 = libgap.SmallGroup(64,160)
     sage: [(G.IdGroup(), (G158/G).IdGroup()) for G in G158.UpperCentralSeries()]
     [([ 64, 158 ], [ 1, 1 ]),
      ([ 16, 2 ], [ 4, 2 ]),

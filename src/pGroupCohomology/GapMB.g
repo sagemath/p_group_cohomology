@@ -68,10 +68,27 @@ end;
 # *****************************************************************************
 regularPermutationAction := function(G)
 # Creates the image of G in S_|G| under the regular permutation action
-# Uses defining generators if G in GrpPerm
-# Uses PC generators if G in GrpPC, unless option forceDefiningGenerators chosen
+# Uses defining generators
   local gens, N, S, L, gg, forceDefiningGenerators;
-  forceDefiningGenerators := ValueOption("forceDefiningGenerators");
+  forceDefiningGenerators := true; #ValueOption("forceDefiningGenerators");
+#  if IsPcGroup(G) and not forceDefiningGenerators then
+#    gens := FamilyPcgs(G);
+#  else
+  gens := GeneratorsOfGroup(G);
+#  fi;
+  N := Size(G);
+  S := Elements(G);
+  L := List(gens, g->PermList(List([1..N], i->Position(S,S[i]*g))));
+  gg := Group(L);
+  return gg;
+end;
+
+# *****************************************************************************
+regularPermutationActionPC := function(G)
+# Creates the image of G in S_|G| under the regular permutation action
+# Uses PC generators if G in GrpPC
+  local gens, N, S, L, gg, forceDefiningGenerators;
+  forceDefiningGenerators := false; #ValueOption("forceDefiningGenerators");
   if IsPcGroup(G) and not forceDefiningGenerators then
     gens := FamilyPcgs(G);
   else
@@ -351,7 +368,7 @@ end;
 createRegFile := function(name,ngg)
   local g, gens, gg, nametreg, namereg, statusline, j, fp;
   # Now the permutations in Ringe format
-  gg := regularPermutationAction(ngg);
+  gg := regularPermutationActionPC(ngg);
   gens := GeneratorsOfGroup(gg);
   nametreg := Concatenation(name, ".treg");
   namereg := Concatenation(name, ".reg");

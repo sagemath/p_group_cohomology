@@ -208,7 +208,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         raise ValueError("The group order must be a prime power")
     if not ElAb:  # we will create data for all smaller elementary abelian groups
         for i in xrange(1,F[0][1]):
-            makeGroupData(F[0][0]**i, Integer(gap('NumberSmallGroups(%d)'%(F[0][0]**i))), folder, True, Forced)
+            makeGroupData(F[0][0]**i, gap.NumberSmallGroups(F[0][0]**i).sage(), folder, True, Forced)
     GStem = str(q)+'gp'+str(n)
     if folder == '':
         gps_folder = GStem
@@ -262,10 +262,10 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     # that we have an (elementary) abelian group.
     inc_folder = os.path.join(gps_folder,'sgp')
     try:
-        L = gap('ReadAsFunction("%s")()'%(os.path.join(inc_folder,GStem+'.sgs')))
+        L = gap.ReadAsFunction(os.path.join(inc_folder,GStem+'.sgs'))()
     except TypeError:  # can't be loaded
         return
-    NumSubgps = Integer(L[1])
+    NumSubgps = Integer(L[0])
     for sg in range(1,NumSubgps+1):
         cr = 0
         filename = os.path.join(inc_folder,GStem+'sg%d.ima'%sg)
@@ -314,7 +314,7 @@ def makeSpecialGroupData(H, GStem, folder):
     to the example for :func:`~pGroupCohomology.resolution.makeGroupData`, we define it directly in the Gap
     interface::
 
-        sage: G = gap('DihedralGroup(8)')
+        sage: G = libgap.DihedralGroup(8)
         sage: GStem = 'DihedralGroup'
         sage: tmp_root = tmp_dir()
         sage: from pGroupCohomology.resolution import makeGroupData, makeSpecialGroupData, coho_logger
@@ -382,8 +382,8 @@ def makeSpecialGroupData(H, GStem, folder):
     if len(F)>1:
         raise ValueError("The group order must be a prime power")
     for i in xrange(1,F[0][1]):
-        makeGroupData(F[0][0]**i, Integer(gap('NumberSmallGroups(%d)'%(F[0][0]**i))), folder, True)
-    _gap_init(H.parent())
+        makeGroupData(F[0][0]**i, gap.NumberSmallGroups(F[0][0]**i).sage(), folder, True)
+    _gap_init()
     coho_logger.info( "Computing basic setup for %s"%(GStem),None)
     try:
         os.remove(os.path.join(gps_folder,GStem+'.bch'))
@@ -428,10 +428,10 @@ def makeSpecialGroupData(H, GStem, folder):
     # that we have an (elementary) abelian group.
     inc_folder = os.path.join(gps_folder,'sgp/')
     try:
-        L = gap('ReadAsFunction("%s")()'%(os.path.join(inc_folder,GStem+'.sgs')))
+        L = gap.ReadAsFunction(os.path.join(inc_folder,GStem+'.sgs'))()
     except TypeError:  # can't be loaded
         return
-    NumSubgps = Integer(L[1])
+    NumSubgps = Integer(L[0])
     for sg in range(1,NumSubgps+1):
         filename = os.path.join(inc_folder,GStem+'sg%d.ima'%sg)
         M = MTX.from_filename(filename)

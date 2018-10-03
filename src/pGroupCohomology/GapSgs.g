@@ -39,6 +39,7 @@
 # Simon King: Removing some unused functions (2008-12)
 # Simon King: Adding makeInducedHomomorphismData (2009-05), canonicalIsomorphism, admissibleGroup (2009-06)
 # Simon King: Adding conjugateIntoSylow (2009-12)
+# Simon King: Adding OneIsomorphicSubgroup (2018-10)
 
 ###################
 ## Conventions:
@@ -198,6 +199,13 @@ canonicalIsomorphism := function(G,H)
     return phi;
   fi;
   return fail;
+end;
+
+################################################################################
+# Return one isomorphism of U to a subgroup of G
+
+OneIsomorphicSubgroup := function(G, U)
+  return IsomorphicSubgroups(G, U: findall:=false)[1];
 end;
 
 ################################################################################

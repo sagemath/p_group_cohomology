@@ -69,8 +69,8 @@ compute their cohomology rings.
 
     sage: from pGroupCohomology import CohomologyRing
     sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-    sage: S = gap('SymmetricGroup(6)')
-    sage: D = gap('DihedralGroup(8)')
+    sage: S = libgap.SymmetricGroup(6)
+    sage: D = libgap.DihedralGroup(8)
     sage: HS = CohomologyRing(S, prime=2, GroupName='Sym6', from_scratch=True)
     sage: HS.make()
     sage: HD = CohomologyRing(D, GroupName='D_8', from_scratch=True)
@@ -2720,7 +2720,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('AlternatingGroup(8)')
+            sage: G = libgap.AlternatingGroup(8)
             sage: H = CohomologyRing(G,prime=2,GroupName='A8')
             sage: H.make()
             sage: H.subgroup_cohomology()
@@ -2768,7 +2768,7 @@ class MODCOCH(RingElement):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('AlternatingGroup(8)')
+            sage: G = libgap.AlternatingGroup(8)
             sage: H = CohomologyRing(G,prime=2,GroupName='A8')
             sage: H.make()
             sage: H.1.as_cocycle_in_sylow()
@@ -4675,19 +4675,19 @@ class CohomologyHomset(RingHomset_generic):
     maps to representatives for all conjugacy classes of non-trivial subgroups.
     ::
 
-        sage: G = gap('DihedralGroup(8)')
+        sage: G = libgap.DihedralGroup(8)
         sage: H = CohomologyRing(G,GroupName = 'D8', from_scratch=True)
         sage: H.make()
         sage: SubG = [X.RepresentativeSmallest() for X in G.ConjugacyClassesSubgroups()]
         sage: SubG = [X.MinimalGeneratingSet().Group() for X in SubG if X.Order()>1]
         sage: for i in range(len(SubG)):
-        ....:     SubG[i].SetName('"U%d"'%(i+1))
+        ....:     SubG[i].SetName('U%d'%(i+1))
         sage: HSubG = [CohomologyRing(X, from_scratch=True) for X in SubG]
         sage: for X in HSubG:
         ....:     X.make()
         sage: IncG = [X.GroupHomomorphismByImages(G,X.GeneratorsOfGroup(),X.GeneratorsOfGroup()) for X in SubG]
         sage: for i in range(len(IncG)):
-        ....:     IncG[i].SetName('"i_%d"'%(i+1))
+        ....:     IncG[i].SetName('i_%d'%(i+1))
         sage: ResG = [H.hom(IncG[i], HSubG[i]) for i in range(len(HSubG))]   # indirect doctest
 
     Now, we can apply the maps to elements of ``H``::
@@ -4777,10 +4777,10 @@ class CohomologyHomset(RingHomset_generic):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: HS = H2.Hom(H1)
             sage: HS(phi_star.G_map()) == HS(phi) == phi_star   # indirect doctest
@@ -4815,14 +4815,12 @@ class CohomologyHomset(RingHomset_generic):
               # defining the images of the generators of the group of self._codomain
             if hasattr(GMap,'parent'):
                 GAP = GMap.parent()
-                if repr(GAP)!='Gap':
-                    raise ValueError("The parent must be Gap, not %s"%GAP)
-                _gap_init(GAP)
-                if GAP.eval('HasName(%s)'%(GMap.name())) == 'true':
-                    Name = GAP.eval('Name(%s)'%(GMap.name()))[1:-1]
+                _gap_init()
+                if GMap.HasName():
+                    Name = GMap.Name().sage()
                 if not (GAP == Src.group().parent() == Tgt.group().parent()):
                     raise ValueError("The second argument and the groups of domain and codomain must be defined in the same Gap session")
-                if GAP.eval('IsGroupHomomorphism(%s)'%(GMap.name())) == 'true':
+                if GMap.IsGroupHomomorphism():
                     GSrc = GMap.Source()
                     GTgt = GMap.Range()
                     for X in GSrc.GeneratorsOfGroup():
@@ -4835,29 +4833,36 @@ class CohomologyHomset(RingHomset_generic):
                     if GSrceqGTgt and not GSrc.GeneratorsOfGroup()==GTgt.GeneratorsOfGroup():
                         # We insist that the generators coincide.
                         GTgt = GSrc
-                        GAP.eval('%s:=GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(GMap.name(),GSrc.name(),GTgt.name(),GSrc.name(),GSrc.name(),GMap.name(),GSrc.name()))
+#~                         GAP.eval('%s:=GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(GMap.name(),GSrc.name(),GTgt.name(),GSrc.name(),GSrc.name(),GMap.name(),GSrc.name()))
+                        GSrcGen = GSrc.GeneratorsOfGroup()
+                        GMap = GSrc.GroupHomomorphismByImages(GTgt, GSrcGen, [ GMap.Image(g) for g in GSrcGen ])
                     # Replace GMap by a map starting at self._codomain.group() and ending at
                     # self._domain.group()
-                    try:
-                        GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
-                    except:
-                        _gap_init(GAP)
-                        GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
+#~                     try:
+                    GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
+#~                     except:
+#~                         _gap_init()
+#~                         GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
                     GTgtAdmH = GTgt.canonicalIsomorphism(self._domain.group())
-                    if GAP.eval(GSrcAdmH.name()) == 'fail':
+                    if GSrcAdmH == GAP.eval('fail'):
                         raise ValueError("The source of the group homomorphism doesn't match the range of the induced homomorphism, %s"%repr(self._codomain.group()))
-                    if GAP.eval(GTgtAdmH.name()) == 'fail':
+                    if GTgtAdmH == GAP.eval('fail'):
                         raise ValueError("The range of the group homomorphism doesn't match the source of the induced homomorphism, %s"%repr(self._domain.group()))
-                    GMap = GAP('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,Image(%s,Image(%s,GeneratorsOfGroup(%s)[x])))))'%(self._codomain.group().name(),self._domain.group().name(),self._codomain.group().name(),self._codomain.group().name(),GTgtAdmH.name(),GMap.name(),GSrcAdmH.name(),self._codomain.group().name()))
-
+#~                     GMap = GAP('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,Image(%s,Image(%s,GeneratorsOfGroup(%s)[x])))))'%(self._codomain.group().name(),self._domain.group().name(),self._codomain.group().name(),self._codomain.group().name(),GTgtAdmH.name(),GMap.name(),GSrcAdmH.name(),self._codomain.group().name()))
+                    CDGen = self._codomain.group().GeneratorsOfGroup()
+                    GMap = self._codomain.group().GroupHomomorphismByImages(self._domain.group(), CDGen,
+                                                                            [ GTgtAdmH.Image(GMap.Image(GSrcAdmH.Image(g))) for g in CDGen ])
                     # We need restriction to Src.group(), hence, if self._codomain is not Src
                     # then we map Src.group() to self._codomain._SylowGp, which is a subgroup of
                     # self._codomain.group()
                     if Src is not self._codomain:
                         Src2Sylow = Src.group().canonicalIsomorphism(self._codomain._SylowGp)
-                        if GAP.eval(Src2Sylow.name()) == 'fail':
+                        if Src2Sylow == GAP.eval('fail'):
                             raise RuntimeError("Theoretical error: No canonical isomorphism from %s to %s found"%(Src.group(),self._codomain._SylowGp))
-                        GAP.eval('%s:=GroupHomomorphismByImages(%s, %s, GeneratorsOfGroup(%s), List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s,Image(%s,GeneratorsOfGroup(%s)[x]))))'%(GMap.name(),Src.group().name(), self._domain.group().name(), Src.group().name(), Src.group().name(), GMap.name(), Src2Sylow.name(), Src.group().name()))
+#~                         GAP.eval('%s:=GroupHomomorphismByImages(%s, %s, GeneratorsOfGroup(%s), List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s,Image(%s,GeneratorsOfGroup(%s)[x]))))'%(GMap.name(),Src.group().name(), self._domain.group().name(), Src.group().name(), Src.group().name(), GMap.name(), Src2Sylow.name(), Src.group().name()))
+                        SrcGrpGen = Src.group().GeneratorsOfGroup()
+                        GMap = Src.group().GroupHomomorphismByImages(self._domain.group(), SrcGrpGen,
+                                                                     [ GMap.Image(Src2Sylow.Image(g)) for g in SrcGrpGen ])
 
                     # Now the Source is fine. About the Range:
                     # We are already in self._domain.group().
@@ -4866,15 +4871,22 @@ class CohomologyHomset(RingHomset_generic):
                     # of self._domain.group(), which currently is the range of GMap.
                     if self._domain is not Tgt:
                         # GMap starts at Src.group(). So, its image is a p-group
-                        ConjMap = GAP('conjugateIntoSylow(%s,Image(%s),%s)'%(self._domain.group().name(), GMap.name(), (self._domain._SylowGp if self._domain._SylowGp is not None else self._domain.group()).name()))
-                        if GAP.eval(ConjMap.name()) == 'fail':
+#~                         ConjMap = GAP('conjugateIntoSylow(%s,Image(%s),%s)'%(self._domain.group().name(), GMap.name(), (self._domain._SylowGp if self._domain._SylowGp is not None else self._domain.group()).name()))
+                        ConjMap = self._domain.group().conjugateIntoSylow(GMap.Image(), self._domain._SylowGp if self._domain._SylowGp is not None else self._domain.group())
+                        if ConjMap == GAP.eval('fail'):
                             raise RuntimeError("Theoretical error: Unable to conjugate a p-subgroup into a given Sylow p-subgroup")
 
                         # We compose GMap with ConjMap and obtain a map from Src.group() to self._domain._SylowGp and forward to Tgt.group()
                         Sylow2Tgt = (self._domain._SylowGp if self._domain._SylowGp is not None else self._domain.group()).canonicalIsomorphism(Tgt._HSyl.group() if Tgt._HSyl is not None else Tgt.group())
-                        if GAP.eval(Sylow2Tgt.name()) == 'fail':
+                        if Sylow2Tgt == GAP.eval('fail'):
                             raise RuntimeError("Theoretical Error: No canonical isomorphism from %s to %s found"%(self._domain._SylowGp, Tgt.group()))
-                        GAP.eval('%s:=GroupHomomorphismByImages(%s, %s, GeneratorsOfGroup(%s), List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s,Image(%s, Image(%s, GeneratorsOfGroup(%s)[x])))))'%(GMap.name(), Src.group().name(), Tgt.group().name(), Src.group().name(), Src.group().name(), Sylow2Tgt.name(), ConjMap.name(), GMap.name(), Src.group().name()))
+#~                         GAP.eval('%s:=GroupHomomorphismByImages(%s, %s, GeneratorsOfGroup(%s),
+#~                                     List([1..Length(GeneratorsOfGroup(%s))], x -> Image(%s,Image(%s, Image(%s, GeneratorsOfGroup(%s)[x])))))'%
+#~                                     (GMap.name(), Src.group().name(), Tgt.group().name(), Src.group().name(), Src.group().name(), Sylow2Tgt.name(),
+#~                                         ConjMap.name(), GMap.name(), Src.group().name()))
+                        SrcGen = Src.group().GeneratorsOfGroup()
+                        GMap = Src.group().GroupHomomorphismByImages( Tgt.group(), SrcGen,
+                                                    [ Sylow2Tgt.Image(ConjMap.Image(GMap.Image(g))) for g in SrcGen ])
                 else: # not a homomorphism
                     raise NotImplementedError("We expected a group homomorphism")
 
@@ -4883,13 +4895,12 @@ class CohomologyHomset(RingHomset_generic):
                 HStem = os.path.join(Src.gps_folder,Src.GStem)
                 while True:
                     IStem = tmp_filename()
-                    command = 'makeInducedHomomorphismData("%s","%s","%s", %s, %d)'%(GStem,HStem,IStem,GMap.name(),Tgt.Resl.G_ALG().order())
-                    GAP.eval(command)
+#~                     command = 'makeInducedHomomorphismData("%s","%s","%s", %s, %d)'%(GStem,HStem,IStem,GMap.name(),Tgt.Resl.G_ALG().order())
+                    GAP.function_factory('makeInducedHomomorphismData')(GStem, HStem, IStem, GMap, Tgt.Resl.G_ALG().order())
                     # The following warning occurs when computing the mod-3 cohomology of SmallGroup(44100,1)
                     if not os.path.exists(IStem+'.ima'):
                         print("WARNING")
-                        print("   ",command)
-                        print("did not result in a file")
+                        print("Couldn't create data for induced homomorphism.")
                         print("If this persists, hit <Ctrl-c> and inform the author")
                     else:
                         break
@@ -4946,17 +4957,17 @@ class ChMap_unpickle_class:
 
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-        sage: G1 = gap('SmallGroup(8,3)')
+        sage: G1 = libgap.SmallGroup(8,3)
         sage: H1 = CohomologyRing(8,3, from_scratch=True)
         sage: H1.make()
-        sage: G2 = gap('DihedralGroup(8)')
+        sage: G2 = libgap.DihedralGroup(8)
         sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
         sage: H2.make()
         sage: phi = G1.IsomorphismGroups(G2)
 
     After ensuring that ``phi`` is printed nicely, we obtain the induced map and see that it is cached::
 
-        sage: phi.SetName('"phi"')
+        sage: phi.SetName('phi')
         sage: phi_star = H2.hom(phi,H1)
         sage: phi_star is loads(dumps(phi_star))   # indirect doctest
         True
@@ -4969,10 +4980,10 @@ class ChMap_unpickle_class:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
@@ -4992,10 +5003,10 @@ class ChMap_unpickle_class:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
@@ -5032,10 +5043,10 @@ cdef class ChMap(RingHomomorphism):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-        sage: G1 = gap('SmallGroup(8,3)')
+        sage: G1 = libgap.SmallGroup(8,3)
         sage: H1 = CohomologyRing(8,3, from_scratch=True)
         sage: H1.make()
-        sage: G2 = gap('DihedralGroup(8)')
+        sage: G2 = libgap.DihedralGroup(8)
         sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
         sage: H2.make()
 
@@ -5043,7 +5054,7 @@ cdef class ChMap(RingHomomorphism):
     groups that are, from the perspective of our programs, equivalent to
     ``G1`` and ``G2``, and provide an explicit group isomorphism::
 
-        sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+        sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
         sage: H1.group()==phi.Source()
         True
         sage: H2.group().canonicalIsomorphism(phi.Range())
@@ -5058,7 +5069,7 @@ cdef class ChMap(RingHomomorphism):
 
     After ensuring that ``phi`` is printed nicely, we obtain the induced map::
 
-        sage: phi.SetName('"phi"')
+        sage: phi.SetName('phi')
         sage: phi_star = H2.hom(phi,H1)   #indirect doctest
         sage: phi_star
         phi^*
@@ -5124,8 +5135,8 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('Group([(3,4,5,6,7,8,9,10),(1,2)])')
-            sage: V = gap('Group([(1,2),(3,4)])')
+            sage: G = libgap.eval('Group([(3,4,5,6,7,8,9,10),(1,2)])')
+            sage: V = libgap.eval('Group([(1,2),(3,4)])')
             sage: phi = V.GroupHomomorphismByImages(G,V.GeneratorsOfGroup(),[G.1^4,G.2])
             sage: H0 = CohomologyRing(16,5)
             sage: H0.make()
@@ -5220,10 +5231,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star is loads(dumps(phi_star)) # indirect doctest
             True
@@ -5239,10 +5250,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = gap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star   # indirect doctest
             Induced homomorphism of degree 0 from H^*(DihedralGroup(8); GF(2)) to H^*(D8; GF(2))
@@ -5265,10 +5276,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star.label()
             'Map H^*(DihedralGroup_8_; GF(2)) -> H^*(8gp3; GF(2))'
@@ -5297,10 +5308,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: print(phi_star)    # indirect doctest
             Induced homomorphism of degree 0 from H^*(DihedralGroup(8); GF(2)) to H^*(D8; GF(2))
@@ -5327,10 +5338,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: singular(phi_star.codomain()).set_ring()
             sage: f = singular(phi_star)   # indirect doctest
@@ -5428,10 +5439,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
@@ -5484,10 +5495,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
@@ -5518,10 +5529,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
@@ -5547,8 +5558,8 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G1 = libgap.SmallGroup(8,3)
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H1 = CohomologyRing(8,3)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H1.make()
@@ -5558,7 +5569,7 @@ cdef class ChMap(RingHomomorphism):
         groups that are, from the perspective of our programs, equivalent to
         ``G1`` and ``G2``, and provide an explicit group isomorphism::
 
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
             sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
@@ -5599,10 +5610,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
@@ -5625,10 +5636,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
 
@@ -5636,7 +5647,7 @@ cdef class ChMap(RingHomomorphism):
         groups that are, from the perspective of our programs, equivalent to
         ``G1`` and ``G2``, and provide an explicit group isomorphism::
 
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
             sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
@@ -5675,14 +5686,14 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
-            sage: phi.SetName('"phi"')
+            sage: phi.SetName('phi')
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star.name()
             'phi^*'
@@ -5708,14 +5719,14 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
-            sage: phi.SetName('"phi"')
+            sage: phi.SetName('phi')
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star.name()
             'phi^*'
@@ -5746,10 +5757,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
@@ -5782,10 +5793,10 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap('DihedralGroup(8)')
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: phi_star = H2.hom(phi,H1)
             sage: print(phi_star(H2.1))
             2-Cocycle in H^*(D8; GF(2)),
@@ -6004,10 +6015,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = gap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = G1.IsomorphismGroups(G2)
@@ -6157,17 +6168,17 @@ cdef class ChMap(RingHomomorphism):
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
-            sage: G1 = gap('SmallGroup(8,3)')
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G1 = libgap.SmallGroup(8,3)
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2,GroupName='Dihedral', from_scratch=True)
             sage: phi12 = G1.IsomorphismGroups(G2)
-            sage: phi12.SetName('"phi12"')
+            sage: phi12.SetName('phi12')
             sage: Phi21 = H2.hom(phi12,H1)
             sage: Src = phi12.Source()
             sage: Rng = phi12.Range()
             sage: Gens = Rng.GeneratorsOfGroup()
             sage: phi21 = Rng.GroupHomomorphismByImages(Src, Gens, [phi12.PreImagesRepresentative(g) for g in Gens])
-            sage: phi21.SetName('"phi21"')
+            sage: phi21.SetName('phi21')
             sage: Phi12 = H1.hom(phi21,H2)
             sage: Phi12
             phi21^*
@@ -6243,10 +6254,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
 
@@ -6254,7 +6265,7 @@ cdef class ChMap(RingHomomorphism):
         groups that are, from the perspective of our programs, equivalent to
         ``G1`` and ``G2``, and provide an explicit group isomorphism::
 
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
             sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
@@ -6314,10 +6325,10 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3, from_scratch=True)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
 
@@ -6325,7 +6336,7 @@ cdef class ChMap(RingHomomorphism):
         groups that are, from the perspective of our programs, equivalent to
         ``G1`` and ``G2``, and provide an explicit group isomorphism::
 
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
             sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'

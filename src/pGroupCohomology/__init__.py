@@ -316,7 +316,7 @@ the other way. That name also determines the location of data storage,
 and thus if two different names are provided then the corresponding
 cohomology rings are not the same::
 
-    sage: G = gap('DihedralGroup(8)')
+    sage: G = libgap.DihedralGroup(8)
     sage: H2 = CohomologyRing(G,GroupName='DihedralA')
     sage: G.SetName('"DihedralB"')
     sage: H3 = CohomologyRing(G)
@@ -328,7 +328,7 @@ isomorphic to ``H1``, since they belong to isomorphic groups. However,
 they do not have the same ring presentation. This is because the
 presentation of the cohomology ring depends on the choice of a minimal
 generating set of the group; and the minimal generating sets of
-``gap('SmallGroup(8,3)')`` and of ``gap('DihedralGroup(8)')`` are
+``SmallGroup(8,3)`` and of ``DihedralGroup(8)`` are
 essentially different::
 
     sage: H2.make()
@@ -366,7 +366,7 @@ But of course, the rings are isomorphic.
 Above, we computed the cohomology of some non prime power group. It is
 in fact a symmetric group::
 
-    sage: G = gap('SymmetricGroup(6)')
+    sage: G = libgap.SymmetricGroup(6)
     sage: HS6b = CohomologyRing(G, prime=2, GroupName='SymmetricGroup(6)', from_scratch=True)
     sage: HS6b.make()
     sage: print(HS6b)
@@ -507,7 +507,7 @@ by Gap's function ``IsomorphismGroups``. But the result is not
 unique. In order to have reproducible doc tests, we provide an
 explicit isomorphism::
 
-    sage: phi = gap('GroupHomomorphismByImages(Group([(1,2)(3,8)(4,6)(5,7),(1,3)(2,5)(4,7)(6,8)]), Group([(1,2)(3,8)(4,6)(5,7),(1,3,4,7)(2,5,6,8),(1,4)(2,6)(3,7)(5,8) ]), [(1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8)], [(1,6)(2,4)(3,5)(7,8), (1,8)(2,7)(3,6)(4,5)])')
+    sage: phi = libgap.eval('GroupHomomorphismByImages(Group([(1,2)(3,8)(4,6)(5,7),(1,3)(2,5)(4,7)(6,8)]), Group([(1,2)(3,8)(4,6)(5,7),(1,3,4,7)(2,5,6,8),(1,4)(2,6)(3,7)(5,8) ]), [(1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8)], [(1,6)(2,4)(3,5)(7,8), (1,8)(2,7)(3,6)(4,5)])')
     sage: phi.IsInjective()
     true
     sage: phi.IsSurjective()
@@ -595,7 +595,7 @@ rank 6. We compute the ring homomorphism that is induced by the
 embedding. In order to get a reproducible result, we define the
 group homomorphism explicitly::
 
-    sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,2), (1,2,3,4,5,6) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,3), (1,2)(3,4) ] )')
+    sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,2), (1,2,3,4,5,6) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,3), (1,2)(3,4) ] )')
     sage: phi_star = HS6a.hom(phi,H0)
     sage: [H0.element_as_polynomial(phi_star(x)) for x in HS6a.gens()]
     [1: 0-Cocycle in H^*(D8; GF(2)),
@@ -796,8 +796,8 @@ We consider here the bar codes associated with the upper central
 series. It turns out that the non-trivial terms of the upper central
 series and the resulting factor groups are isomorphic::
 
-    sage: G158 = gap('SmallGroup(64,158)')
-    sage: G160 = gap('SmallGroup(64,160)')
+    sage: G158 = libgap.SmallGroup(64,158)
+    sage: G160 = libgap.SmallGroup(64,160)
     sage: [(G.IdGroup(), (G158/G).IdGroup()) for G in G158.UpperCentralSeries()]
     [([ 64, 158 ], [ 1, 1 ]),
      ([ 16, 2 ], [ 4, 2 ]),
@@ -1076,7 +1076,7 @@ names of these folders are composed as follows.
    of the cohomology ring::
 
        sage: H = CohomologyRing(8,3)
-       sage: G = gap('DihedralGroup(8)')
+       sage: G = libgap.DihedralGroup(8)
        sage: K = CohomologyRing(G, GroupName = 'DihedralA')
        sage: G.SetName('"DihedralB"')
        sage: L = CohomologyRing(G)

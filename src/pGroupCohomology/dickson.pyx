@@ -162,11 +162,11 @@ class DICKSON:
             P = PolynomialRing(self.K,n,'y')
         else:
             P = PolynomialRing(self.K,'y0')
-        if s==0:
-            Q=prod([self.V(k,P) for k in range(1,n+1)])**(self.p - 1)
+        if s == 0:
+            Q = prod([self.V(k,P) for k in range(1,n+1)])**(self.p - 1)
             self._cache_[(n,0)] = Q
             return Q
-        if n==s:
+        if n == s:
             self._cache_[(n,s)] = self.K(1)
             return self.K(1)
         Q = (self.__call__(n-1,s) * (self.V(n,P))**(self.p - 1)) + (P(self.__call__(n-1,s-1)))**(self.p)

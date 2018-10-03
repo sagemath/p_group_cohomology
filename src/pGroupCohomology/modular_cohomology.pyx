@@ -116,12 +116,12 @@ def _IdGroup(G, D, Client, ring=True):
         sage: H = CohomologyRing(8,3)
         sage: from pGroupCohomology.modular_cohomology import _IdGroup
         sage: D = {'prime':3}
-        sage: G1 = gap('AlternatingGroup(7)')
+        sage: G1 = libgap.AlternatingGroup(7)
 
     The group order is beyond the scope of the ``SmallGroups`` library.
     So, the pair "(Group Order, 0)" is returned::
 
-        sage: _IdGroup(G1,D,H, ring=False)
+        sage: _IdGroup(G1, D, H, ring=False)
         Failed to construct a minimal generating set of the group -- keep your fingers crossed...
         (2520, 0)
 
@@ -129,7 +129,7 @@ def _IdGroup(G, D, Client, ring=True):
     rings. Since the cohomology of ``G1`` was not stored in ``D``, a new
     entry is created as ``D[q][n]``::
 
-        sage: G2 = gap('CyclicGroup(2520)')
+        sage: G2 = libgap.CyclicGroup(2520)
         sage: _IdGroup(G2,D,H)
         (2520, 0)
         sage: D['prime']
@@ -152,7 +152,7 @@ def _IdGroup(G, D, Client, ring=True):
     If a group can be found in the Small Groups library, that value
     will always be used::
 
-        sage: G3 = gap('AlternatingGroup(6)')
+        sage: G3 = libgap.AlternatingGroup(6)
         sage: _IdGroup(G3,D,H, ring=False)
         (360, 118)
         sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
@@ -165,7 +165,7 @@ def _IdGroup(G, D, Client, ring=True):
 
     """
     gap = G.parent()
-    _gap_init(gap)
+    _gap_init()
     try:
         q,n = G.IdGroup().sage()
         coho_logger.info( "Considering SmallGroup(%d,%d)"%(q,n), None)
@@ -175,14 +175,18 @@ def _IdGroup(G, D, Client, ring=True):
                 try:
                     phi = H.group().canonicalIsomorphism(G)
                 except:
-                    _gap_init(gap)
+                    _gap_init()
                     phi = H.group().canonicalIsomorphism(G)
-                if repr(phi)=='fail':
-                    phi = gap('IsomorphismGroups(%s,%s)'%(H.group().name(),G.name()))
-                gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(G.name(),H.group().name(),phi.name(),H.group().name()))
+                if phi == gap.eval('fail'):
+                    phi = H.group().IsomorphismGroups(G)
+#~                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],
+#~                    x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(G.name(),H.group().name(),phi.name(),H.group().name()))
+                    G = gap.Group([phi.Image(g) for g in H.group().GeneratorsOfGroup()])
             else:
-                phi = gap('IsomorphismGroups(SmallGroup(%d,%d),%s)'%(q,n,G.name()))
-                gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(Source(%s)))], x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(G.name(),phi.name(),phi.name(),phi.name()))
+                phi = gap.SmallGroup(q,n).IsomorphismGroups(G)
+#~                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(Source(%s)))],
+#~                     x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(G.name(),phi.name(),phi.name(),phi.name()))
+                G = phi.Image(phi.Source().GeneratorsOfGroup())
         if D.has_key(q) and D[q].has_key(n):
             return (q,n)
         if not D.has_key(q):
@@ -204,9 +208,11 @@ def _IdGroup(G, D, Client, ring=True):
     if not D.has_key(q):
         D[q]={}
     for m,H in D[q].items():
-        phiG = gap('IsomorphismGroups(%s,%s)'%(H.group().name(),G.name()))
-        if repr(phiG) != 'fail':
-            gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(G.name(),H.group().name(),phiG.name(),H.group().name()))
+        phiG = H.group().IsomorphismGroups(G)
+        if phiG != gap.eval('fail'):
+#~             gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%
+#~                 (G.name(),H.group().name(),phiG.name(),H.group().name()))
+            G = gap.Group([ phiG.Image(g) for g in H.group().GeneratorsOfGroup()])
             return (q,m)
     n = -len(D[q].keys())
     coho_logger.info( "Computing minimal generating set of the group", None)
@@ -242,7 +248,7 @@ class MODCOHO(COHO):
 
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-        sage: G = gap('SmallGroup(48,36)')
+        sage: G = libgap.SmallGroup(48,36)
         sage: H1 = CohomologyRing(G, prime=2, GroupName='SomeGroup', from_scratch=True)
         sage: H1.make()
         sage: H1.poincare_series()
@@ -299,7 +305,7 @@ class MODCOHO(COHO):
             sage: from pGroupCohomology import CohomologyRing
             sage: from pGroupCohomology.modular_cohomology import MODCOHO
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('SymmetricGroup(6)')
+            sage: G = libgap.SymmetricGroup(6)
             sage: S = G.SylowSubgroup(3)
             sage: P = G.Normalizer(S.Centre())
             sage: P.IdGroup()
@@ -369,7 +375,7 @@ class MODCOHO(COHO):
         if G==None: # used for pickling
             return
 
-        if not (hasattr(G,'parent') and repr(G.parent())=='Gap'):
+        if not hasattr(G,'parent'):
             raise ValueError("The group must be given in the Gap interface")
         gap = G.parent()
         if not isinstance(HP,COHO):
@@ -395,18 +401,18 @@ class MODCOHO(COHO):
         # Get some Group-ID
         if isinstance(G,tuple):
             GId = G
-            G = gap('SmallGroup(%d,%d)'%(G[0],G[1]))
+            G = gap.SmallGroup(G[0], G[1])
             GStem = GStem or "%dgp%d"%(GId[0],GId[1])
         else:
             gap = G.parent()
             GId = kwds.get('GroupId',(Integer(G.Order()),0))
             if GId[1]>0:
                 try:
-                    bla = gap.eval('canonicalIsomorphism(SmallGroup(%d,%d),%s)'%(GId[0],GId[1],G.name()))
+                    bla = gap.SmallGroup(GId[0],GId[1]).canonicalIsomorphism(G)
                 except:
-                    _gap_init(gap)
-                    bla = gap.eval('canonicalIsomorphism(SmallGroup(%d,%d),%s)'%(GId[0],GId[1],G.name()))
-                if bla=='fail':
+                    _gap_init()
+                    bla = gap.SmallGroup(GId[0],GId[1]).canonicalIsomorphism(G)
+                if bla == gap.eval('fail'):
                     raise ValueError("Group and GroupId are incompatible")
         self._Order = GId[0]
 
@@ -414,19 +420,21 @@ class MODCOHO(COHO):
         if GStem is None: # explicit advice of the user has preference.
             # If nothing else is found, use Name from gap
             if G.HasName():
-                GStem = gap.eval('Name(%s)'%G.name())[1:-1]
+                GStem = G.Name().sage()
             else:
                 raise ValueError("Can not infer group name: Optional argument <GStem> must be provided")
         self.GStem = GStem
 
         if GroupName or G.HasName():
-            self.setprop('GroupName',GroupName or gap.eval('Name(%s)'%G.name())[1:-1])
+            self.setprop('GroupName', GroupName or G.Name().sage())
 
         # Find an *equivalent* PermutationGroup
         if GPerm is None:
-            if gap.eval('IsPermGroup(%s)'%G.name())=='false':
-                G2 = gap('regularPermutationAction(%s: forceDefiningGenerators)'%G.name())
-                tmpPhi = gap('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%(G.name(),G2.name(),G.name(),G2.name()))
+            if not G.IsPermGroup():
+                G2 = G.regularPermutationAction()
+#~                 tmpPhi = gap('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%
+#~             (G.name(),G2.name(),G.name(),G2.name()))
+                tmpPhi = G.GroupHomomorphismByImages(G2. G.GeneratorsOfGroup(), G2.GeneratorsOfGroup())
             else:
                 tmpPhi = None
                 G2 = G
@@ -436,11 +444,13 @@ class MODCOHO(COHO):
                 try:
                     tmpPhi = G.canonicalIsomorphism(G2)
                 except:
-                    _gap_init(gap)
+                    _gap_init()
                     tmpPhi = G.canonicalIsomorphism(G2)
             else:
-                tmpPhi = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%(G.name(),G2.name(),G.name(),G2.name()))
-            if repr(tmpPhi)=='fail':
+#~                 tmpPhi = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%
+#~                 (G.name(),G2.name(),G.name(),G2.name()))
+                tmpPhi = G.GroupHomomorphismByImagesNC(G2, G.GeneratorsOfGroup(), G2.GeneratorsOfGroup())
+            if tmpPhi == gap.eval('fail'):
                 raise ValueError("The given permutation group GPerm is not an equivalent description of the given group G")
         self._gap_group = G2
         self._gapBackup = ('Group('+repr(G2.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
@@ -456,18 +466,18 @@ class MODCOHO(COHO):
             raise ValueError("We expected a group-subgroup pair")
         if kwds.get('verifyGroupIso'):
             try:
-                bla = gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))
+                bla = Subgroup.canonicalIsomorphism(HP.group())
             except:
-                _gap_init(gap)
-                bla = gap.eval('canonicalIsomorphism(%s,%s)'%(Subgroup.name(),HP.group().name()))
-            if bla=='fail':
+                _gap_init()
+                bla = Subgroup.canonicalIsomorphism(HP.group())
+            if bla == gap.eval('fail'):
                 raise ValueError("The generators of the given subgroup must be compatible with those of the group of the given cohomology ring")
 
         P = Subgroup
         PId = SubgpId
         if PId is None:
             # P is too big for the IdGroup algorithm!
-            self._POrder = Order = Integer(gap.eval('Order(%s)'%P.name()))
+            self._POrder = Order = P.Order().sage()
             if Order == 1:
                 raise ValueError("Sylow subgroups cannot be trivial!")
         else:
@@ -483,7 +493,7 @@ class MODCOHO(COHO):
         # a subgroup of self.group()
         if tmpPhi is not None:
             # P is compatible with HP. So, map the generators
-            self._Subgp = gap('Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(P.name(),tmpPhi.name(),P.name()))
+            self._Subgp = gap.Group([tmpPhi.Image(g) for g in P.GeneratorsOfGroup()])
         else: # G is a perm group, thus so is P
             self._Subgp = P
         self._SubgpBackup = ('Group('+repr(self._Subgp.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
@@ -504,23 +514,24 @@ class MODCOHO(COHO):
             try:
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
             except:
-                _gap_init(gap)
+                _gap_init()
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
         else:
-            phiHPtoP = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->GeneratorsOfGroup(%s)[x]))'%(HP.group().name(),P.name(),HP.group().name(),HP.group().name(),P.name()))
+            PGen = P.GeneratorsOfGroup()
+            phiHPtoP = HP.group().GroupHomomorphismByImagesNC(P, HP.group().GeneratorsOfGroup(), [PGen[i] for i in range(HP.group().GeneratorsOfGroup().Length().sage())])
         SubSylow = (HP.sylow_subgroup or HP.group)()
-        _SylowGp = gap('Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(SubSylow.name(),phiHPtoP.name(),SubSylow.name()))
+        _SylowGp = gap.Group([phiHPtoP.Image(g) for g in SubSylow.GeneratorsOfGroup()])
         if tmpPhi is not None:
-            self._SylowGp = gap('Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(_SylowGp.name(),tmpPhi.name(), _SylowGp.name()))
+            self._SylowGp = gap.Group([tmpPhi.Image(g) for g in _SylowGp.GeneratorsOfGroup()])
         else:
             self._SylowGp = _SylowGp
         self._SylowGpBackup = ('Group('+repr(self._SylowGp.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
 
         # Starting the subgroup dictionary
         if PId is None:
-            SubgpDict = {Order:{-1:HP}}
+            SubgpDict = { Order : {-1:HP} }
         else:
-            SubgpDict = {PId[0]:{PId[1]:HP}}
+            SubgpDict = { PId[0] : {PId[1]:HP} }
         SubgpDict['prime'] = p
 
         ######################################################
@@ -535,36 +546,36 @@ class MODCOHO(COHO):
         # representatives.
         coho_logger.info( "Computing double coset representatives for the given subgroup", self)
         CBase = G.DoubleCosetRepsAndSizes(P,P) # This should start with 1, but we better don't rely on it.
-        coho_logger.info( "Intersecting subgroup with %d conjugates", self, int(gap.eval('Length(%s)'%CBase.name()))-1)
+        coho_logger.info( "Intersecting subgroup with %d conjugates", self, CBase.Length().sage())
         C = [] # relevant double coset representatives
         phiC = [] # conjugator isomorphism corresponding to C
         HCP = [] # the cohomology of the intersection of P with its conjugates
         PtoPcapCP = [] # the restriction of P to the intersections
         CPtoPcapCP = [] # the restriction of P-conjugates to the intersections
-        for i in range(1,int(gap.eval('Length(%s)'%CBase.name()))+1): # don't consider the trivial element, which comes first
-            c = CBase[i][1]
+        for i in range(CBase.Length().sage()): # don't consider the trivial element, which comes first
+            c = CBase[i][0]
             # The conjugator automorphisms, later restricted to P
             phiG = G.ConjugatorAutomorphism(c)
             phiG2 = repr(phiG)
             PConj = phiG.Image(P)
             X = P.Intersection(PConj)
-            if gap.eval('Order(%s)'%X.name())!='1':
+            if X.Order().sage() != 1:
                 # This tries to get the generating sets and may change
                 # the list of generators of X
-                if Integer(gap.eval('Order(%s)'%X.name()))==self._POrder:
+                if X.Order().sage() == self._POrder:
                     # Use the generating set of P, so that the generators of the
                     # conjugates CP of P are compatible with the cohomology ring HP.
                     X = PConj = P
                     HCP.append(HP)
                     C.append(c)
-                    phi = gap('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(P.name(),PConj.name(),P.name(),P.name(),phiG.name(),P.name()))
+                    phi = P.GroupHomomorphismByImages(PConj, P.GeneratorsOfGroup(), [phiG.Image(g) for g in P.GeneratorsOfGroup()])
                     phiC.append(phi)
                 else:
                     # The following line may change the generating set of X and will provide
                     # the cohomology of X.
                     PIdTmp = _IdGroup(X, SubgpDict, self)
                     C.append(c)
-                    phi = gap('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(P.name(),PConj.name(),P.name(),P.name(),phiG.name(),P.name()))
+                    phi = P.GroupHomomorphismByImages(PConj, [phiG.Image(g) for g in P.GeneratorsOfGroup()])
                     phiC.append(phi)
                     if (PIdTmp != (1,1)) and p.divides(PIdTmp[0]):
                         HCP.append(SubgpDict[PIdTmp[0]][PIdTmp[1]])
@@ -574,9 +585,10 @@ class MODCOHO(COHO):
                         HCP.append(None)
                 if HCP[-1] is not None:
                     # Now, construct the restriction maps
-                    PtoPcapCP.append(HP.hom( gap('GroupHomomorphismByImages(%s,%s, GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%(X.name(),P.name(),X.name(),X.name())), HCP[-1]))
+                    PtoPcapCP.append( HP.hom( X.GroupHomomorphismByImages(P, X.GeneratorsOfGroup(), X.GeneratorsOfGroup()), HCP[-1]))
                     # Since phiG is mono, PreImagesRepresentative is unique.
-                    CPtoPcapCP.append(HP.hom( gap('GroupHomomorphismByImages(%s,%s, GeneratorsOfGroup(%s),List([1..Length(GeneratorsOfGroup(%s))], x -> PreImagesRepresentative(%s,GeneratorsOfGroup(%s)[x])))'%(X.name(),P.name(),X.name(),X.name(), phiG.name(), X.name())), HCP[-1]))
+                    CPtoPcapCP.append(HP.hom( X.GroupHomomorphismByImages(P,
+                            [phiG.PreImagesRepresentative(g) for g in X.GeneratorsOfGroup()]), HCP[-1]))
         if tmpPhi is not None:
             self.setprop('Cosets',[repr(tmpPhi.Image(X)).replace('\n','').replace(' ','') for X in C])
         else:
@@ -792,7 +804,7 @@ class MODCOHO(COHO):
             sage: tmp = tmp_dir()
             sage: CohomologyRing.set_workspace(tmp)
             sage: X = CohomologyRing(720,763,prime=2)
-            sage: G = gap('SymmetricGroup(6)')
+            sage: G = libgap.SymmetricGroup(6)
             sage: Y = CohomologyRing(G,prime=2,GroupName='SymmetricGroup(6)', from_scratch=True)
             sage: X.autosave_name().startswith(tmp.replace('//','/'))
             True
@@ -831,10 +843,8 @@ class MODCOHO(COHO):
             False
 
         """
-        try:
-            self._gap_group._check_valid()
-        except:
-            self._gap_group = gap(self._gapBackup)
+        if self._gap_group is None:
+            self._gap_group = gap.eval(self._gapBackup)
         return self._gap_group
 
     def sylow_subgroup(self):
@@ -854,10 +864,8 @@ class MODCOHO(COHO):
             true
 
         """
-        try:
-            self._SylowGp._check_valid()
-        except:
-            self._SylowGp = gap(self._SylowGpBackup)
+        if self._SylowGp is None:
+            self._SylowGp = gap.eval(self._SylowGpBackup)
         return self._SylowGp
 
     def subgroup(self):
@@ -882,7 +890,7 @@ class MODCOHO(COHO):
         try:
             self._Subgp._check_valid()
         except:
-            self._Subgp = gap(self._SubgpBackup)
+            self._Subgp = gap.eval(self._SubgpBackup)
         return self._Subgp
 
     def duflot_regular_sequence(self):
@@ -1592,7 +1600,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('MathieuGroup(11)')
+            sage: G = libgap.MathieuGroup(11)
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
 
         It may easily be that there are no stable cocycles in a given degree::
@@ -1919,10 +1927,12 @@ class MODCOHO(COHO):
             self.PCenterRk = self._HP.CenterRk # self._HP is COHO
         if self.PCenterRk is None: # the underlying group is abelian
             Syl = self._HP.group().SylowSubgroup(self._prime)
-            self.pRank = CenterRk = int(gap.eval('RankPGroup(%s)'%(Syl.name())))
+            self.pRank = CenterRk = int(Syl.RankPGroup())
             # Construct the maximal p-elementary abelian group in self._Subgp
-            ExpL = gap('List(GeneratorsOfGroup(%s),Order)'%Syl.name()).sage()[:CenterRk]
-            V = gap('Group(['+Syl.name()+'.'+ (','+Syl.name()+'.').join([str(i+1)+'^'+str(ExpL[i]/self._prime) for i in range(len(ExpL))])+'])')
+            ExpL = Syl.GeneratorsOfGroup().List(gap.Order).sage()[:CenterRk]
+               # = gap('List(GeneratorsOfGroup(%s),Order)'%Syl.name()).sage()[:CenterRk]
+            SylGens = Syl.GeneratorsOfGroup()
+            V = gap.Group([SylGens[i]**(ExpL[i]/self._prime) for i in range(CenterRk)])
             phi = V.GroupHomomorphismByImages(self._HP.group(), V.GeneratorsOfGroup(), V.GeneratorsOfGroup())
             q = self._prime**CenterRk
             n = Integer(gap.eval('NumberSmallGroups(%d)'%q))
@@ -1997,7 +2007,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('MathieuGroup(11)')
+            sage: G = libgap.MathieuGroup(11)
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(4)
             sage: CohomologyRing.global_options('info')
@@ -2101,7 +2111,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
+            sage: G = libgap.eval('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(3)
             sage: H.test_for_completion()
@@ -3238,7 +3248,7 @@ fi
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()   # Reset and disallow web access
-            sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
+            sage: G = libgap.eval('Group([(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6), (1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=2,GroupName='M12', from_scratch=True)
             sage: H.make()
             sage: HS = H.sylow_cohomology()
@@ -4178,7 +4188,7 @@ fi
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6),(1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
+            sage: G = libgap.eval('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6),(1,12)(2,11)(3,6)(4,8)(5,9)(7,10)])')
             sage: H = CohomologyRing(G,prime=3,GroupName='M12', from_scratch=True)
 
         We let compute the ring structure out to degree 16. The program
@@ -4477,7 +4487,7 @@ def COHO_from_key(key):
         if len(key[0])==2: # SmallGroup
             HP = CohomologyRing(key[0][0],key[0][1], GStem=HPstem)
         else:
-            HP = CohomologyRing(gap(key[0][0]), GStem=HPstem)
+            HP = CohomologyRing(gap.eval(key[0][0]), GStem=HPstem)
         # This will work in any case, may compute it from scratch
         coho_logger.setLevel(logging_level)
         if not HP.completed:
@@ -4506,7 +4516,7 @@ def COHO_from_key(key):
     try:
         HP = load(os.path.join(COHO.workspace, 'H'+key[1]+'mod%d.sobj'%key[-1]))  # realpath here?
     except:
-        HP = CohomologyRing(gap(key[0][0]), prime=key[-1], GStem=key[1],SubgpCohomology=HN)
+        HP = CohomologyRing(gap.eval(key[0][0]), prime=key[-1], GStem=key[1],SubgpCohomology=HN)
     coho_logger.setLevel(logging_level)
     if not HP.completed:
         HP.make()
@@ -4538,8 +4548,8 @@ def MODCOHO_unpickle(*L):
     from pGroupCohomology.cochain import MODCOCH
     from pGroupCohomology import CohomologyRing
     _cache = CohomologyRing._cache
-    OUT._property_dict = dict(unpickle_gap_data(_property_dict, gap))
-    OUT._decorator_cache = dict(unpickle_gap_data(cache, gap))
+    OUT._property_dict = dict(unpickle_gap_data(_property_dict))
+    OUT._decorator_cache = dict(unpickle_gap_data(cache))
     if _cache.has_key(OUT._key):
         return _cache[OUT._key]
     OUT.GStem = OUT._key[1]
@@ -4570,9 +4580,9 @@ def MODCOHO_unpickle(*L):
     OUT.alpha = alpha
 
     # Reconstruct data in GAP
-    OUT._Subgp = gap(_Subgp)
-    OUT._SylowGp = gap(_SylowGp)
-    OUT._gap_group = gap(_gap_group)
+    OUT._Subgp = gap.eval(_Subgp)
+    OUT._SylowGp = gap.eval(_SylowGp)
+    OUT._gap_group = gap.eval(_gap_group)
     OUT._SubgpBackup = _Subgp
     OUT._SylowGpBackup = _SylowGp
     OUT._gapBackup = _gap_group

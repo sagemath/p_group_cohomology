@@ -248,7 +248,7 @@ class GapPickler(object):
         sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
         sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):5}
-        sage: unpickle_gap_data(pickle_gap_data(D), gap) == D  # indirect doctest
+        sage: unpickle_gap_data(pickle_gap_data(D)) == D  # indirect doctest
         True
 
     """
@@ -284,14 +284,13 @@ class GapPickler(object):
         """
         return GapPickler, (self.value,)
 
-def unpickle_gap_data(G, gap):
+def unpickle_gap_data(G):
     """
     Unpickle data involving objects in Gap.
 
     INPUT:
 
     - ``G``: Any object.
-    - ``gap``: An instance of the Gap interface.
 
     NOTE:
 
@@ -306,27 +305,28 @@ def unpickle_gap_data(G, gap):
     EXAMPLES::
 
         sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
-        sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
+        sage: G = libgap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):5}
-        sage: unpickle_gap_data(pickle_gap_data(D), gap) == D
+        sage: unpickle_gap_data(pickle_gap_data(D)) == D
         True
 
     """
     if isinstance(G,basestring):
         return G
     if isinstance(G, GapPickler):
-        return gap(G.value)
+        from pGroupCohomology.auxiliaries import gap
+        return gap.eval(G.value)
     if G == SingularElement:
         return SingularElement(None,None,None) # invalid element, on purpose
     if not isinstance(G, (dict,tuple,list)):
         return G
     if isinstance(G,dict):
-        return dict((unpickle_gap_data(k, gap), unpickle_gap_data(v, gap)) for k,v in G.iteritems())
+        return dict((unpickle_gap_data(k), unpickle_gap_data(v)) for k,v in G.iteritems())
     try:
         I = iter(G)
     except:
         return G
-    return type(G)(unpickle_gap_data(X, gap) for X in I)
+    return type(G)(unpickle_gap_data(X) for X in I)
 
 
 def pickle_gap_data(G):
@@ -350,15 +350,15 @@ def pickle_gap_data(G):
     EXAMPLES::
 
         sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
-        sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
+        sage: G = libgap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):(5,G)}
-        sage: unpickle_gap_data(pickle_gap_data(D), gap) == D
+        sage: unpickle_gap_data(pickle_gap_data(D)) == D
         True
 
     If Gap data can not be reconstructed from its string representation, a
     type error is raised::
 
-        sage: G = gap.SmallGroup(8,3)
+        sage: G = libgap.SmallGroup(8,3)
         sage: D = {(1, G, "abc"):5}
         sage: pickle_gap_data(D)
         Traceback (most recent call last):
@@ -368,12 +368,6 @@ def pickle_gap_data(G):
     """
     if isinstance(G,basestring):
         return G
-    if isinstance(G, GapElement):
-        try:
-            if G == G.parent()(repr(G)):
-                return GapPickler(repr(G))
-        except:
-            raise TypeError("Can not pickle '%s'"%G)
     if isinstance(G, SingularElement):
         # In previous Sage versions, most Singular elements pickled
         # as invalid objects. Our spkg could deal with these invalid
@@ -382,6 +376,22 @@ def pickle_gap_data(G):
         # We thus return the type "SingularElement", unpickle it as invalid
         # object, and deal with it as we used to.
         return SingularElement
+    if isinstance(G, GapElement):
+        try:
+            if G == G.parent()(repr(G)):
+                return GapPickler(repr(G))
+        except:
+            raise TypeError("Can not pickle '{}'".format(G))
+    from pGroupCohomology.auxiliaries import gap
+    try:
+        if G.parent() is gap:
+            try:
+                if G == gap.eval(repr(G)):
+                    return GapPickler(repr(G))
+            except:
+                raise TypeError("Can not pickle '{}'".format(G))
+    except AttributeError:
+        pass
     try:
         I = iter(G)
     except:
@@ -794,7 +804,7 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
             else:
                 Kicked.append(j-1)
                 if regularity:
-                    coho_logger.debug("%s will be optional", singular, singular.eval(Poly_tmp.name()))
+                    coho_logger.debug("%s will be optional", "explore_one_parameter", singular.eval(Poly_tmp.name()))
                     singular.eval('%s[%d]=%s'%(Optional.name(),j,Poly_tmp.name()))
         singular.eval('%s=simplify(%s,2)'%(Essential.name(),Essential.name()))
         singular.eval('%s=simplify(%s,2)'%(Optional.name(),Optional.name()))
@@ -807,11 +817,11 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
             lenOpt = int(singular.eval('size(%s)'%Optional.name()))
         total = (p-1)**lenEss*p**lenOpt
         if lenOpt:
-            coho_logger.info('%d = (%d-1)^%d*%d^%d parameter candidates',singular, total, p, lenEss , p, lenOpt)
+            coho_logger.info('%d = (%d-1)^%d*%d^%d parameter candidates',"explore_one_parameter", total, p, lenEss , p, lenOpt)
         else:
-            coho_logger.info('%d = (%d-1)^%d parameter candidates',singular, total, p, lenEss)
+            coho_logger.info('%d = (%d-1)^%d parameter candidates',"explore_one_parameter", total, p, lenEss)
         if BreakPoint < total:
-            coho_logger.info('Will break after %d candidates', singular, BreakPoint)
+            coho_logger.info('Will break after %d candidates', "explore_one_parameter", BreakPoint)
         got_something = False
         from sage.all import add
         # we kicked stuff, so, we don't need coefficient zero
@@ -966,11 +976,13 @@ def is_filter_regular(I, f, H1=None, I2=None):
     if isinstance(I,basestring):
         S = singular
         nI = I
+        I = S.ideal(nI)
     else:
         S = I._check_valid()
         nI = I.name()
     if isinstance(f,basestring):
         nf = f
+        f = S(nf)
     else:
         assert f.parent() is S
         nf = f.name()
@@ -1017,7 +1029,7 @@ def is_filter_regular_parameter_system(I, FRS):
     """
     if isinstance(I,basestring):
         S = singular
-        I0 = S(I)
+        I0 = S.ideal(I)
     else:
         S = I._check_valid()
         I0 = I
@@ -1038,14 +1050,18 @@ def is_filter_regular_parameter_system(I, FRS):
     rfdt = []
     try:
         for f in frs:
+            coho_logger.debug('Parameter %r', "Study filter regular sequence", f)
             nf = f.name()
             I1 = I0.std(f)
+            coho_logger.debug('  quotient computed', "Study filter regular sequence")
             H1 = first_hilbert_series(I1)
+            coho_logger.debug('  Hilbert series computed', "Study filter regular sequence")
             d = Integer(S.eval('deg(%s)'%nf))
             HA = ((H1-H0)/t**d + H0)/Den
             if HA == 0:
                 rfdt.append([0])
             elif HA.denominator().degree():
+                coho_logger.debug('Sequence is not filter regular', "Study filter regular sequence")
                 return False
             else:
                 rfdt.append(HA.numerator().list())
@@ -1056,9 +1072,11 @@ def is_filter_regular_parameter_system(I, FRS):
         if HA == 0:
             rfdt.append([0])
         elif HA.denominator().degree():
+            coho_logger.debug('Sequence is not filter regular', "Study filter regular sequence")
             return False
         else:
             rfdt.append(HA.numerator().list())
+        coho_logger.debug('Sequence is filter regular', "Study filter regular sequence")
         return rfdt
     finally:
         try:
@@ -1365,8 +1383,8 @@ class permanent_result(object):
         ....:       return singular.maxideal(G.Order())
         sage: R.<x,y> = QQ[]
         sage: f = FOO(R)
-        sage: G2 = gap('Group( [ (1,2) ] )')
-        sage: G3 = gap('Group( [ (1,2,3) ] )')
+        sage: G2 = libgap.eval('Group( [ (1,2) ] )')
+        sage: G3 = libgap.eval('Group( [ (1,2,3) ] )')
 
     It can be seen from the printed statement that the actual
     computation is only done when the method is called first.
@@ -1395,13 +1413,12 @@ class permanent_result(object):
         sage: I2 is f.bar(G2)
         True
 
-    The point is that even when both GAP and Singular crash,
-    the data can be reconstructed without a new computation
-    (note that the printed statement does not appear)::
+    The point is that even when Singular crashes, the data can be
+    reconstructed without a new computation (note that the printed
+    statement does not appear)::
 
-        sage: gap.quit()
         sage: singular.quit()
-        sage: G2 = gap('Group( [ (1,2) ] )')
+        sage: G2 = libgap.eval('Group( [ (1,2) ] )')
         sage: f.bar(G2)
         y^2,
         x*y,
@@ -1596,7 +1613,7 @@ class permanent_result(object):
             ....:     def foo(self, G):
             ....:         raise KeyboardInterrupt
             sage: f = FOO()
-            sage: G2 = gap('Group( [ (1,2) ] )')
+            sage: G2 = libgap.eval('Group( [ (1,2) ] )')
             sage: f.bar(G2)
             2
             sage: try:
@@ -1720,19 +1737,19 @@ class permanent_result(object):
                 val.pop(-1)
             else:
                 raise KeyError("The saved data were not permanent")
-        if len(val)==1:
+        if len(val) == 1:
             return val[0]
         # The value is defined in some interface. Test if it is valid
-        if len(val)==2:
-            a,b=val
+        if len(val) == 2:
+            a,b = val
             try:
                 a._check_valid()
                 return a
             except ValueError:
                 # if the interface has not been pickled,
-                # we assume that it is GAP
+                # we assume that it is libGAP
                 GAP = a.parent() or inst.group().parent()
-                a = GAP(b)
+                a = GAP.eval(b)
                 inst._decorator_cache[key][0] = a
                 return a
         # it is in Singular!
@@ -1743,7 +1760,7 @@ class permanent_result(object):
         except ValueError:
             S = a.parent() or inst.GenS.parent()
             S(inst).set_ring()
-            a = S(b,t)   # includes the type information!
+            a = S(b, t)   # includes the type information!
             inst._decorator_cache[key][0] = a
             return a
 
@@ -2226,10 +2243,10 @@ class COHO(Ring):
 
         sage: from pGroupCohomology.cohomology import COHO
         sage: CohomologyRing.global_options('warn')
-        sage: G = gap('DihedralGroup(8)')
+        sage: G = libgap.DihedralGroup(8)
         sage: G
         Group( [ f1, f2, f3 ] )
-        sage: gap.eval('SetName(%s,"OtherName")'%(G.name()))
+        sage: G.SetName("OtherName")
         ''
         sage: G
         OtherName
@@ -2748,7 +2765,7 @@ class COHO(Ring):
          'a_1_0*a_3_3+a_2_1^2',
          'a_2_1*a_3_3',
          'a_3_3^2']
-        sage: G = gap('DihedralGroup(8)')
+        sage: G = libgap.DihedralGroup(8)
         sage: G
         Group( [ f1, f2, f3 ] )
         sage: H2 = COHO(G,GroupName='OtherName',root=tmp_root)
@@ -2779,12 +2796,12 @@ class COHO(Ring):
         coho_logger.debug("Group data are rooted at %r", None, root)
         Hfinal = None
         if len(args) == 1:
-            if not (hasattr(args[0],'parent') and repr(args[0].parent())=='Gap'):
+            if not hasattr(args[0],'parent'):
                 raise ValueError("The group must be given in the gap interface")
             gap = args[0].parent()
         else:
             from pGroupCohomology.auxiliaries import gap
-        _gap_init(gap)
+        _gap_init()
         if len(args) == 2:
             # We expect an address in the Small Groups library
             q,n = args
@@ -2794,7 +2811,7 @@ class COHO(Ring):
                 raise ValueError("We don't consider the trivial group")
             if (n<0) or (n<=0 and q>0): #(0,0) is for eating very old pickles...
                 raise ValueError("SmallGroup number must be positive")
-            if (q>0) and (n > Integer(gap.eval('NumberSmallGroups(%d)'%q))): # will raise another error if SmallGroups is not installed
+            if (q>0) and (n > gap.NumberSmallGroups(q).sage()): # will raise another error if SmallGroups is not installed
                 raise ValueError("(%d,%d) is not in the SmallGroups library"%(q,n))
 
             ####
@@ -2805,7 +2822,7 @@ class COHO(Ring):
             if GroupName is None:
                 GroupName = COHO.GroupNames.get((q,n), ('SmallGroup(%d,%d)'%(q,n),))[0]
             GroupKey = kwds.get('key',[(q,n),''])[0]
-            if n==gap('NumberSmallGroups(%d)'%(q)):
+            if n == gap.NumberSmallGroups(q):
                 self.setprop('ElAb',True)
 
 
@@ -2835,13 +2852,20 @@ class COHO(Ring):
                 H0 = args[0]
                 if not hasattr(H0,'parent'):
                     raise TypeError("We expected a group defined in Gap")
-                GAP = H0.parent()
-                _gap_init(GAP)
+                if H0.parent() is not gap:
+                    try:
+                        H0 = gap.eval(repr(H0))
+                    except:
+                        try:
+                            H0 = gap.Group(H0.GeneratorsOfGroup())
+                        except:
+                            raise ValueError("We don't know how to convert {} to libGAP".format(H0))
+                _gap_init()
 
                 ####
                 ## make up the (stem) name
-                if GAP.eval('HasName(%s)'%(H0.name())) == 'true':
-                    GroupName = GAP.eval('Name(%s)'%(H0.name()))[1:-1]
+                if H0.HasName():
+                    GroupName = H0.Name().sage()
                 else:
                     GroupName = None
                 GroupName = kwds.get('GroupName', GroupName)
@@ -2859,28 +2883,28 @@ class COHO(Ring):
                 #   2. minimal generators given?
                 #      if not, find them!
                 #   3. transform into permutation group
-                q = Integer(GAP.eval('Order(%s)'%(H0.name())))
+                q = H0.Order().sage()
                 if not q.is_prime_power():
                     raise ValueError("The group must be of prime power order")
                 n = -1
 
                 ## Try to make up minimal generators
-                if GAP.eval('RankPGroup(%s)'%(H0.name())) == GAP.eval('Length(GeneratorsOfGroup(%s))'%(H0.name())):
+                if H0.RankPGroup() == H0.GeneratorsOfGroup().Length():
                     # We already have minimal generators, and then we are supposed to use exactly *these* generators!
                     Hfinal = H0
                 else:
                     coho_logger.info("Try to find minimal generators for %s", None, GroupName)
-                    HP = GAP('Group(Image(IsomorphismPermGroup(%s),GeneratorsOfGroup(%s)))'%(H0.name(),H0.name()))
+                    HP = gap.Group(H0.IsomorphismPermGroup().Image(H0.GeneratorsOfGroup()))
                     ## Hopefully gap can find minimal generating sets for permutation groups...
-                    Hfinal = GAP('Subgroup(%s,MinimalGeneratingSet(%s))'%(HP.name(),HP.name()))
+                    Hfinal = HP.Subgroup(HP.MinimalGeneratingSet())
                 ####
                 ## Finally, make up a description of the group which preserves the generators
                 ## -- unless the user wants a different key (which may fail badly, but this is not our problem... :)
                 if kwds.has_key('key'):
                     GroupKey = kwds['key'][0]
                 else:
-                    if not GAP('IsPermGroup(%s)'%(Hfinal.name())):
-                        GroupKey = repr(GAP('regularPermutationAction(%s: forceDefiningGenerators)'%Hfinal.name()))
+                    if not Hfinal.IsPermGroup():
+                        GroupKey = repr(Hfinal.regularPermutationAction())
                     else:
                         GroupKey = 'Group('+repr(Hfinal.GeneratorsOfGroup())+')'
                     GroupKey = ''.join([t.strip() for t in GroupKey.split()])
@@ -3170,7 +3194,7 @@ class COHO(Ring):
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
-            sage: H2 = CohomologyRing(gap('DihedralGroup(8)'), GroupName = 'DihedralGroup(8)', from_scratch=True)
+            sage: H2 = CohomologyRing(libgap.DihedralGroup(8), GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H1.Hom(H2)
             Set of Homomorphisms from H^*(D8; GF(2)) to H^*(DihedralGroup(8); GF(2))
 
@@ -3219,10 +3243,10 @@ class COHO(Ring):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap('SmallGroup(8,3)')
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G2 = gap('DihedralGroup(8)')
+            sage: G2 = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G2, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
 
@@ -3231,7 +3255,7 @@ class COHO(Ring):
         programs, equivalent to ``G1`` and ``G2``, and provide an
         explicit group isomorphism::
 
-            sage: phi = gap('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,5)(2,6)(3,8)(4,7), (1,8)(2,7)(3,6)(4,5) ] )')
+            sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,5)(2,6)(3,8)(4,7), (1,8)(2,7)(3,6)(4,5) ] )')
             sage: H1.group()==phi.Source()
             True
             sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
@@ -3244,7 +3268,7 @@ class COHO(Ring):
         After ensuring that ``phi`` is printed nicely, we obtain the
         induced map::
 
-            sage: phi.SetName('"phi"')
+            sage: phi.SetName('phi')
             sage: phi_star = H2.hom(phi,H1)
             sage: phi_star
             phi^*
@@ -3273,8 +3297,9 @@ class COHO(Ring):
         provide a Sylow 2-subgroup explicitly.
         ::
 
-            sage: G = gap('SmallGroup(48,36)')
-            sage: S = G.1.Group(G.1*G.2*G.3,G.2,G.4)
+            sage: G = gap.SmallGroup(48,36)
+            sage: g1,g2,g3,g4,g5 = G.GeneratorsOfGroup()
+            sage: S = g1.Group(g1*g2*g3,g2,g4)
             sage: HG = CohomologyRing(G,prime=2,Subgroup=S,GroupName='SmallGroup(48,36)', from_scratch=True)
             sage: HG.make()
 
@@ -3282,8 +3307,9 @@ class COHO(Ring):
         and a quotient of ``G`` is isomorphic to the dihedral group.
         ::
 
-            sage: G1toG = G1.GroupHomomorphismByImages(G,G1.GeneratorsOfGroup(), [G.1*G.2,G.1*G.2*G.3,G.4])
-            sage: GtoG1 = G.GroupHomomorphismByImages(G1,G.GeneratorsOfGroup(),[G1.2*G1.3,G1.3,G1.1*G1.2,G1.3,G1.Identity()])
+            sage: G1toG = G1.GroupHomomorphismByImages(G, G1.GeneratorsOfGroup(), [g1*g2,g1*g2*g3,g4])
+            sage: g11,g12,g13 = G1.GeneratorsOfGroup()
+            sage: GtoG1 = G.GroupHomomorphismByImages(G1, G.GeneratorsOfGroup(),[g12*g13,g13,g11*g12,g13,G1.Identity()])
             sage: GtoG1.Image().IdGroup()
             [ 8, 3 ]
             sage: G1toG.Image().IdGroup()
@@ -3598,12 +3624,12 @@ class COHO(Ring):
 
         try:
             ## First, the "Additional Properties" are reconstructed
-            for X,Y in unpickle_gap_data(Dict, gap):
+            for X,Y in unpickle_gap_data(Dict):
                 self._property_dict[X]=Y
             self._decorator_cache = tmp_dict = dict()
             for k,v in cache:
                 try:
-                    tmp_dict[unpickle_gap_data(k, gap)] = unpickle_gap_data(v, gap)
+                    tmp_dict[unpickle_gap_data(k)] = unpickle_gap_data(v)
                 except StandardError:
                     coho_logger.error("Unable to reconstruct some data in GAP", None, exc_info=1)
 
@@ -4378,21 +4404,19 @@ Minimal list of algebraic relations:
 
         """
         if self._gap_group is not None:
-            try:
-                self._gap_group._check_valid()
-                return self._gap_group
-            except ValueError:
-                pass
+#~                 self._gap_group._check_valid()
+            return self._gap_group
         from pGroupCohomology.auxiliaries import gap, _gap_init
         _gap_init()
         if isinstance(self._key[0], basestring):
-            self._gap_group = gap(self._key[0])
+            self._gap_group = gap.eval(self._key[0])
         elif len(self._key[0])==1:
-            self._gap_group = gap(self._key[0][0])
-            if not gap('IsPermGroup(%s)'%(self._gap_group.name())):
-                self._gap_group = gap('Group(verifiedMinGens(regularPermutationAction(%s: forceDefiningGenerators)))'%(self._gap_group.name()))
+            self._gap_group = gap.eval(self._key[0][0])
+            if not self._gap_group.IsPermGroup():
+#~                 self._gap_group = gap.eval('Group(verifiedMinGens(regularPermutationAction(%s: forceDefiningGenerators)))'%(self._gap_group.name()))
+                self._gap_group = self._gap_group.regularPermutationAction().verifiedMinGens().Group()
         else:
-            self._gap_group=gap('Group(verifiedMinGens(regularPermutationAction(SmallGroup(%d,%d): forceDefiningGenerators)))'%(self._key[0][0],self._key[0][1]))
+            self._gap_group = gap.SmallGroup(self._key[0][0],self._key[0][1]).regularPermutationAction().verifiedMinGens().Group()
         return self._gap_group
 
     @permanent_result
@@ -5343,9 +5367,9 @@ Minimal list of algebraic relations:
                 phiG = Gsm.IsomorphismGroups(G)
                 G = Gsm.GeneratorsOfGroup().List('x->Image(%s,x)'%phiG.name()).Group()
                 GCo = CohomologyRing(int(GId[1]),int(GId[2]),prime=self._prime)
-                if repr(G.canonicalIsomorphism(GCo.group()))=='fail':
+                if G.canonicalIsomorphism(GCo.group()) == gap.eval('fail'):
                     phiG = GCo.group().IsomorphismGroups(G)
-                    G = GCo.group().GeneratorsOfGroup().List('x->Image(%s,x)'%phiG.name()).Group()
+                    G = gap.Group([phiG.Image(g) for g in GCo.group().GeneratorsOfGroup()])
             except RuntimeError, msg:
                 coho_logger.critical("WARNING: %s", self, msg)
                 G = G.MinimalGeneratingSet().Group()
@@ -5929,10 +5953,10 @@ Minimal list of algebraic relations:
         if n is None:
             L.write('  <li>The group is defined by %s.\n  </li>\n'%(self._key[0][0]))
         if q.is_prime_power():
-            L.write('  <li>The group has %s minimal generators and exponent %s.\n  </li>\n'%(gap.eval('RankPGroup(%s)'%(self.group().name())),gap.eval('Exponent(%s)'%(self.group().name()))))
+            L.write('  <li>The group has {} minimal generators and exponent {}.\n  </li>\n'.format(self.group().RankPGroup(), self.group().Exponent()))
             if abelian_case:
                 L.write('  <li> It is abelian, isomorphic to')
-                L.write('&times;'.join(['C<sub>%d</sub>'%dd for dd in list(gap('AbelianInvariants(%s)'%(self.group().name())))]))
+                L.write('&times;'.join('C<sub>%d</sub>'%dd for dd in self.group().AbelianInvariants()))
                 L.write('.\n  </li>\n')
             else:
                 if quaternion_case:
@@ -5953,7 +5977,7 @@ Minimal list of algebraic relations:
         else: # it is a non-prime-power group
             if abelian_case:
                 L.write('  <li> It is abelian, isomorphic to')
-                L.write('&times;'.join(['C<sub>%d</sub>'%dd for dd in list(gap('AbelianInvariants(%s)'%(self.group().name())))]))
+                L.write('&times;'.join('C<sub>%d</sub>'%dd for dd in self.group().AbelianInvariants()))
                 L.write('.\n  </li>\n')
             else:
                 L.write('  <li> It is non-abelian.\n  </li>\n')
@@ -6004,7 +6028,7 @@ Minimal list of algebraic relations:
                     else:
                         L.write('  <li> The depth exceeds the Duflot bound, which is %d.\n  </li>\n'%(self.CenterRk or self.PCenterRk or self.pRank))
             else:
-                MinimalGenerators = Integer(gap.eval('RankPGroup(SmallGroup(%s))'%(self.group().name())))
+                MinimalGenerators = self.group().RankPGroup().sage()
                 L.write('  <li> The cohomology ring is of dimension %d and depth %d.\n  </li>\n'%(MinimalGenerators,MinimalGenerators))
             PS = self.poincare_series()
             P1,P2 = PS.numerator(),PS.denominator()
@@ -6956,22 +6980,28 @@ Minimal list of algebraic relations:
         """
         coho_logger.info("Initialising maximal p-elementary abelian subgroups",self)
         ## Get information from the gap-readable sgs-file
+        from pGroupCohomology.auxiliaries import gap
         try:
-            L = gap('ReadAsFunction("%s")()'%(os.path.join(self.inc_folder,self.GStem+'.sgs')))
+            f = gap.ReadAsFunction(os.path.join(self.inc_folder,self.GStem+'.sgs'))
+            if f == gap.eval('fail'):
+                return
+            L = f()
         except TypeError:  # can't be loaded
             return
         cdef int i
-        NumSubgps = Integer(L[1])
-        self.CElPos = Integer(L[3][2])
-        self.CenterRk = Integer(L[3][1])
-        self.MaxelPos = [Integer(L[5][i][2]) for i in range(1,Integer(L[4])+1)]
-        self.MaxelRk  = [Integer(L[5][i][1]) for i in range(1,Integer(L[4])+1)]
+        NumSubgps = L[0].sage()
+        self.CElPos = L[2][1].sage()
+        self.CenterRk = L[2][0].sage()
+        self.MaxelPos = [x[1].sage() for x in L[4]]
+        self.MaxelRk  = [x[0].sage() for x in L[4]]
         self.pRank = max(self.MaxelRk)
         self.Dickson = (self.pRank-self.CenterRk)*[None]
         cdef int p = self.Resl.coef()
         ## insert the special subgroups
-        for i in xrange(1,NumSubgps+1):
-            self.InsertSubgroup(Integer(L[2][i][1]),Integer(L[2][i][2]),i)
+#~         for i in xrange(1,NumSubgps+1):
+#~             self.InsertSubgroup(Integer(L[2][i][1]),Integer(L[2][i][2]),i)
+        for i,x in enumerate(L[1]):
+            self.InsertSubgroup(x[0].sage(), x[1].sage(), i+1)
         if self.useElimination is None: # determine it by a heuristic
             if Integer(p)**(self.pRank-self.CenterRk)*(1+ (p%2)) > 18:
                 coho_logger.info("The degree of Dickson invariants is too high.",self)
@@ -6980,11 +7010,11 @@ Minimal list of algebraic relations:
             else:
                 self.setprop('useElimination',False)
         self.subgpDickson = {}
-        for id,G in self.subgps.items():
+        for Id,G in self.subgps.items():
             while G.knownDeg < 2:
                 G.next(Forced=True,KeepDecomposables=True)
             if not self.useElimination:
-                self.dickson_in_subgroup(id)
+                self.dickson_in_subgroup(Id)
 
     def restrict_to_subgroup (self, n):
         """
@@ -8313,7 +8343,7 @@ is an error. Please inform the author!""")
     @permanent_result
     def filter_regular_parameters(self):
         r"""
-        Return reasonably small filter regular parameters of the ring approximation guaranteed to yield parameters in cohomology.
+        Return elements of the ring approximation guaranteed to yield parameters in cohomology.
 
         OUTPUT:
 
@@ -8353,8 +8383,8 @@ is an error. Please inform the author!""")
         parameters.
 
         Moreover, in either case, the last parameter found by the
-        above construction may be replaced by any other parameter of
-        smaller degree.
+        above construction could be replaced by any other parameter of
+        smaller degree. See :meth:`find_small_last_parameter`
 
         EXAMPLES:
 
@@ -8365,7 +8395,7 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: X = CohomologyRing(64,138,from_scratch=True)
             sage: X.make()
-            sage: G = gap('AlternatingGroup(8)')
+            sage: G = libgap.AlternatingGroup(8)
             sage: H = CohomologyRing(G,prime=2,GroupName='A8', from_scratch=True)
 
         We first demonstrate what happens in the cohomology ring of a
@@ -8409,8 +8439,6 @@ is an error. Please inform the author!""")
         """
         if self._construct_fr_parameters():
             Par = [t for t in (self._final_parameters or self._current_parameters)]
-            if len(self.duflot_regular_sequence())<len(Par):
-                Par[-1] = self.find_small_last_parameter(Par,self.knownDeg)
             return Par
 
     def _construct_fr_parameters(self):
@@ -9202,7 +9230,7 @@ is an error. Please inform the author!""")
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = gap('AlternatingGroup(8)')
+            sage: G = libgap.AlternatingGroup(8)
             sage: H = CohomologyRing(G,prime=2,GroupName='A8', from_scratch=True)
             sage: H.make(7)
 
@@ -10277,23 +10305,22 @@ is an error. Please inform the author!""")
             if self.completed:
                 coho_logger.info('Computing filter degree type', self)
                 coho_logger.info('Interruptible with Ctrl-c', self)
-                # A small trick: Often the (smaller) parameters happen to be filter regular.
-                P = self.parameters()
+                # In the past, we first tried whether "general" small degree
+                # parameters happen to be filter regular. This was often the case
+                # and was helpful, as the computation of the raw filter degree
+                # type used to be a bottle neck. But this is not the case anymore.
+                # Hence, we directly start with parameters that are known to be
+                # filter regular.
+                P = self.filter_regular_parameters()
                 if isinstance(P,KeyboardInterrupt):
-                    RAW = None
-                else:
-                    RAW = self.raw_filter_degree_type(P)
-                if isinstance(RAW,KeyboardInterrupt) or RAW is None:
-                    P = self.filter_regular_parameters()
-                    if isinstance(P,KeyboardInterrupt):
-                        raise RuntimeError("Computation of filter regular parameters failed\n"+repr(P))
-                    RAW = self.raw_filter_degree_type(P)
-                    if isinstance(RAW,KeyboardInterrupt):#RAW is NotImplemented:
-                        coho_logger.warn('Computation of filter degree type was interrupted.', self)
-                        self.set_ring()
-                        return None
-                    if RAW is None:
-                        return None
+                    raise RuntimeError("Computation of filter regular parameters failed\n"+repr(P))
+                RAW = self.raw_filter_degree_type(P)
+                if isinstance(RAW,KeyboardInterrupt):#RAW is NotImplemented:
+                    coho_logger.warn('Computation of filter degree type was interrupted.', self)
+                    self.set_ring()
+                    return None
+                if RAW is None:
+                    raise RuntimeError("The parameters {} are supposed to be filter regular, but aren't. Theoretical error.".formal(P))
             if self.fdt is not None:
                 if coho_options['save']:
                     coho_logger.warn( "Updating stored data after computation of filter degree type", self)
@@ -10731,8 +10758,8 @@ is an error. Please inform the author!""")
         series. It turns out that the non-trivial terms of the upper
         central series and the resulting factor groups are isomorphic::
 
-            sage: G158 = gap('SmallGroup(64,158)')
-            sage: G160 = gap('SmallGroup(64,160)')
+            sage: G158 = libgap.SmallGroup(64,158)
+            sage: G160 = libgap.SmallGroup(64,160)
             sage: [(G.IdGroup(), (G158/G).IdGroup()) for G in G158.UpperCentralSeries()]
             [([ 64, 158 ], [ 1, 1 ]),
              ([ 16, 2 ], [ 4, 2 ]),
@@ -10858,14 +10885,14 @@ is an error. Please inform the author!""")
             raise TypeError("The Gap command must be given as a string")
         gap = self.group().parent()
         try:
-            C = gap(command)
+            C = gap.function_factory(command)
         except TypeError:
             raise ValueError('The given command "%s" is not known to Gap'%command)
-        _gap_init(gap)
+        _gap_init()
         O = self.Resl.grouporder()
         try:
             L = C(self.group())
-            if L[len(L)].Order()>1 or L[1].Order()!=O:
+            if L[len(L)-1].Order()>1 or L[0].Order()!=O:
                 raise RuntimeError
         except RuntimeError:
             raise ValueError('The given command "%s" must produce a normal series of subgroups when applied to self.group()'%command)
@@ -10874,7 +10901,7 @@ is an error. Please inform the author!""")
         # First Part: Get the groups and homomorphisms in Gap
         ###########################
 
-        # L[l-1] -> ... -> L[2] -> G -> G/L[l-1] -> G/L[l-2] -> ... -> G/L[2]
+        # L[l-2] -> ... -> L[1] -> G -> G/L[l-2] -> G/L[l-3] -> ... -> G/L[1]
         #   -l+2            -1     0      1            2               l-2
 
         l = len(L)
@@ -10883,39 +10910,68 @@ is an error. Please inform the author!""")
         QuotMap = {} # the quotient maps given by L
 
         # the non-quotiented groups
-        for i from l > i > 1:
-            q,n = gap('IdGroup(%s[%d])'%(L.name(),i)).sage()
-            G[-i+1] = (gap('IsomorphismGroups(%s[%d], SmallGroup(%d,%d))'%(L.name(),i,q,n)), [q,n]) # just choose one isomorphism
+        for i in range(1, l):
+            q,n = L[i].IdGroup().sage()
+            G[-i+1] = (L[i].IsomorphismGroups(gap.SmallGroup(q,n)), [q,n]) # just choose one isomorphism
 
         # Unfortunately, Gap allows itself to change the generators of self.group() when computing L[1].
         # We need to undo it:
-        G[0] = (gap('IsomorphismGroups(%s[1],%s)'%(L.name(),self.group().name())),[0,0])
+        G[0] = (L[0].IsomorphismGroups(self.group()), [0,0])
 
         # the factor groups
-        QuotMap[0] = self.group().IdentityMapping()  # QuotMap[i] stores the quotient map self.group() ->> G[i] := self.group()/L[l-i]
-        for i from 1 <= i < l-1:
-            QuotMap[i] = gap('NaturalHomomorphismByNormalSubgroup(%s[1],%s[%d])'%(L.name(),L.name(),l-i))
-            q,n = gap('IdGroup(Image(%s))'%(QuotMap[i].name())).sage()
-            G[i] = (gap('IsomorphismGroups(Image(%s),SmallGroup(%d,%d))'%(QuotMap[i].name(),q,n)), [q,n])
-            gap.eval('%s := GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Image(%s)), List([1..Length(GeneratorsOfGroup(Image(%s)))], x -> Image(%s, Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Image(%s))[x])))))'%(QuotMap[i].name(), G[0][0].name(),G[i][0].name(), G[0][0].name(), G[0][0].name(), G[i][0].name(),QuotMap[i].name(),G[0][0].name(), G[0][0].name()))
-
-        ## After fixing the groups, create the maps between them
+        QuotMap[0] = self.group().IdentityMapping()  # QuotMap[i] stores the quotient map self.group() ->> G[i] := self.group()/L[l-i-1]
+        for i in range(1,l-1):
+            QuotMap[i] = L[0].NaturalHomomorphismByNormalSubgroup(L[l-i-1])
+            q,n = QuotMap[i].Image().IdGroup().sage()
+            G[i] = QuotMap[i].Image().IsomorphismGroups(gap.SmallGroup(q,n))
+            G00Gen = G[0][0].Image().GeneratorsOfGroup()
+#~             gap.eval('%s := GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Image(%s)),
+#~             List([1..Length(GeneratorsOfGroup(Image(%s)))], x -> Image(%s, Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Image(%s))[x])))))'%
+#~             (QuotMap[i].name(), G[0][0].name(),G[i][0].name(), G[0][0].name(), G[0][0].name(), G[i][0].name(),QuotMap[i].name(),G[0][0].name(),
+#~              G[0][0].name()))
+            QuotMap[i] = G[0][0].Range().GroupHomomorphismByImages(G[i][0].Range(), G00Gen,
+                    [ G[i][0].Image(QuotMap[i].Image(G[0][0].PreImagesRepresentative(g))) for g in G00Gen ])
+        ## After fixing the groups, create the maps between them:
         # the inclusion maps
         for i from -l+1 < i < 0:
             for j from i < j <= 0:
-                GH[i,j] = gap('GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Range(%s)),List([1..Length(GeneratorsOfGroup(Range(%s)))], x -> Image(%s, Image(GroupHomomorphismByImages(Source(%s),Source(%s),GeneratorsOfGroup(Source(%s)),GeneratorsOfGroup(Source(%s))), PreImagesRepresentative(%s, GeneratorsOfGroup(Range(%s))[x])))))'%(G[i][0].name(),G[j][0].name(), G[i][0].name(), G[i][0].name(), G[j][0].name(), G[i][0].name(), G[j][0].name(), G[i][0].name(), G[i][0].name(),  G[i][0].name(), G[i][0].name()))
-
+#~                 GH[i,j] = gap('GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Range(%s)),
+#~                   List([1..Length(GeneratorsOfGroup(Range(%s)))], x -> Image(%s,
+#~                   Image(GroupHomomorphismByImages(Source(%s),Source(%s),GeneratorsOfGroup(Source(%s)),
+#~                   GeneratorsOfGroup(Source(%s))), PreImagesRepresentative(%s, GeneratorsOfGroup(Range(%s))[x])))))'%
+#~                   (G[i][0].name(),G[j][0].name(), G[i][0].name(), G[i][0].name(), G[j][0].name(), ##G[i][0].name(),
+#~                    G[j][0].name(), G[i][0].name(), G[i][0].name(), #~# G[i][0].name(), G[i][0].name()))
+                GiR = G[i][0].Range()
+                GjR = G[j][0].Range()
+                GiRGen = GiR.GeneratorsOfGroup()
+                GiS = G[i][0].Source()
+                GjS = G[j][0].Source()
+                GiSGen = GiS.GeneratorsOfGroup()
+                # The embedding of GiS in GjS:
+                emb_ij = GiS.GroupHomomorphismByImages(GjS, GiSGen, GiSGen)
+                GH[i,j] = GiR.GroupHomomorphismByImages(GjR, GiRGen,
+                        [ G[j][0].Image(emb_ij.Image(G[i][0].PreImagesRepresentative(g))) for g in GiRGen ])
         # the quotient maps
         for j from 0 < j < l-1:
             GH[0,j] = QuotMap[j]
         for i from 0 < i < l-2:
             for j from i < j < l-1: # hopefully the isomorphism theorem G/I = (G/H)/(I/H) holds ...
-                GH[i,j] = gap('GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Range(%s)), List([1..Length(GeneratorsOfGroup(Range(%s)))], x -> Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Range(%s))[x]))))'%(QuotMap[i].name(),QuotMap[j].name(), QuotMap[i].name(), QuotMap[i].name(),  QuotMap[j].name(), QuotMap[i].name(),QuotMap[i].name()))
+#~                 GH[i,j] = gap('GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Range(%s)),
+#~                     List([1..Length(GeneratorsOfGroup(Range(%s)))],
+#~                                 x -> Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Range(%s))[x]))))'%
+#~                     (QuotMap[i].name(),QuotMap[j].name(), QuotMap[i].name(), QuotMap[i].name(),
+#~                      QuotMap[j].name(), QuotMap[i].name(),QuotMap[i].name()))
+                QiR = QuotMap[i].Range()
+                QiRGen = QiR.GeneratorsOfGroup()
+                QjR = QuotMap[j].Range()
+                GH[i,j] = QiR.GroupHomomorphismByImages(QjR, QiRGen,
+                                [ QuotMap[j].Image(QuotMap[i].PreImagesRepresentative(g)) for g in QiRGen ])
 
         # third, maps from subgroups to quotients
         for i from -l+1 < i <0:
             for j from 0 < j < l-1:
-                GH[i,j] = gap('CompositionMapping(%s,%s)'%(GH[0,j].name(),GH[i,0].name()))
+#~                 GH[i,j] = gap('CompositionMapping(%s,%s)'%(GH[0,j].name(),GH[i,0].name()))
+                GH[i,j] = GH[0,j].CompositionMapping(GH[i,0])
 
         ###########################
         # Second Part: Create the cohomology rings of the groups stored in G
@@ -11719,7 +11775,6 @@ is an error. Please inform the author!""")
                 rfdt.append(len(X)-1)
         fdt = FilterDegreeType(DV,rfdt)
         self.setprop('fdt',fdt)
-        coho_logger.info("> Sequence is filter regular.", self)
         coho_logger.debug("  Raw filter degree type: %s"%repr(rfdt), self)
         coho_logger.info("  Filter degree type: %s"%repr(fdt), self)
         singular.eval("degBound = "+dgb)
