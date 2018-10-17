@@ -32,6 +32,7 @@
 #
 #    makeJenningsBasis (G,name: options): GrpPerm, MonStgElt ->
 #
+#    asPermgroup(G): GrpPC or GrpPerm -> GrpPerm with equivalent generators
 #    regularPermutationAction(G: options): GrpPC or GrpPerm -> GrpPerm
 #    createRegFile(stem, group) ->
 #    writeOutMtxPerms(List(Perm), outfile, tmpfile, degree) ->
@@ -66,29 +67,25 @@ StringToIntegerSequence := function(t)
 end;
 
 # *****************************************************************************
-regularPermutationAction := function(G)
-# Creates the image of G in S_|G| under the regular permutation action
+asPermgroup := function(G)
+# Creates the isomorphic image of G in some permutation group
 # Uses defining generators
-  local gens, N, S, L, gg, forceDefiningGenerators;
-  forceDefiningGenerators := true; #ValueOption("forceDefiningGenerators");
-#  if IsPcGroup(G) and not forceDefiningGenerators then
-#    gens := FamilyPcgs(G);
-#  else
+  local gens, N, phi, L;
   gens := GeneratorsOfGroup(G);
-#  fi;
-  N := Size(G);
-  S := Elements(G);
-  L := List(gens, g->PermList(List([1..N], i->Position(S,S[i]*g))));
-  gg := Group(L);
-  return gg;
+  N := Length(gens);
+  phi := IsomorphismPermGroup(G);
+  L := List( [1..N], i -> Image(phi, gens[i]) );
+  return Group(L);
 end;
 
 # *****************************************************************************
-regularPermutationActionPC := function(G)
+
+regularPermutationAction := function(G)
 # Creates the image of G in S_|G| under the regular permutation action
-# Uses PC generators if G in GrpPC
+# Uses defining generators if G in GrpPerm
+# Uses PC generators if G in GrpPC, unless option forceDefiningGenerators chosen
   local gens, N, S, L, gg, forceDefiningGenerators;
-  forceDefiningGenerators := false; #ValueOption("forceDefiningGenerators");
+  forceDefiningGenerators := ValueOption("forceDefiningGenerators");
   if IsPcGroup(G) and not forceDefiningGenerators then
     gens := FamilyPcgs(G);
   else
@@ -368,7 +365,7 @@ end;
 createRegFile := function(name,ngg)
   local g, gens, gg, nametreg, namereg, statusline, j, fp;
   # Now the permutations in Ringe format
-  gg := regularPermutationActionPC(ngg);
+  gg := regularPermutationAction(ngg);
   gens := GeneratorsOfGroup(gg);
   nametreg := Concatenation(name, ".treg");
   namereg := Concatenation(name, ".reg");

@@ -288,7 +288,7 @@ def makeSpecialGroupData(H, GStem, folder):
 
     INPUT:
 
-    - ``H`` -- a finite `p`-group defined in the Gap interface
+    - ``H`` -- a finite `p`-group defined in the libGap interface
     - ``GStem`` -- a string, providing a short and unique descriptor of ``H``
     - ``folder`` (optional string) -- name of a directory in which
       the data files will be stored. The directory will be created, if necessary.
@@ -371,7 +371,7 @@ def makeSpecialGroupData(H, GStem, folder):
 
     """
     import os
-    q = Integer(H.parent().eval('Order(%s)'%(H.name())))
+    q = H.Order().sage()
     if folder == '':
         gps_folder = GStem
     else:
@@ -418,7 +418,7 @@ def makeSpecialGroupData(H, GStem, folder):
     except OSError:
         pass
     ## finally, construct the data
-    H.parent().eval('makeThisGroup(%s,"%s","%s")'%(H.name(),GStem,folder))
+    H.makeThisGroup(GStem, folder)
     # there seems to be a racing condition when creating the .ima files,
     # which becomes immanent when doing parallel tests. So,
     # we verify that the files are OK before returning.

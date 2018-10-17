@@ -91,9 +91,10 @@ def _IdGroup(G, D, Client, ring=True):
 
     OUTPUT:
 
-    - A pair ``q,n`` of numbers. ``q`` is the order of ``G``. If ``n``
-      is positive then ``q,n`` is the address of ``G`` in the Small
-      Groups library.
+    - A triple ``q,n,G2``, where ``q`` is the order of ``G``
+      and ``G = G2``, where the generating sets of ``G`` and ``G2``
+      may differ. If the number ``n`` is positive then ``q,n`` is
+      the address of ``G`` in the Small Groups library.
     - If the option ``ring=True`` is used, then the cohomology ring
       of ``G`` with coefficients in ``GF(D['prime'])`` is stored as
       ``D[q][n]``. If ``G`` can not be found in the Small Groups
@@ -104,6 +105,8 @@ def _IdGroup(G, D, Client, ring=True):
       ``G`` is isomorphic to a group whose cohomology is stored in
       ``D[q][n]``, or (if ``G`` can't be found in the Small Groups
       library) ``n = -len(D[q].keys())``.
+    - The generators of ``G2`` match the generators of the group of
+      ``D[q][n]``.
 
     NOTE:
 
@@ -186,9 +189,9 @@ def _IdGroup(G, D, Client, ring=True):
                 phi = gap.SmallGroup(q,n).IsomorphismGroups(G)
 #~                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(Source(%s)))],
 #~                     x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(G.name(),phi.name(),phi.name(),phi.name()))
-                G = phi.Image(phi.Source().GeneratorsOfGroup())
+                G = gap.Group([phi.Image(g) for g in phi.Source().GeneratorsOfGroup()])
         if D.has_key(q) and D[q].has_key(n):
-            return (q,n)
+            return (q,n,G)
         if not D.has_key(q):
             D[q] = {}
         if ring:
@@ -198,12 +201,12 @@ def _IdGroup(G, D, Client, ring=True):
                         D[q][n] = CohomologyRing(q,n,useFactorization=Client.useFactorization,useElimination=Client.useElimination)
                     else:
                         D[q][n] = CohomologyRing(q,n, prime=D['prime'],useFactorization=Client.useFactorization,useElimination=Client.useElimination)
-        return (q,n)
+        return (q,n,G)
 
     except BaseException, msg:
         if not ("group identification" in str(msg)):
             raise msg
-    q = Integer(G.Order())
+    q = G.Order().sage()
     coho_logger.info( "Considering group of order %s"%q, None)
     if not D.has_key(q):
         D[q]={}
@@ -213,20 +216,20 @@ def _IdGroup(G, D, Client, ring=True):
 #~             gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%
 #~                 (G.name(),H.group().name(),phiG.name(),H.group().name()))
             G = gap.Group([ phiG.Image(g) for g in H.group().GeneratorsOfGroup()])
-            return (q,m)
+            return (q,m,G)
     n = -len(D[q].keys())
     coho_logger.info( "Computing minimal generating set of the group", None)
     try:
-        gap.eval('%s := Group(MinimalGeneratingSet(%s))'%(G.name(),G.name()))
+        G = G.MinimalGeneratingSet().Group()
     except RuntimeError:
         coho_logger.warn( "Failed to construct a minimal generating set of the group -- keep your fingers crossed...", None)
-        gap.eval('%s := Group(SmallGeneratingSet(%s))'%(G.name(),G.name()))
+        G = G.SmallGeneratingSet().Group()
     if ring:
         if q.is_prime_power():
             D[q][n] = CohomologyRing(G,GStem=Client.GStem+'_%d_%d'%(q,-n),useFactorization=Client.useFactorization,useElimination=Client.useElimination)
         else:
             D[q][n] = CohomologyRing(G,GStem=Client.GStem+'_%d_%d'%(q,-n), prime=D['prime'],useFactorization=Client.useFactorization,useElimination=Client.useElimination)
-    return (q,n)
+    return (q,n,G)
 
 ###################################################
 ##                                               ##
@@ -405,7 +408,7 @@ class MODCOHO(COHO):
             GStem = GStem or "%dgp%d"%(GId[0],GId[1])
         else:
             gap = G.parent()
-            GId = kwds.get('GroupId',(Integer(G.Order()),0))
+            GId = kwds.get('GroupId',(G.Order().sage(),0))
             if GId[1]>0:
                 try:
                     bla = gap.SmallGroup(GId[0],GId[1]).canonicalIsomorphism(G)
@@ -431,10 +434,10 @@ class MODCOHO(COHO):
         # Find an *equivalent* PermutationGroup
         if GPerm is None:
             if not G.IsPermGroup():
-                G2 = G.regularPermutationAction()
+                G2 = G.asPermgroup()
 #~                 tmpPhi = gap('GroupHomomorphismByImages(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%
 #~             (G.name(),G2.name(),G.name(),G2.name()))
-                tmpPhi = G.GroupHomomorphismByImages(G2. G.GeneratorsOfGroup(), G2.GeneratorsOfGroup())
+                tmpPhi = G.GroupHomomorphismByImages(G2, G.GeneratorsOfGroup(), G2.GeneratorsOfGroup())
             else:
                 tmpPhi = None
                 G2 = G
@@ -453,7 +456,7 @@ class MODCOHO(COHO):
             if tmpPhi == gap.eval('fail'):
                 raise ValueError("The given permutation group GPerm is not an equivalent description of the given group G")
         self._gap_group = G2
-        self._gapBackup = ('Group('+repr(G2.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
+        self._gapBackup = ('Group('+G2.GeneratorsOfGroup().String().sage()+')').replace('\n','').replace(' ','')
         # Conclusion:
         # G is whatever group.
         # G2=self.group() is a permutation group equivalent to G.
@@ -496,7 +499,7 @@ class MODCOHO(COHO):
             self._Subgp = gap.Group([tmpPhi.Image(g) for g in P.GeneratorsOfGroup()])
         else: # G is a perm group, thus so is P
             self._Subgp = P
-        self._SubgpBackup = ('Group('+repr(self._Subgp.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
+        self._SubgpBackup = ('Group(' + self._Subgp.GeneratorsOfGroup().String().sage() + ')').replace('\n','').replace(' ','')
 
         # We also need a Sylow p-subgroup (might be identical with _Subgp)
         HS = HP
@@ -525,7 +528,7 @@ class MODCOHO(COHO):
             self._SylowGp = gap.Group([tmpPhi.Image(g) for g in _SylowGp.GeneratorsOfGroup()])
         else:
             self._SylowGp = _SylowGp
-        self._SylowGpBackup = ('Group('+repr(self._SylowGp.GeneratorsOfGroup())+')').replace('\n','').replace(' ','')
+        self._SylowGpBackup = ('Group(' + self._SylowGp.GeneratorsOfGroup().String().sage() + ')').replace('\n','').replace(' ','')
 
         # Starting the subgroup dictionary
         if PId is None:
@@ -556,7 +559,6 @@ class MODCOHO(COHO):
             c = CBase[i][0]
             # The conjugator automorphisms, later restricted to P
             phiG = G.ConjugatorAutomorphism(c)
-            phiG2 = repr(phiG)
             PConj = phiG.Image(P)
             X = P.Intersection(PConj)
             if X.Order().sage() != 1:
@@ -574,6 +576,8 @@ class MODCOHO(COHO):
                     # The following line may change the generating set of X and will provide
                     # the cohomology of X.
                     PIdTmp = _IdGroup(X, SubgpDict, self)
+                    X = PIdTmp[2]
+                    PIdTmp = PIdTmp[:2]
                     C.append(c)
                     phi = P.GroupHomomorphismByImages(PConj, [phiG.Image(g) for g in P.GeneratorsOfGroup()])
                     phiC.append(phi)
@@ -590,9 +594,9 @@ class MODCOHO(COHO):
                     CPtoPcapCP.append(HP.hom( X.GroupHomomorphismByImages(P,
                             [phiG.PreImagesRepresentative(g) for g in X.GeneratorsOfGroup()]), HCP[-1]))
         if tmpPhi is not None:
-            self.setprop('Cosets',[repr(tmpPhi.Image(X)).replace('\n','').replace(' ','') for X in C])
+            self.setprop('Cosets',[tmpPhi.Image(X).String().sage().replace('\n','').replace(' ','') for X in C])
         else:
-            self.setprop('Cosets',[repr(X).replace('\n','').replace(' ','') for X in C])
+            self.setprop('Cosets',[X.String().sage().replace('\n','').replace(' ','') for X in C])
 
         if len(C)==0:
             coho_logger.info( "No stability condition - all cocycles are stable", self)
@@ -637,7 +641,7 @@ class MODCOHO(COHO):
         # - The key of self._HP (in particular, it determines a
         #   group-with-generators equivalent to a subgroup)
         # - The prime
-        self.setprop('_key', (( ''.join([t.strip() for t in ('Group('+repr(G2.GeneratorsOfGroup())+')').split()]),) if GId[1]==0 else tuple(GId), self.GStem, self._HP._key, p))
+        self.setprop('_key', (( ''.join([t.strip() for t in ('Group('+G2.GeneratorsOfGroup().String().sage()+')').split()]),) if GId[1]==0 else tuple(GId), self.GStem, self._HP._key, p))
         # Insert self into the cache
         from pGroupCohomology import CohomologyRing
         _cache = CohomologyRing._cache
@@ -2053,7 +2057,7 @@ class MODCOHO(COHO):
                 return
             coho_logger.info("New generators will be found at most in degree %d"%(self.degbound_for_gens), self)
             return
-        if len(self._DuflotRegSeq)<(self.PCenterRk or self.pRank):
+        if len(self._DuflotRegSeq) < (self.PCenterRk or self.pRank):
             return
         coho_logger.info( "Try to find a bound for the degree of generators", self)
         L = [singular(t.as_cocycle_in_subgroup()) for t in self.Gen]
@@ -2067,7 +2071,7 @@ class MODCOHO(COHO):
         singular(self._HP).set_ring()
         try:
             I = singular.ideal(L).groebner()
-            if singular.eval('vdim(%s)'%I.name())=='-1':
+            if singular.eval('vdim(%s)'%I.name()) == '-1':
                 br.set_ring()
                 return
             m = max([Integer(singular.eval('deg(%s)'%t.name())) for t in I.kbase()])
@@ -2290,40 +2294,43 @@ class MODCOHO(COHO):
         if sum([t-1 for t in Depdv]) < self.knownDeg:
             Pars = DepPars
             dv = Depdv
-        else: # the following can be very costly, but the user can interrupt it.
+            Symonds = self.SymondsTest(Pars,dv, forced = forced)
+            if Symonds:
+                coho_logger.info("Successful application of the Symonds criterion", self)
+                self.completed = True
+                self.setprop('_parameters_for_criterion',[t for t in Pars])
+                self.setprop('_method','Symonds')
+                return True
+            elif Symonds is False:
+                coho_logger.info("The parameters are no parameters for the ring approximation, which is thus incomplete.", self)
+                return False
+            coho_logger.info("The Symonds criterion is inconclusive.", self)
+        else:
             coho_logger.info("We found parameters, but they would not allow for an application of Symonds' criterion.", self)
-            coho_logger.info("Trying to find better parameters in a more costly way.", self)
-            try:
-                Pars = self.parameters()
-            except ValueError:
-                # This is just to be on the safe side. There can only be a value error if the
-                # cohomology ring approximation has no generator.
-                coho_logger.info("The approximation is incomplete (no parameters found).", self)
-                return False
+            # The following has been removed, as in the case of non-prime-power groups, it is
+            # typically a lot easier to compute the ring structure to a very high degree than to
+            # try and find a way to prove completeness in a very low degree.
+#~             coho_logger.info("Trying to find better parameters in a more costly way.", self)
+#~             try:
+#~                 Pars = self.parameters()
+#~             except ValueError:
+#~                 # This is just to be on the safe side. There can only be a value error if the
+#~                 # cohomology ring approximation has no generator.
+#~                 coho_logger.info("The approximation is incomplete (no parameters found).", self)
+#~                 return False
             #########
-            if Pars is None:
-                # This probably can not happen.
-                Pars = DepPars
-            if Pars is None:
-                coho_logger.info("The ring approximation does not contain parameters for the complete ring.", self)
-                return False
-            self.set_ring()
-            dv = [Integer(singular.eval("deg(%s)"%(x))) for x in Pars]  # this is the real degree vector
-            if sum([t-1 for t in dv]) > sum([t-1 for t in Depdv]):
-                Pars = DepPars
-                dv = Depdv
-        Symonds = self.SymondsTest(Pars,dv, forced = forced)
-        if Symonds:
-            coho_logger.info("Successful application of the Symonds criterion", self)
-            self.completed = True
-            self.setprop('_parameters_for_criterion',[t for t in Pars])
-            self.setprop('_method','Symonds')
-            return True
-        elif Symonds is False:
-            coho_logger.info("The parameters are no parameters for the ring approximation, which is thus incomplete.", self)
-            return False
+#~             if Pars is None:
+#~                 # This probably can not happen.
+#~                 Pars = DepPars
+#~             if Pars is None:
+#~                 coho_logger.info("The ring approximation does not contain parameters for the complete ring.", self)
+#~                 return False
+#~             self.set_ring()
+#~             dv = [Integer(singular.eval("deg(%s)"%(x))) for x in Pars]  # this is the real degree vector
+#~             if sum([t-1 for t in dv]) > sum([t-1 for t in Depdv]):
+#~                 Pars = DepPars
+#~                 dv = Depdv
 
-        coho_logger.info("The Symonds criterion is inconclusive.", self)
         #########
         ## There may still be the chance to use an existence proof!
         self.set_ring()
@@ -3567,6 +3574,16 @@ fi
             sage: H.duflot_regular_sequence()
             ['c_2_3', 'c_2_2', 'c_3_1', 'c_3_7+(c_3_0)']
 
+        TEST:
+
+        At some point, we had trouble finding a Duflot element in the following
+        very easy case.
+        ::
+
+            sage: H = CohomologyRing(12, 3, prime=2)
+            sage: H.make(3)
+            sage: H._DuflotRegSeq
+
         """
         if len(self._DuflotRegSeq)==(self.PCenterRk or self.pRank):
             return
@@ -3605,7 +3622,7 @@ fi
         HGS.set_ring()
         HP0 = first_hilbert_series(singular.ideal('%sRegTest'%self.prefix))
         while(1):
-            val, Coef, reg_vec = explore_one_parameter(singular('%sRegTest'%self.prefix), L, self._prime, 2, HP0)
+            val, Coef, reg_vec = explore_one_parameter(singular('%sRegTest'%self.prefix), L, self._prime, regularity=2, H1=HP0, is_monomial=False)
             if val:
                 coho_logger.info('Found extension of the Duflot regular sequence', self)
                 self.set_ring()

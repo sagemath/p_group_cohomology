@@ -90,9 +90,9 @@ def unit_test_64(**kwds):
       in the Small Groups library for which a cohomology computation
       yields (with the given keyword arguments) a Poincare series
       different from the database. So, this list should be empty.
-    - A list of four real numbers, giving the total computation time
-      (wall time), the Python CPU-time, the Singular CPU-time and the
-      GAP CPU-time, in seconds.
+    - A list of three real numbers, giving the total computation time
+      (wall time), the Python CPU-time and the Singular CPU-time,
+      in seconds.
 
     During the computation, there is some information on the progress
     of the test.
@@ -167,7 +167,7 @@ def unit_test_64(**kwds):
         #~ GT = (int(gap.eval('Runtime()'))-gt)/1000.0
         #~ print("      Gap-time %3d:%02d.%02d min"%(int(GT/60), int(GT%60),int((GT%1)*100)))
         print()
-    return L,[wt,ct,ST,GT]
+    return L,[wt,ct,ST]
 
 ############
 ##  An auxiliary function that creates symbolic links to data
@@ -695,7 +695,7 @@ class CohomologyRingFactory:
             g = G[0]
             gap = g.parent()
             if g.HasName():
-                return _GStemMaker.sub('_',repr(g.Name()))
+                return _GStemMaker.sub('_', g.Name().sage())
         except (AttributeError,IndexError):
             pass
         raise ValueError("Cannot infer a short group identifier. Please provide one of the optional arguments ``GStem`` or ``GroupName``")
@@ -873,12 +873,15 @@ class CohomologyRingFactory:
         except ValueError:
             pass
         if g.IsPermGroup():
-            KEY = ('Group('+repr(g.GeneratorsOfGroup())+')',)
+            KEY = ('Group('+g.GeneratorsOfGroup().String().sage()+')',)
             # there might be line breaks or blanks. Remove them
             KEY = (''.join([t.strip() for t in KEY[0].split()]),)
         else:
-            coho_logger.info("Computing regular permutation action", None)
-            KEY = (repr(g.regularPermutationAction()),)
+            coho_logger.info("Computing an equivalent permutation group", None)
+            # The key should be concise, therefore we do not use the regular
+            # permutation action of the group on itself, which may have a huge
+            # string representation that cannot be evaluated by libgap
+            KEY = (g.asPermgroup().String().sage(),)
             KEY = (''.join([t.strip() for t in KEY[0].split()]),)
         return KEY
 
@@ -1489,7 +1492,7 @@ class CohomologyRingFactory:
         # _gap_init is done inside check_arguments
         GapName = None
         if len(args)==1 and args[0].HasName():
-            GapName = repr(args[0].Name())
+            GapName = args[0].Name().sage()
         q, Hfinal = self.check_arguments(args,minimal_generators=kwds.get('minimal_generators'),GroupId=kwds.get('GroupId'))
         KEY = self.create_group_key(args, GroupId=kwds.get('GroupId'), GroupDefinition=kwds.get('GroupDefinition'))
         gap = Hfinal.parent()
@@ -2175,7 +2178,6 @@ def _IsKeyEquivalent(k1, k2):
         similarity = 2
     else:
         if len(k1[0])==1:
-            print(k1[0][0])
             G1 = gap.eval(k1[0][0])
         else:
             G1 = gap.SmallGroup(k1[0][0],k1[0][1])

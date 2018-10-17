@@ -378,7 +378,7 @@ def pickle_gap_data(G):
         return SingularElement
     if isinstance(G, GapElement):
         try:
-            if G == G.parent()(repr(G)):
+            if G == G.parent()(G.String().sage()):
                 return GapPickler(repr(G))
         except:
             raise TypeError("Can not pickle '{}'".format(G))
@@ -386,8 +386,8 @@ def pickle_gap_data(G):
     try:
         if G.parent() is gap:
             try:
-                if G == gap.eval(repr(G)):
-                    return GapPickler(repr(G))
+                if G == gap.eval(G.String().sage()):
+                    return GapPickler(G.String().sage())
             except:
                 raise TypeError("Can not pickle '{}'".format(G))
     except AttributeError:
@@ -671,7 +671,7 @@ cdef Matrix_t *nil_preimages(list Maps, list Cochains) except NULL:
 #############################
 ## Tools to enumerate filter regular parameters
 
-def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None):
+def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None, is_monomial = True):
     r"""
     Find a parameter for the quotient ring given by an ideal.
 
@@ -679,7 +679,7 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
 
     - ``Id`` -- Ideal in a graded commutative ring of prime characteristic `p`.
               Must be a Groebner basis.
-    - ``L0``  -- a list of monomials (given by strings) of the same degree.
+    - ``L0``  -- a list of homogeneous elements (given by strings) of the same degree.
     - ``p``  -- a prime.
     - ``BreakPoint`` -- (optional integer or infinity) test at most that many candidates
                       for a parameter (default: infinity).
@@ -687,6 +687,7 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
                       a parameter that is filter regular modulo ``Id``.
                       If ``2``, find a parameter that is regular modulo ``Id``.
     - ``H1`` -- (optional) the Hilbert Poincaré series of ``Id``.
+    - ``is_monomial`` -- (optional) whether the element in ``L0`` are monomials.
 
     OUTPUT:
 
@@ -703,9 +704,8 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
 
     NOTE:
 
-    If the characteristic is odd and if the Singular version is less than 3-1-1,
-    only filter regular parameters can be found, due to a bug in the computation
-    of Gelfand-Kirillov dimension.
+    If `is_monomial` is true, then only lineare combinations of the standard monomials
+    in ``L0`` relative to ``Id`` will be considered.
 
     TESTS::
 
@@ -769,11 +769,14 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
     cdef size_t lenL, lenEss, lenOpt, total
     cdef list L = []
     cdef list nonstd = []
-    cmd = '{}==NF({},'+Id.name()+')'
-    for j,s in enumerate(L0):
-        if singular.eval(cmd.format(s,s))!='0':
-            L.append(s)
-            nonstd.append(j)
+    if is_monomial:
+        cmd = '{}==NF({},'+Id.name()+')'
+        for j,s in enumerate(L0):
+            if singular.eval(cmd.format(s,s))!='0':
+                L.append(s)
+                nonstd.append(j)
+    else:
+        L = list(L0)
     lenL = len(L)
     if lenL==0:
         return False,False,[]
@@ -846,7 +849,7 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None)
                 if int(singular.eval('%s(%s)'%('dim' if p==2 else 'GKdim', Idvp.name())))<d0:
                     #     getattr(Id.std(vp.name()+'[1][1]'),'dim' if p==2 else 'GKdim')()) < d0:
                     coho_logger.info("We found a parameter.", "explore_one_parameter")
-                    coho_logger.debug("> %r (%d/%d)",singular,vp,counter,total)
+                    coho_logger.debug("> %r (%d/%d)", "explore_one_parameter", vp, counter, total)
                     if regularity==1:
                         reg_vec_tmp = is_filter_regular(Id, vp, H1, Idvp)
                         if reg_vec_tmp:
@@ -1641,7 +1644,7 @@ class permanent_result(object):
         except AttributeError:
             inst._decorator_cache = {}
         if hasattr(val,'_check_valid'): # some interface
-            if repr(val.parent())=='Singular':
+            if repr(val.parent()) == 'Singular':
                 inst._decorator_cache[key] = [val, repr(val.typeof()), val.parent().eval('string(%s)'%val.name())]
             else:
                 inst._decorator_cache[key] = [val,repr(val)]
@@ -2854,7 +2857,7 @@ class COHO(Ring):
                     raise TypeError("We expected a group defined in Gap")
                 if H0.parent() is not gap:
                     try:
-                        H0 = gap.eval(repr(H0))
+                        H0 = gap.eval(H0.String().sage())
                     except:
                         try:
                             H0 = gap.Group(H0.GeneratorsOfGroup())
@@ -2904,9 +2907,9 @@ class COHO(Ring):
                     GroupKey = kwds['key'][0]
                 else:
                     if not Hfinal.IsPermGroup():
-                        GroupKey = repr(Hfinal.regularPermutationAction())
+                        GroupKey = Hfinal.asPermgroup().String().sage()
                     else:
-                        GroupKey = 'Group('+repr(Hfinal.GeneratorsOfGroup())+')'
+                        GroupKey = 'Group('+Hfinal.GeneratorsOfGroup().String().sage()+')'
                     GroupKey = ''.join([t.strip() for t in GroupKey.split()])
         else:
             raise TypeError("COHO initialisation requires between 0 and 2 arguments (%d given)"%(len(args)))
@@ -3335,7 +3338,7 @@ class COHO(Ring):
             sage: GtoG1_star*G1toG_star == GtoG_star
             True
 
-    """
+        """
         return self.Hom(other)(m,M,d)
 
     ###########################################################
@@ -4233,10 +4236,10 @@ class COHO(Ring):
             sage: H = CohomologyRing(8,3)
             sage: H.label()
             'H^*(8gp3; GF(2))'
-            sage: repr(H)
+            sage: H
             'H^*(D8; GF(2))'
             sage: H = CohomologyRing(64,167)
-            sage: repr(H)
+            sage: H
             'H^*(SmallGroup(64,167); GF(2))'
             sage: H.label()
             'H^*(64gp167; GF(2))'
@@ -4414,9 +4417,9 @@ Minimal list of algebraic relations:
             self._gap_group = gap.eval(self._key[0][0])
             if not self._gap_group.IsPermGroup():
 #~                 self._gap_group = gap.eval('Group(verifiedMinGens(regularPermutationAction(%s: forceDefiningGenerators)))'%(self._gap_group.name()))
-                self._gap_group = self._gap_group.regularPermutationAction().verifiedMinGens().Group()
+                self._gap_group = self._gap_group.asPermgroup().verifiedMinGens().Group()
         else:
-            self._gap_group = gap.SmallGroup(self._key[0][0],self._key[0][1]).regularPermutationAction().verifiedMinGens().Group()
+            self._gap_group = gap.SmallGroup(self._key[0][0],self._key[0][1]).asPermgroup().verifiedMinGens().Group()
         return self._gap_group
 
     @permanent_result

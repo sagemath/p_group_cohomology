@@ -144,26 +144,30 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
  * 1 on error
  ******************************************************************************/
 int multiply(PTR row, Matrix_t *mat, PTR result, long r)
-{
-  //~ register long i;
-  //~ register PTR p1 = row;
-  //~ register PTR p2 = result;
-  //~ for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
-  //~ {
-    //~ FfMapRow(p1, mat->Data, FfNoc, p2);
-  //~ }
-  //~ return 0;
-  Matrix_t Row;
-  FfSetField(mat->Field);
-  FfSetNoc(mat->Noc);
-  Row.Magic = mat->Magic;
-  Row.Field = mat->Field;
-  Row.Nor = r;
-  Row.Noc = mat->Nor;  // sic!
-  Row.PivotTable = NULL;
-  Row.Data = row;
-  Row.RowSize = FfCurrentRowSize;
-  return innerRightProduct(&Row, mat, result);
+{ if (r < 100)
+  {
+    register long i;
+    register PTR p1 = row;
+    register PTR p2 = result;
+    for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
+    {
+        FfMapRow(p1, mat->Data, FfNoc, p2);
+    }
+    return 0;
+  }
+  else
+  { Matrix_t Row;
+    FfSetField(mat->Field);
+    FfSetNoc(mat->Noc);
+    Row.Magic = mat->Magic;
+    Row.Field = mat->Field;
+    Row.Nor = r;
+    Row.Noc = mat->Nor;  // sic!
+    Row.PivotTable = NULL;
+    Row.Data = row;
+    Row.RowSize = FfCurrentRowSize;
+    return innerRightProduct(&Row, mat, result);
+  }
 }
 
 /****
