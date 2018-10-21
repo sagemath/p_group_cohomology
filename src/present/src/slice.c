@@ -144,18 +144,19 @@ void findLeadingMonomial(gV_t *gv, long r, group_t *group)
  * 1 on error
  ******************************************************************************/
 int multiply(PTR row, Matrix_t *mat, PTR result, long r)
-{ if (r < 100)
-  {
-    register long i;
-    register PTR p1 = row;
-    register PTR p2 = result;
-    for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
-    {
-        FfMapRow(p1, mat->Data, FfNoc, p2);
-    }
-    return 0;
-  }
-  else
+// Tests indicate that using Strassen (via innerRightProduct) unconditionally is fastest
+//~ { if (r < 100)
+  //~ {
+    //~ register long i;
+    //~ register PTR p1 = row;
+    //~ register PTR p2 = result;
+    //~ for (i = 0; i < r; i++, p1+=FfCurrentRowSize, p2+=FfCurrentRowSize)
+    //~ {
+        //~ FfMapRow(p1, mat->Data, FfNoc, p2);
+    //~ }
+    //~ return 0;
+  //~ }
+  //~ else
   { Matrix_t Row;
     FfSetField(mat->Field);
     FfSetNoc(mat->Noc);
@@ -168,7 +169,7 @@ int multiply(PTR row, Matrix_t *mat, PTR result, long r)
     Row.RowSize = FfCurrentRowSize;
     return innerRightProduct(&Row, mat, result);
   }
-}
+//~ }
 
 /****
  * 1 on error

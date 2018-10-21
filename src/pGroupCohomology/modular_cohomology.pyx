@@ -122,11 +122,12 @@ def _IdGroup(G, D, Client, ring=True):
         sage: G1 = libgap.AlternatingGroup(7)
 
     The group order is beyond the scope of the ``SmallGroups`` library.
-    So, the pair "(Group Order, 0)" is returned::
+    So, the triple "(Group Order, 0, <group with potentially smaller generating set>)"
+    is returned::
 
         sage: _IdGroup(G1, D, H, ring=False)
         Failed to construct a minimal generating set of the group -- keep your fingers crossed...
-        (2520, 0)
+        (2520, 0, Group([ (1,2,3,4,5,6,7), (5,6,7) ]))
 
     We take another group of the same order and compute their cohomology
     rings. Since the cohomology of ``G1`` was not stored in ``D``, a new
@@ -134,7 +135,7 @@ def _IdGroup(G, D, Client, ring=True):
 
         sage: G2 = libgap.CyclicGroup(2520)
         sage: _IdGroup(G2,D,H)
-        (2520, 0)
+        (2520, 0, <pc group of size 2520 with 1 generators>)
         sage: D['prime']
         3
         sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
@@ -145,19 +146,19 @@ def _IdGroup(G, D, Client, ring=True):
 
         sage: _IdGroup(G1,D,H, ring=False)
         Failed to construct a minimal generating set of the group -- keep your fingers crossed...
-        (2520, -1)
+        (2520, -1, Group([ (1,2,3,4,5,6,7), (5,6,7) ]))
 
     However, the identifier for ``G2`` is preserved::
 
         sage: _IdGroup(G2,D,H, ring=False)
-        (2520, 0)
+        (2520, 0, <pc group with 1 generators>)
 
     If a group can be found in the Small Groups library, that value
     will always be used::
 
         sage: G3 = libgap.AlternatingGroup(6)
         sage: _IdGroup(G3,D,H, ring=False)
-        (360, 118)
+        (360, 118, Group([ (1,2,6,5,4), (1,2,3,5,4) ]))
         sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
         [(360, {}), (2520, {0: H^*(8gp3_2520_0; GF(3))})]
         sage: _IdGroup(G3,D,H)
@@ -221,7 +222,7 @@ def _IdGroup(G, D, Client, ring=True):
     coho_logger.info( "Computing minimal generating set of the group", None)
     try:
         G = G.MinimalGeneratingSet().Group()
-    except RuntimeError:
+    except (RuntimeError, ValueError):
         coho_logger.warn( "Failed to construct a minimal generating set of the group -- keep your fingers crossed...", None)
         G = G.SmallGeneratingSet().Group()
     if ring:

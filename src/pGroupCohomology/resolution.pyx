@@ -2064,19 +2064,30 @@ cdef class RESL:
             return
         # we have to construct the next differential from scratch
         coho_logger.info("Computing next term", self)
-        sig_on()
         M = self[n-1]
-        nRgs = nRgsStandardSetup(self.Data, n-1, M.Data.Data)
         cdef nFgs_t *ker
-        ker = nRgs.ker
-        nRgsBuchberger(nRgs, G)
-        setRankProj(self.Data, n, numberOfHeadyVectors(ker.ngs))
-        sig_off()
+        sig_on()
+        try:
+            nRgs = nRgsStandardSetup(self.Data, n-1, M.Data.Data)
+            ker = nRgs.ker
+            nRgsBuchberger(nRgs, G)
+            setRankProj(self.Data, n, numberOfHeadyVectors(ker.ngs))
+        finally:
+            sig_off()
         coho_logger.info("> rk P_%02ld = %3ld"%(n, self.Data.projrank[n]), self)
-        M = new_mtx(getMinimalGenerators(ker, G), M)
+        sig_on()
+        try:
+            mat = getMinimalGenerators(ker, G)
+        finally:
+            sig_off()
+        M = new_mtx(mat , M)
         M.set_immutable()
-        saveUrbildGroebnerBasis(nRgs, urbildGBFile(self.Data, n-1), G)
-        MatSave(M.Data, differentialFile(self.Data, n))
+        sig_on()
+        try:
+            saveUrbildGroebnerBasis(nRgs, urbildGBFile(self.Data, n-1), G)
+            MatSave(M.Data, differentialFile(self.Data, n))
+        finally:
+            sig_off()
         if coho_options['sparse']:
             self.Diff.append(str(differentialFile(self.Data, n)))
         else:
@@ -2653,14 +2664,14 @@ cdef class RESL:
         # line ik of OUT is the sum of line ij of M1 times line jk of M2.
         for j from 0 <= j < Rk:
             for i from 0 <= i < rk:
-                sig_on()
                 L = leftActionMatrix(self.G_Alg.Data, M2_ji)
+                sig_check()
                 FfSetNoc(nontips)
                 for k from 0 <= k < RK:
                     FfAddMapRow(FfGetPtr(M1.Data.Data,k*Rk+j), L.Data, nontips, FfGetPtr(OUT.Data.Data,k*rk+i))
+                    sig_check()
                 M2_ji += FfCurrentRowSize
                 MatFree(L)
-                sig_off()
         OUT.set_immutable()
         return OUT
 
@@ -2943,15 +2954,20 @@ cdef class RESL:
         # which, in turn, unfolds to:
         cdef MTX OUT
         sig_on()
-        OUT = new_mtx(MatAlloc(self.G_Alg.Data.p, self.Data.projrank[d]*self.Data.projrank[n], self.G_Alg.Data.nontips), M)
-        sig_off()
+        try:
+            mat = MatAlloc(self.G_Alg.Data.p, self.Data.projrank[d]*self.Data.projrank[n], self.G_Alg.Data.nontips)
+        finally:
+            sig_off()
+        OUT = new_mtx(mat, M)
         self.load_ugb(d)
         if (self.nRgs.ngs.r!=self.Data.projrank[d-1]) or (self.nRgs.ngs.s != self.Data.projrank[d]):
             raise ArithmeticError("Theoretical error")
         # in coho.c: innerPreimages(nRgs, images->d, s, resol->group, this->d),
         sig_on()
-        innerPreimages(self.nRgs, Compos.Data.Data, self.Data.projrank[n], self.G_Alg.Data, OUT.Data.Data)
-        sig_off()
+        try:
+            innerPreimages(self.nRgs, Compos.Data.Data, self.Data.projrank[n], self.G_Alg.Data, OUT.Data.Data)
+        finally:
+            sig_off()
         OUT.set_immutable()
         return OUT
 

@@ -6380,8 +6380,11 @@ cdef class ChMap(RingHomomorphism):
         cdef long TgtNontips = self.Tgt.G_Alg.Data.nontips
         FfSetField(self.Src.coef())
         sig_on()
-        Compos = new_mtx(MatAlloc(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips), M1)
-        sig_off()
+        try:
+            mat = MatAlloc(self.Src.G_Alg.Data.p, self.Src.Data.projrank[SrcDeg]*self.Tgt.Data.projrank[TgtDeg-1],TgtNontips)
+        finally:
+            sig_off()
+        Compos = new_mtx(mat, M1)
         cdef Matrix_t *L
 
         cdef int RK = self.Src.Data.projrank[SrcDeg]
@@ -6437,8 +6440,10 @@ cdef class ChMap(RingHomomorphism):
         if (self.Tgt.nRgs.ngs.r!=rk_1) or (self.Tgt.nRgs.ngs.s != rk):
             raise RuntimeError("Theoretical error")
         sig_on()
-        innerPreimages(self.Tgt.nRgs, Compos.Data.Data, RK, self.Tgt.G_Alg.Data, OUT.Data.Data)
-        sig_off()
+        try:
+            innerPreimages(self.Tgt.nRgs, Compos.Data.Data, RK, self.Tgt.G_Alg.Data, OUT.Data.Data)
+        finally:
+            sig_off()
         self.Data.append(OUT)
 
     #################################################################################
