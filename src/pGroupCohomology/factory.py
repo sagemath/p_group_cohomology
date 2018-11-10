@@ -881,8 +881,9 @@ class CohomologyRingFactory:
             # The key should be concise, therefore we do not use the regular
             # permutation action of the group on itself, which may have a huge
             # string representation that cannot be evaluated by libgap
-            KEY = (g.asPermgroup().String().sage(),)
-            KEY = (''.join([t.strip() for t in KEY[0].split()]),)
+            #~ KEY = (g.asPermgroup().String().sage(),)
+            #~ KEY = (''.join([t.strip() for t in KEY[0].split()]),)
+            KEY = (('Group(['+','.join([t.String().sage() for t in g.asPermgroup().GeneratorsOfGroup()])+'])').replace('\n','').replace(' ',''),)
         return KEY
 
     def check_arguments(self, args, minimal_generators=None, GroupId=None):
@@ -1751,7 +1752,7 @@ class CohomologyRingFactory:
                 similarity = _IsKeyEquivalent(CacheKey,OUT._key)
                 if similarity:
                     if similarity == 1:
-                        print('Warning: Stored cohomology data have a different group description, but they seem to be equivalent')
+                        coho_logger.warn('Stored cohomology data have a different group description, but they seem to be equivalent', OUT)
                     return OUT
                 else:
                     raise ValueError("Cohomology ring cache is broken for %s"%repr(OUT))

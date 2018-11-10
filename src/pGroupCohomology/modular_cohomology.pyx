@@ -316,7 +316,8 @@ class MODCOHO(COHO):
             [ 72, 40 ]
             sage: HP = CohomologyRing(72,40,prime=3, from_scratch=True)
             sage: HP.make()
-            sage: P = HP.group().IsomorphismGroups(P).Image()
+            sage: phiP = HP.group().IsomorphismGroups(P)
+            sage: P = libgap.Group([phiP.Image(g) for g in HP.group().GeneratorsOfGroup()])
             sage: H1 = MODCOHO(G,3,HP,P,GroupName='Sym6',GStem='S6')   # indirect doctest
             sage: H1.make()
             sage: H1

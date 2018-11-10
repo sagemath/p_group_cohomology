@@ -388,3 +388,8 @@ def _gap_init(seed=100):
     gap.eval('Reset(GlobalRandomSource, {})'.format(seed))
 
 _gap_init()
+
+def gap_evalstring(s):
+    if s.startswith('Group(['):
+        return gap.Group([gap.eval(p if p.endswith(')') else p+')') for p in s[7:-2].strip().split('),')])
+    return gap.eval(s)

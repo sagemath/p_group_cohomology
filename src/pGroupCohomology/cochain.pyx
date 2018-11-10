@@ -4768,7 +4768,7 @@ class CohomologyHomset(RingHomset_generic):
 
         1. ``GMap`` is a :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix defining a
            homeomorphism of group algebras.
-        2. ``GMap`` is a group homomorphism, defined in the gap interface
+        2. ``GMap`` is a group homomorphism, defined in the libgap interface
         If ``H0Map`` is ``None``, we replace it by the matrix given by ``[[1,0,0,...]]``
 
         TESTS::
@@ -4819,7 +4819,7 @@ class CohomologyHomset(RingHomset_generic):
                 if GMap.HasName():
                     Name = GMap.Name().sage()
                 if not (GAP == Src.group().parent() == Tgt.group().parent()):
-                    raise ValueError("The second argument and the groups of domain and codomain must be defined in the same Gap session")
+                    raise ValueError("The second argument and the groups of domain and codomain must be defined in the same libGAP session")
                 if GMap.IsGroupHomomorphism():
                     GSrc = GMap.Source()
                     GTgt = GMap.Range()
@@ -4893,8 +4893,8 @@ class CohomologyHomset(RingHomset_generic):
                 # Hence, we can produce a temporary file providing the MTX matrix of the induced group algebra map.
                 GStem = os.path.join(Tgt.gps_folder,Tgt.GStem)
                 HStem = os.path.join(Src.gps_folder,Src.GStem)
+                IStem = tmp_filename()
                 while True:
-                    IStem = tmp_filename()
 #~                     command = 'makeInducedHomomorphismData("%s","%s","%s", %s, %d)'%(GStem,HStem,IStem,GMap.name(),Tgt.Resl.G_ALG().order())
                     GAP.function_factory('makeInducedHomomorphismData')(GStem, HStem, IStem, GMap, Tgt.Resl.G_ALG().order())
                     # The following warning occurs when computing the mod-3 cohomology of SmallGroup(44100,1)

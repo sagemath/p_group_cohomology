@@ -83,7 +83,7 @@ from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.matrix.matrix_gfpn_dense cimport new_mtx
 from sage.libs.meataxe cimport *
-from pGroupCohomology.auxiliaries import singular
+from pGroupCohomology.auxiliaries import singular, gap_evalstring
 
 # pGroupCohomology Cython and Python types
 from pGroupCohomology.resolution cimport RESL, G_ALG
@@ -2892,12 +2892,15 @@ class COHO(Ring):
                 n = -1
 
                 ## Try to make up minimal generators
+                print("First occurrence")
+                print(H0.IdGroup())
                 if H0.RankPGroup() == H0.GeneratorsOfGroup().Length():
                     # We already have minimal generators, and then we are supposed to use exactly *these* generators!
                     Hfinal = H0
                 else:
                     coho_logger.info("Try to find minimal generators for %s", None, GroupName)
-                    HP = gap.Group(H0.IsomorphismPermGroup().Image(H0.GeneratorsOfGroup()))
+                    phi = H0.IsomorphismPermGroup()
+                    HP = gap.Group([phi.Image(x) for x in H0.GeneratorsOfGroup()])
                     ## Hopefully gap can find minimal generating sets for permutation groups...
                     Hfinal = HP.Subgroup(HP.MinimalGeneratingSet())
                 ####
@@ -2906,11 +2909,7 @@ class COHO(Ring):
                 if kwds.has_key('key'):
                     GroupKey = kwds['key'][0]
                 else:
-                    if not Hfinal.IsPermGroup():
-                        GroupKey = Hfinal.asPermgroup().String().sage()
-                    else:
-                        GroupKey = 'Group('+Hfinal.GeneratorsOfGroup().String().sage()+')'
-                    GroupKey = ''.join([t.strip() for t in GroupKey.split()])
+                    GroupKey = 'Group(['+','.join([g.String().sage() for g in Hfinal.asPermgroup().GeneratorsOfGroup()])+'])'
         else:
             raise TypeError("COHO initialisation requires between 0 and 2 arguments (%d given)"%(len(args)))
 
@@ -4412,14 +4411,14 @@ Minimal list of algebraic relations:
         from pGroupCohomology.auxiliaries import gap, _gap_init
         _gap_init()
         if isinstance(self._key[0], basestring):
-            self._gap_group = gap.eval(self._key[0])
+#~             self._gap_group = gap.eval(self._key[0])
+            # self._key[0] may be too long for libgap to evaluate. So, we split it into chewable pieces.
+            self._gap_group = gap_evalstring(self._key[0]).asPermgroup()
         elif len(self._key[0])==1:
-            self._gap_group = gap.eval(self._key[0][0])
-            if not self._gap_group.IsPermGroup():
+            self._gap_group = gap_evalstring(self._key[0][0]).asPermgroup()
 #~                 self._gap_group = gap.eval('Group(verifiedMinGens(regularPermutationAction(%s: forceDefiningGenerators)))'%(self._gap_group.name()))
-                self._gap_group = self._gap_group.asPermgroup().verifiedMinGens().Group()
         else:
-            self._gap_group = gap.SmallGroup(self._key[0][0],self._key[0][1]).asPermgroup().verifiedMinGens().Group()
+            self._gap_group = gap.SmallGroup(self._key[0][0],self._key[0][1]).asPermgroup()
         return self._gap_group
 
     @permanent_result
@@ -5368,7 +5367,7 @@ Minimal list of algebraic relations:
                 GId = G.IdGroup()
                 Gsm = gap.SmallGroup(GId)
                 phiG = Gsm.IsomorphismGroups(G)
-                G = Gsm.GeneratorsOfGroup().List('x->Image(%s,x)'%phiG.name()).Group()
+                G = gap.Group([phiG.Image(g) for g in Gsm.GeneratorsOfGroup()])
                 GCo = CohomologyRing(int(GId[1]),int(GId[2]),prime=self._prime)
                 if G.canonicalIsomorphism(GCo.group()) == gap.eval('fail'):
                     phiG = GCo.group().IsomorphismGroups(G)
@@ -10133,6 +10132,8 @@ is an error. Please inform the author!""")
         """
         if self.pRank:
             return self.pRank
+        print("Second occurrence")
+        print(self.group().IdGroup())
         return Integer(self.group().RankPGroup())
 
     def _lower_bound_depth(self):
@@ -10925,9 +10926,10 @@ is an error. Please inform the author!""")
         QuotMap[0] = self.group().IdentityMapping()  # QuotMap[i] stores the quotient map self.group() ->> G[i] := self.group()/L[l-i-1]
         for i in range(1,l-1):
             QuotMap[i] = L[0].NaturalHomomorphismByNormalSubgroup(L[l-i-1])
-            q,n = QuotMap[i].Image().IdGroup().sage()
-            G[i] = QuotMap[i].Image().IsomorphismGroups(gap.SmallGroup(q,n))
-            G00Gen = G[0][0].Image().GeneratorsOfGroup()
+            QMI = gap.Group([QuotMap[i].Image(g) for g in QuotMap.Source().GeneratorsOfGroup()])
+            q,n = QMI.IdGroup().sage()
+            G[i] = QMI.IsomorphismGroups(gap.SmallGroup(q,n))
+            G00Gen = gap.List([ G[0][0].Image(g) for g in G[0][0].GeneratorsOfGroup() ])
 #~             gap.eval('%s := GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Image(%s)),
 #~             List([1..Length(GeneratorsOfGroup(Image(%s)))], x -> Image(%s, Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Image(%s))[x])))))'%
 #~             (QuotMap[i].name(), G[0][0].name(),G[i][0].name(), G[0][0].name(), G[0][0].name(), G[i][0].name(),QuotMap[i].name(),G[0][0].name(),

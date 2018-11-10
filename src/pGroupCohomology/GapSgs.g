@@ -238,9 +238,10 @@ end;
 
 ################################################################################
 easyMakeBasis := function(G, Gname,fldr)
-  local Gdir, Gstem, H, hh;
-  H := Group(verifiedMinGens(G));
-  hh := regularPermutationAction(H: forceDefiningGenerators);
+  local Gdir, Gstem, H;
+  #H := Group(verifiedMinGens(G));
+  #hh := regularPermutationAction(H: forceDefiningGenerators);
+  H := asPermgroup(G);
   if Size(fldr)>0 then 
      Gdir := Concatenation(fldr,"/",Gname, "/");
   else 
@@ -248,7 +249,7 @@ easyMakeBasis := function(G, Gname,fldr)
   fi;
   ensureDirectoryExists(Gdir);
   Gstem := Concatenation(Gdir, Gname);
-  makeBasis(hh, Gstem, true: TG);
+  makeBasis(H, Gstem, true: TG);
   return;
 end;
 
@@ -369,7 +370,7 @@ makeInducedHomomorphismData := function(Gstem, Hstem, Istem, phi, Gsize)
   G0 := Range(phi);
   # Strange: Even if G0 is permutation group, we need to switch to the regular Permutation representation.
   # Otherwise, desasters occur.
-  G := regularPermutationAction(G0: forceDefiningGenerators);
+  G := asPermgroup(G0); #regularPermutationAction(G0: forceDefiningGenerators);
   psi_G0_G := GroupHomomorphismByImages(G0,G, GeneratorsOfGroup(G0), GeneratorsOfGroup(G));
   psi := GroupHomomorphismByImages(H, G, GeneratorsOfGroup(H), List([1..Length(GeneratorsOfGroup(H))], x->Image(psi_G0_G, Image(phi, GeneratorsOfGroup(H)[x]))));
   pl := List([1..Length(GeneratorsOfGroup(H))], x->Image(psi, GeneratorsOfGroup(H)[x]));

@@ -32,7 +32,7 @@
 #
 #    makeJenningsBasis (G,name: options): GrpPerm, MonStgElt ->
 #
-#    asPermgroup(G): GrpPC or GrpPerm -> GrpPerm with equivalent generators
+#    asPermgroup(G): GrpPC or GrpPerm -> regular permutation action with verified minimal generators
 #    regularPermutationAction(G: options): GrpPC or GrpPerm -> GrpPerm
 #    createRegFile(stem, group) ->
 #    writeOutMtxPerms(List(Perm), outfile, tmpfile, degree) ->
@@ -67,15 +67,20 @@ StringToIntegerSequence := function(t)
 end;
 
 # *****************************************************************************
+DeclareProperty("RegularRepresentation",IsPermGroup);
+
 asPermgroup := function(G)
 # Creates the isomorphic image of G in some permutation group
 # Uses defining generators
-  local gens, N, phi, L;
-  gens := GeneratorsOfGroup(G);
-  N := Length(gens);
-  phi := IsomorphismPermGroup(G);
-  L := List( [1..N], i -> Image(phi, gens[i]) );
-  return Group(L);
+  local RegAct;
+  if HasRegularRepresentation(G) then return G; fi;
+  if isPrimePower(Size(G)) then
+     RegAct := Group(verifiedMinGens(regularPermutationAction(G: forceDefiningGenerators)));
+  else
+     RegAct := regularPermutationAction(G: forceDefiningGenerators);
+  fi;
+  SetRegularRepresentation(RegAct, true);
+  return RegAct;
 end;
 
 # *****************************************************************************
@@ -363,9 +368,9 @@ end;
 
 # *****************************************************************************
 createRegFile := function(name,ngg)
-  local g, gens, gg, nametreg, namereg, statusline, j, fp;
+  local g, gens, gg, nametreg, namereg;
   # Now the permutations in Ringe format
-  gg := regularPermutationAction(ngg);
+  gg := asPermgroup(ngg); regularPermutationAction(ngg);
   gens := GeneratorsOfGroup(gg);
   nametreg := Concatenation(name, ".treg");
   namereg := Concatenation(name, ".reg");
