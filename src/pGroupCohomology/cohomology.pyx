@@ -246,7 +246,7 @@ class GapPickler(object):
     EXAMPLES::
 
         sage: from pGroupCohomology.cohomology import GapPickler, unpickle_gap_data, pickle_gap_data
-        sage: G = gap.SmallGroup(8,3).IsomorphismPermGroup().Image()
+        sage: G = libgap.SmallGroup(8,3).IsomorphismPermGroup().Image()
         sage: D = {(1, G, "abc"):5}
         sage: unpickle_gap_data(pickle_gap_data(D)) == D  # indirect doctest
         True
@@ -3260,7 +3260,7 @@ class COHO(Ring):
             sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,5)(2,6)(3,8)(4,7), (1,8)(2,7)(3,6)(4,5) ] )')
             sage: H1.group()==phi.Source()
             True
-            sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
+            sage: H2.group().canonicalIsomorphism(phi.Range()) != libgap.eval('fail')
             True
             sage: phi.IsInjective()
             true
@@ -3299,7 +3299,7 @@ class COHO(Ring):
         provide a Sylow 2-subgroup explicitly.
         ::
 
-            sage: G = gap.SmallGroup(48,36)
+            sage: G = libgap.SmallGroup(48,36)
             sage: g1,g2,g3,g4,g5 = G.GeneratorsOfGroup()
             sage: S = g1.Group(g1*g2*g3,g2,g4)
             sage: HG = CohomologyRing(G,prime=2,Subgroup=S,GroupName='SmallGroup(48,36)', from_scratch=True)
@@ -5368,7 +5368,7 @@ Minimal list of algebraic relations:
                 Gsm = gap.SmallGroup(GId)
                 phiG = Gsm.IsomorphismGroups(G)
                 G = gap.Group([phiG.Image(g) for g in Gsm.GeneratorsOfGroup()])
-                GCo = CohomologyRing(int(GId[1]),int(GId[2]),prime=self._prime)
+                GCo = CohomologyRing(*(GId.sage()), prime=self._prime)
                 if G.canonicalIsomorphism(GCo.group()) == gap.eval('fail'):
                     phiG = GCo.group().IsomorphismGroups(G)
                     G = gap.Group([phiG.Image(g) for g in GCo.group().GeneratorsOfGroup()])
@@ -5449,7 +5449,8 @@ Minimal list of algebraic relations:
         """
         G = self.group()
         Elabs = G.ElabsWithRank(self._prime or self.Resl.coef(),r)
-        return self.essential_ideal(Elabs.List('g->Centralizer(%s,g)'%G.name()).Set())
+#~         return self.essential_ideal(Elabs.List('g->Centralizer(%s,g)'%G.name()).Set())
+        return self.essential_ideal(G.parent()([G.Centralizer(g) for g in Elabs]))
 
     def subgroups(self):
         """
@@ -10926,10 +10927,10 @@ is an error. Please inform the author!""")
         QuotMap[0] = self.group().IdentityMapping()  # QuotMap[i] stores the quotient map self.group() ->> G[i] := self.group()/L[l-i-1]
         for i in range(1,l-1):
             QuotMap[i] = L[0].NaturalHomomorphismByNormalSubgroup(L[l-i-1])
-            QMI = gap.Group([QuotMap[i].Image(g) for g in QuotMap.Source().GeneratorsOfGroup()])
+            QMI = gap.Group([QuotMap[i].Image(g) for g in QuotMap[i].Source().GeneratorsOfGroup()])
             q,n = QMI.IdGroup().sage()
-            G[i] = QMI.IsomorphismGroups(gap.SmallGroup(q,n))
-            G00Gen = gap.List([ G[0][0].Image(g) for g in G[0][0].GeneratorsOfGroup() ])
+            G[i] = (QMI.IsomorphismGroups(gap.SmallGroup(q,n)), [q,n])
+            G00Gen = gap.List([ G[0][0].Image(g) for g in G[0][0].Image().GeneratorsOfGroup() ])
 #~             gap.eval('%s := GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Image(%s)),
 #~             List([1..Length(GeneratorsOfGroup(Image(%s)))], x -> Image(%s, Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Image(%s))[x])))))'%
 #~             (QuotMap[i].name(), G[0][0].name(),G[i][0].name(), G[0][0].name(), G[0][0].name(), G[i][0].name(),QuotMap[i].name(),G[0][0].name(),
@@ -10983,8 +10984,6 @@ is an error. Please inform the author!""")
         ###########################
         C = {0:self} # Cohomology rings
         from pGroupCohomology import CohomologyRing
-        from sage.misc.temporary_file import tmp_dir
-        tmp_root = tmp_dir()
         for i from 0 < i < l-1:
             C[-i] = CohomologyRing(G[-i][1][0], G[-i][1][1])
             C[i]  = CohomologyRing(G[i][1][0],  G[i][1][1])

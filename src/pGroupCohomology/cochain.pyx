@@ -102,7 +102,7 @@ We do some computations with cohomology elements, testing relations in
 We define an embedding of ``D`` in ``S`` and compute the induced
 map from ``HS`` to ``HD``::
 
-    sage: emb = D.GroupHomomorphismByImages(S,D.GeneratorsOfGroup(),'[ (2,4), (1,2,3,4), (1,3)(2,4) ]')
+    sage: emb = D.GroupHomomorphismByImages(S,D.GeneratorsOfGroup(),libgap.eval('[ (2,4), (1,2,3,4), (1,3)(2,4) ]'))
     sage: resS_D = HS.hom(emb,HD)
     sage: [resS_D(g).as_polynomial() for g in HS.gens()[1:]]
     ['c_2_2', 'b_1_1+b_1_0', 'c_2_2*b_1_1+c_2_2*b_1_0', 'b_1_0^2*b_1_1+c_2_2*b_1_1']
@@ -2721,13 +2721,13 @@ class MODCOCH(RingElement):
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = libgap.AlternatingGroup(8)
-            sage: H = CohomologyRing(G,prime=2,GroupName='A8')
-            sage: H.make()
+            sage: H = CohomologyRing(G,prime=2,GroupName='A8') # long time
+            sage: H.make()              # long time 
             sage: H.subgroup_cohomology()
             H^*(SmallGroup(192,1493); GF(2))
             sage: H.1.as_cocycle_in_subgroup()
-            (b_1_0)^2+(b_2_2)+(b_2_1): 2-Cocycle in H^*(SmallGroup(192,1493); GF(2))
-            sage: H.subgroup_cohomology()('b_1_0^2+b_2_1+b_2_2')*H.2.as_cocycle_in_subgroup() == (H.1*H.2).as_cocycle_in_subgroup()
+            b_2_1+(b_2_0): 2-Cocycle in H^*(SmallGroup(192,1493); GF(2))
+            sage: H.subgroup_cohomology()('b_2_1+b_2_0')*H.2.as_cocycle_in_subgroup() == (H.1*H.2).as_cocycle_in_subgroup()
             True
 
         """
@@ -2769,11 +2769,11 @@ class MODCOCH(RingElement):
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = libgap.AlternatingGroup(8)
-            sage: H = CohomologyRing(G,prime=2,GroupName='A8')
-            sage: H.make()
+            sage: H = CohomologyRing(G,prime=2,GroupName='A8')  # long time
+            sage: H.make()                          # long time
             sage: H.1.as_cocycle_in_sylow()
-            b_1_1*b_1_2+b_1_1^2+b_1_0^2+b_2_5+b_2_4: 2-Cocycle in H^*(SmallGroup(64,138); GF(2))
-            sage: H.sylow_cohomology()('b_1_1*b_1_2+b_1_1^2+b_1_0^2+b_2_5+b_2_4')*H.2.as_cocycle_in_sylow() == (H.1*H.2).as_cocycle_in_sylow()
+            b_1_2^2+b_1_1*b_1_2+b_2_6+b_2_5: 2-Cocycle in H^*(SmallGroup(64,138); GF(2))
+            sage: H.sylow_cohomology()('b_1_2^2+b_1_1*b_1_2+b_2_6+b_2_5')*H.2.as_cocycle_in_sylow() == (H.1*H.2).as_cocycle_in_sylow()
             True
 
         """
@@ -5058,10 +5058,7 @@ cdef class ChMap(RingHomomorphism):
         sage: H1.group()==phi.Source()
         True
         sage: H2.group().canonicalIsomorphism(phi.Range())
-        GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8),
-        (1,4)(2,6)(3,7)(5,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ),
-        [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8), (1,4)(2,6)(3,7)(5,8) ],
-        [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8), (1,2)(3,4)(5,6)(7,8) ] )
+        [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8) ] -> [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ]
         sage: phi.IsInjective()
         true
         sage: phi.IsSurjective()
@@ -5137,7 +5134,8 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = libgap.eval('Group([(3,4,5,6,7,8,9,10),(1,2)])')
             sage: V = libgap.eval('Group([(1,2),(3,4)])')
-            sage: phi = V.GroupHomomorphismByImages(G,V.GeneratorsOfGroup(),[G.1^4,G.2])
+            sage: GGen = G.GeneratorsOfGroup()
+            sage: phi = V.GroupHomomorphismByImages(G,V.GeneratorsOfGroup(),[GGen[0]^4,GGen[1]])
             sage: H0 = CohomologyRing(16,5)
             sage: H0.make()
             sage: HG = CohomologyRing(G,GroupName='C8xC2', from_scratch=True)
@@ -5250,7 +5248,7 @@ cdef class ChMap(RingHomomorphism):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
-            sage: G = gap.DihedralGroup(8)
+            sage: G = libgap.DihedralGroup(8)
             sage: H2 = CohomologyRing(G, GroupName = 'DihedralGroup(8)', from_scratch=True)
             sage: H2.make()
             sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
@@ -5572,7 +5570,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
-            sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
+            sage: H2.group().canonicalIsomorphism(phi.Range()) != libgap.eval('fail')
             True
             sage: phi.IsInjective()
             true
@@ -5650,7 +5648,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
-            sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
+            sage: H2.group().canonicalIsomorphism(phi.Range()) != libgap.eval('fail')
             True
             sage: phi.IsInjective()
             true
@@ -6015,7 +6013,7 @@ cdef class ChMap(RingHomomorphism):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G1 = gap.SmallGroup(8,3)
+            sage: G1 = libgap.SmallGroup(8,3)
             sage: H1 = CohomologyRing(8,3)
             sage: H1.make()
             sage: G2 = libgap.DihedralGroup(8)
@@ -6268,7 +6266,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
-            sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
+            sage: H2.group().canonicalIsomorphism(phi.Range()) != libgap.eval('fail')
             True
             sage: phi.IsInjective()
             true
@@ -6339,7 +6337,7 @@ cdef class ChMap(RingHomomorphism):
             sage: phi = libgap.eval('GroupHomomorphismByImages( Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] ), Group( [ (1,5)(2,6)(3,8)(4,7), (1,3,2,4)(5,7,6,8) ] ), [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ], [ (1,7)(2,8)(3,5)(4,6), (1,6)(2,5)(3,7)(4,8) ] )')
             sage: H1.group()==phi.Source()
             True
-            sage: repr(H2.group().canonicalIsomorphism(phi.Range())) != 'fail'
+            sage: H2.group().canonicalIsomorphism(phi.Range()) != libgap.eval('fail')
             True
             sage: phi.IsInjective()
             true
@@ -6372,7 +6370,7 @@ cdef class ChMap(RingHomomorphism):
         coho_logger.info('lift in the source resolution', self)
 #~         ct=cputime()
 #~         wt=walltime()
-        cdef MTX M1 = self.Src[SrcDeg]*self.GMap # TgtNontips columns
+        cdef MTX M1 = (<MTX>self.Src[SrcDeg])._matrix_times_matrix_(self.GMap) # TgtNontips columns
         cdef MTX M2 = self[-1]                   # TgtNontips columns
         cdef int i,j,k
         cdef MTX Compos
