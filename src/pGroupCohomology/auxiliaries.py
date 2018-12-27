@@ -329,67 +329,65 @@ coho_logger.addHandler(stream_handler)
 coho_logger.setLevel(logging.WARN)
 
 ########################
-## Initialisation of Gap
+## libGap auxiliaries
 ## The other modules import gap from `auxiliaries`
 
 from sage.libs.gap.libgap import libgap as gap
 
-def _gap_init(seed=100):
+Failure = gap.eval('fail')
+
+def _gap_eval_string(s):
+    """
+    Evalute a string with libGAP.
+
+    In some of our examples, permutation groups arise whose string representations
+    are too large to be directly processed by libGAP. Therefore, we introduce
+    this auxiliary function that cuts permutation group definitions into smaller
+    bits before evaluation.
+    """
+    if s.startswith('Group(['):
+        return gap.Group([gap.eval(p if p.endswith(')') else p+')') for p in s[7:-2].strip().split('),')])
+    return gap.eval(s)
+
+def _gap_reset_random_seed(seed=100):
     """
     Resets the random seed of GAP and (if necessary) reads three libraries.
 
     TEST:
 
-    This function is automatically executed when the library is
-    loaded.  Hence, the GAP functions and global variables are
-    available right after the import statement::
+    When :mod:`~pGroupCohomology.auxiliaries` is imported, some global variable in
+    libGAP is defined::
 
-        sage: from pGroupCohomology.auxiliaries import _gap_init
-        sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
+        sage: from pGroupCohomology.auxiliaries import _gap_reset_random_seed
+        sage: libgap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
         True
 
-    After a crash of GAP, the global variable ``exportMTXLIB`` is unknown. But it
-    is again defined using ``_gap_init``.
-    ::
-
-        sage: gap.quit()
-        sage: gap.eval('exportMTXLIB') == "MTXLIB=%s; export MTXLIB; "%os.environ['MTXLIB']
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Gap produced error output
-        Error, Variable: 'exportMTXLIB' must have a value
-        <BLANKLINE>
-           executing exportMTXLIB;
-        sage: _gap_init()   # indirect doctest
-        sage: gap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
-        True
-
-    Moreover, the random seed of GAP is reset.
+    The _gap_reset_random_seed function is automatically executed as well. Calling it again will
+    reset libGAP's random seed.
     ::
 
         sage: libgap.eval('List([1..10],i->Random(1,100000))')
         [ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]
-        sage: _gap_init()
+        sage: _gap_reset_random_seed()
         sage: libgap.eval('List([1..10],i->Random(1,100000))')
         [ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]
 
     """
     from sage.all import set_random_seed
     set_random_seed(seed)
-    # Read the library, if it deems needed
-    if not gap.IsBoundGlobal("exportMTXLIB"):
-        gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g'))
-        gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g'))
-        gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g'))
-        #~ gap.eval('DeclareGlobalVariable("exportMTXLIB")') # exportMTXLIB is declared in GapMB.g
-        gap.eval('InstallValue(exportMTXLIB,"MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
-    # Reset the random generator
     gap.eval('Reset(GlobalMersenneTwister, {})'.format(seed))
     gap.eval('Reset(GlobalRandomSource, {})'.format(seed))
 
-_gap_init()
+########################
+#
+#  Gap initialisation code that should be executed once
+#
+########################
+# Reading some modules
+gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g'))
+gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g'))
+gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g'))
+gap.eval('BindGlobal("exportMTXLIB","MTXLIB=%s; export MTXLIB; ")'%(os.path.join(DOT_SAGE,"meataxe")))
+# Reset the random generator
+_gap_reset_random_seed()
 
-def gap_evalstring(s):
-    if s.startswith('Group(['):
-        return gap.Group([gap.eval(p if p.endswith(')') else p+')') for p in s[7:-2].strip().split('),')])
-    return gap.eval(s)

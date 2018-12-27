@@ -318,7 +318,7 @@ cohomology rings are not the same::
 
     sage: G = libgap.DihedralGroup(8)
     sage: H2 = CohomologyRing(G,GroupName='DihedralA')
-    sage: G.SetName('"DihedralB"')
+    sage: G.SetName("DihedralB")
     sage: H3 = CohomologyRing(G)
     sage: H2 is H3
     False
@@ -496,10 +496,10 @@ cohomology ring::
 
     sage: G1 = H1.group()
     sage: G1
-    Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] )
+    Group([ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ])
     sage: G2 = H2.group()
     sage: G2
-    Group( [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8), (1,4)(2,6)(3,7)(5,8) ] )
+    Group([ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8), (1,4)(2,6)(3,7)(5,8) ])
 
 Apparently, ``G1`` and ``G2`` are different permutation groups. But in
 fact they are isomorphic. Note that we could get a group isomorphism
@@ -517,7 +517,7 @@ Of course, the group isomorphism induces an isomorphism of the
 corresponding cohomology rings. After ensuring that ``phi`` is printed
 nicely, we obtain the induced map::
 
-    sage: phi.SetName('"phi"')
+    sage: phi.SetName("phi")
     sage: phi_star = H2.hom(phi,H1)
     sage: phi_star
     phi^*
@@ -1078,7 +1078,7 @@ names of these folders are composed as follows.
        sage: H = CohomologyRing(8,3)
        sage: G = libgap.DihedralGroup(8)
        sage: K = CohomologyRing(G, GroupName = 'DihedralA')
-       sage: G.SetName('"DihedralB"')
+       sage: G.SetName("DihedralB")
        sage: L = CohomologyRing(G)
        sage: H.GStem
        '8gp3'

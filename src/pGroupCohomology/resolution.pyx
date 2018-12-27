@@ -48,7 +48,7 @@ from sage.all import deepcopy
 from sage.all import load
 from sage.env import DOT_SAGE, SAGE_ROOT, SAGE_LOCAL
 
-from pGroupCohomology.auxiliaries import gap, singular, coho_options, _gap_init, coho_logger, safe_save
+from pGroupCohomology.auxiliaries import gap, singular, coho_options, _gap_reset_random_seed, coho_logger, safe_save
 from pGroupCohomology.cochain cimport YCOCH
 from pGroupCohomology.cochain cimport COCH
 
@@ -200,7 +200,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
 
     """
     import os
-    _gap_init()
+    _gap_reset_random_seed()
     if q==1:
         return
     F=Integer(q).factor()
@@ -383,7 +383,7 @@ def makeSpecialGroupData(H, GStem, folder):
         raise ValueError("The group order must be a prime power")
     for i in xrange(1,F[0][1]):
         makeGroupData(F[0][0]**i, gap.NumberSmallGroups(F[0][0]**i).sage(), folder, True)
-    _gap_init()
+    _gap_reset_random_seed()
     coho_logger.info( "Computing basic setup for %s"%(GStem),None)
     try:
         os.remove(os.path.join(gps_folder,GStem+'.bch'))

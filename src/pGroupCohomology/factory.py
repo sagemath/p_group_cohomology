@@ -40,7 +40,7 @@ from __future__ import print_function, absolute_import
 
 from sage.all import SAGE_ROOT, DOT_SAGE, load
 from sage.all import Integer
-from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init, gap, singular
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_reset_random_seed, gap, singular, Failure
 from pGroupCohomology import barcode
 from pGroupCohomology.cohomology import COHO
 
@@ -117,12 +117,10 @@ def unit_test_64(**kwds):
         #  1: Walltime   ... min
               CPU-time   ... min
               Singular   ... min
-              Gap-time   ... min
         ...
         #267: Walltime   ... min
               CPU-time   ... min
               Singular   ... min
-              Gap-time   ... min
         sage: L
         []
 
@@ -360,7 +358,7 @@ class CohomologyRingFactory:
         coho_options.update(default_options)
         singular.quit()
         singular.option('noqringNF')
-        _gap_init()
+        _gap_reset_random_seed()
 
     def doctest_setup(self):
         """Block web access and put the workspace into a temporary directory.
@@ -737,9 +735,9 @@ class CohomologyRingFactory:
             sage: CohomologyRing.group_name([G],'D8')
             'D8'
             sage: CohomologyRing.group_name([G])
-            sage: G.SetName('"DihedralGroup_8"')
+            sage: G.SetName("DihedralGroup_8")
             sage: CohomologyRing.group_name([G])
-            '"DihedralGroup_8"'
+            "DihedralGroup_8"
             sage: CohomologyRing.group_name([G],'D8')
             'D8'
 
@@ -802,7 +800,7 @@ class CohomologyRingFactory:
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.group()
-            Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] )
+            Group([ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ])
             sage: CohomologyRing.create_group_key([H.group()])
             (8, 3)
 
@@ -868,7 +866,7 @@ class CohomologyRingFactory:
         try:
             gId = g.IdGroup().sage()
             gs = gap.SmallGroup(gId)
-            if g.canonicalIsomorphism(gs) != gap.eval('fail'):
+            if g.canonicalIsomorphism(gs) != Failure:
                 return Integer(gId[0]), Integer(gId[1])
         except ValueError:
             pass
@@ -917,9 +915,9 @@ class CohomologyRingFactory:
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.check_arguments([8,3])
-            (8, Group( [ f1, f2, f3 ] ))
+            (8, <pc group of size 8 with 3 generators>)
             sage: CohomologyRing.check_arguments([libgap.eval('DihedralGroup(8)')])
-            (8, Group( [ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8) ] ))
+            (8, Group([ (1,2)(3,8)(4,6)(5,7), (1,3,4,7)(2,5,6,8) ]))
             sage: CohomologyRing.check_arguments([libgap.eval('DihedralGroup(8)')], GroupId=[8,3])
             Traceback (most recent call last):
             ...
@@ -932,7 +930,7 @@ class CohomologyRingFactory:
             q,n = args
             if (GroupId is not None) and ((q,n)!=GroupId):
                 raise ValueError("``GroupId=(%d,%d)`` incompatible with the given SmallGroups entry (%d,%d)"%(GroupId[0],GroupId[1],q,n))
-            _gap_init()
+            _gap_reset_random_seed()
             try:
                 max_n = gap.NumberSmallGroups(q).sage()
             except RuntimeError:
@@ -944,7 +942,7 @@ class CohomologyRingFactory:
         if not hasattr(g,'parent'):
             raise TypeError("Group in GAP expected")
         GAP = g.parent()
-        _gap_init()
+        _gap_reset_random_seed()
         if GroupId and g.canonicalIsomorphism(GAP.SmallGroup(GroupId[0], GroupId[1])) == GAP.eval('fail'):
             raise ValueError("The given group generators are not canonically isomorphic to SmallGroup(%d,%d)"%(GroupId[0],GroupId[1]))
         if GroupId: # compatibility was already checked
@@ -1183,14 +1181,14 @@ class CohomologyRingFactory:
                 coho_logger.warn("Access to websource was interrupted.", None)
         if OUT is not None:
             GAP = OUT.group().parent()
-            _gap_init()
+            _gap_reset_random_seed()
             try:
                 OUT.GenS._check_valid()
             except ValueError:
                 OUT.reconstruct_singular()
             if len(KEY)==2:
                 coho_logger.info('Checking compatibility of SmallGroups library and stored cohomology ring', None)
-                if OUT.group().canonicalIsomorphism(gap.SmallGroup(KEY[0],KEY[1])) == gap.eval('fail'):
+                if OUT.group().canonicalIsomorphism(gap.SmallGroup(KEY[0],KEY[1])) == Failure:
                     raise ValueError("Stored group data for SmallGroup(%d,%d) incompatible with data in the SmallGroups library"%(KEY[0],KEY[1]))
         return OUT
 
@@ -1252,7 +1250,7 @@ class CohomologyRingFactory:
                 OUT = COHO(gap(KEY[0]), **extras)
         else:
             OUT = COHO(KEY[0],KEY[1], **extras)
-        _gap_init()
+        _gap_reset_random_seed()
         try:
             # The original data have to be on disc, since otherwise
             # we'd later assume that the cache is corrupted
@@ -1356,7 +1354,7 @@ class CohomologyRingFactory:
             except:
                 coho_logger.info("No cohomology ring found in web repository.", None)
         if OUT is not None:
-            _gap_init()
+            _gap_reset_random_seed()
             try:
                 OUT.GenS._check_valid()
             except ValueError:
@@ -1490,7 +1488,7 @@ class CohomologyRingFactory:
 
         # CHECK ADMISSIBILITY OF THE INPUT
         from pGroupCohomology.resolution import coho_options
-        # _gap_init is done inside check_arguments
+        # _gap_reset_random_seed is done inside check_arguments
         GapName = None
         if len(args)==1 and args[0].HasName():
             GapName = args[0].Name().sage()
@@ -1552,7 +1550,7 @@ class CohomologyRingFactory:
         OUT = self._get_non_p_group_from_db(GStem, pr, **extras)
         if OUT is not None:
             # Test if the group is OK
-            if Hfinal.canonicalIsomorphism(OUT.group()) == gap.eval('fail'):
+            if Hfinal.canonicalIsomorphism(OUT.group()) == Failure:
                 raise ValueError("The stored cohomology ring %r does not match the given group"%(OUT))
 
         ## If a subgroup or its cohomology is given, test consistency
@@ -1566,12 +1564,12 @@ class CohomologyRingFactory:
             # consistency vs. subgroup
             if (HP is not None) and (HP is not OUT._HP):
                 raise ValueError("The stored cohomology ring %r is not defined as a subring of %r"%(OUT, HP))
-            if (Subgroup is not None) and Subgroup.canonicalIsomorphism(OUT.subgroup()) == gap.eval('fail'):
+            if (Subgroup is not None) and Subgroup.canonicalIsomorphism(OUT.subgroup()) == Failure:
                 raise ValueError("The stored cohomology ring %r is not computed using the given subgroup"%(OUT))
             # consistency vs. Sylow subgroup
             if (HSyl is not None) and (HSyl is not OUT._HSyl):
                 raise ValueError("The stored cohomology ring %r is not defined as a subring of %r"%(OUT, HP))
-            if (SylowSubgroup is not None) and (SylowSubgroup.canonicalIsomorphism(OUT.sylow_subgroup()) == gap.eval('fail')):
+            if (SylowSubgroup is not None) and (SylowSubgroup.canonicalIsomorphism(OUT.sylow_subgroup()) == Failure):
                 raise ValueError("The stored cohomology ring %r is not computed using the given Sylow subgroup"%(OUT))
             ## These were enough consistency checks!
             return OUT
@@ -1634,7 +1632,7 @@ class CohomologyRingFactory:
         else:
             if HP is not None:
                 phiSub = HP.group().canonicalIsomorphism(Subgroup)
-                if phiSub == gap.eval('fail'):
+                if phiSub == Failure:
                     raise ValueError("The arguments `Subgroup` and `SubgpCohomology` don't match")
                 SubgroupTested=True
         # 1b) dito for the Sylow subgroup
@@ -1654,7 +1652,7 @@ class CohomologyRingFactory:
         else:
             if HSyl is not None:
                 phiSub = HSyl.group().canonicalIsomorphism(SylowSubgroup)
-                if phiSub == gap.eval('fail'):
+                if phiSub == Failure:
                     raise ValueError("The arguments `SylowSubgroup` and `SylowSubgpCohomology` don't match")
                 SylowTested=True
 
@@ -1787,7 +1785,7 @@ class CohomologyRingFactory:
                 coho_logger.info( "Trying to update data on disk", OUT)
                 safe_save(OUT,OUT.autosave_name())
         #self._cache[CacheKey] = OUT # not necessary, since MODCOHO.__init__ inserts into the cache
-        _gap_init()
+        _gap_reset_random_seed()
         try:
             # The original data have to be on disc, since otherwise
             # we'd later assume that the cache is corrupted
@@ -2053,7 +2051,7 @@ class CohomologyRingFactory:
                                     OUT.setprop('GroupDescr',OUT.GroupNames[q,n][1])
                     if coho_options.get('save', True):
                         safe_save(OUT,os.path.join(root,'H'+GStem + 'mod%d.sobj'%prime))
-                    _gap_init()
+                    _gap_reset_random_seed()
                     return OUT
                 else:
                     coho_logger.debug("Cohomology ring H*({}, GF({})) not found in {}".format(GStem, prime, URL), None)
@@ -2087,7 +2085,7 @@ class CohomologyRingFactory:
                 continue
         if OUT is None:
             raise RuntimeError("The requested cohomology ring could not be found in any repository")
-        _gap_init()
+        _gap_reset_random_seed()
         try:
             # The original data have to be on disc, since otherwise
             # we'd later assume that the cache is corrupted
@@ -2159,7 +2157,7 @@ def _IsKeyEquivalent(k1, k2):
 
         sage: G2 = libgap.eval('SmallGroup(720,763)')
         sage: phiG2 = libgap.eval('GroupHomomorphismByImages( SymmetricGroup([ 1 .. 6 ]), Group([(1,2),(1,2,3,4,5,6)]), [(5,6),(1,2,3,4,5)], [(1,2),(2,6,3,4,5)])')
-        sage: G2new = gap.Group([ phiG2.Image(g) for g in G.GeneratorsOfGroup() ])
+        sage: G2new = libgap.Group([ phiG2.Image(g) for g in G.GeneratorsOfGroup() ])
         sage: H2new = CohomologyRing(G2new, prime=2, GroupName='Sym6New2')
 
     Now the keys of the cohomology ring are equivalent, but not equal::
@@ -2186,7 +2184,7 @@ def _IsKeyEquivalent(k1, k2):
             G2 = gap.eval(k2[0][0])
         else:
             G2 = gap.SmallGroup(k2[0][0],k2[0][1])
-        if G1.canonicalIsomorphism(G2) == gap.eval('fail'):
+        if G1.canonicalIsomorphism(G2) == Failure:
             return 0
         else:
             similarity = 1
@@ -2228,7 +2226,7 @@ INPUT:
   * given as an object in the Gap interface
 - ``GroupName`` (optional string): a name for the group. If the
   group `G` is given in the Gap interface and if it is not provided with
-  a custom name (using Gap's ``SetName``) then ``GroupName`` *must* be
+  a custom name (using libGap's ``SetName``) then ``GroupName`` *must* be
   provided.
 - ``GroupDescr`` (optional string): a description of the group. This can be
   any string, and is used when printing the cohomology ring or creating a

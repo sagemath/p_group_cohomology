@@ -30,7 +30,7 @@
 #   * sgp/ for all data concerning subgroups
 #   * dat/ for the resolution and other relevant data
 ####################################################
-# Further changes in the folder structure (2008-10) 
+# Further changes in the folder structure (2008-10)
 # - The folder tree of a groop is rooted in a folder
 #   whose name can be chosen by the user.
 #   This is done by a parameter "fldr" that gives the
@@ -43,11 +43,11 @@
 
 ###################
 ## Conventions:
-# Gid:	id of a small group as returned by IdGroup
-#	so: Gid = [N, n], N = |G|, G is <n>th small group of this size
+# Gid:  id of a small group as returned by IdGroup
+#   so: Gid = [N, n], N = |G|, G is <n>th small group of this size
 # # Glabel = [Gsize, Gname]; Gsize = N = |G|, Gname = string used as name of G
 # Changed by Simon King (2008-11):
-# Glabel = [Gsize, Gname, folder]; Gsize = N = |G|, Gname = string used as name of G, 
+# Glabel = [Gsize, Gname, folder]; Gsize = N = |G|, Gname = string used as name of G,
 #                                  folder = the root of the folder tree for G
 
 ####################################################
@@ -169,8 +169,8 @@ admissibleGroup := function(G)
     return fail;
   fi;
   psi := GroupHomomorphismByImages(G, H, gens, gens);
-  if psi = fail then 
-    return fail; 
+  if psi = fail then
+    return fail;
   fi;
   phi := IsomorphismPermGroup(H);
   if phi = fail then
@@ -222,7 +222,7 @@ conjugateIntoSylow := function(G, U, S)
   od;
   return ConjugatorAutomorphism(G,RepresentativeAction(G,U,S));
 end;
-  
+
 
 ################################################################################
 verifiedMinGens := function(G)
@@ -242,10 +242,10 @@ easyMakeBasis := function(G, Gname,fldr)
   #H := Group(verifiedMinGens(G));
   #hh := regularPermutationAction(H: forceDefiningGenerators);
   H := asPermgroup(G);
-  if Size(fldr)>0 then 
+  if Size(fldr)>0 then
      Gdir := Concatenation(fldr,"/",Gname, "/");
-  else 
-     Gdir := Concatenation(Gname, "/"); 
+  else
+     Gdir := Concatenation(Gname, "/");
   fi;
   ensureDirectoryExists(Gdir);
   Gstem := Concatenation(Gdir, Gname);
@@ -349,13 +349,13 @@ end;
 
 ################################################################################
 makeInducedHomomorphismData := function(Gstem, Hstem, Istem, phi, Gsize)
-  # Gstem, Hstem: Group stem names *including* path. 
+  # Gstem, Hstem: Group stem names *including* path.
   # The nontips files for H and G are Hstem.nontips, Gstem.nontips
   # Istem: All data file names related with the homomorphism H->G start with Istem
   # phi: H->G homomorphism
   # Author: Simon King (05/2009)
-  # Idea: 
-  # - G shall eventually be a permutation group, namely in the same 
+  # Idea:
+  # - G shall eventually be a permutation group, namely in the same
   #   form as used in the cohomology computation. This is done by
   #   using regularPermutationAction.
   # - H must have minimal generators, which are the same as those used
@@ -379,7 +379,6 @@ makeInducedHomomorphismData := function(Gstem, Hstem, Istem, phi, Gsize)
   writeOutMtxPerms(pl, irgfile, tmpfile, Gsize);
   buffer := Concatenation(exportMTXLIB, "makeInclusionMatrix ", Gstem, " ", Hstem,
     " ", Istem);
-  Print(buffer, "\n");
   Exec(buffer);
   return;
 end;
@@ -394,7 +393,6 @@ makeIma := function(Gstem, Hlabel, Istem, pl, Gsize)
   writeOutMtxPerms(pl, irgfile, tmpfile, Gsize);
   buffer := Concatenation(exportMTXLIB, "makeInclusionMatrix ", Gstem, " ", Hstem,
     " ", Istem);
-  Print(buffer, "\n");
   Exec(buffer);
   return;
 end;
@@ -559,15 +557,15 @@ makeThisSmallGroup := function(Gid,fldr)
     easyMakeBasis(G, Gname, fldr);
     if Size(fldr)>0 then
        ensureDirectoryExists(Concatenation(fldr,"/",datDir(q,i)));
-    else 
-       ensureDirectoryExists(datDir(q,i)); 
+    else
+       ensureDirectoryExists(datDir(q,i));
     fi;
   else
     easyMakeBasis(G, Gname, fldr);
     if Size(fldr)>0 then
        ensureDirectoryExists(Concatenation(fldr,"/",datDir(q,i)));
-    else 
-       ensureDirectoryExists(datDir(q,i)); 
+    else
+       ensureDirectoryExists(datDir(q,i));
     fi;
     makeInclusionInfo(q, Gname,fldr);
   fi;

@@ -105,7 +105,10 @@ map from ``HS`` to ``HD``::
     sage: emb = D.GroupHomomorphismByImages(S,D.GeneratorsOfGroup(),libgap.eval('[ (2,4), (1,2,3,4), (1,3)(2,4) ]'))
     sage: resS_D = HS.hom(emb,HD)
     sage: [resS_D(g).as_polynomial() for g in HS.gens()[1:]]
-    ['c_2_2', 'b_1_1+b_1_0', 'c_2_2*b_1_1+c_2_2*b_1_0', 'b_1_0^2*b_1_1+c_2_2*b_1_1']
+    ['b_1_0*b_1_1+b_1_0^2+c_2_2',
+     'b_1_1+b_1_0',
+     'b_1_0^2*b_1_1+c_2_2*b_1_1',
+     'b_1_0^3+c_2_2*b_1_1']
 
 Note that the generators of ``HD`` are :class:`COCH`, while those of
 ``HS`` are :class:`MODCOCH`. But the image of the induced map is
@@ -122,7 +125,7 @@ It is possible to mix both classes in arithmetic expressions::
 
     sage: resS_D(HS.2) == HD.2+HD.3
     True
-    sage: HD.1*resS_D(HS.2) == resS_D(HS.1)*(HD.2+HD.3) == resS_D(HS.3)
+    sage: resS_D(HS.1)*resS_D(HS.2) == resS_D(HS.1)*HD.2+resS_D(HS.1)*HD.3
     True
 
 """
@@ -153,7 +156,7 @@ from sage.rings.homset import RingHomset_generic
 from sage.matrix.matrix_gfpn_dense cimport new_mtx
 
 # auxiliary class from pGroupCohomology (the Cython classes are imported in cochain.pxd
-from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_reset_random_seed
 
 from libc.string cimport memcpy
 from cysignals.signals cimport sig_check, sig_on, sig_off
@@ -2722,7 +2725,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: G = libgap.AlternatingGroup(8)
             sage: H = CohomologyRing(G,prime=2,GroupName='A8') # long time
-            sage: H.make()              # long time 
+            sage: H.make()              # long time
             sage: H.subgroup_cohomology()
             H^*(SmallGroup(192,1493); GF(2))
             sage: H.1.as_cocycle_in_subgroup()
@@ -4815,7 +4818,7 @@ class CohomologyHomset(RingHomset_generic):
               # defining the images of the generators of the group of self._codomain
             if hasattr(GMap,'parent'):
                 GAP = GMap.parent()
-                _gap_init()
+                _gap_reset_random_seed()
                 if GMap.HasName():
                     Name = GMap.Name().sage()
                 if not (GAP == Src.group().parent() == Tgt.group().parent()):
@@ -4841,7 +4844,7 @@ class CohomologyHomset(RingHomset_generic):
 #~                     try:
                     GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
 #~                     except:
-#~                         _gap_init()
+#~                         _gap_reset_random_seed()
 #~                         GSrcAdmH = self._codomain.group().canonicalIsomorphism(GSrc)
                     GTgtAdmH = GTgt.canonicalIsomorphism(self._domain.group())
                     if GSrcAdmH == GAP.eval('fail'):

@@ -44,7 +44,7 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 import sys, os
 from pGroupCohomology import CohomologyRing
-from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_reset_random_seed, Failure
 from pGroupCohomology.cohomology import COHO, temporary_result, permanent_result
 
 from sage.all import Ring
@@ -169,7 +169,7 @@ def _IdGroup(G, D, Client, ring=True):
 
     """
     gap = G.parent()
-    _gap_init()
+    _gap_reset_random_seed()
     try:
         q,n = G.IdGroup().sage()
         coho_logger.info( "Considering SmallGroup(%d,%d)"%(q,n), None)
@@ -179,9 +179,9 @@ def _IdGroup(G, D, Client, ring=True):
                 try:
                     phi = H.group().canonicalIsomorphism(G)
                 except:
-                    _gap_init()
+                    _gap_reset_random_seed()
                     phi = H.group().canonicalIsomorphism(G)
-                if phi == gap.eval('fail'):
+                if phi == Failure:
                     phi = H.group().IsomorphismGroups(G)
 #~                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],
 #~                    x->Image(%s,GeneratorsOfGroup(%s)[x])))'%(G.name(),H.group().name(),phi.name(),H.group().name()))
@@ -213,7 +213,7 @@ def _IdGroup(G, D, Client, ring=True):
         D[q]={}
     for m,H in D[q].items():
         phiG = H.group().IsomorphismGroups(G)
-        if phiG != gap.eval('fail'):
+        if phiG != Failure:
 #~             gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(%s))],x->Image(%s,GeneratorsOfGroup(%s)[x])))'%
 #~                 (G.name(),H.group().name(),phiG.name(),H.group().name()))
             G = gap.Group([ phiG.Image(g) for g in H.group().GeneratorsOfGroup()])
@@ -415,9 +415,9 @@ class MODCOHO(COHO):
                 try:
                     bla = gap.SmallGroup(GId[0],GId[1]).canonicalIsomorphism(G)
                 except:
-                    _gap_init()
+                    _gap_reset_random_seed()
                     bla = gap.SmallGroup(GId[0],GId[1]).canonicalIsomorphism(G)
-                if bla == gap.eval('fail'):
+                if bla == Failure:
                     raise ValueError("Group and GroupId are incompatible")
         self._Order = GId[0]
 
@@ -449,13 +449,13 @@ class MODCOHO(COHO):
                 try:
                     tmpPhi = G.canonicalIsomorphism(G2)
                 except:
-                    _gap_init()
+                    _gap_reset_random_seed()
                     tmpPhi = G.canonicalIsomorphism(G2)
             else:
 #~                 tmpPhi = gap('GroupHomomorphismByImagesNC(%s,%s,GeneratorsOfGroup(%s),GeneratorsOfGroup(%s))'%
 #~                 (G.name(),G2.name(),G.name(),G2.name()))
                 tmpPhi = G.GroupHomomorphismByImagesNC(G2, G.GeneratorsOfGroup(), G2.GeneratorsOfGroup())
-            if tmpPhi == gap.eval('fail'):
+            if tmpPhi == Failure:
                 raise ValueError("The given permutation group GPerm is not an equivalent description of the given group G")
         self._gap_group = G2
         self._gapBackup = ('Group('+G2.GeneratorsOfGroup().String().sage()+')').replace('\n','').replace(' ','')
@@ -473,9 +473,9 @@ class MODCOHO(COHO):
             try:
                 bla = Subgroup.canonicalIsomorphism(HP.group())
             except:
-                _gap_init()
+                _gap_reset_random_seed()
                 bla = Subgroup.canonicalIsomorphism(HP.group())
-            if bla == gap.eval('fail'):
+            if bla == Failure:
                 raise ValueError("The generators of the given subgroup must be compatible with those of the group of the given cohomology ring")
 
         P = Subgroup
@@ -519,7 +519,7 @@ class MODCOHO(COHO):
             try:
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
             except:
-                _gap_init()
+                _gap_reset_random_seed()
                 phiHPtoP = HP.group().canonicalIsomorphism(P)
         else:
             PGen = P.GeneratorsOfGroup()
@@ -2117,7 +2117,7 @@ class MODCOHO(COHO):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: G = libgap.eval('Group([(1,2,3,4,5,6,7,8,9,10,11),(3,7,11,8)(4,10,5,6)])')
+            sage: G = libgap.MathieuGroup(11)
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
             sage: H.make(3)
             sage: H.test_for_completion()

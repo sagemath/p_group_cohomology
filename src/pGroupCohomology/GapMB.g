@@ -48,8 +48,6 @@
 # See the accompanying LaTeX document Present for more information
 # *****************************************************************************
 
-DeclareGlobalVariable("exportMTXLIB");
-
 # *****************************************************************************
 StringToIntegerSequence := function(t)
   local i, j, l, s;

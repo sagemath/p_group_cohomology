@@ -83,12 +83,12 @@ from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.matrix.matrix_gfpn_dense cimport new_mtx
 from sage.libs.meataxe cimport *
-from pGroupCohomology.auxiliaries import singular, gap_evalstring
+from pGroupCohomology.auxiliaries import singular, _gap_eval_string, Failure
 
 # pGroupCohomology Cython and Python types
 from pGroupCohomology.resolution cimport RESL, G_ALG
 from pGroupCohomology.cochain cimport COCH, ChMap
-from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_init
+from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _gap_reset_random_seed
 from pGroupCohomology.resolution import resl_sparse_unpickle, makeGroupData, makeSpecialGroupData, gap
 from pGroupCohomology.dickson import DICKSON
 from pGroupCohomology.resolution cimport *
@@ -363,7 +363,7 @@ def pickle_gap_data(G):
         sage: pickle_gap_data(D)
         Traceback (most recent call last):
         ...
-        TypeError: Can not pickle 'Group( [ f1, f2, f3 ] )'
+        TypeError: Can not pickle '<pc group of size 8 with 3 generators>'
 
     """
     if isinstance(G,basestring):
@@ -2248,7 +2248,7 @@ class COHO(Ring):
         sage: CohomologyRing.global_options('warn')
         sage: G = libgap.DihedralGroup(8)
         sage: G
-        Group( [ f1, f2, f3 ] )
+        <pc group of size 8 with 3 generators>
         sage: G.SetName("OtherName")
         ''
         sage: G
@@ -2770,7 +2770,7 @@ class COHO(Ring):
          'a_3_3^2']
         sage: G = libgap.DihedralGroup(8)
         sage: G
-        Group( [ f1, f2, f3 ] )
+        <pc group of size 8 with 3 generators>
         sage: H2 = COHO(G,GroupName='OtherName',root=tmp_root)
         sage: H2
         H^*(OtherName; GF(2))
@@ -2804,7 +2804,7 @@ class COHO(Ring):
             gap = args[0].parent()
         else:
             from pGroupCohomology.auxiliaries import gap
-        _gap_init()
+        _gap_reset_random_seed()
         if len(args) == 2:
             # We expect an address in the Small Groups library
             q,n = args
@@ -2863,7 +2863,7 @@ class COHO(Ring):
                             H0 = gap.Group(H0.GeneratorsOfGroup())
                         except:
                             raise ValueError("We don't know how to convert {} to libGAP".format(H0))
-                _gap_init()
+                _gap_reset_random_seed()
 
                 ####
                 ## make up the (stem) name
@@ -2892,8 +2892,6 @@ class COHO(Ring):
                 n = -1
 
                 ## Try to make up minimal generators
-                print("First occurrence")
-                print(H0.IdGroup())
                 if H0.RankPGroup() == H0.GeneratorsOfGroup().Length():
                     # We already have minimal generators, and then we are supposed to use exactly *these* generators!
                     Hfinal = H0
@@ -4399,7 +4397,7 @@ Minimal list of algebraic relations:
             sage: H.make()
             sage: G = H.group()
             sage: G
-            Group( [ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ] )
+            Group([ (1,2)(3,8)(4,6)(5,7), (1,3)(2,5)(4,7)(6,8) ])
             sage: H1 = CohomologyRing(G, GroupName='NewD8')
             sage: H is H1
             True
@@ -4408,14 +4406,14 @@ Minimal list of algebraic relations:
         if self._gap_group is not None:
 #~                 self._gap_group._check_valid()
             return self._gap_group
-        from pGroupCohomology.auxiliaries import gap, _gap_init
-        _gap_init()
+        from pGroupCohomology.auxiliaries import gap, _gap_reset_random_seed
+        _gap_reset_random_seed()
         if isinstance(self._key[0], basestring):
 #~             self._gap_group = gap.eval(self._key[0])
             # self._key[0] may be too long for libgap to evaluate. So, we split it into chewable pieces.
-            self._gap_group = gap_evalstring(self._key[0]).asPermgroup()
+            self._gap_group = _gap_eval_string(self._key[0]).asPermgroup()
         elif len(self._key[0])==1:
-            self._gap_group = gap_evalstring(self._key[0][0]).asPermgroup()
+            self._gap_group = _gap_eval_string(self._key[0][0]).asPermgroup()
 #~                 self._gap_group = gap.eval('Group(verifiedMinGens(regularPermutationAction(%s: forceDefiningGenerators)))'%(self._gap_group.name()))
         else:
             self._gap_group = gap.SmallGroup(self._key[0][0],self._key[0][1]).asPermgroup()
@@ -5038,7 +5036,7 @@ Minimal list of algebraic relations:
         Mathieu group `M_{11}`.
         ::
 
-            sage: G = gap.Group('[(1,2,3,4,5,6,7,8,9,10,11), (3,7,11,8)(4,10,5,6)]')
+            sage: G = libgap.MathieuGroup(11)
             sage: H = CohomologyRing(G,prime=2,GroupName='M11', from_scratch=True)
 
         The smallest generator is in degree three, so, we have::
@@ -5213,7 +5211,6 @@ Minimal list of algebraic relations:
                       Compute depth
                       Computation of depth interruptible with Ctrl-c
                       Compute filter_regular_parameters
-                      Compute find_small_last_parameter
                       Compute parameters
                       Try to find small parameters
                       Compute find_small_last_parameter
@@ -5234,6 +5231,7 @@ Minimal list of algebraic relations:
             H^*(D8; GF(2)):
                       Determine degree 1 standard monomials
                       The given last parameter could not be improved
+                      Compute find_small_last_parameter
                       The depth exceeds the Duflot bound -- there is no essential ideal
             0
 
@@ -5319,7 +5317,7 @@ Minimal list of algebraic relations:
         selfS = singular(self)
         selfS.set_ring()
         gap = self.group().parent()
-        _gap_init()
+        _gap_reset_random_seed()
         # prepare the key for caching:
         if Subgroups is not None:
             Subgroups = gap.Set(list(Subgroups))
@@ -5369,7 +5367,7 @@ Minimal list of algebraic relations:
                 phiG = Gsm.IsomorphismGroups(G)
                 G = gap.Group([phiG.Image(g) for g in Gsm.GeneratorsOfGroup()])
                 GCo = CohomologyRing(*(GId.sage()), prime=self._prime)
-                if G.canonicalIsomorphism(GCo.group()) == gap.eval('fail'):
+                if G.canonicalIsomorphism(GCo.group()) == Failure:
                     phiG = GCo.group().IsomorphismGroups(G)
                     G = gap.Group([phiG.Image(g) for g in GCo.group().GeneratorsOfGroup()])
             except RuntimeError, msg:
@@ -6986,7 +6984,7 @@ Minimal list of algebraic relations:
         from pGroupCohomology.auxiliaries import gap
         try:
             f = gap.ReadAsFunction(os.path.join(self.inc_folder,self.GStem+'.sgs'))
-            if f == gap.eval('fail'):
+            if f == Failure:
                 return
             L = f()
         except TypeError:  # can't be loaded
@@ -8192,42 +8190,29 @@ Minimal list of algebraic relations:
             H^*(SmallGroup(64,32); GF(2)):
                       Compute filter_regular_gready_parameters
                       Computing quotient modulo Duflot regular sequence ['c_4_11']
-                      Exploring 2nd filter-regular parameter in degree 1
-                      Determine degree 1 standard monomials
-            Singular: 2 = (2-1)^1*2^1 parameter candidates
-                      We found a parameter.
-                      > But it is not filter-regular.
-                      We found a parameter.
-                      > But it is not filter-regular.
-            H^*(SmallGroup(64,32); GF(2)):
                       Exploring 2nd filter-regular parameter in degree 2
                       Determine degree 2 standard monomials
-            Singular: 8 = (2-1)^1*2^3 parameter candidates
+            explore_one_parameter:
+                      8 = (2-1)^1*2^3 parameter candidates
                       We found a parameter.
                       > But it is not filter-regular.
                       We found a parameter.
                       > It is filter-regular.
-            H^*(SmallGroup(64,32); GF(2)):
-                      Exploring 3rd filter-regular parameter in degree 1
-                      Determine degree 1 standard monomials
-            Singular: 2 = (2-1)^1*2^1 parameter candidates
-                      We found a parameter.
-                      > But it is not filter-regular.
-                      We found a parameter.
-                      > But it is not filter-regular.
             H^*(SmallGroup(64,32); GF(2)):
                       Exploring 3rd filter-regular parameter in degree 2
                       Determine degree 2 standard monomials
-            Singular: 8 = (2-1)^1*2^3 parameter candidates
+            explore_one_parameter:
+                      4 = (2-1)^1*2^2 parameter candidates
                       We found a parameter.
                       > It is filter-regular.
             H^*(SmallGroup(64,32); GF(2)):
-                      Exploring 4th filter-regular parameter in degree 1
-                      Determine degree 1 standard monomials
-            Singular: 2 = (2-1)^1*2^1 parameter candidates
+                      Exploring 4th filter-regular parameter in degree 2
+                      Determine degree 2 standard monomials
+            explore_one_parameter:
+                      2 = (2-1)^1*2^1 parameter candidates
                       We found a parameter.
                       > It is filter-regular.
-            ['c_4_11', 'b_2_2+b_2_1', 'b_2_3', 'b_1_1']
+            ['c_4_11', 'b_2_2+b_2_1', 'b_2_3', 'b_1_1^2']
             sage: H.fdt
             [-1, -2, -3, -4, -4]
 
@@ -8303,7 +8288,7 @@ Minimal list of algebraic relations:
                     raise RuntimeError('Theoretical error: The quotient by filter regular parameters must be finite dimensional')
                 else:
                     HV.append(HS.numerator().list())
-                
+
                 rfdt = []
                 for X in HV:
                     if X==[0]:
@@ -8988,7 +8973,6 @@ is an error. Please inform the author!""")
             sage: H.raw_filter_degree_type(P)
                       Compute raw_filter_degree_type
                       Test filter regularity
-                      > Sequence is filter regular.
                         Filter degree type: [-1, -2, -2]
             ([-1, -1, 1], [[0], [0], [1, 1]], [1, 2])
             sage: CohomologyRing.global_options('warn')
@@ -10133,8 +10117,6 @@ is an error. Please inform the author!""")
         """
         if self.pRank:
             return self.pRank
-        print("Second occurrence")
-        print(self.group().IdGroup())
         return Integer(self.group().RankPGroup())
 
     def _lower_bound_depth(self):
@@ -10684,6 +10666,10 @@ is an error. Please inform the author!""")
         r"""
         Compute the persistent cohomology for a specified normal subgroup series.
 
+        ASSUMPTION:
+
+        The subgroups and quotient groups can be found in the SmallGroups library.
+
         INPUT:
 
         ``command``: The name (string) of a Gap command that produces
@@ -10886,131 +10872,96 @@ is an error. Please inform the author!""")
 
         """
         cdef int i,j,l
-        if not isinstance(command,basestring):
-            raise TypeError("The Gap command must be given as a string")
+        from pGroupCohomology import CohomologyRing
         gap = self.group().parent()
         try:
             C = gap.function_factory(command)
-        except TypeError:
+        except:
             raise ValueError('The given command "%s" is not known to Gap'%command)
-        _gap_init()
-        O = self.Resl.grouporder()
-        try:
-            L = C(self.group())
-            if L[len(L)-1].Order()>1 or L[0].Order()!=O:
-                raise RuntimeError
-        except RuntimeError:
+        _gap_reset_random_seed()
+        L = list(C(self.group()))
+        G = L.pop(0)
+        if G != self.group():
             raise ValueError('The given command "%s" must produce a normal series of subgroups when applied to self.group()'%command)
-
-        ###########################
-        # First Part: Get the groups and homomorphisms in Gap
-        ###########################
-
-        # L[l-2] -> ... -> L[1] -> G -> G/L[l-2] -> G/L[l-3] -> ... -> G/L[1]
-        #   -l+2            -1     0      1            2               l-2
-
-        l = len(L)
-        G  = {} # dictionary of Groups. It contains a pair (homomorphism towards a SmallGroup, [q,n] the identifier)
-        GH = {} # dictionary of Group Homomorphisms between groups in G
-        QuotMap = {} # the quotient maps given by L
-
-        # the non-quotiented groups
-        for i in range(1, l):
-            q,n = L[i].IdGroup().sage()
-            G[-i+1] = (L[i].IsomorphismGroups(gap.SmallGroup(q,n)), [q,n]) # just choose one isomorphism
-
-        # Unfortunately, Gap allows itself to change the generators of self.group() when computing L[1].
-        # We need to undo it:
-        G[0] = (L[0].IsomorphismGroups(self.group()), [0,0])
-
-        # the factor groups
-        QuotMap[0] = self.group().IdentityMapping()  # QuotMap[i] stores the quotient map self.group() ->> G[i] := self.group()/L[l-i-1]
-        for i in range(1,l-1):
-            QuotMap[i] = L[0].NaturalHomomorphismByNormalSubgroup(L[l-i-1])
-            QMI = gap.Group([QuotMap[i].Image(g) for g in QuotMap[i].Source().GeneratorsOfGroup()])
-            q,n = QMI.IdGroup().sage()
-            G[i] = (QMI.IsomorphismGroups(gap.SmallGroup(q,n)), [q,n])
-            G00Gen = gap.List([ G[0][0].Image(g) for g in G[0][0].Image().GeneratorsOfGroup() ])
-#~             gap.eval('%s := GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Image(%s)),
-#~             List([1..Length(GeneratorsOfGroup(Image(%s)))], x -> Image(%s, Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Image(%s))[x])))))'%
-#~             (QuotMap[i].name(), G[0][0].name(),G[i][0].name(), G[0][0].name(), G[0][0].name(), G[i][0].name(),QuotMap[i].name(),G[0][0].name(),
-#~              G[0][0].name()))
-            QuotMap[i] = G[0][0].Range().GroupHomomorphismByImages(G[i][0].Range(), G00Gen,
-                    [ G[i][0].Image(QuotMap[i].Image(G[0][0].PreImagesRepresentative(g))) for g in G00Gen ])
-        ## After fixing the groups, create the maps between them:
-        # the inclusion maps
-        for i from -l+1 < i < 0:
-            for j from i < j <= 0:
-#~                 GH[i,j] = gap('GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Range(%s)),
-#~                   List([1..Length(GeneratorsOfGroup(Range(%s)))], x -> Image(%s,
-#~                   Image(GroupHomomorphismByImages(Source(%s),Source(%s),GeneratorsOfGroup(Source(%s)),
-#~                   GeneratorsOfGroup(Source(%s))), PreImagesRepresentative(%s, GeneratorsOfGroup(Range(%s))[x])))))'%
-#~                   (G[i][0].name(),G[j][0].name(), G[i][0].name(), G[i][0].name(), G[j][0].name(), ##G[i][0].name(),
-#~                    G[j][0].name(), G[i][0].name(), G[i][0].name(), #~# G[i][0].name(), G[i][0].name()))
-                GiR = G[i][0].Range()
-                GjR = G[j][0].Range()
-                GiRGen = GiR.GeneratorsOfGroup()
-                GiS = G[i][0].Source()
-                GjS = G[j][0].Source()
-                GiSGen = GiS.GeneratorsOfGroup()
-                # The embedding of GiS in GjS:
-                emb_ij = GiS.GroupHomomorphismByImages(GjS, GiSGen, GiSGen)
-                GH[i,j] = GiR.GroupHomomorphismByImages(GjR, GiRGen,
-                        [ G[j][0].Image(emb_ij.Image(G[i][0].PreImagesRepresentative(g))) for g in GiRGen ])
-        # the quotient maps
-        for j from 0 < j < l-1:
-            GH[0,j] = QuotMap[j]
-        for i from 0 < i < l-2:
-            for j from i < j < l-1: # hopefully the isomorphism theorem G/I = (G/H)/(I/H) holds ...
-#~                 GH[i,j] = gap('GroupHomomorphismByImages(Range(%s),Range(%s), GeneratorsOfGroup(Range(%s)),
-#~                     List([1..Length(GeneratorsOfGroup(Range(%s)))],
-#~                                 x -> Image(%s, PreImagesRepresentative(%s, GeneratorsOfGroup(Range(%s))[x]))))'%
-#~                     (QuotMap[i].name(),QuotMap[j].name(), QuotMap[i].name(), QuotMap[i].name(),
-#~                      QuotMap[j].name(), QuotMap[i].name(),QuotMap[i].name()))
-                QiR = QuotMap[i].Range()
-                QiRGen = QiR.GeneratorsOfGroup()
-                QjR = QuotMap[j].Range()
-                GH[i,j] = QiR.GroupHomomorphismByImages(QjR, QiRGen,
-                                [ QuotMap[j].Image(QuotMap[i].PreImagesRepresentative(g)) for g in QiRGen ])
-
-        # third, maps from subgroups to quotients
-        for i from -l+1 < i <0:
-            for j from 0 < j < l-1:
-#~                 GH[i,j] = gap('CompositionMapping(%s,%s)'%(GH[0,j].name(),GH[i,0].name()))
-                GH[i,j] = GH[0,j].CompositionMapping(GH[i,0])
-
-        ###########################
-        # Second Part: Create the cohomology rings of the groups stored in G
-        ###########################
-        C = {0:self} # Cohomology rings
-        from pGroupCohomology import CohomologyRing
-        for i from 0 < i < l-1:
-            C[-i] = CohomologyRing(G[-i][1][0], G[-i][1][1])
-            C[i]  = CohomologyRing(G[i][1][0],  G[i][1][1])
-
-        ###########################
-        # Third Part: Construct the induced maps and get poincare_of_image
-        # In order to avoid expensive lifting, one might improve ChMap.__mul__;
-        # but probably one should first see if this really is a bottle neck.
-        ###########################
+        if L.pop(-1).Order()>1:
+            raise ValueError('The given command "%s" must produce a normal series of subgroups when applied to self.group()'%command)
+        l = len(L)  # the number of non-trivial subgroups in the normal series
+        # In the following dictionaries, the keys range from -l to l, where
+        # the key 0 corresponds to the group of this ring.
+        Groups = { 0 : G } # dictionary of Groups.
+        CRings = { 0 : self } # the cohomology rings corresponding to Groups
+        # isomorphism from CRings' groups to Groups and (later)
+        # the group homomorphism from CRing[i].group() to CRing[j].group()
+        # In this dictionary, the keys are integers i and pairs [i,j] with -l<=i<j<=l
+        Morphs = { 0 : self.group().IsomorphismGroups(G) }
+        QuMaps = { 0 : G.IdentityMapping() }
+        i = 0
+        while L:
+            S = L.pop(-1)
+            if not G.IsNormal(S):
+                raise ValueError('The given command "%s" must produce a normal series of subgroups when applied to self.group()'%command)
+            # First insert the subgroups into the dictionaries
+            Groups[-l+i] = S
+            q,n = S.IdGroup().sage()
+            CRings[-l+i] = CohomologyRing(q,n, prime=self._prime)
+            CRings[-l+i].make()
+            Morphs[-l+i] = CRings[-l+i].group().IsomorphismGroups(S) # just choose one isomorphism
+            # Next insert the quotient groups into the dictionaries
+            i += 1
+            QMap = G.NaturalHomomorphismByNormalSubgroupNC(S)
+            QuMaps[i] = QMap
+            Q = gap.Group([QMap.Image(g) for g in QMap.Source().GeneratorsOfGroup()])
+            Groups[i] = Q
+            q,n = Q.IdGroup().sage()
+            CRings[i] = CohomologyRing(q,n, prime=self._prime)
+            CRings[i].make()
+            Morphs[i] = CRings[i].group().IsomorphismGroups(Q) # just choose one isomorphism
+        # Now we have all the groups, and will construct the group
+        # homomorphisms. First, the elementary ones:
+        for i in range(0,l):
+            # 1. Subgroup inclusion
+            S = Groups[-l+i]
+            Sgen = S.GeneratorsOfGroup()
+            G = Groups[-l+i+1]
+            Morphs[-l+i, -l+i+1] = Morphs[-l+i+1].InverseGeneralMapping().CompositionMapping(
+                    S.GroupHomomorphismByImagesNC(G,Sgen,Sgen), Morphs[-l+i])
+            # 2. Quotient maps, using the isomorphism theorem, (G/S) = (G/T)/(T/S)
+            Q = Groups[i]
+            Qgen = Q.GeneratorsOfGroup()
+            Q1 = Groups[i+1]
+            QMap_i  = QuMaps[i]
+            QMap_i1 = QuMaps[i+1]
+            Morphs[i, i+1] = Morphs[i+1].InverseGeneralMapping().CompositionMapping(
+                    Q.GroupHomomorphismByImagesNC(Q1, Qgen, [QMap_i1.Image(QMap_i.PreImagesRepresentative(g)) for g in Qgen]),
+                    Morphs[i])
+        # Now, we are computing the compositions of the above mappings, and eventually
+        # the induced morphisms and their ranks.
         OUT = {}
-        for i from -l+1 < i < l-1:
-            C[i].make()
+        for i in range(-l,l):
             if degree==-1:
-                OUT[i,i] = C[i].poincare_series()
+                OUT[i,i] = CRings[i].poincare_series()
             else:
-                OUT[i,i] = C[i].resolution().rank(degree)
-            for j from i < j < l-1:
+                OUT[i,i] = CRings[i].resolution().rank(degree)
+            f = Morphs[i,i+1]
+            if degree==-1:
+                OUT[i, i+1] = CRings[i+1].hom( f, CRings[i]).poincare_of_image()
+            else:
+                OUT[i, i+1] = CRings[i+1].hom( f, CRings[i]).rank_of_image(degree)
+            for j in range(i+1, l):
+                f = Morphs[j, j+1].CompositionMapping2( f )
                 if degree==-1:
-                    OUT[i,j] = C[j].hom(GH[i,j],C[i]).poincare_of_image()
+                    OUT[i, j+1] = CRings[j+1].hom( f, CRings[i]).poincare_of_image()
                 else:
-                    OUT[i,j] = C[j].hom(GH[i,j],C[i]).rank_of_image(degree)
+                    OUT[i, j+1] = CRings[j+1].hom( f, CRings[i]).rank_of_image(degree)
+        if degree==-1:
+            OUT[l,l] = CRings[l].poincare_series()
+        else:
+            OUT[l,l] = CRings[l].resolution().rank(degree)
 
         from pGroupCohomology.barcode import BarCode,BarCode2d
         if degree==-1:
             return BarCode(OUT, ring=self.__repr__(),command=command)
         return BarCode2d(OUT, degree=degree,ring=self.__repr__(),command=command)
-
 
 #####################
 ## Massey products ##
@@ -11241,7 +11192,6 @@ is an error. Please inform the author!""")
                       It is possible that Benson's degree bound applies
                       Compute raw_filter_degree_type
                       Test filter regularity
-                      > Sequence is filter regular.
                         Filter degree type: [-1, -2, -2]
             True
             sage: CohomologyRing.global_options('warn')
@@ -11389,7 +11339,6 @@ is an error. Please inform the author!""")
                       Compute raw_filter_degree_type
                       Computing complete Groebner basis
                       Test filter regularity
-                      > Sequence is filter regular.
                         Filter degree type: [-1, -2, -3, -3]
             True
 
