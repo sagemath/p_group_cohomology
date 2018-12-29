@@ -79,7 +79,7 @@ def _IdGroup(G, D, Client, ring=True):
 
     INPUT:
 
-    - ``G``, a group in the GAP interface
+    - ``G``, a group in the libGAP interface
     - ``D``, a dictionary of dictionaries. ``D[q][n]`` returns the
       modular cohomology ring of the group of order ``q`` that was
       assigned to number ``n``. ``D['prime']`` must return
@@ -126,7 +126,6 @@ def _IdGroup(G, D, Client, ring=True):
     is returned::
 
         sage: _IdGroup(G1, D, H, ring=False)
-        Failed to construct a minimal generating set of the group -- keep your fingers crossed...
         (2520, 0, Group([ (1,2,3,4,5,6,7), (5,6,7) ]))
 
     We take another group of the same order and compute their cohomology
@@ -145,7 +144,6 @@ def _IdGroup(G, D, Client, ring=True):
     since it is not isomorphic to ``G2``::
 
         sage: _IdGroup(G1,D,H, ring=False)
-        Failed to construct a minimal generating set of the group -- keep your fingers crossed...
         (2520, -1, Group([ (1,2,3,4,5,6,7), (5,6,7) ]))
 
     However, the identifier for ``G2`` is preserved::
@@ -162,7 +160,7 @@ def _IdGroup(G, D, Client, ring=True):
         sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
         [(360, {}), (2520, {0: H^*(8gp3_2520_0; GF(3))})]
         sage: _IdGroup(G3,D,H)
-        (360, 118)
+        (360, 118, Group([ (1,2,6,5,4), (1,2,3,5,4) ]))
         sage: sorted([(k,v) for (k,v) in D.items() if k!='prime'])
         [(360, {118: H^*(SmallGroup(360,118); GF(3))}),
          (2520, {0: H^*(8gp3_2520_0; GF(3))})]
@@ -256,7 +254,7 @@ class MODCOHO(COHO):
         sage: H1 = CohomologyRing(G, prime=2, GroupName='SomeGroup', from_scratch=True)
         sage: H1.make()
         sage: H1.poincare_series()
-        -1/(t^3 - 3*t^2 + 3*t - 1)
+        1/(-t^3 + 3*t^2 - 3*t + 1)
         sage: H2 = CohomologyRing(48,36, prime=2)   # indirect doctest
 
     In order to save resources, the cohomology ring is cached and then
@@ -756,7 +754,7 @@ class MODCOHO(COHO):
             // coefficients: ZZ/2
             // number of vars : 3
             //        block   1 : ordering M
-            //                  : names    c_2_0 b_1_0 c_1_1
+            //                  : names    c_2_3 b_1_0 c_1_1
             //                  : weights      2     1     1
             //                  : weights     -1     0    -1
             //                  : weights     -1     0     0
@@ -771,7 +769,7 @@ class MODCOHO(COHO):
             // coefficients: ZZ/2
             // number of vars : 4
             //        block   1 : ordering M
-            //                  : names    c_2_0 b_1_0 c_1_1 c_3_3
+            //                  : names    c_2_3 b_1_0 c_1_1 c_3_6
             //                  : weights      2     1     1     3
             //                  : weights     -1     0    -1    -1
             //                  : weights     -1     0     0     0
@@ -782,7 +780,7 @@ class MODCOHO(COHO):
         is available as follows::
 
             sage: H.relation_ideal()
-            b_1_0*c_3_3+c_2_0*b_1_0*c_1_1
+            b_1_0*c_3_6+c_2_3*b_1_0*c_1_1
 
         """
         if self.lastRelevantDeg:
@@ -839,14 +837,9 @@ class MODCOHO(COHO):
             sage: X = CohomologyRing(720,763,prime=2)
             sage: G = X.group()
             sage: G
-            Group( [ (1,2), (1,2,3,4,5,6) ] )
+            Group([ (1,2), (1,2,3,4,5,6) ])
             sage: G is X.group()
             True
-            sage: gap.quit()
-            sage: X.group()
-            Group( [ (1,2), (1,2,3,4,5,6) ] )
-            sage: G is X.group()
-            False
 
         """
         if self._gap_group is None:
@@ -2184,12 +2177,6 @@ class MODCOHO(COHO):
                       Compute _get_obvious_parameter
                       Determine degree 3 standard monomials
                       --> Last parameter found in degree 3
-                      Compute find_small_last_parameter
-                      Compute _get_obvious_parameter
-                      Determine degree 1 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 2 standard monomials
-                      The given last parameter could not be improved
             ['c_4_0', 'b_3_0']
 
         We continue out to degree 10, and then test again. In this
@@ -2223,7 +2210,7 @@ class MODCOHO(COHO):
             sage: H.verify_parameters_exist()
             True
             sage: H.dependent_parameters()
-            ['b_1_0', 'c_6_12', 'c_4_5', 'c_2_1']
+            ['b_1_0', 'c_6_13', 'c_4_5', 'c_2_1']
 
 
         But the dependent parameters of the ring approximation are not enough
@@ -2240,8 +2227,8 @@ class MODCOHO(COHO):
             True
             sage: H.Dickson
             ['...b_1_0^8+...',
-             '...c_6_11^2+...',
-             '...c_6_11*c_6_12*b_1_0^2+...',
+             '...c_4_5^2*b_1_0^4+...',
+             '...c_2_1*c_6_12^2+...',
              'b_1_0']
             sage: H.set_ring()
             sage: singular.ideal(H.Dickson+H.rels()).groebner().dim() > 0
@@ -2252,7 +2239,7 @@ class MODCOHO(COHO):
         is not complete yet::
 
             sage: H.parameters()
-            ['c_2_1', 'c_4_5', 'c_6_12', 'b_1_0']
+            ['c_2_1', 'c_4_5', 'c_6_13', 'b_1_0']
             sage: H.test_for_completion()
             False
 
@@ -2267,7 +2254,7 @@ class MODCOHO(COHO):
             sage: H.rels()[-1]
             '...c_6_12^2+...'
             sage: H.parameters()
-            ['c_2_1', 'c_4_5', 'c_6_12', 'b_1_0']
+            ['c_2_1', 'c_4_5', 'c_6_13', 'b_1_0']
             sage: H.set_ring()
             sage: singular.ideal(H.Dickson+H.rels()).groebner().dim()
             0
@@ -2403,14 +2390,14 @@ class MODCOHO(COHO):
             (None, None, None)
 
         After computing out to degree six, parameters in degrees
-        4, 6, 2 and 1 can be explicitly constructed::
+        4, 6, 1 and 4 can be explicitly constructed::
 
             sage: H.make(6)
             sage: H.parameters()
-            ['b_1_0^4+b_2_4^2+b_2_3^2+c_4_15',
-             'b_3_9^2+b_3_0^2+b_2_4*b_1_0*b_3_0+b_2_4^3+b_2_3*c_4_15',
-             'b_2_4+b_2_3',
-             'b_1_1+b_1_0']
+            ['b_1_1^4+b_1_0^3*b_1_1+b_1_0^4+b_2_4*b_1_1^2+b_2_4*b_1_0^2+b_2_4^2+b_2_3^2',
+             'b_3_9^2+b_3_1^2+b_1_0*b_1_1^2*b_3_1+b_1_0^6+b_2_4*b_1_0*b_3_1+b_2_4*b_1_0*b_3_0+b_2_4*b_1_0*b_1_1^3+b_2_4*b_1_0^4+b_2_4^2*b_1_1^2+b_2_4^3+b_2_3*b_2_4^2+b_2_3^2*b_2_4',
+             'b_1_1+b_1_0',
+             'c_4_15']
 
         But it can be shown that there exists a field extension over
         which there exist parameters in smaller degrees::
@@ -2418,20 +2405,20 @@ class MODCOHO(COHO):
             sage: H.sylow_cohomology().depth()
             3
             sage: H.parameter_degrees_over_field_extension()
-            ((4, 2, 1, 3), 3, True)
+            ((4, 1, 4, 3), 3, True)
 
         These return values tell us that there is a finite field extension
-        over which the second parameter can be replaced by an element of
-        degree 2, that such replacement seems impossible without extending
-        the base field, and that the depth of the cohomology ring is at
-        least three (which is the depth of the cohomology ring of a Sylow
-        2-subgroup). By the Hilbert-Poincaré criterion, we may hope to
-        prove completeness of the ring presentation in degree `4+2+1+3-3`,
-        hence, in degree 7. This is indeed possible::
+        over which there exists parameters in degrees 4, 1, 4, 3,
+        that the depth of the cohomology ring is at least three (which is the
+        depth of the cohomology ring of a Sylow 2-subgroup), and that such low
+        parameter degrees seem impossible to achieve without extending the base
+        field. By the Hilbert-Poincaré criterion, we may hope to prove completeness
+        of the ring presentation in degree `4+1+4+3-3`, hence, in degree 9. This
+        is indeed possible::
 
             sage: H.make()
             sage: H.knownDeg
-            7
+            9
             sage: H._method
             'Hilbert-Poincar&eacute;'
             sage: CohomologyRing.set_local_sources(False)
@@ -2550,27 +2537,17 @@ class MODCOHO(COHO):
         multiplied by `\prod (1-t^{d_i})` is a polynomial of degree at
         most `\sum d_i-D`. See [King]_ for more details.
 
-        TODO:
-
-        Find a better example! Here, we do parts of the quest for parameters
-        in a non-automatic way. This is to get a good example for the
-        Hilbert--Poincaré criterion. With an automatic computation, parameters
-        would be found for `H` in such a way that the Symonds criterion would
-        apply in degree 6 and the Hilbert--Poincaré criterion in degree 9.
-        But the aim of this example is to show that for some choice of
-        parameters it is possible to benefit from an existence proof of
-        parameters over a finite extension field.
-
         EXAMPLES:
 
         We compute a cohmology ring step by step, in order to demonstrate what
-        happens behind the scenes when launching :meth:`make`. ::
+        happens behind the scenes when launching :meth:`make`. Be aware that this
+        is *not* recommended. ::
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(384, 5602, prime=2, from_scratch=True)
 
-        In the following line, we are cheating a bit. Without it, other
+        In the following line, we are cheating a bit: Without it, other
         parameters would be found for `H`. ::
 
             sage: H.sylow_cohomology().find_dickson()
@@ -2605,25 +2582,28 @@ class MODCOHO(COHO):
             sage: H.find_dickson()
             True
             sage: H.filter_regular_parameters()
-            ['...b_1_1^8+...',
-             '...b_3_9^4+...',
-             '...b_1_0^8*b_3_1^2+...',
-             'b_1_1+b_1_0']
+            ['b_1_1^2*b_3_1^2+...',
+             'b_3_9^4+...',
+             'b_1_1^2*b_3_1^4+...',
+             'b_1_0^3*b_3_0^2*b_3_1^2+...']
 
-        So, they live in degrees 4, 12, 14 and 1. We find algebraically independent
-        (but not necessarily filter-regular) parameters in much smaller
-        degrees, namely 4, 12, 2 and 1::
+        So, they live in degrees 4, 12, 14 and 15. It would be possible to find
+        a last filter-regular parameter in degree 1, but that would still not
+        allow to apply the Benson criterion. When we invest considerably
+        more time, we find algebraically independent (but not necessarily
+        filter-regular) parameters in much smaller degrees 4, 12, 2 and 1::
 
-            sage: H.parameters()
-            ['b_1_0^4+b_2_4^2+b_2_3^2+c_4_15',
-             '...b_3_9^4+...',
+            sage: H.parameters()                    # long time
+            ['b_1_1^4+b_1_0^3*b_1_1+b_1_0^4+b_2_4*b_1_1^2+b_2_4*b_1_0^2+b_2_4^2+b_2_3^2+c_4_15',
+             'b_3_9^4+b_3_1^4+b_3_0^4+b_1_1^6*b_3_1^2+b_1_0^2*b_1_1^4*b_3_1^2+b_1_0^3*b_3_0^2*b_3_1+b_1_0^4*b_1_1^8+b_1_0^6*b_3_1^2+b_1_0^6*b_3_0*b_3_1+b_1_0^6*b_3_0^2+b_1_0^8*b_1_1^4+b_2_4*b_1_0^4*b_3_0*b_3_1+b_2_4*b_1_0^7*b_3_1+b_2_4^2*b_1_1^2*b_3_1^2+b_2_4^2*b_1_0^2*b_3_0^2+b_2_4^2*b_1_0^2*b_1_1^6+b_2_4^2*b_1_0^8+b_2_4^4*b_1_1^4+b_2_4^4*b_1_0^2*b_1_1^2+b_2_4^4*b_1_0^4+b_2_3*b_1_0^4*b_3_0^2+b_2_3*b_2_4*b_1_0^5*b_3_0+b_2_3^2*b_1_0^2*b_3_0^2+b_2_3^4*b_1_0^4+c_4_15*b_1_1^2*b_3_1^2+c_4_15*b_1_1^5*b_3_1+c_4_15*b_1_0*b_1_1^4*b_3_1+c_4_15*b_1_0*b_1_1^7+c_4_15*b_1_0^2*b_3_1^2+c_4_15*b_1_0^5*b_3_0+b_2_4*c_4_15*b_1_1^3*b_3_1+b_2_4*c_4_15*b_1_1^6+b_2_4*c_4_15*b_1_0*b_1_1^5+b_2_4*c_4_15*b_1_0^2*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_4^3*c_4_15*b_1_1^2+b_2_4^3*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^3*b_3_0+b_2_3*b_2_4*c_4_15*b_1_0^4+b_2_3^2*c_4_15*b_1_0*b_3_0+b_2_3^3*c_4_15*b_1_0^2+c_4_15^2*b_1_1*b_3_1+c_4_15^2*b_1_0*b_3_0+c_4_15^2*b_1_0^4+b_2_4*c_4_15^2*b_1_0*b_1_1+b_2_4*c_4_15^2*b_1_0^2+b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2',
              'b_2_4+b_2_3',
              'b_1_1+b_1_0']
 
-        The Poincaré series shows that the approximation may be complete,
-        since the denominator divides `(1-t^{4})(1-t^{12})(1-t^{2})(1-t)`,
-        where the exponents are given by the degrees of the above set of
-        algebraically independent parameters::
+        However, all the above effort was in vain, as The Poincaré series shows
+        that the approximation cannot be complete: The Poincaré series' denominator
+        does not divide `(1-t^{4})(1-t^{12})(1-t^{2})(1-t)`, where the exponents
+        are given by the degrees of the above set of algebraically independent
+        parameters::
 
             sage: p = H.poincare_series()
             sage: t = p.parent().gen()
@@ -2643,19 +2623,21 @@ class MODCOHO(COHO):
         algebraically dependent parameters in relatively small degrees::
 
             sage: H.dependent_parameters()
-            ['b_1_0', 'b_1_1', 'c_4_15', 'b_3_0', 'b_3_9', 'b_2_3', 'b_2_4']
+            ['b_1_0', 'b_1_1', 'c_4_15', 'b_3_1', 'b_3_9', 'b_2_3', 'b_2_4']
 
 
         With these parameters, the Symonds criterion (see :meth:`SymondsTest`)
         has a chance to apply in degrees strictly greater than `0 + 0 + 3 + 2
         + 2 + 1 + 1 = 9`. However, in this example we can do better, with the
         Hilbert\--Poincaré criterion and an existence proof of parameters over
-        a finite extension field::
+        a finite extension field. ::
 
-            sage: H.parameter_degrees_over_field_extension()
+            sage: H.parameter_degrees_over_field_extension()    # long time
             ((4, 2, 1, 3), 3, True)
 
-        Hence, there is a finite extension field over which there is some hsop
+        Again, this takes rather long, and in practical computations we would
+        be better off to apply an easier completeness criterion in higher degree.
+        Anyway, there is a finite extension field over which there is some hsop
         in degrees 4, 2, 1, and 3, the depth of the cohomology ring is at
         least three, and our heuristics did not find parameters in these
         degrees, *i.e.*, we use an existence result of parameters over a
@@ -2665,8 +2647,8 @@ class MODCOHO(COHO):
         the current degree six ring approximation, and thus compute the next
         degree. In order to avoid automatic application of a completeness
         criterion, we use the method :meth:`next`. There are no further
-        relations in degree 7, but the Poincaré series satisfies the condition
-        of the completeness criterion::
+        relations in degree 7, but finally the Poincaré series satisfies
+        the condition of the completeness criterion::
 
             sage: H.next()
             sage: H.knownDeg
@@ -2685,6 +2667,39 @@ class MODCOHO(COHO):
             True
             sage: H.WhatHSOP
             ['4', '2', '1', '3']
+
+        It should be noted that the above example was rather artificial and
+        does *not* show how one should compute a cohomology ring. So, in a last
+        step, we compute the same ring again from scratch using the default
+        algorithms. ::
+
+            sage: CohomologyRing.doctest_setup()
+            sage: Hdefault = CohomologyRing(384, 5602, prime=2, from_scratch=True)
+            sage: Hdefault.make()
+            sage: H == Hdefault
+            True
+            sage: H._method
+            'Hilbert-Poincar&eacute;'
+            sage: Hdefault._method
+            'Hilbert-Poincar&eacute;'
+            sage: H.knownDeg
+            7
+            sage: Hdefault.knownDeg
+            9
+
+        The default way of computation verifies completeness only in degree 9,
+        whereas our manual computation succeeded in degree 7. Nonetheless, the
+        default computations is a lot faster, since the time spent to compute
+        better parameters outweighs the time spent to compute two additional
+        degrees of the ring structure. Interestingly, our heuristics to compute
+        algebraically independent parameters can provide better parameters when
+        using default algorithms::
+
+            sage: Hdefault.parameters()
+            ['c_4_15',
+             'b_1_0^2+b_2_4+b_2_3',
+             'b_3_9+b_3_1+b_3_0+b_2_4*b_1_0',
+             'b_1_1+b_1_0']
 
         """
         coho_logger.info("Trying the Hilbert-Poincare criterion", self)
@@ -2823,14 +2838,6 @@ fi
                       Lift Dickson invariants of the 2nd special subgroup
             H^*(SmallGroup(9,2); GF(3)):
                       Compute nil_radical
-            Resolution of GF(3)[SmallGroup(9,2)]:
-                      Compose chain maps R_3 -> R_2 -> R_0
-                      Compose chain maps R_4 -> R_3 -> R_1
-                      Compose chain maps R_3 -> R_2 -> R_0
-                      Compose chain maps R_4 -> R_3 -> R_1
-                      Compose chain maps R_2 -> R_1 -> R_0
-                      Compose chain maps R_2 -> R_1 -> R_0
-            H^*(SmallGroup(9,2); GF(3)):
                       Compute order_matrix
             H^*(SmallGroup(324,39); GF(3)):
                       Compute order_matrix
@@ -2840,17 +2847,6 @@ fi
                       Lift Dickson invariants of the 3rd special subgroup
             H^*(SmallGroup(27,5); GF(3)):
                       Compute nil_radical
-            Resolution of GF(3)[SmallGroup(27,5)]:
-                      Compose chain maps R_3 -> R_2 -> R_0
-                      Compose chain maps R_4 -> R_3 -> R_1
-                      Compose chain maps R_3 -> R_2 -> R_0
-                      Compose chain maps R_4 -> R_3 -> R_1
-                      Compose chain maps R_3 -> R_2 -> R_0
-                      Compose chain maps R_4 -> R_3 -> R_1
-                      Compose chain maps R_2 -> R_1 -> R_0
-                      Compose chain maps R_2 -> R_1 -> R_0
-                      Compose chain maps R_2 -> R_1 -> R_0
-            H^*(SmallGroup(27,5); GF(3)):
                       Compute order_matrix
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
                       Compute preimages by elimination
@@ -3265,9 +3261,9 @@ fi
 
         We first consider elements of ``HS`` and ``HU`` that are stable::
 
-            sage: H.stable_to_polynomial(HS('b_1_1^6+b_2_4^2*b_1_1*b_1_2+b_2_4^2*b_1_1^2+b_2_4^3'))
+            sage: H.stable_to_polynomial(HS('b_1_2^6+b_1_1^2*b_1_2^4+b_1_1^6+b_2_4^2*b_1_1*b_1_2+b_2_4^3'))
             b_3_0*b_3_1+b_2_0^3: 6-Cocycle in H^*(M12; GF(2))
-            sage: H.stable_to_polynomial(HU('b_2_0^2*b_3_2+c_4_6*b_3_2'))
+            sage: H.stable_to_polynomial(HU('b_2_0*b_2_2*b_3_4+c_4_6*b_3_1'))
             c_4_0*b_3_1: 7-Cocycle in H^*(M12; GF(2))
 
         An element of ``H`` is simply expressed as a polynomial, changing
@@ -3278,9 +3274,9 @@ fi
             sage: cG
             foobar: 6-Cocycle in H^*(M12; GF(2))
             sage: H.stable_to_polynomial(cG)
-            b_3_0*b_3_1+b_6_5+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
+            b_3_0*b_3_1+b_6_3+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
             sage: cG
-            b_3_0*b_3_1+b_6_5+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
+            b_3_0*b_3_1+b_6_3+b_2_0*c_4_0: 6-Cocycle in H^*(M12; GF(2))
 
         By default, it is tested whether the input is stable. If it isn't,
         it is stated in the log, and ``None`` is returned.
@@ -3568,8 +3564,10 @@ fi
             sage: H._extend_Duflot_reg_seq(3)
             H^*(SmallGroup(48,50); GF(2)):
                       Try to find new Duflot-regular element in degree 3
-            Singular: 1 = (2-1)^2 parameter candidates
+            explore_one_parameter:
+                      32 = (2-1)^2*2^5 parameter candidates
                       We found a parameter.
+                      > It is regular.
             H^*(SmallGroup(48,50); GF(2)):
                       Found extension of the Duflot regular sequence
             sage: CohomologyRing.global_options('warn')
@@ -3585,6 +3583,8 @@ fi
             sage: H = CohomologyRing(12, 3, prime=2)
             sage: H.make(3)
             sage: H._DuflotRegSeq
+            [c_2_0: 2-Cocycle in H^*(SmallGroup(12,3); GF(2)),
+             c_3_1: 3-Cocycle in H^*(SmallGroup(12,3); GF(2))]
 
         """
         if len(self._DuflotRegSeq)==(self.PCenterRk or self.pRank):
@@ -3696,8 +3696,10 @@ fi
                       > There are 0 "boring" generators in degree 1
                       > There is 1 Duflot generator in degree 1
                       Try to find new Duflot-regular element in degree 1
-            Singular: 1 = (2-1)^1 parameter candidates
+            explore_one_parameter:
+                      1 = (2-1)^1 parameter candidates
                       We found a parameter.
+                      > It is regular.
             H^*(SmallGroup(720,763); GF(2)):
                       Found extension of the Duflot regular sequence
                       Degree 1 of the visible ring structure is computed!
@@ -3728,8 +3730,10 @@ fi
                       > There are 0 "boring" generators in degree 2
                       > There is 1 Duflot generator in degree 2
                       Try to find new Duflot-regular element in degree 2
-            Singular: 1 = (2-1)^1 parameter candidates
+            explore_one_parameter:
+                      1 = (2-1)^1 parameter candidates
                       We found a parameter.
+                      > It is regular.
             H^*(SmallGroup(720,763); GF(2)):
                       Found extension of the Duflot regular sequence
                       Degree 2 of the visible ring structure is computed!
@@ -4217,7 +4221,7 @@ fi
 
             sage: H.make(16)
             sage: H.filter_regular_parameters()
-            ['b_4_0^3+c_12_0', 'b_16_4+b_16_2+b_4_0^4-b_4_0*c_12_0']
+            ['b_4_0^3-c_12_0', 'b_16_3-b_16_1+b_4_0^4-b_4_0*c_12_0']
             sage: H.all_generators_found
             True
 
@@ -4240,7 +4244,7 @@ fi
             sage: p = H.poincare_series(); p
             (t^24 - 2*t^23 + 3*t^22 - 3*t^21 + 5*t^20 - 6*t^19 + 7*t^18 - 7*t^17 + 9*t^16 - 9*t^15 + 12*t^14 - 11*t^13 + 12*t^12 - 11*t^11 + 12*t^10 - 9*t^9 + 9*t^8 - 7*t^7 + 7*t^6 - 6*t^5 + 5*t^4 - 3*t^3 + 3*t^2 - 2*t + 1)/(t^26 - 2*t^25 + 3*t^24 - 4*t^23 + 5*t^22 - 6*t^21 + 7*t^20 - 8*t^19 + 9*t^18 - 10*t^17 + 11*t^16 - 12*t^15 + 12*t^14 - 12*t^13 + 12*t^12 - 12*t^11 + 11*t^10 - 10*t^9 + 9*t^8 - 8*t^7 + 7*t^6 - 6*t^5 + 5*t^4 - 4*t^3 + 3*t^2 - 2*t + 1)
             sage: H.parameters()
-            ['b_4_0^3+c_12_0', 'b_16_4+b_16_2+b_4_0^4-b_4_0*c_12_0']
+            ['b_4_0^3-c_12_0', 'b_16_3-b_16_1+b_4_0^4-b_4_0*c_12_0']
             sage: t = p.parent().gen(0)
             sage: p*(1-t^12)*(1-t^16)
             t^26 + t^23 + 2*t^22 + t^21 + t^19 + 2*t^18 + 2*t^17 + 3*t^16 + 4*t^15 + 2*t^14 + 2*t^13 + 2*t^12 + 4*t^11 + 3*t^10 + 2*t^9 + 2*t^8 + t^7 + t^5 + 2*t^4 + t^3 + 1
@@ -4251,11 +4255,11 @@ fi
 
         The last few lines actually prove that the ring structure is
         complete\---see :meth:`HilbertPoincareTest` for the background.
-
-        But actually the Symonds criterion was used when calling ``make()``::
+        In this example, the Hilbert Poincaré test has actually been used
+        when calling ``make()``::
 
             sage: H._method
-            'Symonds'
+            'Hilbert-Poincar&eacute;'
 
         We have parameters in degree 12 and 16. We need to know the ring
         structure at least out to degree `(12-1)+(16-1)+1=27`, and we need to
@@ -4324,34 +4328,34 @@ fi
              a_2_1*a_7_4,
              a_2_1*a_7_5,
              a_6_1*a_3_0,
-             a_6_1*a_3_1+b_2_0*a_6_1*a_1_0,
+             a_6_1*a_3_1-b_2_0*a_6_1*a_1_0,
              a_6_1*a_3_4,
              b_2_0*a_7_5,
              a_3_0*a_7_0,
              a_3_0*a_7_5,
-             a_3_1*a_7_4+b_2_0*a_1_0*a_7_4,
+             a_3_1*a_7_4-b_2_0*a_1_0*a_7_4,
              a_3_1*a_7_5+a_2_1*c_8_4,
              a_3_4*a_7_0,
-             a_3_4*a_7_4-a_2_1*c_8_4,
+             a_3_4*a_7_4+a_2_1*c_8_4,
              a_3_4*a_7_5,
-             b_2_0^2*a_6_1-a_3_1*a_7_0-b_2_0*a_1_0*a_7_0-c_4_3*a_6_1,
+             b_2_0^2*a_6_1-a_3_1*a_7_0+b_2_0*a_1_0*a_7_0+c_4_3*a_6_1,
              c_8_4*a_3_4+c_4_3*a_7_5,
-             b_2_0^2*a_7_4-c_8_4*a_3_1-c_4_3*a_7_4-b_2_0*c_8_4*a_1_0,
+             b_2_0^2*a_7_4-c_8_4*a_3_1+c_4_3*a_7_4+b_2_0*c_8_4*a_1_0,
              a_6_1^2,
              a_2_1*a_11_4,
              a_6_1*a_7_0,
              a_6_1*a_7_4,
              a_6_1*a_7_5,
              a_3_0*a_11_4,
-             a_3_1*a_11_4+b_2_0*a_1_0*a_11_4-a_6_1*c_8_4,
+             a_3_1*a_11_4-b_2_0*a_1_0*a_11_4-a_6_1*c_8_4,
              a_3_4*a_11_4,
              a_7_0*a_7_4+a_6_1*c_8_4,
              a_7_0*a_7_5,
              a_7_4*a_7_5+a_2_1*c_12_11,
-             c_12_11*a_3_1-c_8_4*a_7_4+b_2_0*c_12_11*a_1_0,
-             c_12_11*a_3_4-c_8_4*a_7_5,
-             b_2_0^2*a_11_4-c_8_4*a_7_0-c_4_3*a_11_4,
-             b_2_0^2*c_12_11-c_8_4^2-c_4_3*c_12_11,
+             c_12_11*a_3_1-c_8_4*a_7_4-b_2_0*c_12_11*a_1_0,
+             c_12_11*a_3_4+c_8_4*a_7_5,
+             b_2_0^2*a_11_4-c_8_4*a_7_0+c_4_3*a_11_4,
+             b_2_0^2*c_12_11-c_8_4^2+c_4_3*c_12_11,
              a_6_1*a_11_4,
              a_7_0*a_11_4,
              a_7_4*a_11_4-a_6_1*c_12_11,

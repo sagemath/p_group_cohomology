@@ -448,7 +448,7 @@ listBasisSizes := function(gg,name,RLL,tries)
   for i in [1..tries] do
     ngg := MinimallyGeneratedPermutationGroup(gg,arbgsm);
     mintips := constructNonTips(tmpname,ngg,orderString);
-    Print("Attempt ", i, ": Groebner basis has size ", mintips, "\n");
+    # Print("Attempt ", i, ": Groebner basis has size ", mintips, "\n");
     Add(results, mintips);
     destroyEvidence(tmpname);
   od;
@@ -478,9 +478,9 @@ makeSmallBasis := function(gg,name,RLL,tries)
   for i in [1..tries] do
     ngg := MinimallyGeneratedPermutationGroup(gg,arbgsm);
     mintips := constructNonTips(tmpname,ngg,orderString);
-    Print("Attempt ", i, ": Groebner basis has size ", mintips, "\n");
+    # Print("Attempt ", i, ": Groebner basis has size ", mintips, "\n");
     if best = 0 or mintips < best then
-      Print("Best yet\n");
+      # Print("Best yet\n");
       if found then
         destroyEvidence(bestname);
       fi;
@@ -512,14 +512,14 @@ makeBasis := function(gg,name,RLL)
   if not IsPermGroup(gg) then Error("Group must be a Permutation Group"); fi;
   orderString := chosenOrder(RLL);
   if TG then
-    Print("Number of Generators: ", Size(GeneratorsOfGroup(gg)), "\n");
+    # Print("Number of Generators: ", Size(GeneratorsOfGroup(gg)), "\n");
     mintips := constructNonTips(name,gg,orderString);
     Exec(Concatenation(exportMTXLIB, "makeActionMatrices ", name));
   else
     arbgsm := arbitraryGsm(RLL,gsm);
     ngg := MinimallyGeneratedPermutationGroup(gg,arbgsm);
     mintips := constructNonTips(name,ngg,orderString);
-    Print("Groebner basis has size ", mintips, "\n");
+    # Print("Groebner basis has size ", mintips, "\n");
     completeStem(name,ngg,mintips);
   fi;
   return mintips;

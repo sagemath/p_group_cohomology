@@ -133,8 +133,8 @@ end;
 loadGroup := function(Glabel)
   local Gstem, regfile, tmpfile, pl, G;
   Gstem := GroupStem(Glabel);
-  Print(Gstem);
-  Print("\nTrying\n");
+  # Print(Gstem);
+  # Print("\nTrying\n");
   regfile := Concatenation(Gstem, ".reg");
   tmpfile := Concatenation(Gstem, ".trg");
   pl := mtxPermList(regfile, tmpfile);
@@ -460,7 +460,7 @@ makeInclusionInfo := function(Gsize, Gname, fldr)
   Glabel := [Gsize, Gname, fldr];
   G := loadGroup(Glabel);
   Istump := inclusionStump(Glabel);
-  Print("Istump=", Istump, "\n");
+  # Print("Istump=", Istump, "\n");
   GIdata := [GroupStem(Glabel), Istump, Gsize];
   specialSubgp := [];
   specialSubgpId := [];

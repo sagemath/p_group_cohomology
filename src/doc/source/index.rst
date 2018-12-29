@@ -10,9 +10,9 @@ Summary
 The source code consists of
 
  * Python and Cython extension modules as well as Singular and GAP functions
-   written by `Simon King <http://users.minet.uni-jena.de/~king/eindex.html>`_.
- * C-programs and Gap functions created by `David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_
-   and modified by `Simon King <http://users.minet.uni-jena.de/~king/eindex.html>`_.
+   written by `Simon King <https://users.fmi.uni-jena.de/~king/eindex.html>`_.
+ * C-programs and Gap functions created by `David Green <https://users.fmi.uni-jena.de/~green/index-en.php>`_
+   and modified by `Simon King <https://users.fmi.uni-jena.de/~king/eindex.html>`_.
 
 The package comprises a data base of the cohomology rings of all groups of
 order 64, and can access a repository of the cohomology rings of
@@ -25,7 +25,7 @@ of non prime power groups. In particular, it allows for the computation
 of the modular cohomology for various primes of the first three Janko
 groups, of Mathieu groups 11, 12, 22 and 23, of the McLaughlin group,
 of SuzukiGroup(8), of the Higman-Sims group and of the third Conway group.
-`Here are the computational results <http://users.minet.uni-jena.de/cohomology/>`_.
+`Here are the computational results <https://users.fmi.uni-jena.de/cohomology/>`_.
 It is planned (but not done yet) to include these cohomology rings in
 our repository.
 
@@ -49,30 +49,27 @@ approximation is actually isomorphic to the cohomology ring.
 
 We use completeness criteria proposed by
 `Dave Benson <http://www.maths.abdn.ac.uk/~bensondj/html/>`_,
-`David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_,
-`Simon King <http://users.minet.uni-jena.de/~king/eindex.html>`_ and
+`David Green <https://users.fmi.uni-jena.de/~green/index-en.php>`_,
+`Simon King <https://users.fmi.uni-jena.de/~king/eindex.html>`_ and
 `Peter Symonds <http://www.maths.manchester.ac.uk/~pas/>`_.
 The construction of minimal free resolutions is based on an algorithm
-of `David Green <http://users.minet.uni-jena.de/~green/index-en.php>`_.
+of `David Green <https://users.fmi.uni-jena.de/~green/index-en.php>`_.
 
 Installation
 ------------
 
-The `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
-library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien is
-used at run-time. The default way of installing it into SageMath's version
-of GAP is by
-::
+Our cohomology package uses the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
+library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. Since 2018 it is
+distributed as a standard package for SageMath.
 
-    sage -i database_gap
-
-By version 3.0, `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_ has been removed
-from the cohomology package. Instead, it is linked against
-`SharedMeatAxe <http://users.minet.uni-jena.de/~king/SharedMeatAxe/>`_.
-So, it is a build-time dependency. You can install it in your copy of Sage by
+Prior to version 3.0, the cohomology package provided a copy of an old
+version of `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_. Now, the package
+links against a MeatAxe fork, `SharedMeatAxe <https://users.fmi.uni-jena.de/~king/SharedMeatAxe/>`_.
+It is a build-time dependency and can be installed in Sage by doing
 ::
 
     sage -i meataxe
+    sage -b
 
 By `trac ticket 26001 <https://trac.sagemath.org/ticket/26001>`_, the cohomology
 package can then be installed in your copy of Sage by
@@ -133,55 +130,59 @@ suggesting to use the Poincaré series in a completeness criterion.
 Versions
 --------
 
-  * 3.1 (Simon King, September 2018):
-    - Vastly improve computation of filter degree type.
-    - A routine to compute filter regular parameters in small degrees
-      by enumeration.
-    - Cope with some changes in Singular.
+See SPKG.txt for a more detailed account.
+
+  * v3.1 (December 2018):
+    - Hilbert series computation by using a new implementation in SageMath.
+    - Vastly improved computation of filter degree type (now relying on Hilbert series).
+    - Use libgap instead of the GAP pexpect interface.
+    - Sub-package upgrade: modres-1.1
+  * v3.0.1 (August 2018):
+    - Add a routine to compute filter regular parameters in small degrees by enumeration.
     - More self-consistency checks.
     - A routine to compute a cohomology ring from a tower of subgroups.
-  * v3.0: Turn the cohomology package into a "new style spkg". It is split
-    into several smaller parts that are either using an autotoolized build
-    system or are pip installable.
-  * v2.1.5, v2.1.6: Cope with several backwards incompatible changes in
-    SageMath. Improved computation of the nil-radical, including a degree-wise
-    computation. Methods is_nilpotent and nilpotency_degree for cohomology
-    ring elements. Various improvements for the computation of depth and
-    filter degree type.
-  * v2.1.4: Consequently compute parameters for the *complete* cohomology
-    ring rather than only for the ring approximation. Better portability
-    by using os.path. Replace SAGE_DATA by SAGE_SHARE. Use urllib2.
-    Protocol output tells which instance's method is being called.
-  * v2.1.3: Improved heuristics to choose between Hilbert-Poincaré
-    and Symonds criteria. Cope with Cython's new "name mangling" for
-    double underscore attributes. Allow storing of "permanent results"
-    that are indexed in terms of data in Gap. In some situations, use
-    a lower bound for the depth, if the actual depth is too difficult
-    to obtain. Switch to a new location for the public web repository,
-    which became necessary by a hardware problem. Fix the creation of
-    symbolic links from a private data base to a public data base of
-    cohomoloy rings. Fix comparison of an MTX matrix with None.
-  * v2.1.2: Cope with the new versions of Cython and Singular. Use Sage's
-    coercion model more properly. Build the documentation locally.
-  * v2.1.1: Usage of symbolic links to the public database, so that
-    one can use (but of course not install) this package even without
-    write permission in ``SAGE_DATA``. Restructuring the code.
-    Parallel testing is now only permitted if ticket #10004 is applied
-    (September 2010).
-  * v2.1: Support for big endian machines. 100% doctest coverage,
-    parallel testing.
-    New: Essential and depth essential ideals. Improved completion tests.
-    (September 2010).
-  * v2.0: Cohomology of non prime power groups (April 2010).
-  * v1.2.p0: Improved test for the presence of the Small Groups library
-    (thanks to Dima Pasechnik, March 2010).
-  * v1.2: Modified printing for cocycles; minor bug fixes and code improvements.
-    New: Persistent Group Cohomology (bar codes), based on ideas of
-    Graham Ellis and Simon King (October 2009).
-  * v1.1: Added restricted Massey powers and general Massey products
-    (August 2009).
-  * v1.0.2: Fixes some bugs (July 2009).
-  * v1.0.1: First public version in GPL 2 or later (July 2009)
+  * v3.0 (February 2018):
+    - Turn the cohomology package into a "new style spkg". It is split into several smaller parts that are either using an autotoolized build system or are pip installable.
+    - Replace the old custom test and doc-build scripts by standard tools.
+  * v2.1.5 (Mai 2015):
+    - Improved computation of the nil-radical, including a degree-wise computation.
+    - Methods is_nilpotent and nilpotency_degree for cohomology ring elements.
+    - Various improvements for the computation of depth and filter degree type.
+  * v2.1.4 (April 2013):
+    - Consequently compute parameters for the *complete* cohomology ring rather than only for the ring approximation.
+    - Improved heuristics to speed-up computations.
+    - Better portability.
+    - Improved logging.
+  * v2.1.3 (July 2012):
+    - Improved heuristics to choose between Hilbert-Poincaré and Symonds criteria, and to deal with lower bounds for the depth.
+    - Allow storing of "permanent results" that are indexed in terms of data in Gap.
+    - Switch to a new location for the public web repository.
+  * v2.1.2 (March 2012):
+    - Use Sage's coercion model more properly.
+    - Build the documentation locally.
+  * v2.1.1 (September 2010):
+    - Make it so that write permission in ``SAGE_DATA`` are only needed during installation of the package, but not for using it.
+    - Restructuring the code.
+  * v2.1 (September 2010):
+    - Support for big endian machines.
+    - 100% doctest coverage, parallel testing.
+    - New: Essential and depth essential ideals, kernels and preimages of induced homomorphisms.
+    - Improved completion tests.
+  * v2.0 (April 2010):
+    - Modular cohomology rings for arbitrary finite groups (not just prime power groups).
+    - Improved portability.
+  * v1.2.p0 (March 2010):
+    - Improved test for the presence of the Small Groups library (thanks to Dima Pasechnik).
+  * v1.2 (October 2009):
+    - Minor bug fixes and code improvements.
+    - Persistent Group Cohomology (bar codes), based on ideas of Graham Ellis and Simon King.
+  * v1.1 (August 2009):
+    - Yoneda cocomplex.
+    - Restricted Massey powers and general Massey products.
+  * v1.0.2 (July 2009):
+    - Minor fixes to prevent a regression.
+  * v1.0.1 (July 2009):
+    - First public version in GPL 2 or later
 
 Licence
 -------

@@ -93,11 +93,11 @@ We do some computations with cohomology elements, testing relations in
     sage: cS1 = HS.1*HS.2+HS.3; cS1
     (c_2_1)*(c_1_0)+(b_3_2): 3-Cocycle in H^*(Sym6; GF(2))
     sage: cS2 = HS.1*HS.2+HS.4; cS2
-    (c_2_1)*(c_1_0)+(c_3_3): 3-Cocycle in H^*(Sym6; GF(2))
+    (c_2_1)*(c_1_0)+(b_3_3): 3-Cocycle in H^*(Sym6; GF(2))
     sage: cS1*cS2 == HS.3*HS.4 + HS.1*HS.2*(HS.1*HS.2+HS.3+HS.4)
     True
     sage: HS.rels()
-    ['b_3_2^2+b_3_2*c_3_3+c_2_1*c_1_0*b_3_2']
+    ['b_3_2*b_3_3']
 
 We define an embedding of ``D`` in ``S`` and compute the induced
 map from ``HS`` to ``HD``::
@@ -107,8 +107,8 @@ map from ``HS`` to ``HD``::
     sage: [resS_D(g).as_polynomial() for g in HS.gens()[1:]]
     ['b_1_0*b_1_1+b_1_0^2+c_2_2',
      'b_1_1+b_1_0',
-     'b_1_0^2*b_1_1+c_2_2*b_1_1',
-     'b_1_0^3+c_2_2*b_1_1']
+     'c_2_2*b_1_1+c_2_2*b_1_0',
+     'b_1_0^2*b_1_1+c_2_2*b_1_1']
 
 Note that the generators of ``HD`` are :class:`COCH`, while those of
 ``HS`` are :class:`MODCOCH`. But the image of the induced map is
@@ -2729,8 +2729,8 @@ class MODCOCH(RingElement):
             sage: H.subgroup_cohomology()
             H^*(SmallGroup(192,1493); GF(2))
             sage: H.1.as_cocycle_in_subgroup()
-            b_2_1+(b_2_0): 2-Cocycle in H^*(SmallGroup(192,1493); GF(2))
-            sage: H.subgroup_cohomology()('b_2_1+b_2_0')*H.2.as_cocycle_in_subgroup() == (H.1*H.2).as_cocycle_in_subgroup()
+            (b_1_0)^2+(b_2_2)+(b_2_1): 2-Cocycle in H^*(SmallGroup(192,1493); GF(2))
+            sage: H.subgroup_cohomology()('b_1_0^2+b_2_2+b_2_1')*H.2.as_cocycle_in_subgroup() == (H.1*H.2).as_cocycle_in_subgroup()
             True
 
         """
@@ -2775,8 +2775,8 @@ class MODCOCH(RingElement):
             sage: H = CohomologyRing(G,prime=2,GroupName='A8')  # long time
             sage: H.make()                          # long time
             sage: H.1.as_cocycle_in_sylow()
-            b_1_2^2+b_1_1*b_1_2+b_2_6+b_2_5: 2-Cocycle in H^*(SmallGroup(64,138); GF(2))
-            sage: H.sylow_cohomology()('b_1_2^2+b_1_1*b_1_2+b_2_6+b_2_5')*H.2.as_cocycle_in_sylow() == (H.1*H.2).as_cocycle_in_sylow()
+            b_1_1*b_1_2+b_1_1^2+b_1_0^2+b_2_5+b_2_4: 2-Cocycle in H^*(SmallGroup(64,138); GF(2))
+            sage: H.sylow_cohomology()('b_1_1*b_1_2+b_1_1^2+b_1_0^2+b_2_5+b_2_4')*H.2.as_cocycle_in_sylow() == (H.1*H.2).as_cocycle_in_sylow()
             True
 
         """

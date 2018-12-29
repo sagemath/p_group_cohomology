@@ -508,7 +508,7 @@ class BarCode:
     whose entries are Poincaré series::
 
         sage: B.matrix()
-        [       -1/(t - 1)      -1/(t^2 - 1)                 1]
+        [       1/(-t + 1)      -1/(t^2 - 1)                 1]
         [                0 1/(t^2 - 2*t + 1)  (-t - 1)/(t - 1)]
         [                0                 0 1/(t^2 - 2*t + 1)]
 
@@ -620,7 +620,7 @@ class BarCode:
             sage: B
             Persistence data for H^*(D8; GF(2)) associated with UpperCentralSeries
             sage: B.data()
-            [((-1, -1), -1/(t - 1)),
+            [((-1, -1), 1/(-t + 1)),
              ((-1, 0), -1/(t^2 - 1)),
              ((-1, 1), 1),
              ((0, 0), 1/(t^2 - 2*t + 1)),
@@ -644,7 +644,7 @@ class BarCode:
             sage: H.make()
             sage: B = H.bar_code('UpperCentralSeries')
             sage: B.matrix()
-            [       -1/(t - 1)      -1/(t^2 - 1)                 1]
+            [       1/(-t + 1)      -1/(t^2 - 1)                 1]
             [                0 1/(t^2 - 2*t + 1)  (-t - 1)/(t - 1)]
             [                0                 0 1/(t^2 - 2*t + 1)]
 

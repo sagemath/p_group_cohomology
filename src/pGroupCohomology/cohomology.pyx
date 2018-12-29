@@ -223,11 +223,11 @@ register_unpickle_override('pGroupCohomology.cohomology', 'COHO_unpickle', COHO_
 register_unpickle_override('sage.groups.modular_cohomology.cohomology', 'COHO_unpickle', COHO_unpickle)
 
 ###############
-# Data in the gap interface tend to be difficult to pickle.
-# Let's try string representations
+# GAP doesn't provide serialisation.
+# Let's try to pickle via string representations.
 class GapPickler(object):
     """
-    This is an auxiliary class for pickling data involving the Gap interface.
+    This is an auxiliary class for pickling data involving the libgap interface.
 
     NOTE:
 
@@ -718,7 +718,7 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None,
         sage: Id = H.relation_ideal()
         sage: L = H.standard_monomials(3)
         sage: explore_one_parameter(Id,L,2)
-        (b_1_0^3, (0, 0, 1, 0, 0), [])
+        (b_1_0^3, (0, 0, 0, 0, 0, 0, 0, 1, 0, 0), [])
         sage: explore_one_parameter(Id,L,2, regularity=1)
         (False, False, [])
         sage: Id.dim()
@@ -741,13 +741,13 @@ def explore_one_parameter(Id, L0, p, BreakPoint = None, regularity=0, H1 = None,
         sage: Id = H.relation_ideal()
         sage: L = H.standard_monomials(6)
         sage: explore_one_parameter(Id,L,3,regularity=2)
-        (c_6_2, (0, 0, 1), [0])
+        (c_6_2, (0, 0, 0, 0, 0, 1), [0])
         sage: Id = Id.std('c_6_2')
         sage: L = H.standard_monomials(2)
         sage: explore_one_parameter(Id,L,3)
-        (b_2_1, (1, 0), [])
+        (b_2_1, (0, 0, 1, 0), [])
         sage: explore_one_parameter(Id,L,3,regularity=1)
-        (b_2_1, (1, 0), [0, 1, 1, 1, 1])
+        (b_2_1, (0, 0, 1, 0), [0, 1, 1, 1, 1])
         sage: explore_one_parameter(Id,L,3,regularity=2)
         (False, False, [])
 
@@ -1354,9 +1354,11 @@ class permanent_result(object):
     NOTE:
 
     Sometimes, the results stored with this decorator involve data
-    defined in the Gap interface. Pickling them is often a problem.
-    However, if the Gap object can be reconstructed from its string
-    representation, then pickling should work fine.
+    defined in GAP. GAP does by default not provide data serialisation,
+    and even GAP's optional IO package would only write data directly
+    to a file object, which is awkward when otherwise relying on Python's
+    pickling protocols. However, often a GAP object can be reconstructed
+    from its string representation, and that's what we are using here.
 
     ASSUMPTION:
 
@@ -1467,7 +1469,7 @@ class permanent_result(object):
         ....:         return n+self._t
         ....:     @permanent_result
         ....:     def foo(self,n):
-        ....:         return gap.SymmetricGroup(self.bar(n))
+        ....:         return libgap.SymmetricGroup(self.bar(n))
         sage: f = FOO()
         sage: try:
         ....:     f.foo(1)
@@ -1495,7 +1497,7 @@ class permanent_result(object):
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         sage: f.foo(1,forced=True)
-        SymmetricGroup( [ 1 .. 3 ] )
+        Sym( [ 1 .. 3 ] )
 
     In the next example, we demonstrate that pickling works, even if Gap data
     are involved::
@@ -1523,11 +1525,24 @@ class permanent_result(object):
         False
         sage: CohomologyRing.global_options('info')
         sage: H2.essential_ideal([H.group().SylowSubgroup(2).Centre()])
+        H^*(SmallGroup(184,5); GF(2)):
+                  Compute essential_ideal
+        H^*(SmallGroup(2,1); GF(2)):
+                  Computing complete Groebner basis
+        H^*(SmallGroup(184,5); GF(2)):
+                  > computing kernel of an induced map
+        H^*(SmallGroup(2,1); GF(2)):
+                  Compute order_matrix
+        Induced homomorphism of degree 0 from H^*(SmallGroup(184,5); GF(2)) to H^*(SmallGroup(2,1); GF(2)):
+                  Compute preimages by elimination
+        H^*(SmallGroup(184,5); GF(2)):
+                  > intersecting two ideals
+                  > preparing output
         b_1_0,
         b_1_1
         sage: CohomologyRing.global_options('warn')
         sage: H.group().SylowSubgroup(2).Centre().parent()
-        Gap
+        C library interface to GAP
         sage: H2.essential_ideal([H.group().SylowSubgroup(2).Centre()]).parent()
         Singular
 
@@ -1629,7 +1644,7 @@ class permanent_result(object):
         even the ``KeyboardInterrupt`` is cached::
 
             sage: sorted(f._decorator_cache.items())    #indirect doctest
-            [(('bar', 'Group( [ (1,2) ] )'), [2, '2']),
+            [(('bar', Group([ (1,2) ])), [2]),
              (('foo', 3),
               [KeyboardInterrupt('foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``',)])]
 
@@ -1674,7 +1689,7 @@ class permanent_result(object):
             ....:         return S(QQ['x','y'])
             ....:     @permanent_result
             ....:     def bar(self, n):
-            ....:         return gap.SymmetricGroup(n)
+            ....:         return libgap.SymmetricGroup(n)
             ....:     @permanent_result
             ....:     def foo(self, n):
             ....:         singular(self).set_ring()
@@ -1682,17 +1697,15 @@ class permanent_result(object):
             sage: f = FOO()
             sage: f = FOO()
             sage: G = f.bar(4); G
-            SymmetricGroup( [ 1 .. 4 ] )
+            Sym( [ 1 .. 4 ] )
             sage: G is f.bar(4)
             True
 
-        Setting the cache to a different value and reconstructing it
-        after a crash::
+        Setting the cache to a different value::
 
             sage: f.bar.set_cache(gap.AlternatingGroup(3), 4)
             sage: f.bar(4)
             AlternatingGroup( [ 1 .. 3 ] )
-            sage: gap.quit()
             sage: f.bar.get_cache(4)
             AlternatingGroup( [ 1 .. 3 ] )
 
@@ -1788,7 +1801,7 @@ class permanent_result(object):
             ....:         return n+self._t
             ....:     @permanent_result
             ....:     def foo(self,n):
-            ....:         return gap.SymmetricGroup(self.bar(n))
+            ....:         return libgap.SymmetricGroup(self.bar(n))
             sage: f = FOO()
             sage: try:
             ....:     f.foo(1)
@@ -1816,7 +1829,7 @@ class permanent_result(object):
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             sage: f.foo(1,forced=True)
-            SymmetricGroup( [ 1 .. 3 ] )
+            Sym( [ 1 .. 3 ] )
 
         """
         inst = self._inst() if self._inst is not None else None
@@ -1913,8 +1926,8 @@ class temporary_result(permanent_result):
         sage: CohomologyRing.global_options('info')
         sage: H.poincare_series()
         H^*(Q8; GF(2)):
-          Compute poincare_series
-        (-t - 1)/(t - 1)
+                  Compute poincare_series
+        (t + 1)/(-t + 1)
 
     """
     # assumption: If it is data in Singular, then it belongs
@@ -2059,7 +2072,7 @@ class COHO(Ring):
 
     A finite `p`-group, either given by its coordinates in the
     SmallGroups library of Hans Ulrich Besche, Bettina Eick and Eamonn
-    O'Brien, or given as an object in the Gap interface.
+    O'Brien, or given as a group in the libgap interface.
 
     OUTPUT:
 
@@ -2122,14 +2135,13 @@ class COHO(Ring):
         H^*(SmallGroup(2,1); GF(2)):
                   We have to choose 1 new generator in degree 1
                   > There is 1 Duflot regular generator in degree 1
+                  Summary: 0 relations and 1 generators in degree 1
                   Ring approximation computed out to degree 1!
                   Storing approximation data
                   Determine degree 2 standard monomials
                   We got 1 standard monomials
-        Resolution of GF(2)[SmallGroup(2,1)]:
-                  Compose chain maps R_2 -> R_1 -> R_0
-        H^*(SmallGroup(2,1); GF(2)):
                   There is no new generator in degree 2
+                  Summary: 0 relations and 0 generators in degree 2
                   Ring approximation computed out to degree 2!
                   Storing approximation data
 
@@ -2182,6 +2194,7 @@ class COHO(Ring):
                   We have to choose 2 new generators in degree 1
                   > There are 0 nilpotent generators in degree 1
                   > There are 2 "boring" generators in degree 1
+                  Summary: 0 relations and 2 generators in degree 1
                   Try to lift 1st power of 0th Dickson invariant
                   Simultaneously lifting subgroup cochains of degree 1
                   Simultaneous lift was successful!
@@ -2192,10 +2205,6 @@ class COHO(Ring):
                   Start computation in Degree 2
                   Determine degree 2 standard monomials
                   We got 3 standard monomials
-        Resolution of GF(2)[D8]:
-                  Compose chain maps R_2 -> R_1 -> R_0
-                  Compose chain maps R_2 -> R_1 -> R_0
-        H^*(D8; GF(2)):
                   There are new generators, we have to lift the restriction maps
         Resolution of GF(2)[D8]:
                   Computing next term
@@ -2214,6 +2223,7 @@ class COHO(Ring):
                   > There are 0 nilpotent generators in degree 2
                   > There are 0 "boring" generators in degree 2
                   > There is 1 Duflot regular generator in degree 2
+                  Summary: 1 relations and 1 generators in degree 2
                   Ring approximation computed out to degree 2!
                   Storing approximation data
                   Compute dependent_parameters
@@ -2250,7 +2260,7 @@ class COHO(Ring):
         sage: G
         <pc group of size 8 with 3 generators>
         sage: G.SetName("OtherName")
-        ''
+        <BLANKLINE>
         sage: G
         OtherName
         sage: H2 = COHO(G,root=tmp_root)
@@ -3217,7 +3227,7 @@ class COHO(Ring):
         INPUT:
 
         - ``m``, which usually is a group homomorphism defined in the
-          Gap interface, but in principle could also be a
+          libgap interface, but in principle could also be a
           :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense` matrix describing a
           homomorphism of the group algebras (not documented). The
           domain must be equivalent to the underlying group of ``other``,
@@ -4234,10 +4244,10 @@ class COHO(Ring):
             sage: H.label()
             'H^*(8gp3; GF(2))'
             sage: H
-            'H^*(D8; GF(2))'
+            H^*(D8; GF(2))
             sage: H = CohomologyRing(64,167)
             sage: H
-            'H^*(SmallGroup(64,167); GF(2))'
+            H^*(SmallGroup(64,167); GF(2))
             sage: H.label()
             'H^*(64gp167; GF(2))'
 
@@ -4377,7 +4387,7 @@ Minimal list of algebraic relations:
         the case of prime power groups it is assumed that the first,
         say `n`, generators of `G` form a minimal generating
         set. Then, the output of :meth:`group` is a permutation group
-        `G_P`, defined in the Gap interface, with precisely `n`
+        `G_P`, defined in the libgap interface, with precisely `n`
         generators, so that mapping generator `i` of `G` to generator
         `i` of `G_P`, for `i=1,...,n`, results in a group isomorphism-
 
@@ -5813,9 +5823,9 @@ Minimal list of algebraic relations:
                           <HR WIDTH="100%">
                           <HR WIDTH="100%"></P>
                           Created with the <a href="http://www.sagemath.org/" style="font-variant:small-caps">Sage</a>
-                          <a href="http://users.minet.uni-jena.de/cohomology/documentation/">cohomology package</a>
-                          written by <a href="http://users.minet.uni-jena.de/~king/">Simon King</a>
-                          and <a href="http://users.minet.uni-jena.de/~green/">David Green</a>
+                          <a href="https://users.fmi.uni-jena.de/cohomology/documentation/">cohomology package</a>
+                          written by <a href="https://users.fmi.uni-jena.de/~king/">Simon King</a>
+                          and <a href="https://users.fmi.uni-jena.de/~green/">David Green</a>
                           <P>
                           <HR WIDTH="100%">
                           <HR WIDTH="100%"></P>
@@ -6003,12 +6013,12 @@ Minimal list of algebraic relations:
         if not q.is_prime_power():
             if len(self._PtoPcapCPdirectSing):
                 if self._HP is self._HSyl:
-                    L.write('The computation was based on %d stability condition%s for <a href="http://users.minet.uni-jena.de/cohomology/%dweb/%s.html">%s</a>.\n'%(len(self._PtoPcapCPdirectSing),('' if len(self._PtoPcapCPdirectSing)==1 else 's'), self._HSyl.Resl.G_ALG().order(),self._HSyl.GStem,self._HP._html_()))
+                    L.write('The computation was based on %d stability condition%s for <a href="https://users.fmi.uni-jena.de/cohomology/%dweb/%s.html">%s</a>.\n'%(len(self._PtoPcapCPdirectSing),('' if len(self._PtoPcapCPdirectSing)==1 else 's'), self._HSyl.Resl.G_ALG().order(),self._HSyl.GStem,self._HP._html_()))
                 else:
                     L.write('The computation was based on %d stability condition%s for <a href="%smod%d.html">%s</a>.\n'%(len(self._PtoPcapCPdirectSing),('' if len(self._PtoPcapCPdirectSing)==1 else 's'), self._HP.GStem,self._prime,self._HP._html_()))
             else:
                 if self._HP is self._HSyl:
-                    L.write('This cohomology ring is isomorphic to the cohomology ring of a subgroup, namely <a href="http://users.minet.uni-jena.de/cohomology/%dweb/%s.html">%s</a>.\n'%(self._HSyl.Resl.G_ALG().order(),self._HSyl.GStem,self._HP._html_()))
+                    L.write('This cohomology ring is isomorphic to the cohomology ring of a subgroup, namely <a href="https://users.fmi.uni-jena.de/cohomology/%dweb/%s.html">%s</a>.\n'%(self._HSyl.Resl.G_ALG().order(),self._HSyl.GStem,self._HP._html_()))
                 else:
                     L.write('This cohomology ring is isomorphic to the cohomology ring of a subgroup, namely <a href="%smod%d.html">%s</a>.\n'%(self._HP.GStem,self._prime,self._HP._html_()))
         if self.completed:
@@ -6256,7 +6266,7 @@ Minimal list of algebraic relations:
             L.write('<h3>\n  Restriction maps\n</h3>\n')
             if self._HP:
                 if self._HP is self._HSyl:
-                    L.write('  <h4>\n    Expressing the generators as elements of <a href="http://users.minet.uni-jena.de/cohomology/%dweb/%s.html">%s</a>  </h4>\n'%(self._HSyl.Resl.G_ALG().order(),self._HSyl.GStem,self._HSyl._html_()))
+                    L.write('  <h4>\n    Expressing the generators as elements of <a href="https://users.fmi.uni-jena.de/cohomology/%dweb/%s.html">%s</a>  </h4>\n'%(self._HSyl.Resl.G_ALG().order(),self._HSyl.GStem,self._HSyl._html_()))
                 else:
                     L.write('  <h4>\n    Expressing the generators as elements of <a href="%smod%d.html">%s</a>  </h4>\n'%(self._HP.GStem,self._prime,self._HP._html_()))
                 L.write('    <ol>\n')
@@ -6326,9 +6336,9 @@ Minimal list of algebraic relations:
               <HR WIDTH="100%">
               <HR WIDTH="100%"></P>
               Created with the <a href="http://www.sagemath.org/" style="font-variant:small-caps">Sage</a>
-              <a href="http://users.minet.uni-jena.de/cohomology/documentation/">cohomology package</a>
-              written by <a href="http://users.minet.uni-jena.de/~king/">Simon King</a>
-              and <a href="http://users.minet.uni-jena.de/~green/">David Green</a>
+              <a href="https://users.fmi.uni-jena.de/cohomology/documentation/">cohomology package</a>
+              written by <a href="https://users.fmi.uni-jena.de/~king/">Simon King</a>
+              and <a href="https://users.fmi.uni-jena.de/~green/">David Green</a>
               <P>
               <HR WIDTH="100%">
               <HR WIDTH="100%"></P>

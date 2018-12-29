@@ -113,7 +113,7 @@ def unit_test_64(**kwds):
     test that pickling works.
     ::
 
-        sage: L,t = unit_test_64(from_scratch=False)
+        sage: L,t = unit_test_64(from_scratch=False)    # long time
         #  1: Walltime   ... min
               CPU-time   ... min
               Singular   ... min
@@ -711,7 +711,7 @@ class CohomologyRingFactory:
 
         - ``G`` -- a list, either comprised by two integers that form the
           address of a group in the SmallGroups library, or by a group in
-          the GAP interface.
+          the libGAP interface.
         - ``GroupName`` -- an optional string, a name provided by the user.
 
         If ``GroupName`` is provided, it will be used. Otherwise, if the
@@ -737,7 +737,7 @@ class CohomologyRingFactory:
             sage: CohomologyRing.group_name([G])
             sage: G.SetName("DihedralGroup_8")
             sage: CohomologyRing.group_name([G])
-            "DihedralGroup_8"
+            'DihedralGroup_8'
             sage: CohomologyRing.group_name([G],'D8')
             'D8'
 
@@ -775,12 +775,12 @@ class CohomologyRingFactory:
 
         - ``G`` - a list, either formed by two integers representing an
           address in the SmallGroups library, or formed by a group in
-          the GAP interface.
+          the libGAP interface.
         - ``GroupId`` - optional list of two integers, that is supposed
           to provide the address of a group in the SmallGroups library
           equivalent to the group given by ``G``.
         - ``GroupDefinition`` - optional string, that is supposed to be
-          evaluated in the GAP interface, yielding a group that is
+          evaluated in the libGAP interface, yielding a group that is
           equivalent to the group given by ``G``
 
         OUTPUT:
@@ -817,7 +817,7 @@ class CohomologyRingFactory:
         result::
 
             sage: CohomologyRing.create_group_key([libgap.eval('DihedralGroup(8)')])
-            ('Group([(1,2)(3,8)(4,6)(5,7),(1,3,4,7)(2,5,6,8),(1,4)(2,6)(3,7)(5,8)])',)
+            ('Group([(1,2)(3,8)(4,6)(5,7),(1,3,4,7)(2,5,6,8)])',)
 
         So, the given group is transformed into an equivalent
         permutation group. If we start with a big transformation
@@ -840,7 +840,7 @@ class CohomologyRingFactory:
         TEST:
 
         It is important that the group key is not formed by two integers in
-        the GAP interface. Namely, when storing the resulting ring, it could
+        the libGAP interface. Namely, when storing the resulting ring, it could
         not easily be unpickled (actually it *can* be unpickled, but this
         involves some trickery, and it is certainly better to not rely on
         trickery). Here, we demonstrate that the given keys are correctly converted::
@@ -1375,7 +1375,7 @@ class CohomologyRingFactory:
         name provided by the user, forms a unique key for the
         cohomology ring.
 
-        If `G` is given as a group in the Gap interface, then it is
+        If `G` is given as a group in the libgap interface, then it is
         required that the first items on the list of generators of `G`
         forms a minimal generating set. If this is not the case, an
         error is raised. We transform `G` into a permutation group
@@ -2223,7 +2223,7 @@ INPUT:
 
   * given by an integer ``q`` and a positive number ``n``, determining
     an entry of the SmallGroups library, or
-  * given as an object in the Gap interface
+  * given as an object in the libgap interface
 - ``GroupName`` (optional string): a name for the group. If the
   group `G` is given in the Gap interface and if it is not provided with
   a custom name (using libGap's ``SetName``) then ``GroupName`` *must* be
@@ -2294,7 +2294,7 @@ Each option is set by a string, and unset by prepending ``'no'`` to that string.
   * ``'warn'`` [default], ``'info'``, ``'debug'``, logging level
   * ``'useMTX'`` [default], use :class:`~sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense`
     matrices for linear algebra over finite fields, which rely on
-    `SharedMeatAxe <http://users.minet.uni-jena.de/~king/SharedMeatAxe/>`_.
+    `SharedMeatAxe <https://users.fmi.uni-jena.de/~king/SharedMeatAxe/>`_.
     Note that the resolutions will always be computed using the SharedMeatAxe. By
     consequence, if ``useMTX`` is turned off, time is wasted for
     conversions between different matrix types.

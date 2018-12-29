@@ -288,7 +288,7 @@ def makeSpecialGroupData(H, GStem, folder):
 
     INPUT:
 
-    - ``H`` -- a finite `p`-group defined in the libGap interface
+    - ``H`` -- a finite `p`-group defined in the libgap interface
     - ``GStem`` -- a string, providing a short and unique descriptor of ``H``
     - ``folder`` (optional string) -- name of a directory in which
       the data files will be stored. The directory will be created, if necessary.
@@ -745,7 +745,7 @@ cdef class RESL:
     provides a sequence of free `\mathbb F_p`-modules that are
     related by homomorphisms, the differentials. The construction of
     the resolution relies on C-programs developped by `David Green
-    <http://users.minet.uni-jena.de/~green/index.php>`_.  They involve
+    <https://users.fmi.uni-jena.de/~green/index.php>`_.  They involve
     a certain non-commutative Groebner basis theory due to David
     Green.
 
@@ -945,17 +945,15 @@ cdef class RESL:
 
         sage: CohomologyRing.global_options('info')
         sage: c2U = R.liftChainMap(c1)
-        Resolution of GF(2)[8gp3]:
-                  Compose chain maps R_4 -> R_3 -> R_1
 
     However, that method is rather slow. It is also possible to use some linear
     algebra to pick an element of the pre-image, but this requires to construct
     certain data first::
 
         sage: R.makeAutolift(2)
+        Resolution of GF(2)[8gp3]:
                   Make degree 2 autolift data
         sage: c2A = R.liftChainMap(c1)
-                  Compose chain maps R_4 -> R_3 -> R_1
 
     It takes some time to make the autolift data, but if they are present, the
     lifting is *much* faster. Hence, if possible they are used. If one wants to
@@ -1867,7 +1865,7 @@ cdef class RESL:
                 sage: R.load_ugb(1)
                 Resolution of GF(2)[D8]:
                           load Urbild Groebner basis
-                sage: D=C*C
+                sage: D = C*C
                           Compute C*C
                           Compose chain maps R_2 -> R_1 -> R_0
                           Lift with Urbild Groebner basis in degree 1
@@ -1878,7 +1876,7 @@ cdef class RESL:
                 sage: R.load_ugb(2)
                           load Urbild Groebner basis
                 sage: C = COCH(H,1,'C',[1,0])
-                sage: D=C*C
+                sage: D = C*C
                           Compute C*C
                           Compose chain maps R_2 -> R_1 -> R_0
                           Lift with Urbild Groebner basis in degree 1
@@ -2120,7 +2118,7 @@ cdef class RESL:
         not yet the case, so a different, but much slower method (Urbild Groebner
         bases) is used::
 
-            sage: D=C*C
+            sage: D = C*C
             Resolution of GF(2)[D8]:
                       Compute C*C
                       Compose chain maps R_2 -> R_1 -> R_0
@@ -2135,7 +2133,7 @@ cdef class RESL:
                       Make degree 1 autolift data
                       > import action matrices
             sage: C = COCH(H,1,'C',[1,0])
-            sage: D=C*C
+            sage: D = C*C
                       Compute C*C
                       Compose chain maps R_2 -> R_1 -> R_0
                       > Lift with the autolift method

@@ -359,7 +359,7 @@ def _gap_reset_random_seed(seed=100):
     libGAP is defined::
 
         sage: from pGroupCohomology.auxiliaries import _gap_reset_random_seed
-        sage: libgap.eval('exportMTXLIB') == '"MTXLIB=%s; export MTXLIB; "'%os.environ['MTXLIB']
+        sage: libgap.eval('exportMTXLIB') == "MTXLIB=%s; export MTXLIB; "%os.environ['MTXLIB']
         True
 
     The _gap_reset_random_seed function is automatically executed as well. Calling it again will
@@ -367,10 +367,10 @@ def _gap_reset_random_seed(seed=100):
     ::
 
         sage: libgap.eval('List([1..10],i->Random(1,100000))')
-        [ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]
+        [ 45649, 49273, 19962, 64029, 11164, 5492, 19892, 67868, 62222, 80867 ]
         sage: _gap_reset_random_seed()
         sage: libgap.eval('List([1..10],i->Random(1,100000))')
-        [ 97172, 88236, 80252, 19356, 27190, 18332, 44166, 99250, 99181, 74959 ]
+        [ 45649, 49273, 19962, 64029, 11164, 5492, 19892, 67868, 62222, 80867 ]
 
     """
     from sage.all import set_random_seed

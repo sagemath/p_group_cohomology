@@ -82,7 +82,7 @@ setup(
   ],
   maintainer = "Simon A. King",
   maintainer_email = "simon.king@uni-jena.de",
-  url = "http://users.minet.uni-jena.de/cohomology/documentation/",
+  url = "https://users.fmi.uni-jena.de/cohomology/documentation/",
   description = "Modular Cohomology Rings of Finite Groups",
   packages = find_packages(),
   package_data={'pGroupCohomology': ['*.pxd']},
