@@ -2590,20 +2590,21 @@ class MODCOHO(COHO):
         So, they live in degrees 4, 12, 14 and 15. It would be possible to find
         a last filter-regular parameter in degree 1, but that would still not
         allow to apply the Benson criterion. When we invest considerably
-        more time, we find algebraically independent (but not necessarily
-        filter-regular) parameters in much smaller degrees 4, 12, 2 and 1::
+        more time, we could find algebraically independent (but not necessarily
+        filter-regular) parameters in much smaller degrees 4, 12, 2 and 1,
+        by calling ::
 
-            sage: H.parameters()                    # long time
+            sage: H.parameters()                    # not tested
             ['b_1_1^4+b_1_0^3*b_1_1+b_1_0^4+b_2_4*b_1_1^2+b_2_4*b_1_0^2+b_2_4^2+b_2_3^2+c_4_15',
              'b_3_9^4+b_3_1^4+b_3_0^4+b_1_1^6*b_3_1^2+b_1_0^2*b_1_1^4*b_3_1^2+b_1_0^3*b_3_0^2*b_3_1+b_1_0^4*b_1_1^8+b_1_0^6*b_3_1^2+b_1_0^6*b_3_0*b_3_1+b_1_0^6*b_3_0^2+b_1_0^8*b_1_1^4+b_2_4*b_1_0^4*b_3_0*b_3_1+b_2_4*b_1_0^7*b_3_1+b_2_4^2*b_1_1^2*b_3_1^2+b_2_4^2*b_1_0^2*b_3_0^2+b_2_4^2*b_1_0^2*b_1_1^6+b_2_4^2*b_1_0^8+b_2_4^4*b_1_1^4+b_2_4^4*b_1_0^2*b_1_1^2+b_2_4^4*b_1_0^4+b_2_3*b_1_0^4*b_3_0^2+b_2_3*b_2_4*b_1_0^5*b_3_0+b_2_3^2*b_1_0^2*b_3_0^2+b_2_3^4*b_1_0^4+c_4_15*b_1_1^2*b_3_1^2+c_4_15*b_1_1^5*b_3_1+c_4_15*b_1_0*b_1_1^4*b_3_1+c_4_15*b_1_0*b_1_1^7+c_4_15*b_1_0^2*b_3_1^2+c_4_15*b_1_0^5*b_3_0+b_2_4*c_4_15*b_1_1^3*b_3_1+b_2_4*c_4_15*b_1_1^6+b_2_4*c_4_15*b_1_0*b_1_1^5+b_2_4*c_4_15*b_1_0^2*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_1*b_3_1+b_2_4^2*c_4_15*b_1_0*b_3_0+b_2_4^3*c_4_15*b_1_1^2+b_2_4^3*c_4_15*b_1_0*b_1_1+b_2_3*c_4_15*b_1_0^3*b_3_0+b_2_3*b_2_4*c_4_15*b_1_0^4+b_2_3^2*c_4_15*b_1_0*b_3_0+b_2_3^3*c_4_15*b_1_0^2+c_4_15^2*b_1_1*b_3_1+c_4_15^2*b_1_0*b_3_0+c_4_15^2*b_1_0^4+b_2_4*c_4_15^2*b_1_0*b_1_1+b_2_4*c_4_15^2*b_1_0^2+b_2_4^2*c_4_15^2+b_2_3^2*c_4_15^2',
              'b_2_4+b_2_3',
              'b_1_1+b_1_0']
 
-        However, all the above effort was in vain, as The Poincaré series shows
-        that the approximation cannot be complete: The Poincaré series' denominator
-        does not divide `(1-t^{4})(1-t^{12})(1-t^{2})(1-t)`, where the exponents
-        are given by the degrees of the above set of algebraically independent
-        parameters::
+        However, all the above effort was in vain (that's why we removed that test),
+        as The Poincaré series shows that the approximation cannot be complete:
+        The Poincaré series' denominator does not divide `(1-t^{4})(1-t^{12})(1-t^{2})(1-t)`,
+        where the exponents are given by the degrees of the above set of algebraically
+        independent parameters::
 
             sage: p = H.poincare_series()
             sage: t = p.parent().gen()
@@ -2628,27 +2629,28 @@ class MODCOHO(COHO):
 
         With these parameters, the Symonds criterion (see :meth:`SymondsTest`)
         has a chance to apply in degrees strictly greater than `0 + 0 + 3 + 2
-        + 2 + 1 + 1 = 9`. However, in this example we can do better, with the
+        + 2 + 1 + 1 = 9`. However, in this example we could do better, with the
         Hilbert\--Poincaré criterion and an existence proof of parameters over
-        a finite extension field. ::
+        a finite extension field. Again, since the test would take a very
+        long time, we remove it from our test suite. ::
 
-            sage: H.parameter_degrees_over_field_extension()    # long time
+            sage: H.parameter_degrees_over_field_extension()    # not tested
             ((4, 2, 1, 3), 3, True)
 
-        Again, this takes rather long, and in practical computations we would
-        be better off to apply an easier completeness criterion in higher degree.
+        This would indeed take so long that in practical computations one would
+        be better off to apply an easier completeness criterion in higher degree
+        see below.
+
         Anyway, there is a finite extension field over which there is some hsop
         in degrees 4, 2, 1, and 3, the depth of the cohomology ring is at
         least three, and our heuristics did not find parameters in these
         degrees, *i.e.*, we use an existence result of parameters over a
-        finite extension field.
-
-        Since `4 + 2 + 1 + 3 - 3 = 7`, we still can not prove completeness of
-        the current degree six ring approximation, and thus compute the next
-        degree. In order to avoid automatic application of a completeness
-        criterion, we use the method :meth:`next`. There are no further
-        relations in degree 7, but finally the Poincaré series satisfies
-        the condition of the completeness criterion::
+        finite extension field. Since `4 + 2 + 1 + 3 - 3 = 7`, we still can not
+        prove completeness of the current degree six ring approximation, and thus
+        compute the next degree. In order to avoid automatic application of a
+        completeness criterion, we use the method :meth:`next`. There are no further
+        relations in degree 7, but finally the Poincaré series satisfies the
+        condition of the completeness criterion::
 
             sage: H.next()
             sage: H.knownDeg
@@ -2658,15 +2660,12 @@ class MODCOHO(COHO):
             sage: p = H.poincare_series()
             sage: (p*(1-t^4)*(1-t^2)*(1-t)*(1-t^3)).denominator()
             1
+            sage: H.knownDeg > (p*(1-t^4)*(1-t^2)*(1-t)*(1-t^3)).numerator().degree()
+            True
 
         Thus the Hilbert\--Poincaré criterion proves the completeness of the
         ring approximation, using parameters (over an extension field) in
-        degrees 4, 2, 1, and 3::
-
-            sage: H.HilbertPoincareTest()
-            True
-            sage: H.WhatHSOP
-            ['4', '2', '1', '3']
+        degrees 4, 2, 1, and 3.
 
         It should be noted that the above example was rather artificial and
         does *not* show how one should compute a cohomology ring. So, in a last
@@ -2678,8 +2677,6 @@ class MODCOHO(COHO):
             sage: Hdefault.make()
             sage: H == Hdefault
             True
-            sage: H._method
-            'Hilbert-Poincar&eacute;'
             sage: Hdefault._method
             'Hilbert-Poincar&eacute;'
             sage: H.knownDeg
@@ -2693,7 +2690,7 @@ class MODCOHO(COHO):
         better parameters outweighs the time spent to compute two additional
         degrees of the ring structure. Interestingly, our heuristics to compute
         algebraically independent parameters can provide better parameters when
-        using default algorithms::
+        using default algorithms, and is faster::
 
             sage: Hdefault.parameters()
             ['c_4_15',

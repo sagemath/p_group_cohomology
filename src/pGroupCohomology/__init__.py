@@ -981,17 +981,7 @@ It used to be a conjecture that the product of any two essential
 classes vanishes. But then it was found that the cohomology of the
 Sylow 2-subgroup of `U_3(4)`, which is of order 64, has exactly
 one essential class that decomposes into essential classes of smaller
-degrees. We verify this property::
-
-    sage: H = CohomologyRing(64,245)
-    sage: H
-    H^*(Syl2(U3(4)); GF(2))
-    sage: I = H.essential_ideal()    #long time
-    sage: singular(H).set_ring()
-    sage: (I*I).NF('std(0)').interred()  #long time
-    a_4_8*a_6_8*a_1_0^3*a_1_3
-    sage: singular('NF((a_4_8*a_6_8*a_1_0^3*a_1_3)^2, std(0))')
-    0
+degrees. See the doc tests of :meth:`~pGroupCohomology.cohomology.COHO.essential_ideal`.
 
 Until recently, that was the only known counterexample to the
 conjecture. However, using this package, it was found that the

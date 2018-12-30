@@ -133,55 +133,84 @@ Versions
 See SPKG.txt for a more detailed account.
 
   * v3.1 (December 2018):
+
     - Hilbert series computation by using a new implementation in SageMath.
     - Vastly improved computation of filter degree type (now relying on Hilbert series).
     - Use libgap instead of the GAP pexpect interface.
     - Sub-package upgrade: modres-1.1
+
   * v3.0.1 (August 2018):
+
     - Add a routine to compute filter regular parameters in small degrees by enumeration.
     - More self-consistency checks.
     - A routine to compute a cohomology ring from a tower of subgroups.
+
   * v3.0 (February 2018):
+
     - Turn the cohomology package into a "new style spkg". It is split into several smaller parts that are either using an autotoolized build system or are pip installable.
     - Replace the old custom test and doc-build scripts by standard tools.
+
   * v2.1.5 (Mai 2015):
+
     - Improved computation of the nil-radical, including a degree-wise computation.
     - Methods is_nilpotent and nilpotency_degree for cohomology ring elements.
     - Various improvements for the computation of depth and filter degree type.
+
   * v2.1.4 (April 2013):
+
     - Consequently compute parameters for the *complete* cohomology ring rather than only for the ring approximation.
     - Improved heuristics to speed-up computations.
     - Better portability.
     - Improved logging.
+
   * v2.1.3 (July 2012):
+
     - Improved heuristics to choose between Hilbert-Poincaré and Symonds criteria, and to deal with lower bounds for the depth.
     - Allow storing of "permanent results" that are indexed in terms of data in Gap.
     - Switch to a new location for the public web repository.
+
   * v2.1.2 (March 2012):
+
     - Use Sage's coercion model more properly.
     - Build the documentation locally.
+
   * v2.1.1 (September 2010):
+
     - Make it so that write permission in ``SAGE_DATA`` are only needed during installation of the package, but not for using it.
     - Restructuring the code.
+
   * v2.1 (September 2010):
+
     - Support for big endian machines.
     - 100% doctest coverage, parallel testing.
     - New: Essential and depth essential ideals, kernels and preimages of induced homomorphisms.
     - Improved completion tests.
+
   * v2.0 (April 2010):
+
     - Modular cohomology rings for arbitrary finite groups (not just prime power groups).
     - Improved portability.
+
   * v1.2.p0 (March 2010):
+
     - Improved test for the presence of the Small Groups library (thanks to Dima Pasechnik).
+
   * v1.2 (October 2009):
+
     - Minor bug fixes and code improvements.
     - Persistent Group Cohomology (bar codes), based on ideas of Graham Ellis and Simon King.
+
   * v1.1 (August 2009):
+
     - Yoneda cocomplex.
     - Restricted Massey powers and general Massey products.
+
   * v1.0.2 (July 2009):
+
     - Minor fixes to prevent a regression.
+
   * v1.0.1 (July 2009):
+
     - First public version in GPL 2 or later
 
 Licence
