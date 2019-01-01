@@ -142,7 +142,7 @@ loadGroup := function(Glabel)
   return G;
 end;
 
-GroupName := function(Gid)
+Gid2GStem := function(Gid)
   local Gname, Gsize;
   Gsize := Gid[1];
   Gname := Concatenation(String(Gsize), "gp", String(Gid[2]));
@@ -152,7 +152,7 @@ end;
 Gid2Glabel := function(Gid,fldr)
   local Gsize, Gname;
   Gsize := Gid[1];
-  Gname := GroupName(Gid);
+  Gname := Gid2GStem(Gid);
   return [Gsize, Gname, fldr];
 end;
 
@@ -326,7 +326,7 @@ writeOutSgsFile := function(Istump, Glabel, specialSubgpId, CrankPos,
   buffer := Concatenation("numSpecialSubgps := ",
     String(Length(specialSubgpId)), ";");
   WriteLine(fp, buffer);
-  # subgpNames := List(specialSubgpId, Hid -> GroupName(Hid));
+  # subgpNames := List(specialSubgpId, Hid -> Gid2GStem(Hid));
   buffer := Concatenation("specialSubgpId := ", String(specialSubgpId), ";");
   WriteLine(fp, buffer);
   buffer := Concatenation("CrankPos := ", String(CrankPos), ";");
@@ -552,7 +552,7 @@ makeThisSmallGroup := function(Gid,fldr)
   G := SmallGroup(Gid);
   q := Gid[1];
   i := Gid[2];
-  Gname := GroupName(Gid);
+  Gname := Gid2GStem(Gid);
   if IsAbelian(G) then
     easyMakeBasis(G, Gname, fldr);
     if Size(fldr)>0 then

@@ -2026,8 +2026,11 @@ class temporary_result(permanent_result):
         if len(val)==2:
             return val[0]
         # The value is defined in some interface. Test if it is valid
-        if len(val)==3:
-            a,b,d=val
+        from pGroupCohomology.auxiliaries import gap
+        if len(val) == 3:
+            a,b,d = val
+            if a == gap: # that's in fact libgap
+                return a.eval(b)
             try:
                 a._check_valid()
                 return a
@@ -10239,23 +10242,9 @@ is an error. Please inform the author!""")
         singular.eval('attrib(%s,"isSB",1)'%I.name())
         gb_command = self._gb_command()
         P = self.filter_regular_parameters()
-        P2 = self.parameters()
         self.set_ring()
-        try:
-            RAW = self.raw_filter_degree_type.get_cache(P2)
-            d = RAW[0][:-1].count(-1)
-        except KeyError:
-            for p in P:
-                coho_logger.debug("test if %s is regular", self, p)
-                if is_filter_regular(I,p) == [0]:
-                    coho_logger.debug("  yes!", self)
-                    d+=1
-                    if p!=P[-1]:
-                        # std(id,p) was buggy at some point
-                        singular.eval('%s=std(%s,ideal(%s))'%(I.name(), I.name(), p))
-                else:
-                    coho_logger.debug("  no!", self)
-                    break
+        RAW = self.raw_filter_degree_type(P)
+        d = RAW[0][:-1].count(-1)
 
         singular.eval('degBound='+dgb)
         try:
