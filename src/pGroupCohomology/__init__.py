@@ -32,12 +32,10 @@ AUTHORS:
 IMPLEMENTATION:
 
 Our package is formed by Singular- and Gap-functions, as well as Python-, Cython- and C-code.
-
-NOTE:
-
-    Our package uses the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
-    library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. It
-    should be installed in Sage by ``sage -i database_gap``.
+It links against `SharedMeatAxe <https://users.fmi.uni-jena.de/~king/SharedMeatAxe/>`_, which
+is a fork of `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_, and uses the
+`Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_ library of Hans
+Ulrich Besche, Bettina Eick and Eamonn O'Brien at run time.
 
 Modular cohomology rings of a finite group `G` are available via the constructor
 :func:`CohomologyRing`. The real work behind the scenes is done in the modules
