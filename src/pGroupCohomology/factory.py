@@ -1361,6 +1361,49 @@ class CohomologyRingFactory:
                 OUT.reconstruct_singular()
         return OUT
 
+    def from_subgroup_tower(self, *args, **kwds):
+        assert len(args)>1, "At least two groups must be provided."
+        G0 = args[0]
+        q = G0.Order().sage()
+        assert q.is_prime_power(), "The first argument must be a prime power group"
+        p = q.factor()[0][0]
+        GroupName = kwds.pop('GroupName', None)
+        if isinstance(GroupName, (list,tuple)):
+            assert len(GroupName)==len(args), "Number of group names does not coincide with the height of the subgroup tower"
+            GroupNames = GroupName
+        elif GroupName is not None:
+            GroupNames = ['Syl_{}_{}'.format(p, GroupName)]
+            for i in range(1, len(args)-1):
+                GroupNames.append('Subgp_{}_{}'.format(i, GroupName))
+            GroupNames.append(GroupName)
+        else:
+            GroupNames = [None]*len(args)
+        GroupDescr = kwds.pop('GroupDescr', None)
+        if isinstance(GroupDescr, (list,tuple)):
+            assert len(GroupDescr)==len(args), "Number of group names does not coincide with the height of the subgroup tower"
+            GroupDescrs = GroupDescr
+        elif GroupDescr is not None:
+            GroupDescrs = ['Sylow {}-subgroup of {}'.format(p, GroupDescr)]
+            for i in range(1, len(args)-1):
+                GroupDescrs.append('{} intermediate subgroup of {}'.format(ZZ(i).ordinal_str(), GroupDescr))
+            GroupDescrs.append(GroupDescr)
+        else:
+            GroupDescrs = [None]*len(args)
+        for i in range(len(args)-1):
+            assert args[i+1].IsSubgroup(args[i]), "{} argument has to be a subgroup of the {} argument".format(Integer(i+1).ordinal_str(), Integer(i).ordinal_str())
+        assert (args[-1].Order().sage()/q)%p, "First given group must be a Sylow {}-subgroup of the last given group".format(p)
+        H0 = CohomologyRing(G0, GroupName = GroupNames.pop(0), GroupDescr = GroupDescrs.pop(0), **kwds)
+        H0.make()
+        H0.verify_consistency_of_dimensions()
+        while i in range(1,len(args)-1):
+            G1 = args[i]
+            H1 = CohomologyRing(G1, SubgpCohomology=H0, Subgroup=G0, prime=p, from_scratch=True, GroupName = GroupNames.pop(0), GroupDescr = GroupDescrs.pop(0), **kwds)
+            H1.make()
+            H0 = H1
+            G0 = G1
+            H0.verify_consistency_of_dimensions()
+        return CohomologyRing(args[-1], SubgpCohomology=H0, Subgroup=G0, prime=p, GroupName = GroupNames.pop(0), GroupDescr = GroupDescrs.pop(0), from_scratch=True, **kwds)
+
     def __call__ (self, *args, **kwds):
         """
         Create the mod-p cohomology ring of a finite groups

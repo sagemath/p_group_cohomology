@@ -1,6 +1,6 @@
 #*****************************************************************************
 #
-#    Copyright (C) 2009-2018 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2009-2019 Simon A. King <simon.king@uni-jena.de>
 #
 #    This file is part of p_group_cohomology.
 #
@@ -67,7 +67,7 @@ ext_mods = [
 
 setup(
   name = "pGroupCohomology",
-  version = "3.1",
+  version = "3.2",
   author = "Simon A. King, David J. Green",
   author_email = "simon.king@uni-jena.de, david.green@uni-jena.de",
   license = 'GPLv2+',
@@ -86,7 +86,7 @@ setup(
   description = "Modular Cohomology Rings of Finite Groups",
   packages = find_packages(),
   package_data={'pGroupCohomology': ['*.pxd']},
-  py_modules = ["pGroupCohomology.auxiliaries", "pGroupCohomology.barcode", "pGroupCohomology.factory"],
+  py_modules = ["pGroupCohomology.auxiliaries", "pGroupCohomology.barcode", "pGroupCohomology.factory", "pGroupCohomology.isomorphism_test"],
   data_files=[(os.path.join(SAGE_SHARE,"sage","ext","gap","modular_cohomology"),
               [os.path.join("pGroupCohomology","GapMaxels.g"),
                os.path.join("pGroupCohomology","GapMB.g"),

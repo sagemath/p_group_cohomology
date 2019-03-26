@@ -10108,8 +10108,31 @@ is an error. Please inform the author!""")
             self.setprop('completeGroebner',False)
 
 #####################################################################
-## Ring theoretic Invariants of the cohomology ring
+## Ring theoretic properties of the cohomology ring
 #####################################################################
+
+    def is_isomorphic(self, other):
+        from pGroupCohomology.isomorphism_test import IsomorphismTest
+        T = IsomorphismTest(self, other)
+        Tinv = IsomorphismTest(other, self)
+        while True:
+            result = T.explore_isomorphisms()
+            if result is not None:
+                return result
+            coho_logger.info("We achieved no conclusion on isomorphy.", self)
+            coho_logger.info("Trying to find an inverse isomorphism instead.", self)
+            result = Tinv.explore_isomorphisms()
+            if result is None:
+                T.cutoff *= 10
+                Tinv.cutoff *= 10
+                continue
+            if result is False:
+                return result
+            Tinv._R_elim.set_ring()
+            result = [singular.eval('NF(@%s,%s)'%(x.name(),Tinv.urbild_GB.name())) for x in Tinv._codomain.Gen]
+            T.set_images(result)
+            assert T.is_isomorphism(), "Inverting the isomorphism didn't work!"
+            return result
 
     def dimension(self):
         """

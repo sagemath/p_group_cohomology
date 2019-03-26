@@ -144,6 +144,7 @@ from sage.all import deepcopy
 from sage.all import load
 from sage.all import tmp_filename
 from sage.all import Infinity
+from sage.misc.cachefunc import cached_method
 
 ## Sage Rings etc.
 from sage.all import Integer
@@ -6451,6 +6452,41 @@ cdef class ChMap(RingHomomorphism):
     ## Preimages
     #################################################################################
 
+    @cached_method
+    def _urbild_data(self, d):
+        # The data needed to compute the preimage of a cochain by matrix operations
+        cdef int i,j,k
+        while self.knownDeg() < d:
+            self.lift()
+        cdef int p = self.Src.coef()
+        cdef MTX tmpM
+        # Note: self.Src is the resolution of the codomain,
+        #       self.Tgt is the resolution of the domain.
+        cdef int RK = self.Tgt.rank(d)
+        cdef int src_rk = self.Src.rank(d)
+        cdef list ttmpL
+        cdef list tmpL
+        cdef Matrix_t *tmpMTX
+        if coho_options['useMTX']:
+            coho_logger.debug("> > Construct MTX matrix for elimination", self)
+            tmpL = []
+            for i from 0 <= i < RK:
+                ttmpL = []
+                tmpM = self[d]
+                for j from 0 <= j < src_rk:
+                    ttmpL.append(tmpM[j*RK+i,0])
+                tmpL.append(ttmpL + i*[0]+[1]+(RK-i-1)*[0])
+            tmpMTX = rawMatrix(p, tmpL)
+            M = new_mtx(tmpMTX, None)
+        else:
+            coho_logger.debug("> Construct matrix for elimination", self)
+            M = Matrix(GF(p), RK, src_rk+RK, 0)
+            for i from 0 <= i < RK:
+                M[i] = (self*self.domain().standardCochain(d,i)).MTX()._rowlist_(0) + i*[0]+[1]+(RK-i-1)*[0]
+        coho_logger.debug("> > Compute echelon form of %dx%d matrix"%(M.nrows(),M.ncols()), self)
+        M.echelonize()
+        return M
+
     def preimage(self, Item = None, Id = None):
         """
         ASSUMPTION:
@@ -6459,10 +6495,13 @@ cdef class ChMap(RingHomomorphism):
 
         INPUT:
 
-        - ``Item`` -- (optional) element in ``singular(self.codomain())``.
+        - ``Item`` -- (optional) element in ``singular(self.codomain())``
+                      or element of ``self.codomain()``.
         - ``Id`` -- (optional) ideal (given by a list
           of strings) in the codomain, so that lift
-          of ``Item`` will be done modulo that ideal.
+          of ``Item`` will be done modulo that ideal. Only available
+          if ``Item`` is not provided as an element of ``self.codomain()``
+          but as element in Singular.
 
         OUTPUT:
 
@@ -6473,10 +6512,13 @@ cdef class ChMap(RingHomomorphism):
         - If ``Item`` is not provided, the kernel of ``self``
           resp. the preimage of the ideal given by ``Id`` is
           returned as an ideal in ``singular(self.codomain())``.
-        - If ``Item`` is a single element, a pair is returned,
-          namely one element of the preimage (or ``None``, if
-          there is no preimage) and the kernel of ``self`` (resp.
-          the preimage of the ideal given by ``Id``).
+        - If ``Item`` is a single element and ``Id`` is ``None``,
+          a representative of the preimage of ``Item`` is returned,
+          or ``None`` if there is no preimage.
+        - If ``Item`` is a single element and ``Id`` defines an ideal,
+          a pair is returned, namely one element of the preimage (or ``None``,
+          if there is no preimage) and the preimage of the ideal given by
+          ``Id``).
 
         ALGORITHM:
 
@@ -6492,12 +6534,6 @@ cdef class ChMap(RingHomomorphism):
             sage: r
             Induced homomorphism of degree 0 from H^*(SmallGroup(16,3); GF(2)) to H^*(SmallGroup(4,2); GF(2))
             sage: singular(r.codomain()).set_ring()
-            sage: p = singular((r.codomain().1+r.codomain().2)^2); p
-            c_1_1^2+c_1_0^2
-            sage: I = singular.maxideal(2); I
-            c_1_1^2,
-            c_1_0*c_1_1,
-            c_1_0^2
             sage: p = singular((r.codomain().1+r.codomain().2)^2); p
             c_1_1^2+c_1_0^2
             sage: I = singular.maxideal(2); I
@@ -6553,7 +6589,31 @@ cdef class ChMap(RingHomomorphism):
         if not self.codomain().completed:
             raise ValueError("Computation of the codomain %s is incomplete"%repr(self.codomin()))
         from pGroupCohomology.auxiliaries import singular
-        if Id is None:
+        # If Item is a COCH and Id is None => Use _urbild_data
+        # Otherwise, we will use Singular to compute stuff.
+        cdef MTX urbild_GB
+        cdef tuple pivs
+        cdef int i,j
+        cdef MTX result
+        cdef PTR urbild_p
+        if isinstance(Item, COCH) and Id is None:
+            urbild_GB = self._urbild_data(Item.deg())
+            pivs = urbild_GB.pivots()
+            result = new_mtx(MatAlloc(urbild_GB.Data.Field, 1, urbild_GB.Data.Noc), urbild_GB)
+            for i in range(len(pivs)):
+                j = pivs[i]
+                FfAddMulRow(result.Data.Data, MatGetPtr(urbild_GB.Data, i), FfExtract((<COCH>Item).Data.Data.Data, j))
+            if result[:,:(<COCH>Item).Data.Data.Noc] != Item.MTX():
+                return None
+            lift = COCH(self.domain(), Item.deg(), "lift", result[:,(<COCH>Item).Data.Data.Noc:])
+            lift_str = lift.as_polynomial()
+            if self.domain().completed:
+                singular(self.domain()).set_ring()
+            else:
+                self.domain().set_ring()
+            return singular(lift_str)
+
+        if Id is None or Id==[] or Id==['0']:
             key = None
             _elim_cache = self._elim_cache.get(None)
         else:
@@ -6725,7 +6785,10 @@ cdef class ChMap(RingHomomorphism):
         if OutItem is None:
             return PreIm
         if OutItem is False:
-            return None, PreIm
+            if Id is not None:
+                return None, PreIm
+            else:
+                return None
         return RTotal.imap(OutItem).NF('std(0)'), PreIm
 
     def poincare_of_image(self):
