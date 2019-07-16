@@ -46,8 +46,6 @@ from pGroupCohomology.cohomology import COHO
 
 import re,os
 
-os.environ['MTXLIB'] = os.path.join(DOT_SAGE,'meataxe')
-
 import urllib2
 import tarfile
 import logging

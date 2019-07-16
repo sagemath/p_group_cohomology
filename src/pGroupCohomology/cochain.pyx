@@ -1855,7 +1855,7 @@ cdef class COCH(RingElement):
         Hence, after computing Bockstein and Steenrod power in ``U`` as above, and since
         Steenrod power and Bockstein commute with restriction maps, the theorem of Kraines
         tells us that `\langle C; 1\rangle` should restrict to
-        `c_{2,1}c_{2,2}^3 - c_{2,1}^3c_{2,2}`, 0, `c_{2,1}c_{2,2}^3 - c_{2,1}^3c_{2,2}`,
+        `0`, `c_{2,1}c_{2,2}^3 - c_{2,1}^3c_{2,2}`, `c_{2,1}c_{2,2}^3 - c_{2,1}^3c_{2,2}`,
         and `-c_{2,2}^4 - c_{2,1}c_{2,2}^3 + c_{2,1}^3c_{2,2}`. It does::
 
             sage: CP = C.massey_power()
@@ -6486,6 +6486,9 @@ cdef class ChMap(RingHomomorphism):
         coho_logger.debug("> > Compute echelon form of %dx%d matrix"%(M.nrows(),M.ncols()), self)
         M.echelonize()
         return M
+
+    def kernel(self):
+        return self.preimage()
 
     def preimage(self, Item = None, Id = None):
         """

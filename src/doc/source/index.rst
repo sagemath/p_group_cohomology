@@ -132,11 +132,12 @@ Versions
 
 See SPKG.txt for a more detailed account.
 
-  * v3.2 (March 2019):
+  * v3.2 (July 2019):
 
     - Detection of graded non-induced isomorphisms of cohomology rings.
     - Easier creation of a cohomology ring from a tower of subgroups.
     - Kernels and preimage representatives of induced maps.
+    - Stop hard-coding MTXLIB environment variable.
 
   * v3.1 (December 2018):
 
