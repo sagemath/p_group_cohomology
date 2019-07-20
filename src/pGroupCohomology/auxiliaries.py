@@ -30,7 +30,7 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 import os
-from sage.env import SAGE_ROOT, DOT_SAGE
+from sage.env import SAGE_SHARE, MTXLIB
 
 ## All other modules will import this version of singular
 
@@ -344,6 +344,12 @@ def _gap_eval_string(s):
     are too large to be directly processed by libGAP. Therefore, we introduce
     this auxiliary function that cuts permutation group definitions into smaller
     bits before evaluation.
+
+    NOTE:
+
+    It could be that this function is in fact not needed, as we couldn't reproduce
+    an example where a direct string evaluation in libGAP fails.
+
     """
     if s.startswith('Group(['):
         return gap.Group([gap.eval(p if p.endswith(')') else p+')') for p in s[7:-2].strip().split('),')])
@@ -362,8 +368,8 @@ def _gap_reset_random_seed(seed=100):
         sage: libgap.eval('exportMTXLIB') == "MTXLIB=%s; export MTXLIB; "%sage.env.MTXLIB
         True
 
-    The _gap_reset_random_seed function is automatically executed as well.
-    Calling it again will reset libGAP's random seed.
+    The _gap_reset_random_seed function is automatically executed as well. Calling it again will
+    reset libGAP's random seed.
     ::
 
         sage: libgap.eval('List([1..10],i->Random(1,100000))')
@@ -374,9 +380,7 @@ def _gap_reset_random_seed(seed=100):
 
     """
     from sage.all import set_random_seed
-    from sage import env
     set_random_seed(seed)
-    gap.eval('BindGlobal("exportMTXLIB","MTXLIB=%s; export MTXLIB;")'%(env.MTXLIB))
     gap.eval('Reset(GlobalMersenneTwister, {})'.format(seed))
     gap.eval('Reset(GlobalRandomSource, {})'.format(seed))
 
@@ -386,9 +390,10 @@ def _gap_reset_random_seed(seed=100):
 #
 ########################
 # Reading some modules
-gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMaxels.g'))
-gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapMB.g'))
-gap.Read(os.path.join(SAGE_ROOT,'local','share','sage','ext','gap','modular_cohomology','GapSgs.g'))
+gap.Read(os.path.join(SAGE_SHARE,'sage','ext','gap','modular_cohomology','GapMaxels.g'))
+gap.Read(os.path.join(SAGE_SHARE,'sage','ext','gap','modular_cohomology','GapMB.g'))
+gap.Read(os.path.join(SAGE_SHARE,'sage','ext','gap','modular_cohomology','GapSgs.g'))
+gap.eval('BindGlobal("exportMTXLIB","MTXLIB=%s; export MTXLIB; ")'%(MTXLIB))
 # Reset the random generator
 _gap_reset_random_seed()
 

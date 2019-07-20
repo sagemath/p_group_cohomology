@@ -2677,7 +2677,7 @@ class MODCOHO(COHO):
             sage: Hdefault.make()
             sage: H == Hdefault
             True
-            sage: Hdefault._method
+            sage: Hdefault._method      # indirect doctest
             'Hilbert-Poincar&eacute;'
             sage: H.knownDeg
             7

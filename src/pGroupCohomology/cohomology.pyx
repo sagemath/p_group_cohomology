@@ -363,7 +363,7 @@ def pickle_gap_data(G):
         sage: pickle_gap_data(D)
         Traceback (most recent call last):
         ...
-        TypeError: Can not pickle '<pc group of size 8 with 3 generators>'
+        TypeError: Can not pickle 'Group( [ f1, f2, f3 ] )'
 
     """
     if isinstance(G,basestring):
@@ -975,6 +975,25 @@ def is_filter_regular(I, f, H1=None, I2=None):
     Finite list of vector space dimensions of the annulator of `f` with
     respect to `I`, i.e., `\{p|f\cdot p\in I\}`, or ``False`` if the annulator
     is not finite dimensional.
+
+    EXAMPLES::
+
+        sage: from pGroupCohomology import CohomologyRing
+        sage: from pGroupCohomology.cohomology import is_filter_regular
+        sage: CohomologyRing.doctest_setup()
+        sage: H = CohomologyRing(64, 23, from_scratch=True)
+        sage: H.make(4)
+        sage: F = H.filter_regular_parameters()
+        sage: is_filter_regular(H.relation_ideal(), F[0])
+        False
+        sage: is_filter_regular(H.relation_ideal().std(F[1]), F[0])
+        [0]
+        sage: is_filter_regular(H.relation_ideal().std(F[0]).std(F[1]).std(F[2]), F[3])
+        False
+        sage: H.make()
+        sage: is_filter_regular(H.relation_ideal().std(F[0]).std(F[1]).std(F[2]), F[3])
+        [0, 2, 1, 1, 2]
+
     """
     if isinstance(I,basestring):
         S = singular
@@ -1029,6 +1048,38 @@ def is_filter_regular_parameter_system(I, FRS):
     the last list provides the vector space dimensions of each degree layer of the
     quotient modulo `FRS`. If some annulator or the final quotient is not finite
     dimensional, then ``False`` is returned.
+
+    EXAMPLES::
+
+        sage: from pGroupCohomology import CohomologyRing
+        sage: CohomologyRing.doctest_setup()
+        sage: H = CohomologyRing(64, 23, from_scratch=True)
+        sage: H.make(4)
+
+    There exists a set of elements of degree at most four that are
+    guaranteed to form a filter regular system of parameters of the
+    cohomology ring::
+
+        sage: F = H.filter_regular_parameters()
+        sage: F
+        ['c_2_4', 'c_4_14', 'b_2_3+b_2_2+b_2_1', 'b_3_6']
+
+    However, they are not filter regular in the ring approximations out to
+    degree 4 or 7. They are filter regular in the ring approximation out
+    to degree 8, and this is in fact the complete cohomology ring::
+
+        sage: from pGroupCohomology.cohomology import is_filter_regular_parameter_system
+        sage: is_filter_regular_parameter_system(H.relation_ideal(), F)
+        False
+        sage: H.make(7)
+        sage: is_filter_regular_parameter_system(H.relation_ideal(), F)
+        False
+        sage: H.make(8)
+        sage: is_filter_regular_parameter_system(H.relation_ideal(), F)
+        [[0], [0], [0], [0, 2, 1, 1, 2], [1, 2, 3, 4, 5, 2, 0, 1]]
+        sage: H.completed
+        True
+
     """
     if isinstance(I,basestring):
         S = singular
@@ -1289,6 +1340,19 @@ class COHO_Terminator:
 from sage.misc.sageinspect import __embedded_position_re, _sage_getdoc_unformatted, sage_getargspec
 
 def _split_embedding_info(obj):
+    """
+    Extract information that is embedded in the docstring of an object.
+
+    EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cohomology import _split_embedding_info
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(64,67)
+            sage: print(_split_embedding_info(H.restriction_maps()[2][1].preimage)[0])
+            ChMap.preimage(self, Item=None, Id=None)
+
+    """
     docstring = _sage_getdoc_unformatted(obj)
     try:
         res = __embedded_position_re.search(docstring)
@@ -1523,21 +1587,7 @@ class permanent_result(object):
         sage: H2 = load(H.autosave_name())
         sage: H2 is H
         False
-        sage: CohomologyRing.global_options('info')
         sage: H2.essential_ideal([H.group().SylowSubgroup(2).Centre()])
-        H^*(SmallGroup(184,5); GF(2)):
-                  Compute essential_ideal
-        H^*(SmallGroup(2,1); GF(2)):
-                  Computing complete Groebner basis
-        H^*(SmallGroup(184,5); GF(2)):
-                  > computing kernel of an induced map
-        H^*(SmallGroup(2,1); GF(2)):
-                  Compute order_matrix
-        Induced homomorphism of degree 0 from H^*(SmallGroup(184,5); GF(2)) to H^*(SmallGroup(2,1); GF(2)):
-                  Compute preimages by elimination
-        H^*(SmallGroup(184,5); GF(2)):
-                  > intersecting two ideals
-                  > preparing output
         b_1_0,
         b_1_1
         sage: CohomologyRing.global_options('warn')
@@ -1572,12 +1622,38 @@ class permanent_result(object):
         self._inst = None
 
     def _instancedoc_(self):
+        """
+        Return documentation of the wrapped method.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cohomology import _split_embedding_info
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(64,67)
+            sage: 'Temporarily cached method' in H.poincare_series._instancedoc_()
+            True
+
+        """
         emb_doc = _split_embedding_info(self._f)
         second = emb_doc[1].lstrip()
         pad = (len(emb_doc[1])-len(second))*' '
         return (pad+self._mode).join([emb_doc[0],second])
 
     def _sage_argspec_(self):
+        """
+        Return the argspec of the wrapped method.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: from pGroupCohomology.cohomology import _split_embedding_info
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(64,67)
+            sage: H.poincare_series._sage_argspec_()
+            ArgSpec(args=['self', 'test_duality'], varargs=None, keywords=None, defaults=(False,))
+
+        """
         return sage_getargspec(self._f)
 
     def __get__(self, inst, cl):
@@ -5224,27 +5300,9 @@ Minimal list of algebraic relations:
                       Compute depth
                       Computation of depth interruptible with Ctrl-c
                       Compute filter_regular_parameters
-                      Compute parameters
-                      Try to find small parameters
-                      Compute find_small_last_parameter
-                      Compute _parameter_restrictions
-            Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
-            Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
-            H^*(D8; GF(2)):
-                      Compute _get_obvious_parameter
-                      Compute _parameter_restrictions
-                      compute radicals of restricted parameter ideal
-                      Compute _parameter_restrictions
-            Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
-            Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
-            H^*(D8; GF(2)):
-                      Determine degree 1 standard monomials
-                      The given last parameter could not be improved
-                      Compute find_small_last_parameter
+                      Compute raw_filter_degree_type
+                      Test filter regularity
+                        Filter degree type: [-1, -2, -2]
                       The depth exceeds the Duflot bound -- there is no essential ideal
             0
 
@@ -10112,6 +10170,109 @@ is an error. Please inform the author!""")
 #####################################################################
 
     def is_isomorphic(self, other):
+        r"""
+        Test whether two cohomology rings are isomorphic as graded rings.
+
+        INPUT:
+
+        - ``other``, a cohomology ring
+
+        OUTPUT:
+
+        - False, if self is not isomorphic to the given other cohomology ring.
+        - None, if no conclusion on the isomorphy could be obtained.
+        - A tuple of strings defining the generator images in an isomorphism
+          from self to other.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()
+            sage: H173 = CohomologyRing(64, 173)
+            sage: H176 = CohomologyRing(64, 176)
+            sage: H173.make()
+            sage: H176.make()
+
+        The rings are similar, but not identical::
+
+            sage: H173.rels()
+            ['a_1_1*b_1_0+a_1_1^2',
+             'b_1_2^2+b_1_0*b_1_2',
+             'a_1_1^3',
+             'a_1_1*b_3_6',
+             'b_3_6^2+b_1_0^3*b_3_6+c_4_9*b_1_0^2+c_4_9*a_1_1^2']
+            sage: H176.rels()
+            ['a_1_1*b_1_0+a_1_1^2',
+             'b_1_2^2+b_1_0*b_1_2',
+             'a_1_1^3',
+             'a_1_1*b_3_6',
+             'b_3_6^2+b_1_0^2*b_1_2*b_3_6+b_1_0^3*b_3_6+c_4_9*b_1_0^2+c_2_4*b_1_0^3*b_1_2+c_4_9*a_1_1^2']
+
+        The existence of an isomorphism will be determined by an enumeration
+        of all possible ways to map the generators of the first ring to elements
+        of the second ring. This would of course be a huge number, but it can
+        be cut down by various tests (for instance, the ideal generated by the
+        generator images need to have the same Poincaré series than the ideal
+        generated by the mapped generators, and in some cases it is also
+        helpful to take the Poincaré series of annihilators of ideals into account).
+        Often, there only remains a single possibility to map some of the generators
+        in a way that could potentially extend to an isomorphism.
+
+        In an attempt to keep the average computation time small, the number
+        of possible assignments tested is cut off. If no conclusion can be made
+        from these tests, then the cut-off is automatically adapted until a conclusion
+        can be achieved::
+
+            sage: H173.is_isomorphic(H176)              # long time
+            ('1*c_2_4',
+             '1*b_1_2*b_3_6+1*c_4_9+1*c_2_4*b_1_0*b_1_2',
+             '1*a_1_1',
+             '1*b_1_0',
+             '1*b_1_2',
+             '1*b_3_6')
+
+        We now demonstrate that even fairly similar cohomology rings can be
+        shown to be non-isomorphic. In the following example, the Poincaré series,
+        the generator degrees and the degrees of minimal relations coincide.
+        ::
+
+            sage: H85 = CohomologyRing(64, 85)
+            sage: H85.make()
+            sage: H85.poincare_series() == H173.poincare_series()
+            True
+            sage: H85.degvec == H173.degvec
+            True
+            sage: H85.rels()
+            ['a_1_0^2', 'a_1_1^2', 'a_1_0*b_1_2^2', 'a_1_0*a_3_6', 'a_3_6^2']
+            sage: H173.rels()
+            ['a_1_1*b_1_0+a_1_1^2',
+             'b_1_2^2+b_1_0*b_1_2',
+             'a_1_1^3',
+             'a_1_1*b_3_6',
+             'b_3_6^2+b_1_0^3*b_3_6+c_4_9*b_1_0^2+c_4_9*a_1_1^2']
+            sage: CohomologyRing.global_options('info')
+            sage: H85.is_isomorphic(H173)
+            IsomorphismTest(H^*(SmallGroup(64,85); GF(2)), H^*(SmallGroup(64,173); GF(2))):
+                      Trying to find an isomorphism
+            H^*(SmallGroup(64,85); GF(2)):
+                      Inserting SmallGroup(4,2) as a subgroup
+                      Inserting SmallGroup(8,5) as a subgroup
+                      Reconstructing subgroup data
+            H^*(SmallGroup(64,173); GF(2)):
+                      Determine degree 1 standard monomials
+            IsomorphismTest(H^*(SmallGroup(64,85); GF(2)), H^*(SmallGroup(64,173); GF(2))):
+                      gen(5) is rigid: b_1_2 --> 1*b_1_0
+            H^*(SmallGroup(64,173); GF(2)):
+                      Determine degree 1 standard monomials
+            IsomorphismTest(H^*(SmallGroup(64,85); GF(2)), H^*(SmallGroup(64,173); GF(2))):
+                      There cannot be a homomorphism, (gen(3)) cannot be mapped
+                      There cannot be a homomorphism, (gen(3)) cannot be mapped
+                      There cannot be a homomorphism, (gen(3)) cannot be mapped
+                      There cannot be a homomorphism, (gen(3)) cannot be mapped
+                      There is definitely no isomorphism
+            False
+
+        """
         from pGroupCohomology.isomorphism_test import IsomorphismTest
         T = IsomorphismTest(self, other)
         Tinv = IsomorphismTest(other, self)
@@ -10660,7 +10821,39 @@ is an error. Please inform the author!""")
             except:
                 pass
 
-    def verify_consistency_of_dimensions(self, count_standard_monomials=False):
+    def _verify_consistency_of_dimensions(self, count_standard_monomials=False):
+        r"""
+        Assert consistency of dimensions and Poincaré series.
+
+        It should of course be the case that the dimension
+        of the `k`-th cohomology group coincides with the `k`-th
+        coefficient of the Poincaré series. So, we obtain a
+        consistency test that is relatively cheap.
+
+        In the case of a prime power group, it is only tested that the
+        rank of the `k`-th term of the minimal free resolution is
+        consistent with the `k`-th coefficient of the Poincaré series,
+        unless the optional argument ``count_standard_monomials`` is
+        True.
+
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()
+            sage: H = CohomologyRing(192, 1023, prime=2)
+            sage: H.make(8)
+            sage: H._verify_consistency_of_dimensions()
+            sage: H.subgroup_cohomology()._verify_consistency_of_dimensions(True)
+            sage: [len(H.standard_monomials(i)) for i in range(8)]
+            [1, 0, 4, 6, 2, 13, 20, 14]
+            sage: [PowerSeriesRing(QQ,'t')(H.poincare_series())[i] for i in range(8)]
+            [1, 0, 4, 6, 2, 13, 20, 14]
+            sage: H.subgroup_cohomology().resolution().rank()
+            (1, 4, 8, 12, 20, 33, 48, 64, 87, 118, 152, 188, 234)
+            sage: [PowerSeriesRing(QQ,'t')(H.subgroup_cohomology().poincare_series())[i] for i in range(13)]
+            [1, 4, 8, 12, 20, 33, 48, 64, 87, 118, 152, 188, 234]
+
+        """
         from sage.all import PowerSeriesRing, QQ
         P = PowerSeriesRing(QQ,'t',default_prec=self.knownDeg+1)
         p = self.poincare_series()

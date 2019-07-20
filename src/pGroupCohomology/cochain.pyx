@@ -6454,7 +6454,48 @@ cdef class ChMap(RingHomomorphism):
 
     @cached_method
     def _urbild_data(self, d):
-        # The data needed to compute the preimage of a cochain by matrix operations
+        """
+        Return a matrix in rref from which preimages in degree `d` can be computed.
+
+        TESTS:
+
+        If `r` is the rank of the domain of this map in degree `d` and `R` is the rank
+        of the codomain of this map in degree `d`, then the matrix returned by
+        this method will have `r+R` columns and `r` rows. We construct a matrix
+        which in row `i` starts with the matrix representation of the image of
+        a cochain of the domain whose matrix representation has a single entry `1`
+        in position `i`; the rest of the row is a single `1` in position `R+i`. What is
+        returned is the row-reduced echelon form of that matrix. From it, it is
+        easy to compute a preimage of a degree-`d` element from its matrix representation.
+        ::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(64,67)
+            sage: H.make()
+            sage: H.restriction_maps()[3][1]._urbild_data(2)
+            [1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1]
+            [0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 1 0 1 0 0 0 1 0 0 1 0 1 0 1]
+            [0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0]
+            sage: H.resolution().rank(2)
+            8
+            sage: H.restriction_maps()[3][1].codomain().resolution().rank(2)
+            10
+            sage: H.restriction_maps()[3][1]._urbild_data(2).ncols()
+            18
+            sage: H.restriction_maps()[3][1]._urbild_data(2).nrows()
+            8
+            sage: from pGroupCohomology.cochain import COCH
+            sage: c = COCH(H, 2, 'foo', [1, 0, 0, 0, 0, 0, 0, 1])
+            sage: H.restriction_maps()[3][1](c).MTX()
+            [1 0 0 0 0 0 0 0 0 0]
+
+        """
         cdef int i,j,k
         while self.knownDeg() < d:
             self.lift()
@@ -6488,6 +6529,30 @@ cdef class ChMap(RingHomomorphism):
         return M
 
     def kernel(self):
+        """
+        Compute the kernel.
+
+        TEST::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(81,8)
+            sage: H.make()
+            sage: H.restriction_maps()[2][1].kernel()
+            a_1_1,
+            a_2_1,
+            a_2_2,
+            a_3_2,
+            b_4_2-a_4_1,
+            a_5_3+a_5_2,
+            b_6_3-a_1_0*a_5_2,
+            a_7_5+b_2_0*a_5_2+c_6_4*a_1_0
+            sage: H.restriction_maps()[2][1]( H('b_6_3-a_1_0*a_5_2') )
+            (b_6_3-((a_1_0)*(a_5_2)))_: 6-Cocycle in H^*(SmallGroup(9,2); GF(3))
+            sage: _.MTX()
+            [0 0 0 0 0 0 0]
+
+        """
         return self.preimage()
 
     def preimage(self, Item = None, Id = None):

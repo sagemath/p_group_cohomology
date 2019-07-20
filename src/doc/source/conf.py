@@ -89,7 +89,7 @@ todo_include_todos = True
 # Cross-links to other project's online documentation.
 intersphinx_mapping = {
     'python'  : ('https://docs.python.org/',
-                 os.path.join(SAGE_DOC_SRC, "common", "python.inv")),
+                 os.path.join(SAGE_DOC_SRC, "common", "python2.inv")),
     'sagemath': ('http://doc.sagemath.org/',
                  os.path.join(SAGE_SHARE, "doc", "sage", "html", "en", "reference", "objects.inv"))
                 }

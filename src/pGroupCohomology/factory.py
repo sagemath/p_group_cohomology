@@ -1360,6 +1360,137 @@ class CohomologyRingFactory:
         return OUT
 
     def from_subgroup_tower(self, *args, **kwds):
+        """
+        Given a tower of subgroups starting with a Sylow subgroup, compute
+        a cohomology ring with stability conditions associated with that subgroup.
+
+        INPUT:
+
+        - Some nested groups ascendingly sorted starting with a prime power group
+        - Keyword arguments similar to the ones of :class: ~pGroupCohomology.factory.CohomologyRingFactory`.
+
+        OUTPUT:
+
+        The cohomology of the last of the given subgroups (without computing
+        the ring structure).
+
+        EXAMPLES:
+
+        Notmally, we compute the mod-`p` cohomology of a finite non-primepower
+        group `G` as a subring of the cohomology ring of `N_G(Z(Syl_p(G)))`, which
+        in turn is computed as a subring of the cohomology ring of `Syl_p(G)`.
+        If one wants to compute the cohomology of `G` using a different subgroup
+        tower, this method can be used. The computation of the mod-`2` cohomology
+        of the third Conway group, for example, was possible using a tower of
+        four subgroups, which reduced the total number of stability conditions to
+        `11`. In the following example, we do the opposite and compute the cohomology
+        ring of the alternating group of rank `8` without an intermediate subgroup.
+
+        But first, we compute the cohomology in the default way::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()
+            sage: A8 = libgap.AlternatingGroup(8)
+            sage: SylA8 = A8.SylowSubgroup(2).MinimalGeneratingSet().Group()
+            sage: HA8 = CohomologyRing(A8, prime=2, GroupName="A_8")
+            sage: HA8.make()
+
+        Here is the non-standard way::
+
+            sage: HA8_direct = CohomologyRing.from_subgroup_tower(SylA8, A8, GroupName="A8", GroupDescr='AlternatingGroup(8)')
+            sage: HA8_direct.make()
+
+        Apparently, the ring structures thus computed look different::
+
+            sage: print(HA8)
+            Cohomology ring of A_8 with coefficients in GF(2)
+            <BLANKLINE>
+            Computation complete
+            Minimal list of generators:
+            [b_2_0: 2-Cocycle in H^*(A_8; GF(2)),
+             c_4_1: 4-Cocycle in H^*(A_8; GF(2)),
+             b_6_1: 6-Cocycle in H^*(A_8; GF(2)),
+             b_6_2: 6-Cocycle in H^*(A_8; GF(2)),
+             b_3_0: 3-Cocycle in H^*(A_8; GF(2)),
+             b_3_1: 3-Cocycle in H^*(A_8; GF(2)),
+             b_5_2: 5-Cocycle in H^*(A_8; GF(2)),
+             b_7_5: 7-Cocycle in H^*(A_8; GF(2)),
+             b_7_6: 7-Cocycle in H^*(A_8; GF(2))]
+            Minimal list of algebraic relations:
+            [b_3_0*b_3_1,
+             b_3_0*b_5_2,
+             b_2_0*b_7_5,
+             b_2_0*b_7_6,
+             b_6_1*b_3_0,
+             b_6_2*b_3_0,
+             b_3_0*b_7_5,
+             b_3_0*b_7_6,
+             b_3_1*b_7_5,
+             b_3_1*b_7_6,
+             b_5_2^2+b_2_0*b_3_1*b_5_2+b_2_0^2*b_6_2+c_4_1*b_3_1^2,
+             b_6_1*b_6_2+b_6_1^2+b_2_0^2*b_3_1*b_5_2+b_2_0^3*b_6_2+c_4_1*b_3_1*b_5_2+b_2_0*c_4_1*b_3_1^2+b_2_0*c_4_1*b_6_2,
+             b_5_2*b_7_5,
+             b_5_2*b_7_6,
+             b_6_1*b_7_6+b_6_1*b_7_5,
+             b_6_2*b_7_5+b_6_1*b_7_5,
+             b_7_5*b_7_6+b_7_5^2]
+            sage: print(HA8_direct)
+            Cohomology ring of AlternatingGroup(8) with coefficients in GF(2)
+            <BLANKLINE>
+            Computation complete
+            Minimal list of generators:
+            [b_2_0: 2-Cocycle in H^*(A8; GF(2)),
+             c_4_1: 4-Cocycle in H^*(A8; GF(2)),
+             b_6_3: 6-Cocycle in H^*(A8; GF(2)),
+             b_6_5: 6-Cocycle in H^*(A8; GF(2)),
+             b_3_0: 3-Cocycle in H^*(A8; GF(2)),
+             b_3_1: 3-Cocycle in H^*(A8; GF(2)),
+             b_5_1: 5-Cocycle in H^*(A8; GF(2)),
+             b_7_5: 7-Cocycle in H^*(A8; GF(2)),
+             b_7_6: 7-Cocycle in H^*(A8; GF(2))]
+            Minimal list of algebraic relations:
+            [b_3_0*b_3_1,
+             b_3_1*b_5_1,
+             b_2_0*b_7_5,
+             b_2_0*b_7_6,
+             b_6_3*b_3_1+b_2_0*c_4_1*b_3_1,
+             b_6_5*b_3_1,
+             b_3_0*b_7_5,
+             b_3_0*b_7_6,
+             b_3_1*b_7_5,
+             b_3_1*b_7_6,
+             b_5_1^2+b_2_0*b_3_0*b_5_1+b_2_0^2*b_6_5+c_4_1*b_3_0^2,
+             b_3_0^4+b_6_5*b_3_0^2+b_6_3*b_6_5+b_6_3^2+b_2_0^2*b_3_0*b_5_1+b_2_0^3*b_6_5+c_4_1*b_3_0*b_5_1+b_2_0*c_4_1*b_3_0^2+b_2_0^2*c_4_1^2,
+             b_5_1*b_7_5,
+             b_5_1*b_7_6,
+             b_6_3*b_7_6+b_6_3*b_7_5,
+             b_6_5*b_7_5+b_6_3*b_7_5,
+             b_7_5*b_7_6+b_7_5^2]
+
+        But of course the two rings are isomorphic::
+
+            sage: HA8.is_isomorphic(HA8_direct)
+            ('1*b_2_0',
+             '1*c_4_1',
+             '1*b_3_0^2+1*b_6_3+1*b_2_0*c_4_1',
+             '1*b_6_5',
+             '1*b_3_1',
+             '1*b_3_0',
+             '1*b_5_1',
+             '1*b_7_5',
+             '1*b_7_6')
+
+        The default way of computation is in fact more efficient, since less
+        stability conditions are involved::
+
+            sage: len(HA8._PtoPcapCPdirect)
+            4
+            sage: len(HA8.subgroup_cohomology()._PtoPcapCPdirect)
+            1
+            sage: len(HA8_direct._PtoPcapCPdirect)
+            18
+
+        """
         assert len(args)>1, "At least two groups must be provided."
         G0 = args[0]
         q = G0.Order().sage()
@@ -1392,14 +1523,14 @@ class CohomologyRingFactory:
         assert (args[-1].Order().sage()/q)%p, "First given group must be a Sylow {}-subgroup of the last given group".format(p)
         H0 = CohomologyRing(G0, GroupName = GroupNames.pop(0), GroupDescr = GroupDescrs.pop(0), **kwds)
         H0.make()
-        H0.verify_consistency_of_dimensions()
+        H0._verify_consistency_of_dimensions()
         while i in range(1,len(args)-1):
             G1 = args[i]
             H1 = CohomologyRing(G1, SubgpCohomology=H0, Subgroup=G0, prime=p, from_scratch=True, GroupName = GroupNames.pop(0), GroupDescr = GroupDescrs.pop(0), **kwds)
             H1.make()
             H0 = H1
             G0 = G1
-            H0.verify_consistency_of_dimensions()
+            H0._verify_consistency_of_dimensions()
         return CohomologyRing(args[-1], SubgpCohomology=H0, Subgroup=G0, prime=p, GroupName = GroupNames.pop(0), GroupDescr = GroupDescrs.pop(0), from_scratch=True, **kwds)
 
     def __call__ (self, *args, **kwds):

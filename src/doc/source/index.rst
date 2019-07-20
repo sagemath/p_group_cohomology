@@ -71,7 +71,7 @@ It is a build-time dependency and can be installed in Sage by doing
     sage -i meataxe
     sage -b
 
-By `trac ticket 26001 <https://trac.sagemath.org/ticket/26001>`_, the cohomology
+By `trac ticket 28204 <https://trac.sagemath.org/ticket/28204>`_, the cohomology
 package can then be installed in your copy of Sage by
 ::
 
@@ -80,11 +80,10 @@ package can then be installed in your copy of Sage by
 Testing
 -------
 
-The Cython and Python parts of the package have 100% doctest coverage, but
-be warned that running the test suite requires a considerable amount of
-time (easily one hour if a single thread is used). If the environment variable
-``SAGE_CHECK`` is set to ``yes``, the test script is launched right after
-installing the package. The same effect can be achieved by
+The package has an extensive test suite. It is recommended to run the tests, although
+this can take a considerable amount of time (easily one hour if a single thread is used).
+If the environment variable ``SAGE_CHECK`` is set to ``yes``, the test script is launched
+right after installing the package. The same effect can be achieved by
 ::
 
     sage -i -c p_group_cohomology
@@ -248,6 +247,7 @@ Table of Contents
    factory
    cohomology
    modular_cohomology
+   isomorphism_test
    barcode
    cochain
    resolution
