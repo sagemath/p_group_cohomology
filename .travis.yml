@@ -1,0 +1,26 @@
+language: python
+
+services:
+  - docker
+
+before_install:
+  - docker pull sagemath/sagemath-dev:latest
+  - docker run --name=cohomology -v $(pwd):/test_coho -dit --health-cmd='sage -c "print(1)"' --health-interval='20s' --health-timeout='20s' --health-start-period='50s' sagemath/sagemath-dev:latest /bin/bash && until  docker inspect --format "{{json .State.Health.Status }}" cohomology | grep -m 1 -w "healthy"; do sleep 5; done
+  - docker exec cohomology sage -i meataxe
+  - docker exec cohomology sage -i gap_packages
+  - docker exec cohomology sage -b
+
+install:
+  - docker exec cohomology bash -c "mkdir -p \$HOME/dist && cp -r /test_coho \$HOME/src && cd \$HOME/dist && ls \$HOME/src"
+  - docker exec cohomology sage -sh -c "bash \$HOME/src/dist_helpers/create_dist.sh \$HOME/src/ && bash \$HOME/src/dist_helpers/put_package_into_sage.sh \$HOME/src/"
+  - docker exec cohomology sage -i p_group_cohomology
+
+script:
+  - docker stop cohomology
+  - docker rm cohomology
+  - echo "Hurra"
+
+jobs:
+  include:
+    - python: "2.7"
+#    - python: "3.6"

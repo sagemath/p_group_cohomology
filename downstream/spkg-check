@@ -1,9 +1,9 @@
 cd src
 
 # testing modular_resolution-1.1
-cd csources
+cd modular_resolution-1.1
 $MAKE check || sdh_die "Error testing modular_resolution-1.1"
 cd ..
 
 # testing pGroupCohomology
-sage -tp 0 --long --force_lib --timeout=0 pyxsources/pGroupCohomology/ || sdh_die "Error testing pGroupCohomology"
+sage -tp 0 --long --force_lib --timeout=0 pGroupCohomology-3.2/pGroupCohomology/ || sdh_die "Error testing pGroupCohomology"

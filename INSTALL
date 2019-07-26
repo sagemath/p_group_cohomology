@@ -1,0 +1,44 @@
+These are very basic instructions to install p_group_cohomology
+
+First of all, it is a SageMath package, thus, the SageMath software
+needs to be installed. The easiest way to install the package is
+  sage -i p_group_cohomology
+but the purpose of this INSTALL instructions is to tell how that
+works internally.
+
+The SharedMeatAxe is a build-time dependency, thus, you need to install
+it in SageMath, by
+  sage -i meataxe
+
+The following describes what happens internally if you do `sage -i p_group_cohomology`.
+Open a Sage shell, i.e., run
+  sage -sh
+
+To install the sub-package modular_resolution, do
+  cd present
+  ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+  make
+  make install
+  cd ..
+
+To install the sub-package pGroupCohomology, do
+  cd src
+  pip install . [--verbose]
+  cd ..
+
+To install the documentation of pGroupCohomology, do
+  cd src/doc
+  make html
+and copy the resulting documentation from build/html to the desired
+location.
+
+A short test suite is available for modular_resolution and an extensive
+test suite for pGroupCohomology. The former is executed by
+  cd present
+  make check
+  cd ..
+The latter is executed by
+  cd src
+  sage -t --force_lib pGroupChomology
+  cd ..
+
