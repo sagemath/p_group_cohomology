@@ -4,8 +4,9 @@ services:
   - docker
 
 before_install:
-  - docker pull sagemath/sagemath-dev:latest
-  - docker run --name=cohomology -v $(pwd):/test_coho -dit --health-cmd='sage -c "print(1)"' --health-interval='20s' --health-timeout='20s' --health-start-period='50s' sagemath/sagemath-dev:latest /bin/bash && until  docker inspect --format "{{json .State.Health.Status }}" cohomology | grep -m 1 -w "healthy"; do sleep 5; done
+  - docker pull sagemath/sagemath-dev:develop
+  - docker run --name=cohomology -v $(pwd):/test_coho -dit --health-cmd='sage -c "print(1)"' --health-interval='20s' --health-timeout='20s' --health-start-period='50s' sagemath/sagemath-dev:develop /bin/bash && until  docker inspect --format "{{json .State.Health.Status }}" cohomology | grep -m 1 -w "healthy"; do sleep 5; done
+  - docker exec cohomology sage -sh -c 'cd \$SAGE_ROOT && git apply --check /test_coho/meataxe.patch && git apply /test_coho/meataxe.patch || echo "Apparently the meataxe patch is already applied"'
   - docker exec cohomology sage -i meataxe
   - docker exec cohomology sage -i gap_packages
   - docker exec cohomology sage -b
