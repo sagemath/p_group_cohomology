@@ -64,6 +64,7 @@ from sage.env import DOT_SAGE, SAGE_ROOT
 from sage.misc.sageinspect import sage_getargspec
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.docs.instancedoc import instancedoc
+from sage.structure.richcmp import richcmp, op_LT, op_NE, op_GT
 
 # Sage rings etc.
 from sage.all import Matrix
@@ -144,7 +145,7 @@ def COHO_unpickle(GroupKey, StateFile):
         root = coho_options.get('@use_this_root@') or COHO.local_sources
     elif os.path.realpath(StateFile) == os.path.realpath(os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])):  # Moving to the workspace
         # Here it *is* realpath, because we want to know whether we have a symlink to the local sources
-        coho_logger.warn("WARNING: Moving %r to the workspace", None, original_GStem)
+        coho_logger.warning("WARNING: Moving %r to the workspace", None, original_GStem)
         StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])
         root = coho_options.get('@use_this_root@') or COHO.workspace
     else:
@@ -154,16 +155,16 @@ def COHO_unpickle(GroupKey, StateFile):
     ## Now, StateFile should point to a file providing the state of the cohomology ring.
     ## If it doesn't, then we need to find out *after* loading
     second_cache_attempt = False
-    if not coho_options.has_key('@newroot@'):
+    if not '@newroot@' in coho_options:
         try:
             OUT = _cache.get((GroupKey,StateFile)) or _cache.get((GroupKey,StateFile[:-5]))
-        except StandardError, msg:
+        except Exception as msg:
             coho_logger.error("The given group key seems to contain invalid data.", None, exc_info=1)
-            coho_logger.warn("> Will try to recover later.",None)
+            coho_logger.warning("> Will try to recover later.",None)
             OUT = None
             second_cache_attempt = True
         if OUT is not None:
-            if coho_options.has_key('@use_this_root@'):
+            if '@use_this_root@' in coho_options:
                 del coho_options['@use_this_root@']
             return OUT
     OUT = COHO()
@@ -172,14 +173,14 @@ def COHO_unpickle(GroupKey, StateFile):
     coho_logger.debug( 'The state descriptor of the to-be-unpickled ring is expected to be provided at %r', None, StateFile)
     if not os.access(StateFile, os.W_OK):
         # realpath here?
-        coho_logger.warn("WARNING: Files on disk have been moved or are not writeable.", None)
-        coho_logger.warn("> Will try to recover later.", None)
+        coho_logger.warning("WARNING: Files on disk have been moved or are not writeable.", None)
+        coho_logger.warning("> Will try to recover later.", None)
         OUT.GStem = original_GStem
         try:
             q,n = [Integer(nb) for nb in original_GStem.split('gp')]
             OUT.setprop('_key', ((q,n),StateFile))
-        except StandardError:
-            coho_logger.warn("> Group identifier not reconstructible from %s.", None, original_GStem)
+        except Exception:
+            coho_logger.warning("> Group identifier not reconstructible from %s.", None, original_GStem)
         OUT.setprop('_need_new_root', coho_options.get('@use_this_root@',True))
         return OUT
     try:
@@ -189,16 +190,16 @@ def COHO_unpickle(GroupKey, StateFile):
             ST = load(StateFile+'.sobj')  # realpath here?
     except (OSError, IOError),msg:
         coho_logger.error("Files on disk have been moved or are not readable.", None, exc_info=1)
-        coho_logger.warn("> Will try to recover later.", None)
+        coho_logger.warning("> Will try to recover later.", None)
         OUT.setprop('_need_new_root', coho_options.get('@use_this_root@',True))
-        if coho_options.has_key('@use_this_root@'):
+        if '@use_this_root@' in coho_options:
             del coho_options['@use_this_root@']
-        coho_logger.warn("Trying to reconstruct cache key for %s", None, original_GStem)
+        coho_logger.warning("Trying to reconstruct cache key for %s", None, original_GStem)
         try:
             q,n = [Integer(nb) for nb in original_GStem.split('gp')]
             OUT.setprop('_key', ((q,n),StateFile))
-        except StandardError:
-            coho_logger.warn("Y Group identifier not reconstructible from %s.", None, original_GStem)
+        except Exception:
+            coho_logger.warning("Y Group identifier not reconstructible from %s.", None, original_GStem)
         if second_cache_attempt:
             NewOUT = _cache.get(OUT._key)
             if NewOUT is not None:
@@ -212,7 +213,7 @@ def COHO_unpickle(GroupKey, StateFile):
         if NewOUT is not None:
             return NewOUT
     _cache[GroupKey, StateFile] = OUT
-    if coho_options.has_key('@use_this_root@'):
+    if '@use_this_root@' in coho_options:
         del coho_options['@use_this_root@']
     return OUT
 
@@ -321,7 +322,7 @@ def unpickle_gap_data(G):
     if not isinstance(G, (dict,tuple,list)):
         return G
     if isinstance(G,dict):
-        return dict((unpickle_gap_data(k), unpickle_gap_data(v)) for k,v in G.iteritems())
+        return dict((unpickle_gap_data(k), unpickle_gap_data(v)) for k,v in G.items())
     try:
         I = iter(G)
     except:
@@ -397,7 +398,7 @@ def pickle_gap_data(G):
     except:
         return G
     if isinstance(G,dict):
-        return dict((pickle_gap_data(k), pickle_gap_data(v)) for k,v in G.iteritems())
+        return dict((pickle_gap_data(k), pickle_gap_data(v)) for k,v in G.items())
     if getattr(type(G), '__module__', None) == '__builtin__':
         return type(G)(pickle_gap_data(X) for X in I)
     return G
@@ -1509,7 +1510,7 @@ class permanent_result(object):
         sage: f.bar.set_cache(KeyboardInterrupt('simulation'),G2)
         sage: try:
         ....:     f.bar(G2)
-        ....: except KeyboardInterrupt, msg:
+        ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
         simulation
         sage: f.bar(G2, forced=True)
@@ -1537,7 +1538,7 @@ class permanent_result(object):
         sage: f = FOO()
         sage: try:
         ....:     f.foo(1)
-        ....: except KeyboardInterrupt, msg:
+        ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
@@ -1549,14 +1550,14 @@ class permanent_result(object):
         sage: f._t = 2
         sage: try:
         ....:     f.bar(1)
-        ....: except KeyboardInterrupt, msg:
+        ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         sage: f.bar(1, forced=True)
         3
         sage: try:
         ....:     f.foo(1)
-        ....: except KeyboardInterrupt, msg:
+        ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
         bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
         foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
@@ -1712,7 +1713,7 @@ class permanent_result(object):
             2
             sage: try:
             ....:     f.foo(3)
-            ....: except KeyboardInterrupt, msg:
+            ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
 
@@ -1725,7 +1726,7 @@ class permanent_result(object):
               [KeyboardInterrupt('foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``',)])]
 
         """
-        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.iteritems()]))
+        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.items()]))
         inst = self._inst() if self._inst is not None else None
         if inst is None:
             return
@@ -1803,7 +1804,7 @@ class permanent_result(object):
             poly
 
         """
-        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.iteritems()]))
+        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.items()]))
         # for whatever reason, sometimes BLA._decorator_cache is not set
         # in the init method - it is renamed to _<classname>_decorator_cache
         inst = self._inst() if self._inst is not None else None
@@ -1881,7 +1882,7 @@ class permanent_result(object):
             sage: f = FOO()
             sage: try:
             ....:     f.foo(1)
-            ....: except KeyboardInterrupt, msg:
+            ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
@@ -1893,14 +1894,14 @@ class permanent_result(object):
             sage: f._t = 2
             sage: try:
             ....:     f.bar(1)    # indirect doctest
-            ....: except KeyboardInterrupt, msg:
+            ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             sage: f.bar(1, forced=True)
             3
             sage: try:
             ....:     f.foo(1)
-            ....: except KeyboardInterrupt, msg:
+            ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
             bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
             foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
@@ -1927,7 +1928,7 @@ class permanent_result(object):
         coho_logger.info('Compute %s', inst, self._name)
         try:
             val = self._f(inst,*args,**kwds)
-        except KeyboardInterrupt,msg:
+        except KeyboardInterrupt as msg:
             if msg.args:
                 val = KeyboardInterrupt(msg.args[0]+'\n%s interrupted. Force re-computation at %s with ``forced=True``'%(self._name,repr(inst)))
             else:
@@ -1981,7 +1982,7 @@ class temporary_result(permanent_result):
         sage: H.poincare_series.set_cache(KeyboardInterrupt('bla'))
         sage: try:
         ....:     H.poincare_series()
-        ....: except KeyboardInterrupt, msg:
+        ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
         bla
 
@@ -2051,7 +2052,7 @@ class temporary_result(permanent_result):
             (-t^2 - t - 1)/(t^3 - t^2 + t - 1)
 
         """
-        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.iteritems()]))
+        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.items()]))
         # this here is specialized to cohomology rings,
         # where there is no problem with the existence of ._decorator_cache
         inst = self._inst() if self._inst is not None else None
@@ -2092,7 +2093,7 @@ class temporary_result(permanent_result):
             KeyError: 'The saved data belong to a previous stage of the computation'
 
         """
-        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.iteritems()]))
+        key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.items()]))
         inst = self._inst() if self._inst is not None else None
         if inst is None:
             return
@@ -2993,7 +2994,7 @@ class COHO(Ring):
                 ####
                 ## Finally, make up a description of the group which preserves the generators
                 ## -- unless the user wants a different key (which may fail badly, but this is not our problem... :)
-                if kwds.has_key('key'):
+                if 'key' in kwds:
                     GroupKey = kwds['key'][0]
                 else:
                     GroupKey = 'Group(['+','.join([g.String().sage() for g in Hfinal.asPermgroup().GeneratorsOfGroup()])+'])'
@@ -3044,7 +3045,7 @@ class COHO(Ring):
         self.inc_folder = os.path.join(root,inc_folder)
 
         # store the key for this ring and insert itself to the cache
-        if kwds.has_key('key'):
+        if 'key' in kwds:
             if not kwds['key'][1].startswith(self.dat_folder):
                 raise ValueError('Invalid location %s of State descriptor'%(kwds['key'][1]))
             self.setprop('_key', kwds['key'])
@@ -3456,7 +3457,7 @@ class COHO(Ring):
         # the definition of a permutation group in Gap.
         # Moreover, self._key tells where to find self's data
         import os
-        if self._property_dict.has_key('_dont_save_the_State'):
+        if '_dont_save_the_State' in self._property_dict:
             self.delprop('_dont_save_the_State')
         else:
             safe_save(self.__getstate__(), os.path.join(self.dat_folder,'State.sobj'))
@@ -3657,7 +3658,7 @@ class COHO(Ring):
         However, not all attributes are present at that point. For example,
         the attribute 'subgps' does not exist, yet::
 
-            sage: K.__dict__.has_key('subgps')
+            sage: 'subgps' in K.__dict__
             False
 
         Nevertheless, it is no problem to call the 'subgps' attribute. The technical
@@ -3671,7 +3672,7 @@ class COHO(Ring):
 
         The following lines should explain these technical details::
 
-            sage: K.__dict__.has_key('subgps')
+            sage: 'subgps' in K.__dict__
             False
             sage: CohomologyRing.global_options('debug')
             sage: sorted(K.subgps.items())
@@ -3684,7 +3685,7 @@ class COHO(Ring):
             H^*(D8; GF(2)):
                       Reconstructing subgroup data
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
-            sage: K.__dict__.has_key('subgps')
+            sage: 'subgps' in K.__dict__
             True
 
         """
@@ -3719,7 +3720,7 @@ class COHO(Ring):
             for k,v in cache:
                 try:
                     tmp_dict[unpickle_gap_data(k)] = unpickle_gap_data(v)
-                except StandardError:
+                except Exception:
                     coho_logger.error("Unable to reconstruct some data in GAP", None, exc_info=1)
 
             ##########
@@ -3777,7 +3778,7 @@ class COHO(Ring):
                     pass
                 ## The resolution is in a readable file.
                 ## We don't need to relocate the data right now.
-                if coho_options.has_key('@oldroot@'):
+                if '@oldroot@' in coho_options:
                     del coho_options['@oldroot@']
             else:
                 MaxDeg = max([0]+[X[0] for X in Gen])
@@ -3827,9 +3828,9 @@ class COHO(Ring):
                 try:
                     h = hash(self._key[0])
                     self.setprop('_key', (self._key[0], os.path.join(root,dat_folder,'State')))
-                except StandardError,msg:
+                except Exception as msg:
                     coho_logger.error("Stored cache key was not readable", None, exc_info=1)
-                    coho_logger.warn("> Will try to reconstruct it from the group identifier %r", None, GStem)
+                    coho_logger.warning("> Will try to reconstruct it from the group identifier %r", None, GStem)
                     self.delprop('_key')
             if self._key is None:
                 try:
@@ -3845,7 +3846,7 @@ class COHO(Ring):
             # use the updated _key for inserting self into the cache
             from pGroupCohomology import CohomologyRing
             _cache = CohomologyRing._cache
-            if not ((self._key is None) or _cache.has_key(self._key)):
+            if not ((self._key is None) or self._key in _cache):
                 _cache[self._key] = self
 
             ################
@@ -3975,7 +3976,7 @@ class COHO(Ring):
 
         """
         cdef COCH X
-        if not(self.Monomials.has_key('bla')):
+        if not 'bla' in self.Monomials:
             safe_save([[i,[X.Deg,X.Name,X.Data]] for i,X in self.Monomials.items()], os.path.join(self.dat_folder,'M%s.sobj'%self.GStem))
 
     def importMonomials(self):
@@ -4020,7 +4021,7 @@ class COHO(Ring):
 
         """
         cdef dict D = {}
-        if self.Monomials.has_key('bla'):
+        if 'bla' in self.Monomials:
             coho_logger.info('Import monomials',self)
             Monomials = load(os.path.join(self.dat_folder,'M'+self.GStem+'.sobj'))  # realpath here?
             for i,Mo in Monomials:
@@ -4152,15 +4153,15 @@ class COHO(Ring):
         created when a cohomology ring is loaded. So, although ``H`` has this
         attribute, ``K`` hasn't::
 
-            sage: H.__dict__.has_key('subgps')
+            sage: 'subgps' in H.__dict__
             True
-            sage: K.__dict__.has_key('subgps')
+            sage: 'subgps' in K.__dict__
             False
 
         It is created using this method::
 
             sage: K.reconstructSubgroups()
-            sage: K.__dict__.has_key('subgps')
+            sage: 'subgps' in K.__dict__
             True
 
         The method is automatically called when trying to access the ``subgps``
@@ -4170,7 +4171,7 @@ class COHO(Ring):
             ....:     if v is K:
             ....:         del CohomologyRing._cache[k]
             sage: L = loads(dumps(K))
-            sage: L.__dict__.has_key('subgps')
+            sage: 'subgps' in L.__dict__
             False
             sage: CohomologyRing.global_options('info')
             sage: sorted(L.subgps.items())
@@ -4218,7 +4219,7 @@ class COHO(Ring):
         if self.sgpDickson:
             del self._property_dict['sgpDickson']
 
-    def __cmp__(self,other):
+    def __richcmp__(self, other, op):
         """
         ``self`` and ``other`` are considered equal, if their unique keys
         describe the *same* group (not just isomorphic groups), and if
@@ -4256,12 +4257,14 @@ class COHO(Ring):
 
         """
         if not isinstance(other,COHO):
-            return -1
+            return op in [op_LT, op_NE, op_GT]
         if self._key[0] != other._key[0]:
-            return cmp(self.group(),other.group())
+            return richcmp(self.group(), other.group(), op)
         if [g.name() for g in self.Gen] != [g.name() for g in other.Gen]:
-            return cmp([g.name() for g in self.Gen],[g.name() for g in other.Gen])
-        return cmp(self.Rel, other.Rel)
+            return richcmp([g.name() for g in self.Gen],
+                           [g.name() for g in other.Gen],
+                           op)
+        return richcmp(self.Rel, other.Rel, op)
 
     ######################################
     ### String representations and other information
@@ -4716,7 +4719,7 @@ Minimal list of algebraic relations:
         if key == '__members__':
             return self._property_dict.keys()
         if self._property_dict.get('_need_new_root'):
-            coho_logger.warn('%s: Files on disk have been moved - trying to get things right', None, self.GStem)
+            coho_logger.warning('%s: Files on disk have been moved - trying to get things right', None, self.GStem)
             if isinstance(self._property_dict['_need_new_root'],basestring):
                 newroot = self._property_dict['_need_new_root']
                 defaultname = os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj')
@@ -4742,9 +4745,9 @@ Minimal list of algebraic relations:
             self.__setstate__(ST, newroot=newroot)
             self.setprop('_dont_save_the_State', True)
             try:
-                coho_logger.warn("Try to update cohomology data on disk",self)
+                coho_logger.warning("Try to update cohomology data on disk",self)
                 safe_save(self, self.autosave_name())
-                coho_logger.warn( "> successful",self)
+                coho_logger.warning( "> successful",self)
             except (OSError, IOError, RuntimeError):
                 self.delprop('_dont_save_the_State')
                 coho_logger.critical( "CRITICAL: No write permission",self)
@@ -4753,11 +4756,11 @@ Minimal list of algebraic relations:
         # After quickloading, the attributes "subgps" and "RestrMaps" are not defined.
         # Hence, if these attributes are required in that case, __getattr__ is called,
         # and we reconstruct the subgroups first before returning the required data.
-        if (key=="subgps") and (self._property_dict.has_key('SUBGPS')):
+        if (key=="subgps") and ('SUBGPS' in self._property_dict):
             self.reconstructSubgroups()
             return self.subgps
         if (key=="RestrMaps"):
-            if  (self._property_dict.has_key('SUBGPS') or self._property_dict.has_key('RESTRMAPS')):
+            if  ('SUBGPS' in self._property_dict or 'RESTRMAPS' in self._property_dict):
                 self.reconstructSubgroups()
             else:
                 self.RestrMaps = {}
@@ -5441,7 +5444,7 @@ Minimal list of algebraic relations:
                 if G.canonicalIsomorphism(GCo.group()) == Failure:
                     phiG = GCo.group().IsomorphismGroups(G)
                     G = gap.Group([phiG.Image(g) for g in GCo.group().GeneratorsOfGroup()])
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 coho_logger.critical("WARNING: %s", self, msg)
                 G = G.MinimalGeneratingSet().Group()
                 GCo = CohomologyRing(G,prime=self._prime,GroupName = 'MaximalSubgroup(%s,%d)'%(self.GStem,i))
@@ -6472,7 +6475,7 @@ Minimal list of algebraic relations:
         cdef int lenoldV = len(expV)
         cdef int i, s_o, s_e, sml
         newKey = ''.join([expV[i]*(self.Gen[i].name()) for i in range(lenoldV)])
-        if self.Monomials.has_key(newKey):
+        if newKey in self.Monomials:
             return self.Monomials[newKey]
         cdef list oldV = list(tuple(expV))# copy the list
         # find the factor of smallest even/odd degree
@@ -6571,7 +6574,7 @@ Minimal list of algebraic relations:
         cdef list Degrees = [X.deg() for X in self.Gen]
         for i in range(n):
             if n-i in Degrees:
-                if not self.StdMon.has_key(i):
+                if not i in self.StdMon:
                     self._makeStdMon(i,s)
         # In order to make addition of ideals more efficient,
         # estimate the length of StdMon
@@ -6964,7 +6967,7 @@ Minimal list of algebraic relations:
         from pGroupCohomology import CohomologyRing
         if not ((isinstance(q,int) or isinstance(q,Integer)) and (isinstance(nr,int) or isinstance(nr,Integer)) and (isinstance(n,int) or isinstance(n,Integer))):
             raise TypeError("Subgroup and imbedding have to be defined by three integers")
-        if self.subgps.has_key((q,nr)): # that isomorphism type is known
+        if (q,nr) in self.subgps: # that isomorphism type is known
             M = MTX.from_filename(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
             ch = self.hom(M, self.subgps[(q,nr)])
         else:
@@ -9240,7 +9243,7 @@ is an error. Please inform the author!""")
             coho_logger.info('The given last parameter could not be improved', self)
             return Par[-1]
         except KeyboardInterrupt:
-            coho_logger.warn("You interrupted the attempt to improve the last parameter", self)
+            coho_logger.warning("You interrupted the attempt to improve the last parameter", self)
             try:
                 self.GenS._check_valid()
             except ValueError:
@@ -9470,7 +9473,7 @@ is an error. Please inform the author!""")
             try:
                 F=F[0][0].factor(proof=False)
             except:
-                coho_logger.warn("You interrupted the factorisation of a cochain (don't worry...)", self)
+                coho_logger.warning("You interrupted the factorisation of a cochain (don't worry...)", self)
                 stopped = True
             mindeg = min([Integer(singular.eval("deg(%s)"%(str(Nr[0])))) for Nr in F])
             for Nr in F:
@@ -9650,7 +9653,7 @@ is an error. Please inform the author!""")
                                             singular.eval('degBound='+dgb)
                                             return out
             except (TypeError,KeyboardInterrupt):
-                coho_logger.warn("> Factorisation of an element interrupted", self)
+                coho_logger.warning("> Factorisation of an element interrupted", self)
                 self.set_ring()
         if repr(C.parent()) == 'Singular':
             s = singular.eval(s)
@@ -9970,7 +9973,7 @@ is an error. Please inform the author!""")
             True
 
         """
-        coho_logger.warn("Reconstructing data in the Singular interface", self)
+        coho_logger.warning("Reconstructing data in the Singular interface", self)
         singular = self.GenS.parent()
         try:
             br = singular('basering')
@@ -10397,7 +10400,7 @@ is an error. Please inform the author!""")
         if not self.completed:
             raise ValueError("The ring structure is not completely known yet")
         # see if there is cached data
-        for a,b in self._decorator_cache.iteritems():
+        for a,b in self._decorator_cache.items():
             if a[0] == 'raw_filter_degree_type':
                 if not isinstance(b[0],KeyboardInterrupt):#b[0] is not NotImplemented:
                     return b[0][0][:-1].count(-1)
@@ -10486,14 +10489,14 @@ is an error. Please inform the author!""")
                     raise RuntimeError("Computation of filter regular parameters failed\n"+repr(P))
                 RAW = self.raw_filter_degree_type(P)
                 if isinstance(RAW,KeyboardInterrupt):#RAW is NotImplemented:
-                    coho_logger.warn('Computation of filter degree type was interrupted.', self)
+                    coho_logger.warning('Computation of filter degree type was interrupted.', self)
                     self.set_ring()
                     return None
                 if RAW is None:
                     raise RuntimeError("The parameters {} are supposed to be filter regular, but aren't. Theoretical error.".formal(P))
             if self.fdt is not None:
                 if coho_options['save']:
-                    coho_logger.warn( "Updating stored data after computation of filter degree type", self)
+                    coho_logger.warning( "Updating stored data after computation of filter degree type", self)
                     safe_save(self,self.autosave_name())
         return self.fdt
 
@@ -10752,7 +10755,7 @@ is an error. Please inform the author!""")
         HilbertVectors = None
         # test if there is a cached value
         cdef list DV
-        for a,b in self._decorator_cache.iteritems():
+        for a,b in self._decorator_cache.items():
             if a[0]=='raw_filter_degree_type':
                 if b[0] and not isinstance(b[0],KeyboardInterrupt):#b[0] is not NotImplemented:
                     rfdt, HilbertVectors, DV = b[0]
@@ -11596,7 +11599,7 @@ is an error. Please inform the author!""")
             if self.knownDeg >= self.suffDeg:
                 return True
         except KeyboardInterrupt:
-            coho_logger.warn("Benson's completeness test was interrupted.", self)
+            coho_logger.warning("Benson's completeness test was interrupted.", self)
 
     #######
     ## Auxiliary methods for Benson's test
@@ -12053,7 +12056,7 @@ is an error. Please inform the author!""")
             else:
                 coho_logger.info("Symmonds' criterion can only apply in degree %d", self, max(M,N))
         except KeyboardInterrupt:
-            coho_logger.warn("Symonds' completeness test was interrupted.", self)
+            coho_logger.warning("Symonds' completeness test was interrupted.", self)
 
 ###################################################
 ###################################################
@@ -12284,7 +12287,7 @@ is an error. Please inform the author!""")
             # For technical reasons, we need to lift R out to degree n+1 if we want to
             # obtain new generators in degree n. But we only need the autolift out to
             # a degree in which generators live -- therefore R.Data.numproj-1
-            if (R.Data.numproj<=self._property_dict['auto']+1) and (not R.Autolift.has_key(R.Data.numproj-1)):
+            if (R.Data.numproj<=self._property_dict['auto']+1) and (not R.Data.numproj-1 in R.Autolift):
                 R.makeAutolift(R.Data.numproj-1)
             for NR, chm in self.RestrMaps.items():
                 coho_logger.debug("Restriction to %s subgroup (order %s)", self, Integer(NR).ordinal_str(), chm[0][0])
@@ -12363,7 +12366,7 @@ is an error. Please inform the author!""")
         ## 2. New generators with nilpotent restriction on the
         ## greatest elementary abelian central subgroup
             RdegPiv = len(VSGen)*[1] # eventually, coeff will be 2 if there is a regular generator with that pivot
-            if (self.RestrMaps.has_key(self.CElPos) and (NrNewGen)):
+            if (self.CElPos in self.RestrMaps and NrNewGen):
                 # The following is a basis in echelon form of the subspace of decomposable or nilpotent classes of degree n
                 # which in addition have nilpotent restriction to the greatest central elementary abelian subgroup
                 if DecGen or NewGen:
@@ -12527,7 +12530,7 @@ is an error. Please inform the author!""")
         singular.eval('setring %sr(%d)'%(self.prefix,n))
         singular.eval('kill tmp')
         # keep standard monomials of lower degrees:
-        if not self.StdMon.has_key(n):
+        if not n in self.StdMon:
             self.StdMon[n]={}
         for i from 0<i<=n:
             for ITEM in self.StdMon[i].items():

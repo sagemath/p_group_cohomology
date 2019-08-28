@@ -46,7 +46,7 @@ from pGroupCohomology.cohomology import COHO
 
 import re,os
 
-import urllib2
+import urllib.request, urllib.error
 import tarfile
 import logging
 
@@ -126,7 +126,7 @@ def unit_test_64(**kwds):
     L = []
     CohomologyRing.reset()
     from sage.all import tmp_dir, walltime, cputime, singular, gap
-    if kwds.has_key('root'):
+    if 'root' in kwds:
         CohomologyRing.set_workspace(kwds['root'])
         del kwds['root']
     else:
@@ -555,7 +555,7 @@ class CohomologyRingFactory:
         """
         if folder:
             self._create_local_sources = True
-            if not isinstance(folder,basestring):
+            if not isinstance(folder,str):
                 try:
                     from sage.env import SAGE_SHARE
                 except ImportError:
@@ -569,7 +569,7 @@ class CohomologyRingFactory:
             if os.path.exists(folder):
                 if os.path.isdir(folder):
                     if not os.access(folder,os.W_OK):
-                       coho_logger.warn("WARNING: '%s' is not writeable", None, folder)
+                       coho_logger.warning("WARNING: '%s' is not writeable", None, folder)
                        self._create_local_sources = False
                 else:
                     raise OSError("'%s' is no folder"%folder)
@@ -1014,7 +1014,7 @@ class CohomologyRingFactory:
         # and if it succeeds, return R
         similarity = _IsKeyEquivalent(CacheKey,R._key)
         if similarity == 1:
-            coho_logger.warn('WARNING: The given key and ring describe different groups, but they are equivalent', None)
+            coho_logger.warning('WARNING: The given key and ring describe different groups, but they are equivalent', None)
             return R
         elif similarity == 0:
             raise ValueError('The ring %s does not match the given key'%repr(R))
@@ -1106,7 +1106,6 @@ class CohomologyRingFactory:
         ####################
         ## Since v2.1, we insist on always using the user's workspace,
         ## but it may be that we have to link to the local sources
-        from exceptions import RuntimeError
         root_local_sources = COHO.local_sources
         if self._create_local_sources:
             root_workspace = COHO.local_sources
@@ -1120,7 +1119,7 @@ class CohomologyRingFactory:
 
         ## 1. Cache
         CacheKey = (KEY, os.path.join(root_workspace,GStem,'dat','State'))
-        if self._cache.has_key(CacheKey):
+        if CacheKey in self._cache:
             OUT = self._cache[CacheKey]
             if os.access(OUT.autosave_name(), os.R_OK):
                 coho_logger.debug("Got %r from cache", None, OUT)
@@ -1132,15 +1131,14 @@ class CohomologyRingFactory:
         if os.access(os.path.join(root_workspace,file_name), os.R_OK):
             coho_logger.debug("Data found at %s", None, os.path.join(root_workspace,file_name))
             if from_scratch:
-                from exceptions import RuntimeError
                 raise RuntimeError("You requested a computation from scratch. Please remove %s"%(os.path.join(root_workspace,GStem)))
             try:
                 coho_options['@use_this_root@'] = root_workspace
                 OUT = load(os.path.join(root_workspace,file_name)) # realpath here?
-                if coho_options.has_key('@use_this_root@'):
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
-            except BaseException, msg:
-                if coho_options.has_key('@use_this_root@'):
+            except BaseException as msg:
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
                 raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_workspace,file_name), msg))
         ## 3. Link with local sources and load from there
@@ -1155,20 +1153,20 @@ class CohomologyRingFactory:
             try:
                 coho_options['@use_this_root@'] = root_workspace
                 OUT = load(os.path.join(root_workspace,file_name)) # realpath here?
-                if coho_options.has_key('@use_this_root@'):
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
-            except BaseException, msg:
-                if coho_options.has_key('@use_this_root@'):
+            except BaseException as msg:
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
                 raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_local_sources,file_name), msg))
         ## 4. Search web repository
         elif kwds.get('websource')!=False and (not from_scratch):
             try:
-                if isinstance(kwds.get('websource'), basestring):
+                if isinstance(kwds.get('websource'), str):
                     OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
                 else:
                     OUT = self.from_remote_sources(GStem)
-            except urllib2.URLError, msg:
+            except urllib.error.URLError as msg:
                 if "HTTP Error 404" in str(msg):
                     coho_logger.info("Cohomology ring can not be found in web repository.", None)
                 else:
@@ -1176,7 +1174,7 @@ class CohomologyRingFactory:
             except (ValueError, RuntimeError):
                 coho_logger.info("Cohomology ring can not be found in web repository.", None)
             except KeyboardInterrupt:
-                coho_logger.warn("Access to websource was interrupted.", None)
+                coho_logger.warning("Access to websource was interrupted.", None)
         if OUT is not None:
             GAP = OUT.group().parent()
             _gap_reset_random_seed()
@@ -1242,7 +1240,7 @@ class CohomologyRingFactory:
         extras['root'] = root_workspace
         if len(KEY)==1:
             extras['gap_input'] = q # we must specify the group order
-            if isinstance(KEY[0], basestring):
+            if isinstance(KEY[0], str):
                 OUT = COHO(gap.eval(KEY[0]), **extras)
             else:
                 OUT = COHO(gap(KEY[0]), **extras)
@@ -1323,10 +1321,10 @@ class CohomologyRingFactory:
             try:
                 coho_options['@use_this_root@'] = root_workspace
                 OUT = load(os.path.join(root_workspace,file_name)) # realpath here?
-                if coho_options.has_key('@use_this_root@'):
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
             except BaseException:
-                if coho_options.has_key('@use_this_root@'):
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
                 raise IOError("Saved data at %s are not readable"%(os.path.join(root_workspace,file_name)))
         ## 2. Link with local sources and load from there
@@ -1336,16 +1334,16 @@ class CohomologyRingFactory:
             try:
                 coho_options['@use_this_root@'] = root_workspace
                 OUT = load(os.path.join(root_workspace,file_name))  # realpath here?
-                if coho_options.has_key('@use_this_root@'):
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
-            except BaseException, msg:
-                if coho_options.has_key('@use_this_root@'):
+            except BaseException as msg:
+                if '@use_this_root@' in coho_options:
                     del coho_options['@use_this_root@']
                 raise IOError("%. Saved data at %s are not readable"%(msg, os.path.join(root_local_sources,file_name)))
         # 3. Unless the user forbids it, try to obtain it from some web source
         elif kwds.get('websource')!=False and not kwds.get('from_scratch'):
             try:
-                if isinstance(kwds.get('websource'), basestring):
+                if isinstance(kwds.get('websource'), str):
                     OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
                 else:
                     OUT = self.from_remote_sources(GStem)
@@ -1645,11 +1643,11 @@ class CohomologyRingFactory:
         # Note that these are valid for any subsequent computations with
         # any cohomology ring: The options are not associated with the
         # ring that we are returning below.
-        if kwds.has_key('root'):
+        if 'root' in kwds:
             raise ValueError("The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_workspace`` method instead")
         opts = kwds.get('options')
         if opts is not None:
-            if isinstance(opts, basestring):
+            if isinstance(opts, str):
                 self.global_options(opts)
             elif isinstance(opts, dict):
                 coho_options.update(opts)
@@ -1778,7 +1776,7 @@ class CohomologyRingFactory:
                 raise ValueError("The given Sylow subgroup's order is indivisible by %d"%pr)
             if Subgroup is not None:
                 if not Subgroup.IsSubgroup(SylowSubgroup):
-                    raise ValueError, "The given subgroup must contain the given Sylow subgroup"
+                    raise ValueError("The given subgroup must contain the given Sylow subgroup")
 ##            if HSyl is not None:
 ##                if gap.eval('canonicalIsomorphism(%s,%s)'%(SylowSubgroup.name(),HSyl.group().name()))=='fail':
 ##                    raise ValueError, "The given subgroup does not match its given cohomology ring"
@@ -1839,10 +1837,10 @@ class CohomologyRingFactory:
             try:
                 coho_logger.debug( "Try to find the SmallGroups address of the Sylow subgroup", None)
                 SylowId = SylowSubgroup.IdGroup().sage()
-            except BaseException, msg:
+            except BaseException as msg:
                 if not ("group identification" in str(msg)):
                     raise msg
-                coho_logger.warn( "SmallGroups address not available. Computing the order", None)
+                coho_logger.warning( "SmallGroups address not available. Computing the order", None)
                 SylowId = [Integer(SylowSubgroup.Order()),0]
             if SylowId[1]>0:
                 phiSyl = gap.SmallGroup(SylowId[0],SylowId[1]).IsomorphismGroups(SylowSubgroup)
@@ -1877,7 +1875,7 @@ class CohomologyRingFactory:
             try:
                 coho_logger.info( "Try to find the SmallGroups address of the intermediate subgroup",None)
                 SubgpId = Subgroup.IdGroup().sage()
-            except BaseException, msg:
+            except BaseException as msg:
                 if not ("group identification" in str(msg)):
                     raise msg
                 coho_logger.info( "SmallGroups address not available. Computing the order", None)
@@ -1922,7 +1920,7 @@ class CohomologyRingFactory:
                 similarity = _IsKeyEquivalent(CacheKey,OUT._key)
                 if similarity:
                     if similarity == 1:
-                        coho_logger.warn('Stored cohomology data have a different group description, but they seem to be equivalent', OUT)
+                        coho_logger.warning('Stored cohomology data have a different group description, but they seem to be equivalent', OUT)
                     return OUT
                 else:
                     raise ValueError("Cohomology ring cache is broken for %s"%repr(OUT))
@@ -2001,7 +1999,7 @@ class CohomologyRingFactory:
         import os
         if s is None:
             s = os.path.realpath(os.path.join(DOT_SAGE,'pGroupCohomology','db'))
-        if not isinstance(s,basestring):
+        if not isinstance(s,str):
             raise TypeError("String (pathname) expected")
         if os.path.exists(s):
             if not os.path.isdir(s):
@@ -2196,7 +2194,7 @@ class CohomologyRingFactory:
                 URL = URL + '/'
             if prime is None:
                 coho_logger.debug( "Accessing "+URL, None)
-                f = urllib2.urlopen(URL + GStem + '.tar.gz')
+                f = urllib.request.urlopen(URL + GStem + '.tar.gz')
                 coho_logger.info( "Downloading and extracting archive file", None)
                 T = tarfile.open(fileobj=f, mode='r|*')
                 T.extractall(path=root)
@@ -2204,7 +2202,7 @@ class CohomologyRingFactory:
                 if not (hasattr(prime,'is_prime') and prime.is_prime()):
                     raise ValueError('``prime`` must be a prime number')
                 coho_logger.debug( "Accessing "+URL + 'H'+GStem + 'mod%d.sobj'%prime, None)
-                f = urllib2.urlopen(URL + 'H'+GStem + 'mod%d.sobj'%prime)
+                f = urllib.request.urlopen(URL + 'H'+GStem + 'mod%d.sobj'%prime)
                 coho_options['@use_this_root@'] = root
                 try:
                     coho_logger.info( "Downloading and reading cohomology ring", None)
@@ -2217,7 +2215,7 @@ class CohomologyRingFactory:
                         if GStemList[0].isdigit() and GStemList[1].isdigit():
                             q = int(GStemList[0])
                             n = int(GStemList[1])
-                            if OUT.GroupNames.has_key((q,n)):
+                            if (q,n) in OUT.GroupNames:
                                 if OUT.GroupName!=OUT.GroupNames[q,n][0] or OUT.GroupDescr!=OUT.GroupNames[q,n][1]:
                                     OUT.setprop('GroupName',OUT.GroupNames[q,n][0])
                                     OUT.setprop('GroupDescr',OUT.GroupNames[q,n][1])
@@ -2246,7 +2244,7 @@ class CohomologyRingFactory:
                     if GStemList[0].isdigit() and GStemList[1].isdigit():
                         q = int(GStemList[0])
                         n = int(GStemList[1])
-                        if OUT.GroupNames.has_key((q,n)):
+                        if (q,n) in OUT.GroupNames:
                             if OUT.GroupName!=OUT.GroupNames[q,n][0] or OUT.GroupDescr!=OUT.GroupNames[q,n][1]:
                                 OUT.setprop('GroupName',OUT.GroupNames[q,n][0])
                                 OUT.setprop('GroupDescr',OUT.GroupNames[q,n][1])

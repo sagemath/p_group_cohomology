@@ -78,6 +78,7 @@ from sage.all import Integer
 from sage.all import FiniteField as GF
 from sage.all import Matrix
 from sage.all import PolynomialRing
+from sage.structure.richcmp import richcmp, op_LT, op_NE, op_GT
 
 class DICKSON:
     r"""
@@ -119,7 +120,7 @@ class DICKSON:
         self.p = p
         self._cache_ = {}
 
-    def __cmp__(self,other):
+    def __richcmp__(self, other, op):
         """
         TESTS::
 
@@ -133,8 +134,8 @@ class DICKSON:
 
         """
         if not (hasattr(other,'__class__') and (self.__class__ == other.__class__)):
-            return -1
-        return cmp(self.K,other.K)
+            return op in [op_LT, op_NE, op_GT]
+        return richcmp(self.K, other.K, op)
 
     def __call__(self,n,s):
         """
@@ -156,7 +157,7 @@ class DICKSON:
             raise ValueError("The second argument must be non-negative")
         if s>n:
             raise ValueError("Second argument must not exceed the first argument")
-        if self._cache_.has_key((n,s)):
+        if (n,s) in self._cache_:
             return self._cache_[(n,s)]
         if n>1:
             P = PolynomialRing(self.K,n,'y')

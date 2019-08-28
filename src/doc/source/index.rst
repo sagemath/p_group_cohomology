@@ -126,10 +126,17 @@ dealing with non prime power groups.
 We thank Peter Symonds for interesting discussions, in particular for
 suggesting to use the Poincaré series in a completeness criterion.
 
+We are greatful to John Palmieri for his help on making p_group_cohomology
+work with python-3.
+
 Versions
 --------
 
 See SPKG.txt for a more detailed account.
+
+  * v3.3 (September 2019):
+
+    - Python-3 support.
 
   * v3.2 (July 2019):
 

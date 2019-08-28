@@ -193,7 +193,7 @@ class CohoFormatter(logging.Formatter):
         sage: CohomologyRing.reset()
         sage: L = [ZZ, ZZ, ZZ['x'], ZZ['x'], ZZ['x'], ZZ, ZZ]
         sage: for i,P in enumerate(L):
-        ....:     coho_logger.warn('warning %d', P, i)
+        ....:     coho_logger.warning('warning %d', P, i)
         ....:
         Integer Ring:
                   warning 0
@@ -228,14 +228,14 @@ class CohoFormatter(logging.Formatter):
             sage: from pGroupCohomology.auxiliaries import coho_logger
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.reset()
-            sage: coho_logger.warn('message 1', ZZ)
+            sage: coho_logger.warning('message 1', ZZ)
             Integer Ring:
                       message 1
 
         When we now log a message that is associated to the integer ring
         as well, then we just see the message, not the integer ring::
 
-            sage: coho_logger.warn('message 2', ZZ)
+            sage: coho_logger.warning('message 2', ZZ)
                       message 2
 
         But sometimes (in particular when other output has happened after
@@ -243,7 +243,7 @@ class CohoFormatter(logging.Formatter):
         message belongs to::
 
             sage: CohomologyRing.reset()    # indirect doctest
-            sage: coho_logger.warn('message 3', ZZ)
+            sage: coho_logger.warning('message 3', ZZ)
             Integer Ring:
                       message 3
 
@@ -277,7 +277,7 @@ class CohoFormatter(logging.Formatter):
             sage: CohomologyRing.reset()
             sage: L = [ZZ, ZZ, ZZ['x'], ZZ['x'], ZZ['x'], ZZ, ZZ]
             sage: for i,P in enumerate(L):
-            ....:     coho_logger.warn('warning %d', P, i)  # indirect doctest
+            ....:     coho_logger.warning('warning %d', P, i)  # indirect doctest
             ....:
             Integer Ring:
                       warning 0
@@ -298,7 +298,7 @@ class CohoFormatter(logging.Formatter):
             self.obj = weakref.ref(CohoFormatter)
             self.objstr = ""
             objstr = ""
-        elif isinstance(obj, basestring):
+        elif isinstance(obj, str):
             if self.obj != obj:
                 objstr = obj+': '
                 self.obj = obj
@@ -310,7 +310,7 @@ class CohoFormatter(logging.Formatter):
             else:
                 objstr = self.objstr
         else:
-            if isinstance(self.obj, basestring) or (self.obj() is not obj):
+            if isinstance(self.obj, str) or (self.obj() is not obj):
                 objstr = "{}: ".format(repr(obj))
                 self.obj = weakref.ref(obj)
                 if len(objstr)>10:

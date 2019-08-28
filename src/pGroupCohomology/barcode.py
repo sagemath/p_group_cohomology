@@ -193,6 +193,7 @@ look in position ``(2,4)``::
 from __future__ import print_function, absolute_import
 from sage.typeset.ascii_art import AsciiArt
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp, op_LT, op_NE, op_GT
 
 ##################
 # 2d bar codes
@@ -313,7 +314,7 @@ class BarCode2d(SageObject):
         bars.reverse()
         self._bars = bars
 
-    def __cmp__(self,other):
+    def __richcmp__(self, other, op):
         r"""
         TESTS::
 
@@ -325,8 +326,8 @@ class BarCode2d(SageObject):
 
         """
         if not isinstance(other, BarCode2d):
-            return -1
-        return cmp(self._D, other._D)
+            return op in [op_LT, op_NE, op_GT]
+        return richcmp(self._D, other._D, op)
 
     def data(self):
         r"""
@@ -350,7 +351,7 @@ class BarCode2d(SageObject):
              ((1, 1), 4)]
 
         """
-        OUT = self._D.items()
+        OUT = list(self._D.items())
         OUT.sort()
         return OUT
 
@@ -393,11 +394,11 @@ class BarCode2d(SageObject):
 
         """
         s = "Barcode"
-        if self._Meta.has_key('degree'):
+        if 'degree' in self._Meta:
             s += " of degree %d"%self._Meta['degree']
-        if self._Meta.has_key('ring'):
+        if 'ring' in self._Meta:
             s += " for "+self._Meta['ring']
-        if self._Meta.has_key('command'):
+        if 'command' in self._Meta:
             s += " associated with "+self._Meta['command']
         return s
 
@@ -589,7 +590,7 @@ class BarCode:
         self._L = dict(copy(L))
         self._length = max([X[1] for X in self._L.keys()])
 
-    def __cmp__(self,other):
+    def __richcmp__(self, other, op):
         r"""
         TESTS::
 
@@ -603,8 +604,8 @@ class BarCode:
 
         """
         if not isinstance(other, BarCode):
-            return -1
-        return cmp(self._L, other._L)
+            return op in [op_LT, op_NE, op_GT]
+        return richcmp(self._L, other._L, op)
 
     def data(self):
         r"""
@@ -628,7 +629,7 @@ class BarCode:
              ((1, 1), 1/(t^2 - 2*t + 1))]
 
         """
-        OUT = self._L.items()
+        OUT = list(self._L.items())
         OUT.sort()
         return OUT
 
@@ -671,9 +672,9 @@ class BarCode:
 
         """
         s = "Persistence data"
-        if self._Meta.has_key('ring'):
+        if 'ring' in self._Meta:
             s += " for "+self._Meta['ring']
-        if self._Meta.has_key('command'):
+        if 'command' in self._Meta:
             s += " associated with "+self._Meta['command']
         return s
 
@@ -710,7 +711,7 @@ class BarCode:
         l = self._length
         for i in range(-l,l+1):
             for j in range(i,l+1):
-                if self._L.has_key((i,j)):
+                if (i,j) in self._L:
                     if hasattr(self._L[i,j],'numerator'):
                         D[i,j] = (self._PSRing(self._L[i,j].numerator())/self._PSRing(self._L[i,j].denominator()))[d]
                     else:
@@ -765,9 +766,9 @@ class BarCode:
                 G = sum([sphere(center=(X,dmin+d,l+1-B),size=0.1,color=(0,0,1)) for X in range(bars[d][B][0],bars[d][B][1]+1)],G)
         from sage.all import copy
         KWDS = copy(kwds)
-        if KWDS.has_key('dmin'):
+        if 'dmin' in KWDS:
             del KWDS['dmin']
-        if KWDS.has_key('dmax'):
+        if 'dmax' in KWDS:
             del KWDS['dmax']
         G.show(*args,**KWDS)
 

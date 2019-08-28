@@ -47,6 +47,7 @@ from sage.all import copy
 from sage.all import deepcopy
 from sage.all import load
 from sage.env import DOT_SAGE, SAGE_ROOT, SAGE_LOCAL
+from sage.cpython.string import str_to_bytes
 
 from pGroupCohomology.auxiliaries import gap, singular, coho_options, _gap_reset_random_seed, coho_logger, safe_save
 from pGroupCohomology.cochain cimport YCOCH
@@ -277,7 +278,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
             cr += 1
             if cr >= 1000000:
                 raise IOError('File "%s" has not been created')
-            mat = MatLoad(filename)
+            mat = MatLoad(str_to_bytes(filename))
             if mat != NULL:  # finally the file is written and readable!
                 break
 #~         M = new_mtx(mat)
@@ -439,7 +440,7 @@ def makeSpecialGroupData(H, GStem, folder):
             sleep(1)
             M = MTX.from_filename(filename)
             if not M.ncols():
-                raise IOError, 'File "%s" has not been created'%filename
+                raise IOError('File "%s" has not been created'%filename)
 
 #####################################################################
 #####################################################################
@@ -533,7 +534,7 @@ class RESL_sparse_unpickle_class:
                 raise RuntimeError("Unpickling failed since the parameter '@oldroot@' was incorrectly used")
             if r == newroot: # hence, no change is needed.
                 # By removing @newroot@, we declare that self doesn't need to be saved
-                if coho_options.has_key('@newroot@'):
+                if '@newroot@' in coho_options:
                     del coho_options['@newroot@']
             else:
                 gps_folder = os.path.join(newroot, os.path.split(gps_folder)[1])
@@ -1692,7 +1693,7 @@ cdef class RESL:
                     safe_save(self.Action,os.path.join(self.res_folder,'A'+self.gstem+'.sobj'))
                     self._Action_saved = 1
                 except (IOError, OSError, RuntimeError): # could be that it is a link to a write protected file
-                    coho_logger.warn("> action matrices can't be saved", self)
+                    coho_logger.warning("> action matrices can't be saved", self)
                     self._Action_saved = 0
                     # although this costs memory, we don't delete
                     # the matrices, for otherwise they need to be
@@ -3453,7 +3454,7 @@ cdef class LIFTcontainer:
         cdef int n,d
         n=key[0]
         d=key[1]
-        if not self.Data.has_key((n,d)):
+        if not (n,d) in self.Data:
             self.Data[(n,d)] = {}
         cdef dict D = self.Data[(n,d)]
         s = D.pop('file','')

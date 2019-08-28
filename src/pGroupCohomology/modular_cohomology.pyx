@@ -172,7 +172,7 @@ def _IdGroup(G, D, Client, ring=True):
         q,n = G.IdGroup().sage()
         coho_logger.info( "Considering SmallGroup(%d,%d)"%(q,n), None)
         if q!=1:
-            if D.has_key(q) and D[q].has_key(n):
+            if q in D and n in D[q]:
                 H = D[q][n]
                 try:
                     phi = H.group().canonicalIsomorphism(G)
@@ -189,9 +189,9 @@ def _IdGroup(G, D, Client, ring=True):
 #~                 gap.eval('%s:=Group(List([1..Length(GeneratorsOfGroup(Source(%s)))],
 #~                     x->Image(%s,GeneratorsOfGroup(Source(%s))[x])))'%(G.name(),phi.name(),phi.name(),phi.name()))
                 G = gap.Group([phi.Image(g) for g in phi.Source().GeneratorsOfGroup()])
-        if D.has_key(q) and D[q].has_key(n):
+        if q in D and n in D[q]:
             return (q,n,G)
-        if not D.has_key(q):
+        if not q in D:
             D[q] = {}
         if ring:
             if (q,n)!=(1,1):
@@ -207,7 +207,7 @@ def _IdGroup(G, D, Client, ring=True):
             raise msg
     q = G.Order().sage()
     coho_logger.info( "Considering group of order %s"%q, None)
-    if not D.has_key(q):
+    if not q in D:
         D[q]={}
     for m,H in D[q].items():
         phiG = H.group().IsomorphismGroups(G)
@@ -221,7 +221,7 @@ def _IdGroup(G, D, Client, ring=True):
     try:
         G = G.MinimalGeneratingSet().Group()
     except (RuntimeError, ValueError):
-        coho_logger.warn( "Failed to construct a minimal generating set of the group -- keep your fingers crossed...", None)
+        coho_logger.warning( "Failed to construct a minimal generating set of the group -- keep your fingers crossed...", None)
         G = G.SmallGeneratingSet().Group()
     if ring:
         if q.is_prime_power():
@@ -387,7 +387,7 @@ class MODCOHO(COHO):
         SubgpId   = kwds.get('SubgpId')
         GroupName = kwds.get('GroupName')
         GStem = kwds.get('GStem')
-        if kwds.has_key('GroupDescr'):
+        if 'GroupDescr' in kwds:
             self.setprop('GroupDescr', kwds.get('GroupDescr'))
 
         ##########################################
@@ -1675,7 +1675,7 @@ class MODCOHO(COHO):
         for i from 0 <= i < l:
             f = self._PtoPcapCPdirect[i]
             fd = self._PtoPcapCPtwist[i]
-            if not SubgpMonomials.has_key(f.codomain()._key):
+            if not f.codomain()._key in SubgpMonomials:
                 f.codomain()._makeStdMon(n,"%sMon"%f.codomain().prefix)
                 f.codomain().set_ring()
                 L = [singular.eval('print(%sMon[%d])'%(f.codomain().prefix,k)).strip() for k in range(1,int(singular.eval('size(%sMon)'%f.codomain().prefix))+1)]
@@ -2326,7 +2326,7 @@ class MODCOHO(COHO):
         try:
             HilbertPoincare = self.HilbertPoincareTest(forced=forced)
         except KeyboardInterrupt:
-            coho_logger.warn("The Hilbert-Poincare completion test was interrupted.", self)
+            coho_logger.warning("The Hilbert-Poincare completion test was interrupted.", self)
             HilbertPoincare=None
         if HilbertPoincare:
             coho_logger.info("Successful application of the Hilbert-Poincare criterion", self)
@@ -2454,7 +2454,7 @@ class MODCOHO(COHO):
                     if hsop is None and self.find_dickson():
                         hsop = self.parameters(forced=self.last_interesting_degree()==self.knownDeg)
             except KeyboardInterrupt,msg:
-                coho_logger.warn("The existence proof of parameters over a field extension has been interrupted.", self)
+                coho_logger.warning("The existence proof of parameters over a field extension has been interrupted.", self)
                 return None,None,None
 
             # At this point, it should be impossible that hsop is None.
@@ -4000,7 +4000,7 @@ fi
 
             ## 2. New generators with nilpotent restriction on the
             ## greatest elementary abelian central subgroup
-            if (self.RestrMaps.has_key(self.CElPos) and (NrNewGen)):
+            if (self.CElPos in self.RestrMaps and NrNewGen):
                 # Now we compute a basis in (semi)echelon form of a complement of
                 # decomposable or nilpotent classes in the stable classes intersect
                 # with those that have nilpotent restriction to the greatest
@@ -4126,10 +4126,10 @@ fi
         singular.eval('setring %sr(%d)'%(self.prefix,n))
         singular.eval('kill tmp')
         # keep standard monomials of lower degrees:
-        if not self.StdMon.has_key(n):
+        if not n in self.StdMon:
             self.StdMon[n]={}
         for i from 0<i<=n:
-            if self.StdMon.has_key(i):
+            if i in self.StdMon:
                 for ITEM in self.StdMon[i].items():
                     self.StdMon[i][ITEM[0]]=singular('%sr(%d)'%(self.prefix,self.lastRelevantDeg)).imap(ITEM[1])
         # ... and don't forget that the new generators are standard monomials!
@@ -4570,7 +4570,7 @@ def MODCOHO_unpickle(*L):
     _cache = CohomologyRing._cache
     OUT._property_dict = dict(unpickle_gap_data(_property_dict))
     OUT._decorator_cache = dict(unpickle_gap_data(cache))
-    if _cache.has_key(OUT._key):
+    if OUT._key in _cache:
         return _cache[OUT._key]
     OUT.GStem = OUT._key[1]
     OUT._HP = COHO_from_key(OUT._key[-2])

@@ -2703,7 +2703,7 @@ class MODCOCH(RingElement):
                 tmp = self.parent()(self.name())
                 self._str_value = tmp.val_str()
                 self._Svalue = S.poly(tmp.value())
-            except BaseException, msg:
+            except BaseException as msg:
                 if br is not None:
                     br.set_ring()
                 raise RuntimeError(msg.args[0]+"\nSorry, couldn't reconstruct %s after singular crashed"%repr(self))
@@ -5399,7 +5399,7 @@ cdef class ChMap(RingHomomorphism):
             else:
                 try:
                     Images = [C.stable_to_polynomial(X, verify=False).name() for X in GenIm]
-                except BaseException,msg:
+                except BaseException as msg:
                     if 'None' in repr(msg):
                         raise RuntimeError("Theoretical error: One of the generator images is not stable")
                     raise

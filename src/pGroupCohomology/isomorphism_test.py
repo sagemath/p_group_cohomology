@@ -414,7 +414,7 @@ class IsomorphismTest:
 
         Used internally, not explicitly tested (but implicitly tested elsewhere).
         """
-        clear_list = [k for k in self.candidates_of_gens.cache.iterkeys() if k[0][-1] and any([e in self.not_exhausted_generators for e in k[0][0]])]
+        clear_list = [k for k in self.candidates_of_gens.cache.keys() if k[0][-1] and any([e in self.not_exhausted_generators for e in k[0][0]])]
         for k in clear_list:
             del self.candidates_of_gens.cache[k]
 
@@ -734,7 +734,7 @@ class IsomorphismTest:
 
         Used internally, not explicitly tested (but implicitly tested elsewhere).
         """
-        keys = [k for k in self.partial_relations.cache.iterkeys() if k[0][0].count(True)<n]
+        keys = [k for k in self.partial_relations.cache.keys() if k[0][0].count(True)<n]
         for k in keys:
             del self.partial_relations.cache[k]
 
@@ -747,16 +747,16 @@ class IsomorphismTest:
 
         Used internally, not explicitly tested (but implicitly tested elsewhere).
         """
-        keys = [k for k in self.candidates_of_gens.cache.iterkeys() if 1<len(k[0][0])<=n]
+        keys = [k for k in self.candidates_of_gens.cache.keys() if 1<len(k[0][0])<=n]
         for k in keys:
             del self.candidates_of_gens.cache[k]
-        keys = [k for k in self.hilbert_of_preimage.cache.iterkeys() if len(k[0][0])<=n]
+        keys = [k for k in self.hilbert_of_preimage.cache.keys() if len(k[0][0])<=n]
         for k in keys:
             del self.hilbert_of_preimage.cache[k]
-        keys = [k for k in self.hilbert_of_preimage_annihilator.cache.iterkeys() if len(k[0][0])<=n]
+        keys = [k for k in self.hilbert_of_preimage_annihilator.cache.keys() if len(k[0][0])<=n]
         for k in keys:
             del self.hilbert_of_preimage_annihilator.cache[k]
-        keys = [k for k in self.hilbert_of_preimage_radical.cache.iterkeys() if len(k[0][0])<=n]
+        keys = [k for k in self.hilbert_of_preimage_radical.cache.keys() if len(k[0][0])<=n]
         for k in keys:
             del self.hilbert_of_preimage_radical.cache[k]
 
