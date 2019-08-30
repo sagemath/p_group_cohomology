@@ -133,6 +133,7 @@ It is possible to mix both classes in arithmetic expressions::
 from __future__ import print_function, absolute_import
 import sys
 import os
+import six
 
 ## Sage generalities
 import sage
@@ -416,7 +417,7 @@ cdef class COCH(RingElement):
     """
 #################
 # init, dealloc(automatic in this case), repr
-    def __init__(self, PARENT, int n, char *Nick, L, ydeg=None, rdeg=None, is_polyrep=False):
+    def __init__(self, PARENT, int n, Nick, L, ydeg=None, rdeg=None, is_polyrep=False):
         """
         INPUT:
 
@@ -492,7 +493,7 @@ cdef class COCH(RingElement):
                 raise TypeError("(1 x %d) MTX matrix expected"%(R.Data.projrank[n]))
             self.Resl = R
             self.Deg = n
-            self.Name = Nick
+            self.Name = str(Nick)
             self.Data = LMTX
         else:
             raise TypeError("Last parameter must be a list/tuple of integers or an MTX matrix")
@@ -2048,7 +2049,7 @@ class MODCOCH(RingElement):
             br = None
         self._SPparent = singular(parent._HP or parent)
         self._SPparent.set_ring()
-        if isinstance(value,basestring):
+        if isinstance(value, six.string_types):
             self._Svalue = singular.poly(value)
             #self._str_value = value
         else:
@@ -2453,7 +2454,7 @@ class MODCOCH(RingElement):
             c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
-        if isinstance(s,basestring):
+        if isinstance(s, six.string_types):
             self._name = s
         else:
             raise TypeError("string expected")
@@ -5461,13 +5462,13 @@ cdef class ChMap(RingHomomorphism):
             True
 
         """
-        if not isinstance(f,basestring):
+        if not isinstance(f, six.string_types):
             raise TypeError("String expected")
         cdef int i
         cdef int M = len(self.Data)
         for i in range(1, M):
             Data_i = self.Data[i]
-            if isinstance(Data_i,basestring):
+            if isinstance(Data_i, six.string_types):
                 if Data_i != f+str(i):
                     coho_logger.debug('export data', self)
                     Data_i = self[i]
@@ -5820,7 +5821,7 @@ cdef class ChMap(RingHomomorphism):
             [0 0 1 1 0 0 0 0]
 
         """
-        if isinstance(self.Data[key],basestring):
+        if isinstance(self.Data[key], six.string_types):
             sobj = '' if self.Data[key].endswith('.sobj') else '.sobj'
             try:
                 return load(self.Data[key]+sobj)  # realpath here?

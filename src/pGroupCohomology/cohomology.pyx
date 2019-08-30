@@ -45,6 +45,7 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 import os
+import six
 from libc.string cimport memcpy
 
 # Sage generalities
@@ -312,7 +313,7 @@ def unpickle_gap_data(G):
         True
 
     """
-    if isinstance(G,basestring):
+    if isinstance(G, six.string_types):
         return G
     if isinstance(G, GapPickler):
         from pGroupCohomology.auxiliaries import gap
@@ -367,7 +368,7 @@ def pickle_gap_data(G):
         TypeError: Can not pickle 'Group( [ f1, f2, f3 ] )'
 
     """
-    if isinstance(G,basestring):
+    if isinstance(G, six.string_types):
         return G
     if isinstance(G, SingularElement):
         # In previous Sage versions, most Singular elements pickled
@@ -996,14 +997,14 @@ def is_filter_regular(I, f, H1=None, I2=None):
         [0, 2, 1, 1, 2]
 
     """
-    if isinstance(I,basestring):
+    if isinstance(I, six.string_types):
         S = singular
         nI = I
         I = S.ideal(nI)
     else:
         S = I._check_valid()
         nI = I.name()
-    if isinstance(f,basestring):
+    if isinstance(f, six.string_types):
         nf = f
         f = S(nf)
     else:
@@ -1082,7 +1083,7 @@ def is_filter_regular_parameter_system(I, FRS):
         True
 
     """
-    if isinstance(I,basestring):
+    if isinstance(I, six.string_types):
         S = singular
         I0 = S.ideal(I)
     else:
@@ -1090,7 +1091,7 @@ def is_filter_regular_parameter_system(I, FRS):
         I0 = I
     frs = []
     for f in FRS:
-        if isinstance(f,basestring):
+        if isinstance(f, six.string_types):
             frs.append(S(f))
         else:
             assert f.parent() is S
@@ -1816,7 +1817,7 @@ class permanent_result(object):
         except AttributeError:
             inst._decorator_cache = {}
         val = inst._decorator_cache[key]
-        if len(val)>1 and not isinstance(val[-1],basestring):
+        if len(val)>1 and not isinstance(val[-1], six.string_types):
             # If val comes from a permanent cache, then either it is
             # of length 1, or belongs to an interface, and the last
             # item is a string to reconstruct the interface data.
@@ -3202,7 +3203,7 @@ class COHO(Ring):
             s = self.base_ring()(s)
         except TypeError:
             pass
-        if not isinstance(s,basestring):
+        if not isinstance(s, six.string_types):
             # The following is necessary, since by some oddity the above might
             # return a tuple of an error with an error message!
             if not s in self.base_ring():
@@ -3524,7 +3525,7 @@ class COHO(Ring):
         cdef COCH X
         if self.subgps:
             import os
-            subgps=[(i,os.path.join(gp.gps_folder,'H'+gp.GStem)) for i,gp in self.subgps.items()]
+            subgps = [(i,os.path.join(gp.gps_folder,'H'+gp.GStem)) for i,gp in self.subgps.items()]
         else:
             subgps = []
         if self.subgpDickson:
@@ -3590,13 +3591,13 @@ class COHO(Ring):
             self.setprop('root',root)
         # _property_dict may contain data defined in terms of Gap.
         GapPickler.gap = self.group().parent()
-        _property_dict = self._property_dict.items()
+        _property_dict = list(self._property_dict.items())
         self.setprop('root',root)
 
         if self.Dickson:
             if isinstance(self.Dickson[0],COCH): # ... then self is a subgroup, hence, Dickson data depend on the super-group
-                return (RestrMaps,self.degvec,self.CElPos,self.CenterRk,gps_folder,self.Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,self.lastRel,self.MaxelPos,self.MaxelRk,self.pRank,self.knownDeg,self.RelG,Gen,StdMon,self.NilBasis,self.SingularTime,self.completed,'Monomials',self.suffDeg,self.Automatic,self.RelGName,self.NumSubgps,self.GStem,Resl,self.firstOdd,DG,  []  ,self.alpha, pickle_gap_data(_property_dict), pickle_gap_data(self._decorator_cache.items()))
-        return (RestrMaps,self.degvec,self.CElPos,self.CenterRk,gps_folder,self.Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,self.lastRel,self.MaxelPos,self.MaxelRk,self.pRank,self.knownDeg,self.RelG,Gen,StdMon,self.NilBasis,self.SingularTime,self.completed,'Monomials',self.suffDeg,self.Automatic,self.RelGName,self.NumSubgps,self.GStem,Resl,self.firstOdd,DG,self.Dickson,self.alpha, pickle_gap_data(_property_dict), pickle_gap_data(self._decorator_cache.items()))
+                return (RestrMaps,self.degvec,self.CElPos,self.CenterRk,gps_folder,self.Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,self.lastRel,self.MaxelPos,self.MaxelRk,self.pRank,self.knownDeg,self.RelG,Gen,StdMon,self.NilBasis,self.SingularTime,self.completed,'Monomials',self.suffDeg,self.Automatic,self.RelGName,self.NumSubgps,self.GStem,Resl,self.firstOdd,DG,  []  ,self.alpha, pickle_gap_data(_property_dict), pickle_gap_data(list(self._decorator_cache.items())))
+        return (RestrMaps,self.degvec,self.CElPos,self.CenterRk,gps_folder,self.Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,self.lastRel,self.MaxelPos,self.MaxelRk,self.pRank,self.knownDeg,self.RelG,Gen,StdMon,self.NilBasis,self.SingularTime,self.completed,'Monomials',self.suffDeg,self.Automatic,self.RelGName,self.NumSubgps,self.GStem,Resl,self.firstOdd,DG,self.Dickson,self.alpha, pickle_gap_data(_property_dict), pickle_gap_data(list(self._decorator_cache.items())))
 
     def __setstate__(self, s, newroot=None): #s = (RestrMaps,degvec,CElPos,CenterRk,gps_folder,Rel,res_folder,subgps,dat_folder,Triangular,inc_folder,lastRel,MaxelPos,MaxelRk,pRank,knownDeg,RelG,Gen,StdMon,NilBasis,SingularTime,completed,Monomials,suffDeg,Automatic,RelGName,NumSubgps,GStem,Resl,firstOdd,DG,Dickson,alpha, Dict):
         """
@@ -3761,7 +3762,7 @@ class COHO(Ring):
             self.Dickson = Dickson
             self.alpha = alpha
 
-            if isinstance(Resl,basestring):
+            if isinstance(Resl, six.string_types):
                 if (oldroot is not None):
                     coho_options['@oldroot@'] = oldroot
                 coho_options['@newroot@'] = root
@@ -3807,7 +3808,7 @@ class COHO(Ring):
             for i,Tr in Triangular:
                 self.Triangular[i] = [COCH(self,X[0],X[1],X[2], is_polyrep=True) for X in Tr]
             self.NilBasis = NilBasis
-            if isinstance(Monomials,basestring):
+            if isinstance(Monomials, six.string_types):
                 self.Monomials = {'bla':1}
                 self.importMonomials()
             else:
@@ -3957,7 +3958,7 @@ class COHO(Ring):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
-            sage: L1 = H.Monomials.items()
+            sage: L1 = list(H.Monomials.items())
             sage: L1.sort()
             sage: L1
             [('b_1_0', b_1_0: 1-Cocycle in H^*(D8; GF(2))),
@@ -4014,7 +4015,7 @@ class COHO(Ring):
         are available in some file. So, we can import them::
 
             sage: H.importMonomials()
-            sage: L2 = H.Monomials.items()
+            sage: L2 = list(H.Monomials.items())
             sage: L2.sort()
             sage: L2 == L1
             True
@@ -4187,7 +4188,7 @@ class COHO(Ring):
             return
         self.subgps = {}
         root = self.root
-        saveopts = coho_options.items()
+        saveopts = dict(coho_options)
         for i,L in self.SUBGPS:
             coho_logger.info("Inserting SmallGroup(%d,%d) as a subgroup", self, i[0],i[1])
             self.subgps[i] = CohomologyRing(i[0],i[1], websource=False)
@@ -4720,7 +4721,7 @@ Minimal list of algebraic relations:
             return self._property_dict.keys()
         if self._property_dict.get('_need_new_root'):
             coho_logger.warning('%s: Files on disk have been moved - trying to get things right', None, self.GStem)
-            if isinstance(self._property_dict['_need_new_root'],basestring):
+            if isinstance(self._property_dict['_need_new_root'], six.string_types):
                 newroot = self._property_dict['_need_new_root']
                 defaultname = os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj')
             else:
@@ -5643,7 +5644,7 @@ Minimal list of algebraic relations:
                 L.append(', an ')
             L.append('element of degree %d'%(x.deg()))
             return ''.join(L)
-        if isinstance(x,basestring):
+        if isinstance(x, six.string_types):
             return str2html(str(singular.eval(x)))
         return str2html(str(x))
 
@@ -6971,7 +6972,7 @@ Minimal list of algebraic relations:
             M = MTX.from_filename(os.path.join(self.inc_folder,self.GStem+'sg'+str(n)+'.ima'))
             ch = self.hom(M, self.subgps[(q,nr)])
         else:
-            saveopts = coho_options.items()
+            saveopts = dict(coho_options)
             coho_logger.info("Inserting SmallGroup(%d,%d) as a subgroup", self, q,nr)
             # we take the group from the workspace, since there might
             # be problems with write permission, and not from any remote source, since
@@ -10694,7 +10695,7 @@ is an error. Please inform the author!""")
             else:
                 self.set_ring()
                 selfname = '%sr(%d)'%(self.prefix,self.lastRelevantDeg or self.knownDeg)
-            if isinstance(I,basestring):
+            if isinstance(I, six.string_types):
                 I = singular(I)
             if not in_quotient:
                 I = singular('%sI+%s'%(self.prefix, I.name()))

@@ -733,7 +733,7 @@ class MODCOHO(COHO):
         # self._HP can be found (on disk or wherever) if its group description
         # and its GStem are.
         # But this is part of self._key, thus, is in self._property_dict
-        return MODCOHO_unpickle, (self._prime, GEN, self.Rel, self.RelG, self.lastRel, self.lastRelevantDeg, self.knownDeg, self.suffDeg, self.completed, self.Dickson, DuflotRegSeq, self.alpha, Triangular, StdMon, DG, self._gapBackup, self._SubgpBackup, self._SylowGpBackup, SubgroupList, PtoPcapCPdirect, PtoPcapCPtwist, PtoPcapCPdirectSing, PtoPcapCPtwistSing, self._Order, self._POrder, sgpDickson, pickle_gap_data(self._property_dict.items()), self.SingularTime, pickle_gap_data(self._decorator_cache.items()))
+        return MODCOHO_unpickle, (self._prime, GEN, self.Rel, self.RelG, self.lastRel, self.lastRelevantDeg, self.knownDeg, self.suffDeg, self.completed, self.Dickson, DuflotRegSeq, self.alpha, Triangular, StdMon, DG, self._gapBackup, self._SubgpBackup, self._SylowGpBackup, SubgroupList, PtoPcapCPdirect, PtoPcapCPtwist, PtoPcapCPdirectSing, PtoPcapCPtwistSing, self._Order, self._POrder, sgpDickson, pickle_gap_data(list(self._property_dict.items())), self.SingularTime, pickle_gap_data(list(self._decorator_cache.items())))
 
     def set_ring(self):
         """
@@ -818,7 +818,7 @@ class MODCOHO(COHO):
             '.../HSymmetricGroup_6_mod2.sobj'
 
         """
-        return os.path.join(self.workspace,'H'+self.GStem+'mod%d.sobj'%self._prime)
+        return os.path.join(self.workspace, 'H'+self.GStem + 'mod%d.sobj'%self._prime)
 
     def group(self):
         """
