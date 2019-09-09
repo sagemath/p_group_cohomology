@@ -3991,8 +3991,8 @@ fi
                     ZN_comp[Monomials[i]]=2  # 0 was decomposable and nilpotent,
                                              # 2 is indecomposable nilpotent
                 NrNewGen = NrNewGen-len(NewGen)
-                if ZN_comp.values().count(2)!=len(NewGen):
-                    raise ArithmeticError("%d==%d -- that seems strange"%(ZN_comp.values().count(2),len(NewGen)))
+                if list(ZN_comp.values()).count(2)!=len(NewGen):
+                    raise ArithmeticError("%d==%d -- that seems strange"%(list(ZN_comp.values()).count(2),len(NewGen)))
                 if len(NewGen)==1:
                     coho_logger.info("> There is 1 nilpotent generator in degree %d"%(n), self)
                 else:
@@ -4039,13 +4039,13 @@ fi
                     ZN_comp[Monomials[i]]=3  # 0 or 2 was decomposable or nilpotent,
                                              # 3 is nilpotent restriction on CElAb
 
-                if ZN_comp.values().count(3)==1:
+                if list(ZN_comp.values()).count(3)==1:
                     coho_logger.info('> There is 1 "boring" generator in degree %d'%(n), self)
                 else:
-                    coho_logger.info('> There are %d "boring" generators in degree %d'%(ZN_comp.values().count(3),n), self)
-                NrNewGen = NrNewGen - ZN_comp.values().count(3)
+                    coho_logger.info('> There are %d "boring" generators in degree %d'%(list(ZN_comp.values()).count(3),n), self)
+                NrNewGen = NrNewGen - list(ZN_comp.values()).count(3)
 
-            if (NrNewGen != ZN_comp.values().count(1)):
+            if (NrNewGen != list(ZN_comp.values()).count(1)):
                 raise RuntimeError("Error in the quest for regular generators")
             NewDuflot = bool(NrNewGen)
             if NrNewGen:
@@ -4061,10 +4061,10 @@ fi
                 if NrNewGen!=0:
                     raise RuntimeError("Error in choosing regular generators")
 
-                if ZN_comp.values().count(1)==1:
+                if list(ZN_comp.values()).count(1)==1:
                     coho_logger.info("> There is 1 Duflot generator in degree %d"%(n), self)
                 else:
-                    coho_logger.info("> There are %d Duflot generators in degree %d"%(ZN_comp.values().count(1),n), self)
+                    coho_logger.info("> There are %d Duflot generators in degree %d"%(list(ZN_comp.values()).count(1),n), self)
 
         ## Insert the new generators:
         if n%2:

@@ -1607,7 +1607,7 @@ cdef class RESL:
         known in degree 2.
         ::
 
-            sage: R.getLifts().values()
+            sage: list(R.getLifts().values())
             [{[1 0 1]: ((
                   [1 0 0 0 0 0 0 0]
                   [0 0 0 0 0 0 0 0]

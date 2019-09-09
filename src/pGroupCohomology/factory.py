@@ -354,7 +354,6 @@ class CohomologyRingFactory:
         from pGroupCohomology.auxiliaries import default_options, coho_options
         coho_options.clear()
         coho_options.update(default_options)
-        print("Restoring default options",coho_options)
         singular.quit()
         singular.option('noqringNF')
         _gap_reset_random_seed()

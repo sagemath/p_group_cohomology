@@ -11279,8 +11279,7 @@ is an error. Please inform the author!""")
         from pGroupCohomology.cochain import YCOCH
         YCList = [C.yoneda_cocycle() for C in L]
         P = MasseyDefiningSystems(*YCList, all=all)
-        S = P.values()
-        SOut = set([ ( X.deg(), R.ChainmapToCochain( (X.deg(),0,X[0]) ) ) for X in S])
+        SOut = set([ ( X.deg(), R.ChainmapToCochain( (X.deg(),0,X[0]) ) ) for X in P.values()])
         return set([self.element_as_polynomial(COCH(self, X[0], 'bla', X[1])) for X in SOut])
 
 #####################################################################
