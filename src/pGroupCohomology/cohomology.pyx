@@ -394,14 +394,10 @@ def pickle_gap_data(G):
                 raise TypeError("Can not pickle '{}'".format(G))
     except AttributeError:
         pass
-    try:
-        I = iter(G)
-    except:
-        return G
-    if isinstance(G,dict):
+    if isinstance(G, dict):
         return dict((pickle_gap_data(k), pickle_gap_data(v)) for k,v in G.items())
-    if getattr(type(G), '__module__', None) == '__builtin__':
-        return type(G)(pickle_gap_data(X) for X in I)
+    if isinstance(G, (list, tuple)):
+        return type(G)(pickle_gap_data(X) for X in G)
     return G
 
 
@@ -6611,7 +6607,7 @@ Minimal list of algebraic relations:
             singular.eval('%s[%d..%d] = %s[1..%d]'%(s,sCount+1,sCount+tmp,self.StdMon[n][str(x)].name(),tmp))
             sCount = sCount + tmp
         ## cleanup
-        for I in self.StdMon[n].items():
+        for I in list(self.StdMon[n].items()):
             singular.eval('%s = simplify(%s,6)'%(I[1].name(),I[1].name()))
             if I[1].size()==0:
                 del self.StdMon[n][I[0]]
@@ -8555,7 +8551,7 @@ is an error. Please inform the author!""")
         if self.knownDeg < 2:
             return False
         Par = self.duflot_regular_sequence()
-        if len(Par) < (self.CenterRk or (self.CenterRk==0 and self.PCenterRk) or self.pRank):
+        if len(Par) < (self.CenterRk or (self.CenterRk==0 and self.PCenterRk) or self.pRank or 0):
             coho_logger.info("We need to find more Duflot generators!", self)
             return False
         Par = Par + self.Dickson
@@ -11763,7 +11759,7 @@ is an error. Please inform the author!""")
         cdef list DV
         DV = [max(2,NR) for NR in dv]
         cdef int lenDV
-        if (self.CenterRk or (self._HP and self._HP._lower_bound_depth()))>1:
+        if (self.CenterRk or (self._HP and self._HP._lower_bound_depth()) or 0)>1:
             lenDV = len(dv)
         else:
             lenDV = len(dv)-1
