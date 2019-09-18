@@ -1203,7 +1203,7 @@ cdef class COCH(RingElement):
 
 ################
 # Arithmetic
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -1221,6 +1221,8 @@ cdef class COCH(RingElement):
         FfSetField((<COCH>self).Data.Data.Field)
         FfSetNoc((<COCH>self).Data.Data.Noc)
         return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
+
+    __nonzero__ = __bool__
 
     cpdef _add_(self, other):
         r"""
@@ -2866,7 +2868,7 @@ class MODCOCH(RingElement):
                 br.set_ring()
             return OUT
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -2883,6 +2885,8 @@ class MODCOCH(RingElement):
 
         """
         return self.lc()!=0
+
+    __nonzero__ = __bool__
 
     def _add_(self, other):
         """
