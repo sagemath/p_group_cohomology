@@ -35,6 +35,7 @@ from sage.env import SAGE_SHARE, MTXLIB
 ## All other modules will import this version of singular
 
 from sage.all import singular
+from datetime import timedelta
 
 ####################
 ## The SharedMeatAxe library needs initialisation, which is
@@ -181,6 +182,8 @@ import logging, weakref
 _previous_slf = None
 coho_logger = logging.getLogger("pGroupCohomology")
 stream_handler = logging.StreamHandler()
+from sage.all import cputime as cpu_time
+from sage.all import walltime as wall_time
 
 class CohoFormatter(logging.Formatter):
     """
@@ -207,13 +210,30 @@ class CohoFormatter(logging.Formatter):
                   warning 6
 
     """
-    def __init__(self, fmt=None, datefmt=None):
+    def __init__(self, fmt='%(message)s', datefmt=None, walltime=None, cputime=None):
         """
         See :class:`logging.Formatter`.
         """
-        logging.Formatter.__init__(self, fmt, datefmt)
-        self._orig_fmt = self._fmt
-        self.obj = weakref.ref(CohoFormatter)
+        #~ super(CohoFormatter, self).__init__('%(prepend)s%(indent)s' + ('%(asctime)s: ' if time else '') + fmt, datefmt)
+        self.walltime = bool(walltime)
+        self.cputime = bool(cputime)
+        introduction = '%(prepend)s%(indent)s'
+        timer = []
+        if self.walltime:
+            timer.append('%(walldelta)s Wall')
+        if self.cputime:
+            timer.append('%(cpudelta)s CPU')
+        timer = ' / '.join(timer)
+        if timer:
+            timer += ': '
+        super(CohoFormatter, self).__init__( introduction + timer + fmt, datefmt)
+        if self.cputime:
+            self.cpu_start = cpu_time()
+            self.sing_start = int(singular.eval('timer'))
+        if self.walltime:
+            self.wall_start = wall_time()
+        self.obj = weakref.ref(self)
+        self.indent = '    '
 
     def reset(self):
         """
@@ -230,13 +250,13 @@ class CohoFormatter(logging.Formatter):
             sage: CohomologyRing.reset()
             sage: coho_logger.warning('message 1', ZZ)
             Integer Ring:
-                      message 1
+                message 1
 
         When we now log a message that is associated to the integer ring
         as well, then we just see the message, not the integer ring::
 
             sage: coho_logger.warning('message 2', ZZ)
-                      message 2
+                message 2
 
         But sometimes (in particular when other output has happened after
         logging the previous event), we want to see what object the log
@@ -245,10 +265,10 @@ class CohoFormatter(logging.Formatter):
             sage: CohomologyRing.reset()    # indirect doctest
             sage: coho_logger.warning('message 3', ZZ)
             Integer Ring:
-                      message 3
+                message 3
 
         """
-        self.obj = weakref.ref(CohoFormatter)
+        self.obj = weakref.ref(self)
 
     def format(self, record):
         """
@@ -294,35 +314,27 @@ class CohoFormatter(logging.Formatter):
         # record.args[0] is the object (resolution, map cohomology ring)
         # that this log record belongs to.
         obj = record.args[0]
-        if obj is None:
-            self.obj = weakref.ref(CohoFormatter)
-            self.objstr = ""
-            objstr = ""
-        elif isinstance(obj, str):
-            if self.obj != obj:
-                objstr = obj+': '
-                self.obj = obj
-                if len(objstr)>10:
-                    objstr = objstr+os.linesep+10*" "
-                    self.objstr = "          "
-                else:
-                    self.objstr = " "*len(objstr)
-            else:
-                objstr = self.objstr
-        else:
-            if isinstance(self.obj, str) or (self.obj() is not obj):
-                objstr = "{}: ".format(repr(obj))
-                self.obj = weakref.ref(obj)
-                if len(objstr)>10:
-                    objstr = objstr+os.linesep+10*" "
-                    self.objstr = "          "
-                else:
-                    self.objstr = " "*len(objstr)
-            else:
-                objstr = self.objstr
-        self._fmt = objstr + self._orig_fmt
         record.args = record.args[1:]
-        return logging.Formatter.format(self, record)
+        record.prepend = ''
+        record.indent = self.indent
+        if obj is None:
+            #~ self.obj = weakref.ref(self)
+            obj = record.funcName
+            if obj.startswith('__'):
+                obj = 'CohomologyRing'
+        if isinstance(obj, str):
+            if self.obj != obj:
+                self.obj = obj
+                record.prepend = obj + ':' + os.linesep
+        elif isinstance(self.obj, str) or (self.obj() is not obj):
+            self.obj = weakref.ref(obj)
+            record.prepend = repr(obj) + ':' + os.linesep
+        if self.cputime:
+            record.cpudelta = timedelta( seconds = float( (cpu_time(self.cpu_start)+
+                (int(singular.eval('timer'))-self.sing_start)/1000.0) ) )
+        if self.walltime:
+            record.walldelta = timedelta( seconds = float(wall_time(self.wall_start)) )
+        return super(CohoFormatter, self).format(record)
 
 stream_handler.setFormatter(CohoFormatter())
 coho_logger.addHandler(stream_handler)

@@ -4362,8 +4362,6 @@ fi
         """
         if max_deg == 0:
             return
-        TCT = cputime()
-        TWT = walltime()
         if (not (isinstance(max_deg, int) or isinstance(max_deg, Integer))) or \
            (max_deg==0) or (max_deg<-1):
             raise IndexError("The degree bound must be a positive integer")
@@ -4397,7 +4395,6 @@ fi
         if self.completed:
             self.make_groebner() # should be known by Benson's test, but not if other criteria were used
         self.RelG = [s.strip() for s in singular.eval('print(%sI)'%(self.prefix)).split(',')]
-        self.SingularTime = singular.cputime(self.SingularTime)
         coho_logger.info("Computation of the ring approximation is finished\n", self)
 
         #####
@@ -4608,7 +4605,6 @@ def MODCOHO_unpickle(*L):
     OUT._gapBackup = _gap_group
     OUT._Order = _Order
     OUT._POrder = _POrder
-    OUT.SingularTime = SingularTime
     OUT.Triangular = dict([(i, [MODCOCH(OUT,X[0],deg=X[1],name=X[2],rdeg=X[3],ydeg=X[4], is_polyrep=True) for X in Y]) for i,Y in Triangular])
 
     # Reconstruct data in Singular:

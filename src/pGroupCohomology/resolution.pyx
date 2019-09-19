@@ -2035,8 +2035,6 @@ cdef class RESL:
             [0 0 1 0 0 0 0 0]
 
         """
-        ct=cputime()
-        wt=walltime()
         FfSetField(self.G_Alg.Data.p)
         FfSetNoc(self.G_Alg.Data.nontips)
         cdef group_t *G
@@ -2288,8 +2286,6 @@ cdef class RESL:
             pass
         coho_logger.info('Compute Yoneda lift data', self)
         cdef int i,j,k,l
-        ct=cputime()
-        wt=walltime()
         self.importAction()
         while self.deg() < n:
             self.nextDiff()

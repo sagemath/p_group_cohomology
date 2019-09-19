@@ -3110,7 +3110,6 @@ class COHO(Ring):
         singular.LIB('dickson.lib')
         singular.eval('option(redSB)');
         singular.eval('int i')
-        self.SingularTime = singular.cputime()
         self.CElPos = 1
         self.CenterRk = None
         self.NumSubgps = 0
@@ -3749,7 +3748,6 @@ class COHO(Ring):
             self.pRank = pRank
             self.knownDeg = knownDeg
             self.RelG = RelG
-            self.SingularTime = SingularTime
             self.completed = completed
             self.suffDeg = suffDeg
             self.RelGName = RelGName
@@ -12115,8 +12113,6 @@ is an error. Please inform the author!""")
         if self.completed and (not Forced) and (not self.ElAb):
             coho_logger.info("Complete ring structure has already been computed", self)
             return
-        TCT = cputime()
-        TWT = walltime()
         cdef RESL R
         R = self.Resl
 
@@ -12132,8 +12128,6 @@ is an error. Please inform the author!""")
             if R.Data.numproj<=min(self._property_dict['auto'],max([1]+[X.deg() for X in self.Gen if X.rdeg()==0])):
                 R.makeAutolift(R.Data.numproj)
         n = self.knownDeg + 1
-        ct=cputime()
-        wt=walltime()
         cdef int i,k,m,j
         cdef FEL fel, fel2
         cdef int lenDecGen,lenMonExp
@@ -12182,9 +12176,6 @@ is an error. Please inform the author!""")
                 MonExp = [[int(y.strip()) for y in x.split(',')] for x in \
                           [s.strip() for s in (singular.eval('for (i=1;i<=ncols(Mon);i++) { print(leadexp(Mon[i]));print(\";\");}')+'\n').split(';')] if x]
                 lenMonExp = len(MonExp)
-
-                ct=cputime()
-                wt=walltime()
 
                 #######################################
                 # Perform the products
@@ -12644,8 +12635,6 @@ is an error. Please inform the author!""")
         """
         if max_deg == 0:
             return
-        TCT = cputime()
-        TWT = walltime()
         cdef RESL R = self.Resl
         if (not (isinstance(max_deg, int) or isinstance(max_deg, Integer))) or \
            (max_deg==0) or (max_deg<-1):
@@ -12691,7 +12680,6 @@ is an error. Please inform the author!""")
         if not self.MaxelPos:
             self.make_groebner()
         self.RelG = [s.strip() for s in singular.eval('print(%sI)'%(self.prefix)).split(',')]
-        self.SingularTime = singular.cputime(self.SingularTime)
         coho_logger.info("Finished computation of the ring structure", self)
         fdt = self.fdt
         if fdt:

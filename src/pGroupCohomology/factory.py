@@ -46,7 +46,15 @@ from pGroupCohomology.cohomology import COHO
 
 import re,os
 
-import urllib.request, urllib.error
+#~ import urllib.request, urllib.error
+try:
+    from urllib.error import URLError
+except ImportError:
+    URLError = OSError
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib import urlopen
 import tarfile
 import logging
 
@@ -345,7 +353,8 @@ class CohomologyRingFactory:
 
         """
         CohomologyRing.logger.setLevel(logging.WARN)
-        CohomologyRing.logger.handlers[0].formatter.reset()
+        from pGroupCohomology.auxiliaries import stream_handler, CohoFormatter
+        stream_handler.setFormatter(CohoFormatter())
         CohomologyRing._cache.clear()
         self.set_local_sources(True)  # use the default location of the local sources
         self.set_local_sources(False) # make the local sources read-only
@@ -386,20 +395,21 @@ class CohomologyRingFactory:
 
         INPUT:
 
-        - arbitrary strings, as positional arguments
-        - optional keyword arguments
+        - arbitrary strings, as positional arguments.
+        - optional keyword arguments that provide values to be assigned to an option.
 
-        NOTE:
+        There are the special string values "warn", "info" and "debug", that set
+        the logging level accordingly, and moreover "walltime" (the walltime spent
+        since setting this option will be added to the log), "cputime" (the cputime
+        spent since setting this option will be added to the log), "time" (the log
+        will include both walltime and cputime). With "notime", "nowalltime" and
+        "nocputime", the corresponding logging option can be switched off.
 
-        The keyword arguments provide values to be assigned to an option.
-        If a string in a positional argument does not start with `"no"`,
-        then the option with that name is set to ``True``. If it is of the
+        For any other string that does not start start with `"no"`,
+        the option with that name is set to ``True``. If it is of the
         form ``"no"+X``, then the option with the name ``X`` is set to
         ``False``. If there is no input, a copy of the dictionary of
         options is returned.
-
-        Moreover, the logging level can be defined, with the values
-        'warn', 'info' and 'debug'. If they are used, the logger is reset.
 
         EXAMPLES::
 
@@ -429,7 +439,7 @@ class CohomologyRingFactory:
             sage: CohomologyRing.reset()
 
         """
-        from pGroupCohomology.auxiliaries import coho_options
+        from pGroupCohomology.auxiliaries import coho_options, stream_handler, CohoFormatter
         if not kwds and (not args or (len(args)==1 and not args[0])):
             return dict(coho_options)
         for opt in args:
@@ -446,7 +456,19 @@ class CohomologyRingFactory:
                     coho_logger.setLevel(logging.WARN)
                     coho_logger.handlers[0].formatter.reset()
                     coho_logger.setLevel(logging.DEBUG)
-                if len(opt)>1 and opt[:2]=='no':
+                elif opt == 'cputime':
+                    stream_handler.setFormatter(CohoFormatter(walltime=coho_logger.handlers[0].formatter.walltime, cputime=True))
+                elif opt == 'nocputime':
+                    stream_handler.setFormatter(CohoFormatter(walltime=coho_logger.handlers[0].formatter.walltime, cputime=False))
+                elif opt == 'walltime':
+                    stream_handler.setFormatter(CohoFormatter(walltime=True, cputime=coho_logger.handlers[0].formatter.cputime))
+                elif opt == 'nowalltime':
+                    stream_handler.setFormatter(CohoFormatter(walltime=False, cputime=coho_logger.handlers[0].formatter.cputime))
+                elif opt == 'time':
+                    stream_handler.setFormatter(CohoFormatter(walltime=True, cputime = True))
+                elif opt == 'notime':
+                    stream_handler.setFormatter(CohoFormatter())
+                elif len(opt)>1 and opt[:2]=='no':
                     coho_options[opt[2:]] = False
                 else:
                     coho_options[opt] = True
@@ -1166,7 +1188,7 @@ class CohomologyRingFactory:
                     OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
                 else:
                     OUT = self.from_remote_sources(GStem)
-            except urllib.error.URLError as msg:
+            except URLError as msg:
                 if "HTTP Error 404" in str(msg):
                     coho_logger.info("Cohomology ring can not be found in web repository.", None)
                 else:
@@ -2194,7 +2216,7 @@ class CohomologyRingFactory:
                 URL = URL + '/'
             if prime is None:
                 coho_logger.debug( "Accessing "+URL, None)
-                f = urllib.request.urlopen(URL + GStem + '.tar.gz')
+                f = urlopen(URL + GStem + '.tar.gz')
                 coho_logger.info( "Downloading and extracting archive file", None)
                 T = tarfile.open(fileobj=f, mode='r|*')
                 T.extractall(path=root)
@@ -2202,7 +2224,7 @@ class CohomologyRingFactory:
                 if not (hasattr(prime,'is_prime') and prime.is_prime()):
                     raise ValueError('``prime`` must be a prime number')
                 coho_logger.debug( "Accessing "+URL + 'H'+GStem + 'mod%d.sobj'%prime, None)
-                f = urllib.request.urlopen(URL + 'H'+GStem + 'mod%d.sobj'%prime)
+                f = urlopen(URL + 'H'+GStem + 'mod%d.sobj'%prime)
                 coho_options['@use_this_root@'] = root
                 try:
                     coho_logger.info( "Downloading and reading cohomology ring", None)
