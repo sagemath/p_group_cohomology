@@ -119,7 +119,7 @@ def unit_test_64(**kwds):
     test that pickling works.
     ::
 
-        sage: L,t = unit_test_64(from_scratch=False)    # long time
+        sage: L, t = unit_test_64(from_scratch=False)    # long time
         #  1: Walltime   ... min
               CPU-time   ... min
               Singular   ... min
@@ -1016,6 +1016,7 @@ class CohomologyRingFactory:
             sage: CohomologyRing._check_compatibility(H._key,H)
             H^*(D8; GF(2))
             sage: CohomologyRing._check_compatibility(((repr(H.group()),),H._key[1]), H)
+            _check_compatibility:
                 WARNING: The given key and ring describe different groups, but they are equivalent
             H^*(D8; GF(2))
             sage: CohomologyRing._check_compatibility(((8,4),H._key[1]), H)
@@ -1108,10 +1109,11 @@ class CohomologyRingFactory:
 
             sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(8,1,options='info',from_scratch=True)
-            We compute this cohomology ring from scratch
-            Computing basic setup for Small Group number 1 of order 2
-            Computing basic setup for Small Group number 2 of order 4
-            Computing basic setup for Small Group number 1 of order 8
+            _get_p_group_from_scratch:
+                We compute this cohomology ring from scratch
+                Computing basic setup for Small Group number 1 of order 2
+                Computing basic setup for Small Group number 2 of order 4
+                Computing basic setup for Small Group number 1 of order 8
             H^*(SmallGroup(8,1); GF(2)):
                 Initialising maximal p-elementary abelian subgroups
             sage: CohomologyRing._cache.clear()
@@ -1119,6 +1121,7 @@ class CohomologyRingFactory:
             sage: H = CohomologyRing(8,1,options='info')
             H^*(SmallGroup(8,1); GF(2)):
                 Import monomials
+            _get_p_group_from_cache_or_db:
                 Checking compatibility of SmallGroups library and stored cohomology ring
 
         """
@@ -1628,6 +1631,7 @@ class CohomologyRingFactory:
             sage: CohomologyRing.reset()
             sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(125,3,options='info')
+            _get_p_group_from_scratch:
                 We compute this cohomology ring from scratch
                 Computing basic setup for Small Group number 1 of order 5
                 Computing basic setup for Small Group number 2 of order 25
@@ -2148,7 +2152,7 @@ class CohomologyRingFactory:
 
         During doctests, the web access is usually switched off,
 
-        EXAMPLES:
+        TESTS:
 
         We choose a low logging level, so that it is visible what happens
         behind the scenes.
@@ -2164,6 +2168,7 @@ class CohomologyRingFactory:
         local files that are available during package installation::
 
             sage: H = CohomologyRing.from_remote_sources('8gp3', websource='file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'))
+            from_remote_sources:
                 Accessing web
                 Press Ctrl-c to interrupt web access.
                 Downloading and extracting archive file
@@ -2174,7 +2179,7 @@ class CohomologyRingFactory:
                 Differential reloaded
                 > rk P_03 =   4
             H^*(D8; GF(2)):
-                      Import monomials
+                Import monomials
             sage: print(H)
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>

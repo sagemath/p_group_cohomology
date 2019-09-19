@@ -2479,7 +2479,7 @@ class MODCOHO(COHO):
             # We will prove the existence of parameters at most out to this degree:
             maxd = min(max(dv), self.knownDeg)
             sumd = sum(dv)
-            datapairs = zip(hsop,dv)
+            datapairs = list(zip(hsop,dv))
             # This is the bound that we will get without existence proof.
             optimalbound = sumd - D
             if optimalbound <= self.knownDeg:
