@@ -47,7 +47,6 @@ from sage.all import copy
 from sage.all import deepcopy
 from sage.all import load
 from sage.env import DOT_SAGE, SAGE_ROOT, SAGE_LOCAL
-from sage.cpython.string import str_to_bytes
 
 from pGroupCohomology.auxiliaries import gap, singular, coho_options, _gap_reset_random_seed, coho_logger, safe_save
 from pGroupCohomology.cochain cimport YCOCH
@@ -56,8 +55,8 @@ from pGroupCohomology.cochain cimport COCH
 from libc.string cimport memcpy
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
-#~ from sage.cpython.string cimport str_to_bytes
-#~ from sage.cpython.string import FS_ENCODING
+from sage.cpython.string cimport str_to_bytes, bytes_to_str
+from sage.cpython.string import FS_ENCODING
 #~ include 'sage/ext/stdsage.pxi'
 
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
@@ -271,15 +270,17 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     for sg in range(1,NumSubgps+1):
         cr = 0
         filename = os.path.join(inc_folder,GStem+'sg%d.ima'%sg)
-#~         if type(filename) is not bytes:
-#~             filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
         # There is a race condition. So, we need to try reading until
         # the gap subprocess is done writing the file.
         while(1):
             cr += 1
             if cr >= 1000000:
                 raise IOError('File "%s" has not been created')
-            mat = MatLoad(str_to_bytes(filename))
+            try:
+                mat = MatLoad(filename)
+            except OSError:
+                continue
             if mat != NULL:  # finally the file is written and readable!
                 break
 #~         M = new_mtx(mat)
@@ -1040,7 +1041,7 @@ cdef class RESL:
         self.res_folder = res_folder
         tmprstem = os.path.join(res_folder,rstem)
         tmpgstem = os.path.join(gps_folder,gstem)
-        self.Data = newResolWithGroupLoaded(str_to_bytes(tmprstem), str_to_bytes(tmpgstem), 1)
+        self.Data = newResolWithGroupLoaded(str_to_bytes(tmprstem, FS_ENCODING, 'surrogateescape'), str_to_bytes(tmpgstem, FS_ENCODING, 'surrogateescape'), 1)
         self.Diff = []
         self.G_Alg = G_ALG('')
         freeGroupRecord(self.G_Alg.Data)
@@ -1601,7 +1602,7 @@ cdef class RESL:
             sage: R.getLifts()
             {}
             sage: R.setLift(C,4)
-            sage: R.getLifts().keys()
+            sage: list(R.getLifts().keys())
             [(2, 2)]
 
         Hence, now there are cochains (i.e., chain maps) of degree 2 whose lifts are
@@ -2055,7 +2056,7 @@ cdef class RESL:
         if M is not None: # if the differential was computed before
             assert M.Data != NULL and M.Data.Data != NULL, "Stored differential was empty"
             if coho_options['sparse']:
-                self.Diff.append(str(differentialFile(self.Data, n)))
+                self.Diff.append(bytes_to_str(differentialFile(self.Data, n)))
             else:
                 self.Diff.append(M)
             setRankProj(self.Data, n, int(M.Data.Nor/self.Data.projrank[n-1]))
@@ -2089,7 +2090,7 @@ cdef class RESL:
         finally:
             sig_off()
         if coho_options['sparse']:
-            self.Diff.append(str(differentialFile(self.Data, n)))
+            self.Diff.append(bytes_to_str(differentialFile(self.Data, n)))
         else:
             self.Diff.append(M)
         freeNRgs(nRgs)
@@ -3785,7 +3786,7 @@ cdef class G_ALG:
         else:
             self.gstem=gstem
             f = os.path.join(folder,gstem)
-            self.Data = fullyLoadedGroupRecord(f)
+            self.Data = fullyLoadedGroupRecord(str_to_bytes(f, FS_ENCODING, 'surrogateescape'))
         self.groupname = groupname
         self.dependent=dependent
 
