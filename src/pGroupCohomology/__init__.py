@@ -965,13 +965,13 @@ classes, for different reasons::
     sage: CohomologyRing.global_options('info')
     sage: S6.essential_ideal()
     H^*(SmallGroup(720,763); GF(2)):
-              Compute essential_ideal
-              The group is not of prime power order -- there is no essential ideal
+        Compute essential_ideal
+        The group is not of prime power order -- there is no essential ideal
     0
     sage: D.essential_ideal()
     H^*(D8; GF(2)):
-              Compute essential_ideal
-              The depth exceeds the Duflot bound -- there is no essential ideal
+        Compute essential_ideal
+        The depth exceeds the Duflot bound -- there is no essential ideal
     0
     sage: CohomologyRing.global_options('warn')
 
@@ -2172,10 +2172,10 @@ Nevertheless, let us test for completion now::
     sage: CohomologyRing.global_options('info')
     sage: HU.test_for_completion()
     H^*(SmallGroup(384,5602); GF(2)):
-              We found parameters, but they would not allow for an application of Symonds' criterion.
-              Trying the Hilbert-Poincare criterion
-              We expect that the Hilbert-Poincare criterion will not apply before degree 9
-              No conclusion on the completeness of this cohomology ring.
+        We found parameters, but they would not allow for an application of Symonds' criterion.
+        Trying the Hilbert-Poincare criterion
+        We expect that the Hilbert-Poincare criterion will not apply before degree 9
+        No conclusion on the completeness of this cohomology ring.
     sage: CohomologyRing.global_options('warn')
 
 Since it seems possible to apply the Hilbert\--Poincaré criterion in degree 9,
@@ -2315,38 +2315,38 @@ By consequence, when we compute degree 8, we still compute the stable subspace.
     sage: CohomologyRing.global_options('info')
     sage: H.make(8)
     H^*(SymmetricGroup(8); GF(2)):
-              We have no degree bound yet
-              Computing ring approximation in degree 8
-              Determining stable subspace in degree 8
+        We have no degree bound yet
+        Computing ring approximation in degree 8
+        Determining stable subspace in degree 8
     H^*(SmallGroup(384,5602); GF(2)):
-              Determine degree 8 standard monomials
+        Determine degree 8 standard monomials
     H^*(D8xV4; GF(2)):
-              Determine degree 8 standard monomials
+        Determine degree 8 standard monomials
     H^*(SmallGroup(32,27); GF(2)):
-              Determine degree 8 standard monomials
+        Determine degree 8 standard monomials
     H^*(D8; GF(2)):
-              Determine degree 8 standard monomials
+        Determine degree 8 standard monomials
     H^*(SymmetricGroup(8); GF(2)):
-              Setting up conditions to determine stable elements
-              Solving equations
-              Computing Groebner basis up to degree 8
-              Exploring relations in degree 8
-              Determine degree 8 standard monomials
-              Express 27 standard monomials as cocycles
-              Found 2 relations in degree 8
-              There is no new generator in degree 8
-              Try to lift 1st power of 0th Dickson invariant
-              Exploring relations in degree 8
-              Determine degree 8 standard monomials
-              Express 25 standard monomials as cocycles
-              Found 0 relations in degree 8
-              Factorising an element; it can be interrupted with Ctrl-c
-              Degree 8 of the visible ring structure is computed!
-              Storing ring approximation
-              We expect a relation in degree at least 14
-              Computation of the ring approximation is finished
+        Setting up conditions to determine stable elements
+        Solving equations
+        Computing Groebner basis up to degree 8
+        Exploring relations in degree 8
+        Determine degree 8 standard monomials
+        Express 27 standard monomials as cocycles
+        Found 2 relations in degree 8
+        There is no new generator in degree 8
+        Try to lift 1st power of 0th Dickson invariant
+        Exploring relations in degree 8
+        Determine degree 8 standard monomials
+        Express 25 standard monomials as cocycles
+        Found 0 relations in degree 8
+        Factorising an element; it can be interrupted with Ctrl-c
+        Degree 8 of the visible ring structure is computed!
+        Storing ring approximation
+        We expect a relation in degree at least 14
+        Computation of the ring approximation is finished
     <BLANKLINE>
-              Storing ring approximation
+        Storing ring approximation
 
 Hence, we did actually not find another generator in degree 8, and we have
 just proved that there will be no generators in higher degrees. So, starting
@@ -2356,21 +2356,21 @@ simplified, as there is no need to compute the stable subspace::
     sage: H.all_generators_found
     True
     sage: H.make(9)
-              We have no degree bound yet
-              Computing ring approximation in degree 9
-              All generators are known
-              Computing Groebner basis up to degree 9
-              Exploring relations in degree 9
-              Determine degree 9 standard monomials
-              Express 35 standard monomials as cocycles
-              Found 2 relations in degree 9
-              There is no new generator in degree 9
-              Degree 9 of the visible ring structure is computed!
-              Storing ring approximation
-              We expect a relation in degree at least 14
-              Computation of the ring approximation is finished
+        We have no degree bound yet
+        Computing ring approximation in degree 9
+        All generators are known
+        Computing Groebner basis up to degree 9
+        Exploring relations in degree 9
+        Determine degree 9 standard monomials
+        Express 35 standard monomials as cocycles
+        Found 2 relations in degree 9
+        There is no new generator in degree 9
+        Degree 9 of the visible ring structure is computed!
+        Storing ring approximation
+        We expect a relation in degree at least 14
+        Computation of the ring approximation is finished
     <BLANKLINE>
-              Storing ring approximation
+        Storing ring approximation
 
 As we see, the last relations are expected in degree 14, which is actually too
 high (the last relation is in degree 12), but let us compute out to degree 14

@@ -1013,11 +1013,10 @@ class CohomologyRingFactory:
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
-            sage: CohomologyRing.global_options('info')
             sage: CohomologyRing._check_compatibility(H._key,H)
             H^*(D8; GF(2))
             sage: CohomologyRing._check_compatibility(((repr(H.group()),),H._key[1]), H)
-              WARNING: The given key and ring describe different groups, but they are equivalent
+                WARNING: The given key and ring describe different groups, but they are equivalent
             H^*(D8; GF(2))
             sage: CohomologyRing._check_compatibility(((8,4),H._key[1]), H)
             Traceback (most recent call last):
@@ -1114,13 +1113,13 @@ class CohomologyRingFactory:
             Computing basic setup for Small Group number 2 of order 4
             Computing basic setup for Small Group number 1 of order 8
             H^*(SmallGroup(8,1); GF(2)):
-                      Initialising maximal p-elementary abelian subgroups
+                Initialising maximal p-elementary abelian subgroups
             sage: CohomologyRing._cache.clear()
             sage: del H
             sage: H = CohomologyRing(8,1,options='info')
             H^*(SmallGroup(8,1); GF(2)):
-                      Import monomials
-            Checking compatibility of SmallGroups library and stored cohomology ring
+                Import monomials
+                Checking compatibility of SmallGroups library and stored cohomology ring
 
         """
         # If data for the given GStem and KEY are available,
@@ -1629,10 +1628,10 @@ class CohomologyRingFactory:
             sage: CohomologyRing.reset()
             sage: CohomologyRing.set_workspace(tmp_dir())
             sage: H = CohomologyRing(125,3,options='info')
-            We compute this cohomology ring from scratch
-            Computing basic setup for Small Group number 1 of order 5
-            Computing basic setup for Small Group number 2 of order 25
-            Computing basic setup for Small Group number 3 of order 125
+                We compute this cohomology ring from scratch
+                Computing basic setup for Small Group number 1 of order 5
+                Computing basic setup for Small Group number 2 of order 25
+                Computing basic setup for Small Group number 3 of order 125
             ...
             sage: print(H)
             Cohomology ring of Extraspecial 5-group of order 125 and exponent 5 with coefficients in GF(5)
@@ -2165,15 +2164,15 @@ class CohomologyRingFactory:
         local files that are available during package installation::
 
             sage: H = CohomologyRing.from_remote_sources('8gp3', websource='file://'+os.path.join(os.path.realpath(os.path.curdir),'test_data'))
-            Accessing web
-            Press Ctrl-c to interrupt web access.
-            Downloading and extracting archive file
-            Trying to read downloaded data
+                Accessing web
+                Press Ctrl-c to interrupt web access.
+                Downloading and extracting archive file
+                Trying to read downloaded data
             Resolution of GF(2)[8gp3]:
-                      Differential reloaded
-                      > rk P_02 =   3
-                      Differential reloaded
-                      > rk P_03 =   4
+                Differential reloaded
+                > rk P_02 =   3
+                Differential reloaded
+                > rk P_03 =   4
             H^*(D8; GF(2)):
                       Import monomials
             sage: print(H)

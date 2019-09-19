@@ -66,28 +66,28 @@ class IsomorphismTest:
         sage: T = IsomorphismTest(H176, H173, cutoff=60)
         sage: T.explore_isomorphisms()        # long time
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  Trying to find an isomorphism
+            Trying to find an isomorphism
         ...
-                  gen(4) is rigid: b_1_0 --> 1*b_1_0
+            gen(4) is rigid: b_1_0 --> 1*b_1_0
         H^*(SmallGroup(64,173); GF(2)):
-                  Determine degree 1 standard monomials
-                  Determine degree 3 standard monomials
-                  Determine degree 1 standard monomials
+            Determine degree 1 standard monomials
+            Determine degree 3 standard monomials
+            Determine degree 1 standard monomials
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  gen(3) is rigid: a_1_1 --> 1*a_1_1
-                  1 potential assignments for ['gen(4)', 'gen(3)']
-                  4 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)']
+            gen(3) is rigid: a_1_1 --> 1*a_1_1
+            1 potential assignments for ['gen(4)', 'gen(3)']
+            4 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)']
         ...
         H^*(SmallGroup(64,173); GF(2)):
-                  Determine degree 2 standard monomials
+            Determine degree 2 standard monomials
         ...
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  Verify if we found an isomorphism
-                  ... Not a homomorphism
-                  Verify if we found an isomorphism
+            Verify if we found an isomorphism
+            ... Not a homomorphism
+            Verify if we found an isomorphism
         ...
-                  0 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)', 'gen(1)', 'gen(2)']
-                  No conclusion on the existence of an isomorphism.
+            0 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)', 'gen(1)', 'gen(2)']
+            No conclusion on the existence of an isomorphism.
 
     The statistic of criteria used in the process is as follows::
 
@@ -114,32 +114,32 @@ class IsomorphismTest:
         sage: T = IsomorphismTest(H176, H173, cutoff=60, use_radical=True)
         sage: T.explore_isomorphisms()              # long time
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  Trying to find an isomorphism
+            Trying to find an isomorphism
         H^*(SmallGroup(64,173); GF(2)):
-                  Determine degree 1 standard monomials
+            Determine degree 1 standard monomials
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  gen(4) is rigid: b_1_0 --> 1*b_1_0
+            gen(4) is rigid: b_1_0 --> 1*b_1_0
         H^*(SmallGroup(64,173); GF(2)):
-                  Determine degree 1 standard monomials
-                  Determine degree 3 standard monomials
-                  Determine degree 1 standard monomials
+            Determine degree 1 standard monomials
+            Determine degree 3 standard monomials
+            Determine degree 1 standard monomials
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  gen(3) is rigid: a_1_1 --> 1*a_1_1
-                  1 potential assignments for ['gen(4)', 'gen(3)']
-                  4 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)']
-                  64 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)']
+            gen(3) is rigid: a_1_1 --> 1*a_1_1
+            1 potential assignments for ['gen(4)', 'gen(3)']
+            4 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)']
+            64 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)']
         ...
-                  240 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)', 'gen(1)']
+            240 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)', 'gen(1)']
         H^*(SmallGroup(64,173); GF(2)):
-                  Determine degree 4 standard monomials
+            Determine degree 4 standard monomials
         IsomorphismTest(H^*(SmallGroup(64,176); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                  Verify if we found an isomorphism
-                  ... Not a homomorphism
-                  Verify if we found an isomorphism
+            Verify if we found an isomorphism
+            ... Not a homomorphism
+            Verify if we found an isomorphism
         ...
-                  ... Not a homomorphism
-                  Verify if we found an isomorphism
-                  Isomorphism found!
+            ... Not a homomorphism
+            Verify if we found an isomorphism
+            Isomorphism found!
         ('1*c_2_4',
          '1*b_1_2*b_3_6+1*c_4_9+1*c_2_4*b_1_0*b_1_2',
          '1*a_1_1',

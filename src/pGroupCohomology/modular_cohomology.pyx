@@ -2012,7 +2012,7 @@ class MODCOHO(COHO):
             sage: CohomologyRing.global_options('info')
             sage: H.generator_degbound()
             H^*(M11; GF(2)):
-                      New generators will be found at most in degree 5
+                New generators will be found at most in degree 5
             sage: CohomologyRing.global_options('warn')
             sage: H.degbound_for_gens
             5
@@ -2132,8 +2132,9 @@ class MODCOHO(COHO):
 
             sage: CohomologyRing.global_options('info')
             sage: H.test_for_completion()
-            H^*(M11; GF(2)): Try to find a bound for the degree of generators
-                    > New generators will be found at most in degree 5
+            H^*(M11; GF(2)):
+                Try to find a bound for the degree of generators
+                > New generators will be found at most in degree 5
             False
 
         In degree 5, it turns out that parameters can be found. But,
@@ -2147,36 +2148,36 @@ class MODCOHO(COHO):
             sage: H.test_for_completion()
             H^*(M11; GF(2)): We expect a relation in degree at least 10
             sage: H.filter_regular_parameters()
-                      Compute filter_regular_parameters
-                      Trying to lift the parameters of H^*(SD16; GF(2))
+                Compute filter_regular_parameters
+                Trying to lift the parameters of H^*(SD16; GF(2))
             H^*(SmallGroup(48,29); GF(2)):
-                      Exploring relations in degree 1
-                      Determine degree 1 standard monomials
-                      Express 1 standard monomial as cocycle
-                      Found 0 relations in degree 1
+                Exploring relations in degree 1
+                Determine degree 1 standard monomials
+                Express 1 standard monomial as cocycle
+                Found 0 relations in degree 1
             H^*(M11; GF(2)):
-                      One parameter could not be lifted
-                      Testing whether parameters of the cohomology ring can be found
-                      > Yes
-                      Compute find_small_last_parameter
-                      Computing complete Groebner basis
-                      Compute _parameter_restrictions
+                One parameter could not be lifted
+                Testing whether parameters of the cohomology ring can be found
+                > Yes
+                Compute find_small_last_parameter
+                Computing complete Groebner basis
+                Compute _parameter_restrictions
             Induced homomorphism of degree 0 from H^*(M11; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
+                Compute restricted parameters
             H^*(M11; GF(2)):
-                      Compute _get_obvious_parameter
-                      Compute _parameter_restrictions
-                      compute radicals of restricted parameter ideal
-                      Compute _parameter_restrictions
+                Compute _get_obvious_parameter
+                Compute _parameter_restrictions
+                compute radicals of restricted parameter ideal
+                Compute _parameter_restrictions
             Induced homomorphism of degree 0 from H^*(M11; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
+                Compute restricted parameters
             H^*(M11; GF(2)):
-                      Determine degree 1 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 2 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 3 standard monomials
-                      --> Last parameter found in degree 3
+                Determine degree 1 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 2 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 3 standard monomials
+                --> Last parameter found in degree 3
             ['c_4_0', 'b_3_0']
 
         We continue out to degree 10, and then test again. In this
@@ -2191,11 +2192,11 @@ class MODCOHO(COHO):
             sage: CohomologyRing.global_options('info')
             sage: H.test_for_completion()
             H^*(M11; GF(2)):
-                      Compute dependent_parameters
-                      Try to find a set of generators over which the cohomology ring is finite.
-                      Computing complete Groebner basis
-                      Trying Symonds' criterion
-                      Successful application of the Symonds criterion
+                Compute dependent_parameters
+                Try to find a set of generators over which the cohomology ring is finite.
+                Computing complete Groebner basis
+                Trying Symonds' criterion
+                Successful application of the Symonds criterion
             True
             sage: CohomologyRing.global_options('warn')
             sage: H.completed
@@ -2789,69 +2790,69 @@ fi
             sage: CohomologyRing.global_options('info')
             sage: H._construct_fr_parameters()
             H^*(SmallGroup(324,39); GF(3)):
-                      Testing whether parameters of the cohomology ring can be found
-                      > Yes
-                      Compute find_small_last_parameter
-                      Computing complete Groebner basis
-                      Compute _parameter_restrictions
+                Testing whether parameters of the cohomology ring can be found
+                > Yes
+                Compute find_small_last_parameter
+                Computing complete Groebner basis
+                Compute _parameter_restrictions
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(9,2); GF(3)):
-                      Compute restricted parameters
+                Compute restricted parameters
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
-                      Compute restricted parameters
+                Compute restricted parameters
             H^*(SmallGroup(324,39); GF(3)):
-                      Compute _get_obvious_parameter
-                      Compute _parameter_restrictions
+                Compute _get_obvious_parameter
+                Compute _parameter_restrictions
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(9,2); GF(3)):
-                      Compute restricted parameters
+                Compute restricted parameters
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
-                      Compute restricted parameters
+                Compute restricted parameters
             H^*(SmallGroup(324,39); GF(3)):
-                      Determine degree 1 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 2 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 3 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 4 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 5 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 6 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 7 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 8 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 9 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 10 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 11 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 12 standard monomials
-                      The given last parameter could not be improved
-                      Compute find_dickson
-                      Try to lift Dickson invariants using elimination methods
-                      Lift Dickson invariants of the 2nd special subgroup
+                Determine degree 1 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 2 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 3 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 4 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 5 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 6 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 7 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 8 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 9 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 10 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 11 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 12 standard monomials
+                The given last parameter could not be improved
+                Compute find_dickson
+                Try to lift Dickson invariants using elimination methods
+                Lift Dickson invariants of the 2nd special subgroup
             H^*(SmallGroup(9,2); GF(3)):
-                      Compute nil_radical
-                      Compute order_matrix
+                Compute nil_radical
+                Compute order_matrix
             H^*(SmallGroup(324,39); GF(3)):
-                      Compute order_matrix
+                Compute order_matrix
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(9,2); GF(3)):
-                      Compute preimages by elimination
+                Compute preimages by elimination
             H^*(SmallGroup(324,39); GF(3)):
-                      Lift Dickson invariants of the 3rd special subgroup
+                Lift Dickson invariants of the 3rd special subgroup
             H^*(SmallGroup(27,5); GF(3)):
-                      Compute nil_radical
-                      Compute order_matrix
+                Compute nil_radical
+                Compute order_matrix
             Induced homomorphism of degree 0 from H^*(SmallGroup(324,39); GF(3)) to H^*(SmallGroup(27,5); GF(3)):
-                      Compute preimages by elimination
+                Compute preimages by elimination
             H^*(SmallGroup(324,39); GF(3)):
-                      Factorising an element; it can be interrupted with Ctrl-c
-                      Factorising an element; it can be interrupted with Ctrl-c
-                      Factorising an element; it can be interrupted with Ctrl-c
-                      We succeeded to lift Dickson invariants!
+                Factorising an element; it can be interrupted with Ctrl-c
+                Factorising an element; it can be interrupted with Ctrl-c
+                Factorising an element; it can be interrupted with Ctrl-c
+                We succeeded to lift Dickson invariants!
             True
             sage: CohomologyRing.global_options('warn')
             sage: P1 = H._current_parameters; P1
@@ -3560,13 +3561,13 @@ fi
             sage: CohomologyRing.global_options('info')
             sage: H._extend_Duflot_reg_seq(3)
             H^*(SmallGroup(48,50); GF(2)):
-                      Try to find new Duflot-regular element in degree 3
+                Try to find new Duflot-regular element in degree 3
             explore_one_parameter:
-                      32 = (2-1)^2*2^5 parameter candidates
-                      We found a parameter.
-                      > It is regular.
+                32 = (2-1)^2*2^5 parameter candidates
+                We found a parameter.
+                > It is regular.
             H^*(SmallGroup(48,50); GF(2)):
-                      Found extension of the Duflot regular sequence
+                Found extension of the Duflot regular sequence
             sage: CohomologyRing.global_options('warn')
             sage: H.duflot_regular_sequence()
             ['c_2_3', 'c_2_2', 'c_3_1', 'c_3_7+(c_3_0)']
@@ -3672,69 +3673,69 @@ fi
             sage: CohomologyRing.global_options('info')
             sage: H.next()
             H^*(SmallGroup(720,763); GF(2)):
-                      Computing ring approximation in degree 1
-                      Determining stable subspace in degree 1
+                Computing ring approximation in degree 1
+                Determining stable subspace in degree 1
             H^*(D8xC2; GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             H^*(SmallGroup(8,5); GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             H^*(SmallGroup(4,2); GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             H^*(SmallGroup(720,763); GF(2)):
-                      Setting up conditions to determine stable elements
-                      Solving equations
-                      We have to choose 1 new generator in degree 1
+                Setting up conditions to determine stable elements
+                Solving equations
+                We have to choose 1 new generator in degree 1
             H^*(SmallGroup(4,2); GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             H^*(SmallGroup(8,5); GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             H^*(SmallGroup(720,763); GF(2)):
-                      > There are 0 nilpotent generators in degree 1
-                      > There are 0 "boring" generators in degree 1
-                      > There is 1 Duflot generator in degree 1
-                      Try to find new Duflot-regular element in degree 1
+                > There are 0 nilpotent generators in degree 1
+                > There are 0 "boring" generators in degree 1
+                > There is 1 Duflot generator in degree 1
+                Try to find new Duflot-regular element in degree 1
             explore_one_parameter:
-                      1 = (2-1)^1 parameter candidates
-                      We found a parameter.
-                      > It is regular.
+                1 = (2-1)^1 parameter candidates
+                We found a parameter.
+                > It is regular.
             H^*(SmallGroup(720,763); GF(2)):
-                      Found extension of the Duflot regular sequence
-                      Degree 1 of the visible ring structure is computed!
-                      Storing ring approximation
+                Found extension of the Duflot regular sequence
+                Degree 1 of the visible ring structure is computed!
+                Storing ring approximation
             sage: H.next()
-                      Computing ring approximation in degree 2
-                      Determining stable subspace in degree 2
+                Computing ring approximation in degree 2
+                Determining stable subspace in degree 2
             H^*(D8xC2; GF(2)):
-                      Determine degree 2 standard monomials
+                Determine degree 2 standard monomials
             H^*(SmallGroup(8,5); GF(2)):
-                      Determine degree 2 standard monomials
+                Determine degree 2 standard monomials
             H^*(SmallGroup(4,2); GF(2)):
-                      Determine degree 2 standard monomials
+                Determine degree 2 standard monomials
             H^*(SmallGroup(720,763); GF(2)):
-                      Setting up conditions to determine stable elements
-                      Solving equations
-                      Exploring relations in degree 2
-                      Determine degree 2 standard monomials
-                      Express 1 standard monomial as cocycle
-                      Found 0 relations in degree 2
-                      We have to choose 1 new generator in degree 2
+                Setting up conditions to determine stable elements
+                Solving equations
+                Exploring relations in degree 2
+                Determine degree 2 standard monomials
+                Express 1 standard monomial as cocycle
+                Found 0 relations in degree 2
+                We have to choose 1 new generator in degree 2
             H^*(SmallGroup(4,2); GF(2)):
-                      Determine degree 2 standard monomials
+                Determine degree 2 standard monomials
             H^*(SmallGroup(8,5); GF(2)):
-                      Determine degree 2 standard monomials
+                Determine degree 2 standard monomials
             H^*(SmallGroup(720,763); GF(2)):
-                      > There are 0 nilpotent generators in degree 2
-                      > There are 0 "boring" generators in degree 2
-                      > There is 1 Duflot generator in degree 2
-                      Try to find new Duflot-regular element in degree 2
+                > There are 0 nilpotent generators in degree 2
+                > There are 0 "boring" generators in degree 2
+                > There is 1 Duflot generator in degree 2
+                Try to find new Duflot-regular element in degree 2
             explore_one_parameter:
-                      1 = (2-1)^1 parameter candidates
-                      We found a parameter.
-                      > It is regular.
+                1 = (2-1)^1 parameter candidates
+                We found a parameter.
+                > It is regular.
             H^*(SmallGroup(720,763); GF(2)):
-                      Found extension of the Duflot regular sequence
-                      Degree 2 of the visible ring structure is computed!
-                      Storing ring approximation
+                Found extension of the Duflot regular sequence
+                Degree 2 of the visible ring structure is computed!
+                Storing ring approximation
 
         So, apparently the stable subspace of the cohomology ring of the
         underlying subgroup ``D8xC2`` is computed in each degree, then it
@@ -3766,21 +3767,21 @@ fi
             sage: CohomologyRing.global_options('info')
             sage: H.next()
             H^*(SmallGroup(720,763); GF(2)):
-                      Computing ring approximation in degree 6
-                      All generators are known
-                      Exploring relations in degree 6
-                      Determine degree 6 standard monomials
-                      Express 11 standard monomials as cocycles
-                      Found 1 relations in degree 6
-                      There is no new generator in degree 6
-                      Try to lift 1st power of 1st Dickson invariant
-                      Exploring relations in degree 6
-                      Determine degree 6 standard monomials
-                      Express 10 standard monomials as cocycles
-                      Found 0 relations in degree 6
-                      Factorising an element; it can be interrupted with Ctrl-c
-                      Degree 6 of the visible ring structure is computed!
-                      Storing ring approximation
+                Computing ring approximation in degree 6
+                All generators are known
+                Exploring relations in degree 6
+                Determine degree 6 standard monomials
+                Express 11 standard monomials as cocycles
+                Found 1 relations in degree 6
+                There is no new generator in degree 6
+                Try to lift 1st power of 1st Dickson invariant
+                Exploring relations in degree 6
+                Determine degree 6 standard monomials
+                Express 10 standard monomials as cocycles
+                Found 0 relations in degree 6
+                Factorising an element; it can be interrupted with Ctrl-c
+                Degree 6 of the visible ring structure is computed!
+                Storing ring approximation
 
         There is no completion test performed. But in fact, the
         completion test is successful::
@@ -3788,11 +3789,11 @@ fi
             sage: H.completed
             False
             sage: H.test_for_completion()
-                      Compute dependent_parameters
-                      Try to find a set of generators over which the cohomology ring is finite.
-                      Computing complete Groebner basis
-                      Trying Symonds' criterion
-                      Successful application of the Symonds criterion
+                Compute dependent_parameters
+                Try to find a set of generators over which the cohomology ring is finite.
+                Computing complete Groebner basis
+                Trying Symonds' criterion
+                Successful application of the Symonds criterion
             True
             sage: H.completed
             True

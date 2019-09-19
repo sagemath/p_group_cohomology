@@ -2579,7 +2579,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.global_options('info')
             sage: c.value()
             H^*(D8xC2; GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             b_1_1^2*c_1_2+b_1_0^2*c_1_2+c_2_5*b_1_1+c_2_5*b_1_0+b_1_1*c_1_2^2+c_2_5*c_1_2
             sage: CohomologyRing.global_options('warn')
 
@@ -2698,7 +2698,7 @@ class MODCOCH(RingElement):
             sage: CohomologyRing.global_options('info')
             sage: print(H.6*H.8)   # indirect doctest
             H^*(SmallGroup(25,2); GF(5)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             (a_7_1)*(a_15_3): 22-Cocycle in H^*(SmallGroup(400,206); GF(5))
             defined by
             2*c_2_1^5*c_2_2^5*a_1_0*a_1_1

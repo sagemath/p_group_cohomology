@@ -152,9 +152,9 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.global_options('info')
         sage: makeGroupData(8,3,folder=tmp_root)
-        Computing basic setup for Small Group number 1 of order 2
-        Computing basic setup for Small Group number 2 of order 4
-        Computing basic setup for Small Group number 3 of order 8
+            Computing basic setup for Small Group number 1 of order 2
+            Computing basic setup for Small Group number 2 of order 4
+            Computing basic setup for Small Group number 3 of order 8
         sage: CohomologyRing.global_options('warn')
 
     The files defining the basis for the group algebra of the dihedral group
@@ -327,9 +327,9 @@ def makeSpecialGroupData(H, GStem, folder):
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.global_options('info')
         sage: makeSpecialGroupData(G,GStem,folder=tmp_root)
-        Computing basic setup for Small Group number 1 of order 2
-        Computing basic setup for Small Group number 2 of order 4
-        Computing basic setup for DihedralGroup
+            Computing basic setup for Small Group number 1 of order 2
+            Computing basic setup for Small Group number 2 of order 4
+            Computing basic setup for DihedralGroup
         sage: CohomologyRing.global_options('warn')
 
     Now, all data concerning G are in subfolders of the stem folder of G,
@@ -653,14 +653,14 @@ cdef class RESL:
         sage: R.nextDiff()
         sage: R.nextDiff()
         Resolution of GF(2)[8gp3]:
-                  Computing next term
-                  > rk P_02 =   3
+            Computing next term
+            > rk P_02 =   3
         sage: R.nextDiff()
-                  Computing next term
-                  > rk P_03 =   4
+            Computing next term
+            > rk P_03 =   4
         sage: R.nextDiff()
-                  Computing next term
-                  > rk P_04 =   5
+            Computing next term
+            > rk P_04 =   5
 
     :meth:`nextDiff` writes data into the file ``res_folder``. By
     default, if data from previous computations are present, they will
@@ -672,14 +672,14 @@ cdef class RESL:
         sage: R.nextDiff()
         sage: R.nextDiff()
         Resolution of GF(2)[8gp3]:
-                  Differential reloaded
-                  > rk P_02 =   3
+            Differential reloaded
+            > rk P_02 =   3
         sage: R.nextDiff()
-                  Differential reloaded
-                  > rk P_03 =   4
+            Differential reloaded
+            > rk P_03 =   4
         sage: R.nextDiff()
-                  Differential reloaded
-                  > rk P_04 =   5
+            Differential reloaded
+            > rk P_04 =   5
         sage: print(R)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
@@ -693,12 +693,12 @@ cdef class RESL:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
         sage: S = loads(dumps(R))
         Resolution of GF(2)[8gp3]:
-                  Differential reloaded
-                  > rk P_02 =   3
-                  Differential reloaded
-                  > rk P_03 =   4
-                  Differential reloaded
-                  > rk P_04 =   5
+            Differential reloaded
+            > rk P_02 =   3
+            Differential reloaded
+            > rk P_03 =   4
+            Differential reloaded
+            > rk P_04 =   5
         sage: print(S)
         Resolution:
         0 <- GF(2) <- GF(2)[8gp3] <- rank 2 <- rank 3 <- rank 4 <- rank 5
@@ -734,8 +734,8 @@ cdef class RESL:
         sage: S.nextDiff()
         sage: S.nextDiff()
         Resolution of GF(2)[8gp3]:
-                  Differential reloaded
-                  > rk P_02 =   3
+            Differential reloaded
+            > rk P_02 =   3
         sage: CohomologyRing.global_options('warn')
         sage: del S
         sage: os.rename(tmp_root2,tmp_root)
@@ -954,7 +954,7 @@ cdef class RESL:
 
         sage: R.makeAutolift(2)
         Resolution of GF(2)[8gp3]:
-                  Make degree 2 autolift data
+            Make degree 2 autolift data
         sage: c2A = R.liftChainMap(c1)
 
     It takes some time to make the autolift data, but if they are present, the
@@ -1684,7 +1684,7 @@ cdef class RESL:
             sage: CohomologyRing.global_options('info')
             sage: R.makeAutolift(2)
             Resolution of GF(2)[8gp3]:
-                      Make degree 2 autolift data
+                Make degree 2 autolift data
 
         """
         if self.Action:

@@ -1967,8 +1967,8 @@ class temporary_result(permanent_result):
         sage: CohomologyRing.global_options('info')
         sage: p = H.poincare_series(); p   # indirect doctest
         H^*(Q8; GF(2)):
-                  Compute poincare_series
-                  Computing complete Groebner basis
+            Compute poincare_series
+            Computing complete Groebner basis
         1/(t^2 - 2*t + 1)
         sage: p is H.poincare_series()
         True
@@ -1987,8 +1987,8 @@ class temporary_result(permanent_result):
     cache::
 
         sage: H.poincare_series(forced=True)
-                Forced recomputation of poincare_series
-                Compute poincare_series
+            Forced recomputation of poincare_series
+            Compute poincare_series
         1/(t^2 - 2*t + 1)
 
     The value in the cache is automatically updated if the ring
@@ -2000,7 +2000,7 @@ class temporary_result(permanent_result):
         sage: CohomologyRing.global_options('info')
         sage: H.poincare_series()
         H^*(Q8; GF(2)):
-                  Compute poincare_series
+            Compute poincare_series
         (t + 1)/(-t + 1)
 
     """
@@ -2202,25 +2202,25 @@ class COHO(Ring):
         sage: X = CohomologyRing(4,2, from_scratch=True)
         sage: X.make()
         sage: X = CohomologyRing(2,1, from_scratch=True, options='info')
-        We compute this cohomology ring from scratch
+            We compute this cohomology ring from scratch
         H^*(SmallGroup(2,1); GF(2)):
-                  Initialising maximal p-elementary abelian subgroups
+            Initialising maximal p-elementary abelian subgroups
         sage: X.make()
         Resolution of GF(2)[SmallGroup(2,1)]:
-                  Computing next term
-                  > rk P_02 =   1
+            Computing next term
+            > rk P_02 =   1
         H^*(SmallGroup(2,1); GF(2)):
-                  We have to choose 1 new generator in degree 1
-                  > There is 1 Duflot regular generator in degree 1
-                  Summary: 0 relations and 1 generators in degree 1
-                  Ring approximation computed out to degree 1!
-                  Storing approximation data
-                  Determine degree 2 standard monomials
-                  We got 1 standard monomials
-                  There is no new generator in degree 2
-                  Summary: 0 relations and 0 generators in degree 2
-                  Ring approximation computed out to degree 2!
-                  Storing approximation data
+            We have to choose 1 new generator in degree 1
+            > There is 1 Duflot regular generator in degree 1
+            Summary: 0 relations and 1 generators in degree 1
+            Ring approximation computed out to degree 1!
+            Storing approximation data
+            Determine degree 2 standard monomials
+            We got 1 standard monomials
+            There is no new generator in degree 2
+            Summary: 0 relations and 0 generators in degree 2
+            Ring approximation computed out to degree 2!
+            Storing approximation data
 
     Since the group of order two is abelian, it is known a priori that
     the cohomology ring can be presented in degree at most two. So, we
@@ -2237,10 +2237,10 @@ class COHO(Ring):
         We compute this cohomology ring from scratch
         Computing basic setup for Small Group number 3 of order 8
         H^*(D8; GF(2)):
-                  Initialising maximal p-elementary abelian subgroups
-                  Inserting SmallGroup(2,1) as a subgroup
-                  Inserting SmallGroup(4,2) as a subgroup...
-                  Computing Dickson invariants in elementary abelian subgroup of rank 2
+            Initialising maximal p-elementary abelian subgroups
+            Inserting SmallGroup(2,1) as a subgroup
+            Inserting SmallGroup(4,2) as a subgroup...
+            Computing Dickson invariants in elementary abelian subgroup of rank 2
 
     Now, the basic setup is done. We compute the ring structure, logging
     the computation::
@@ -2248,71 +2248,71 @@ class COHO(Ring):
         sage: H
         H^*(D8; GF(2))
         sage: H.make()
-                  Compute group_is_abelian
-                  We have no degree bound yet
-                  Start computation in Degree 1
+            Compute group_is_abelian
+            We have no degree bound yet
+            Start computation in Degree 1
         Resolution of GF(2)[D8]:
-                  Make degree 1 autolift data
+            Make degree 1 autolift data
         H^*(D8; GF(2)):
-                  There are new generators, we have to lift the restriction maps
+            There are new generators, we have to lift the restriction maps
         Resolution of GF(2)[D8]:
-                  Computing next term
-                  > rk P_02 =   3
+            Computing next term
+            > rk P_02 =   3
         Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(2,1); GF(2)):
-                  lift in the source resolution
-                  lift in the target resolution to degree 1
+            lift in the source resolution
+            lift in the target resolution to degree 1
         Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                  lift in the source resolution
-                  lift in the target resolution to degree 1
+            lift in the source resolution
+            lift in the target resolution to degree 1
         Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                  lift in the source resolution
-                  lift in the target resolution to degree 1
+            lift in the source resolution
+            lift in the target resolution to degree 1
         H^*(D8; GF(2)):
-                  We have to choose 2 new generators in degree 1
-                  > There are 0 nilpotent generators in degree 1
-                  > There are 2 "boring" generators in degree 1
-                  Summary: 0 relations and 2 generators in degree 1
-                  Try to lift 1st power of 0th Dickson invariant
-                  Simultaneously lifting subgroup cochains of degree 1
-                  Simultaneous lift was successful!
-                  Factorising an element; it can be interrupted with Ctrl-c
-                  Ring approximation computed out to degree 1!
-                  Storing approximation data
-                  We expect a relation in degree at least 2
-                  Start computation in Degree 2
-                  Determine degree 2 standard monomials
-                  We got 3 standard monomials
-                  There are new generators, we have to lift the restriction maps
+            We have to choose 2 new generators in degree 1
+            > There are 0 nilpotent generators in degree 1
+            > There are 2 "boring" generators in degree 1
+            Summary: 0 relations and 2 generators in degree 1
+            Try to lift 1st power of 0th Dickson invariant
+            Simultaneously lifting subgroup cochains of degree 1
+            Simultaneous lift was successful!
+            Factorising an element; it can be interrupted with Ctrl-c
+            Ring approximation computed out to degree 1!
+            Storing approximation data
+            We expect a relation in degree at least 2
+            Start computation in Degree 2
+            Determine degree 2 standard monomials
+            We got 3 standard monomials
+            There are new generators, we have to lift the restriction maps
         Resolution of GF(2)[D8]:
-                  Computing next term
-                  > rk P_03 =   4
+            Computing next term
+            > rk P_03 =   4
         Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(2,1); GF(2)):
-                  lift in the source resolution
-                  lift in the target resolution to degree 2
+            lift in the source resolution
+            lift in the target resolution to degree 2
         Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                  lift in the source resolution
-                  lift in the target resolution to degree 2
+            lift in the source resolution
+            lift in the target resolution to degree 2
         Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                  lift in the source resolution
-                  lift in the target resolution to degree 2
+            lift in the source resolution
+            lift in the target resolution to degree 2
         H^*(D8; GF(2)):
-                  We have to choose 1 new generator in degree 2
-                  > There are 0 nilpotent generators in degree 2
-                  > There are 0 "boring" generators in degree 2
-                  > There is 1 Duflot regular generator in degree 2
-                  Summary: 1 relations and 1 generators in degree 2
-                  Ring approximation computed out to degree 2!
-                  Storing approximation data
-                  Compute dependent_parameters
-                  Try to find a set of generators over which the cohomology ring is finite.
-                  Computing complete Groebner basis
+            We have to choose 1 new generator in degree 2
+            > There are 0 nilpotent generators in degree 2
+            > There are 0 "boring" generators in degree 2
+            > There is 1 Duflot regular generator in degree 2
+            Summary: 1 relations and 1 generators in degree 2
+            Ring approximation computed out to degree 2!
+            Storing approximation data
+            Compute dependent_parameters
+            Try to find a set of generators over which the cohomology ring is finite.
+            Computing complete Groebner basis
         H^*(SmallGroup(4,2); GF(2)):
-                  Computing complete Groebner basis
+            Computing complete Groebner basis
         H^*(D8; GF(2)):
-                  Trying Symonds' criterion
-                  Successful application of the Symonds criterion
-                  Finished computation of the ring structure
-                  Storing approximation data
+            Trying Symonds' criterion
+            Successful application of the Symonds criterion
+            Finished computation of the ring structure
+            Storing approximation data
         sage: CohomologyRing.global_options('warn')
         sage: print(H)
         Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
@@ -4171,9 +4171,9 @@ class COHO(Ring):
             sage: CohomologyRing.global_options('info')
             sage: sorted(L.subgps.items())
             H^*(D8; GF(2)):
-                      Inserting SmallGroup(4,2) as a subgroup
-                      Inserting SmallGroup(2,1) as a subgroup
-                      Reconstructing subgroup data
+                Inserting SmallGroup(4,2) as a subgroup
+                Inserting SmallGroup(2,1) as a subgroup
+                Reconstructing subgroup data
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
 
         """
@@ -5289,19 +5289,19 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.global_options('info')
             sage: S6.essential_ideal()
             H^*(SmallGroup(720,763); GF(2)):
-                      Compute essential_ideal
-                      The group is not of prime power order -- there is no essential ideal
+                Compute essential_ideal
+                The group is not of prime power order -- there is no essential ideal
             0
             sage: D.essential_ideal()
             H^*(D8; GF(2)):
-                      Compute essential_ideal
-                      Compute depth
-                      Computation of depth interruptible with Ctrl-c
-                      Compute filter_regular_parameters
-                      Compute raw_filter_degree_type
-                      Test filter regularity
-                        Filter degree type: [-1, -2, -2]
-                      The depth exceeds the Duflot bound -- there is no essential ideal
+                Compute essential_ideal
+                Compute depth
+                Computation of depth interruptible with Ctrl-c
+                Compute filter_regular_parameters
+                Compute raw_filter_degree_type
+                  Test filter regularity
+                Filter degree type: [-1, -2, -2]
+                The depth exceeds the Duflot bound -- there is no essential ideal
             0
 
         Of course, if one provides the set of maximal subgroups
@@ -5309,29 +5309,29 @@ Minimal list of algebraic relations:
         it makes no use of the theoretical result::
 
             sage: D.essential_ideal(D.group().MaximalSubgroups())
-                      Compute essential_ideal
-                      > computing kernel of an induced map
+                Compute essential_ideal
+                > computing kernel of an induced map
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      lift in the source resolution
-                      lift in the target resolution to degree 1
-                      lift in the source resolution
-                      lift in the target resolution to degree 2
+                lift in the source resolution
+                lift in the target resolution to degree 1
+                lift in the source resolution
+                lift in the target resolution to degree 2
             H^*(SmallGroup(4,2); GF(2)):
-                      Compute order_matrix
+                Compute order_matrix
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute preimages by elimination
+                Compute preimages by elimination
             H^*(D8; GF(2)):
-                      > intersecting two ideals
-                      > computing kernel of an induced map
+                > intersecting two ideals
+                > computing kernel of an induced map
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      lift in the source resolution
-                      lift in the target resolution to degree 1
-                      lift in the source resolution
-                      lift in the target resolution to degree 2
-                      Compute preimages by elimination
+                lift in the source resolution
+                lift in the target resolution to degree 1
+                lift in the source resolution
+                lift in the target resolution to degree 2
+                Compute preimages by elimination
             H^*(D8; GF(2)):
-                      > intersecting two ideals
-                      > preparing output
+                > intersecting two ideals
+                > preparing output
             0
             sage: CohomologyRing.global_options('warn')
             sage: S6.essential_ideal(S6.group().MaximalSubgroups())
@@ -8257,30 +8257,30 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.global_options('info')
             sage: H.filter_regular_gready_parameters()
             H^*(SmallGroup(64,32); GF(2)):
-                      Compute filter_regular_gready_parameters
-                      Computing quotient modulo Duflot regular sequence ['c_4_11']
-                      Exploring 2nd filter-regular parameter in degree 2
-                      Determine degree 2 standard monomials
+                Compute filter_regular_gready_parameters
+                Computing quotient modulo Duflot regular sequence ['c_4_11']
+                Exploring 2nd filter-regular parameter in degree 2
+                Determine degree 2 standard monomials
             explore_one_parameter:
-                      8 = (2-1)^1*2^3 parameter candidates
-                      We found a parameter.
-                      > But it is not filter-regular.
-                      We found a parameter.
-                      > It is filter-regular.
+                8 = (2-1)^1*2^3 parameter candidates
+                We found a parameter.
+                > But it is not filter-regular.
+                We found a parameter.
+                > It is filter-regular.
             H^*(SmallGroup(64,32); GF(2)):
-                      Exploring 3rd filter-regular parameter in degree 2
-                      Determine degree 2 standard monomials
+                Exploring 3rd filter-regular parameter in degree 2
+                Determine degree 2 standard monomials
             explore_one_parameter:
-                      4 = (2-1)^1*2^2 parameter candidates
-                      We found a parameter.
-                      > It is filter-regular.
+                4 = (2-1)^1*2^2 parameter candidates
+                We found a parameter.
+                > It is filter-regular.
             H^*(SmallGroup(64,32); GF(2)):
-                      Exploring 4th filter-regular parameter in degree 2
-                      Determine degree 2 standard monomials
+                Exploring 4th filter-regular parameter in degree 2
+                Determine degree 2 standard monomials
             explore_one_parameter:
-                      2 = (2-1)^1*2^1 parameter candidates
-                      We found a parameter.
-                      > It is filter-regular.
+                2 = (2-1)^1*2^1 parameter candidates
+                We found a parameter.
+                > It is filter-regular.
             ['c_4_11', 'b_2_2+b_2_1', 'b_2_3', 'b_1_1^2']
             sage: H.fdt
             [-1, -2, -3, -4, -4]
@@ -9014,35 +9014,35 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: P[-1] = H.find_small_last_parameter(P); P[-1]
             H^*(D8; GF(2)):
-                      Compute find_small_last_parameter
-                      Computing complete Groebner basis
-                      Compute _parameter_restrictions
+                Compute find_small_last_parameter
+                Computing complete Groebner basis
+                Compute _parameter_restrictions
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
+                Compute restricted parameters
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
+                Compute restricted parameters
             H^*(D8; GF(2)):
-                      Compute _get_obvious_parameter
-                      Compute _parameter_restrictions
-                      compute radicals of restricted parameter ideal
-                      Compute _parameter_restrictions
+                Compute _get_obvious_parameter
+                Compute _parameter_restrictions
+                compute radicals of restricted parameter ideal
+                Compute _parameter_restrictions
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
+                Compute restricted parameters
             Induced homomorphism of degree 0 from H^*(D8; GF(2)) to H^*(SmallGroup(4,2); GF(2)):
-                      Compute restricted parameters
+                Compute restricted parameters
             H^*(D8; GF(2)):
-                      Determine degree 1 standard monomials
-                      Compute _get_obvious_parameter
-                      Determine degree 2 standard monomials
-                      --> Last parameter found in degree 2
+                Determine degree 1 standard monomials
+                Compute _get_obvious_parameter
+                Determine degree 2 standard monomials
+                --> Last parameter found in degree 2
             'c_2_2'
 
         Let us verify that the two elements form a filter regular hsop::
 
             sage: H.raw_filter_degree_type(P)
-                      Compute raw_filter_degree_type
-                      Test filter regularity
-                        Filter degree type: [-1, -2, -2]
+                Compute raw_filter_degree_type
+                Test filter regularity
+                  Filter degree type: [-1, -2, -2]
             ([-1, -1, 1], [[0], [0], [1, 1]], [1, 2])
             sage: CohomologyRing.global_options('warn')
 
@@ -9552,10 +9552,10 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H.small_factor(p, enumerate=True)
             H^*(SmallGroup(64,235); GF(2)):
-                      Factorising an element; it can be interrupted with Ctrl-c
-                      Exploring factors of an element by enumeration (can be interrupted with Ctrl-c)
-                      Determine degree 1 standard monomials
-                      > Start enumeration with 2 monomials
+                Factorising an element; it can be interrupted with Ctrl-c
+                Exploring factors of an element by enumeration (can be interrupted with Ctrl-c)
+                Determine degree 1 standard monomials
+                > Start enumeration with 2 monomials
             'b_1_3+b_1_2'
 
         We verify that indeed the difference of ``p`` and some multiple of the
@@ -9860,13 +9860,13 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H.reconstruct_singular()
             H^*(SmallGroup(720,763); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(D8xC2; GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(SmallGroup(8,5); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(SmallGroup(4,2); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
 
         Even after the simulated crash, we can continue with the computation::
 
@@ -9909,13 +9909,13 @@ is an error. Please inform the author!""")
             sage: singular.quit()
             sage: singular(H)
             H^*(SmallGroup(720,763); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(D8xC2; GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(SmallGroup(8,5); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(SmallGroup(4,2); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             polynomial ring, over a field, global ordering
             // coefficients: ZZ/2
             // number of vars : 4
@@ -9960,9 +9960,9 @@ is an error. Please inform the author!""")
             sage: singular.quit()
             sage: d == H.stable_to_polynomial(c) #indirect doc test
             H^*(SmallGroup(16,14); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             H^*(SmallGroup(48,50); GF(2)):
-                      Reconstructing data in the Singular interface
+                Reconstructing data in the Singular interface
             True
             sage: R == H.find_relations(6)
             True
@@ -10123,11 +10123,11 @@ is an error. Please inform the author!""")
             5
             sage: H.make_groebner(5)
             H^*(E27; GF(3)):
-                      Computing Groebner basis up to degree 5
+                Computing Groebner basis up to degree 5
             sage: len(H.RelG)
             8
             sage: H.make_groebner()
-                    Computing complete Groebner basis
+                Computing complete Groebner basis
 
         Since the Groebner basis is already completely known,
         it is avoided to repeat the computation when we now
@@ -10251,23 +10251,23 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H85.is_isomorphic(H173)
             IsomorphismTest(H^*(SmallGroup(64,85); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                      Trying to find an isomorphism
+                Trying to find an isomorphism
             H^*(SmallGroup(64,85); GF(2)):
-                      Inserting SmallGroup(4,2) as a subgroup
-                      Inserting SmallGroup(8,5) as a subgroup
-                      Reconstructing subgroup data
+                Inserting SmallGroup(4,2) as a subgroup
+                Inserting SmallGroup(8,5) as a subgroup
+                Reconstructing subgroup data
             H^*(SmallGroup(64,173); GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             IsomorphismTest(H^*(SmallGroup(64,85); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                      gen(5) is rigid: b_1_2 --> 1*b_1_0
+                gen(5) is rigid: b_1_2 --> 1*b_1_0
             H^*(SmallGroup(64,173); GF(2)):
-                      Determine degree 1 standard monomials
+                Determine degree 1 standard monomials
             IsomorphismTest(H^*(SmallGroup(64,85); GF(2)), H^*(SmallGroup(64,173); GF(2))):
-                      There cannot be a homomorphism, (gen(3)) cannot be mapped
-                      There cannot be a homomorphism, (gen(3)) cannot be mapped
-                      There cannot be a homomorphism, (gen(3)) cannot be mapped
-                      There cannot be a homomorphism, (gen(3)) cannot be mapped
-                      There is definitely no isomorphism
+                There cannot be a homomorphism, (gen(3)) cannot be mapped
+                There cannot be a homomorphism, (gen(3)) cannot be mapped
+                There cannot be a homomorphism, (gen(3)) cannot be mapped
+                There cannot be a homomorphism, (gen(3)) cannot be mapped
+                There is definitely no isomorphism
             False
 
         """
@@ -11356,10 +11356,10 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H64.test_for_completion()
             H^*(SmallGroup(64,6); GF(2)):
-                      Compute dependent_parameters
-                      Try to find a set of generators over which the cohomology ring is finite.
-                      Trying Symonds' criterion
-                      Successful application of the Symonds criterion
+                Compute dependent_parameters
+                Try to find a set of generators over which the cohomology ring is finite.
+                Trying Symonds' criterion
+                Successful application of the Symonds criterion
             True
             sage: CohomologyRing.global_options('warn')
             sage: H64._method
@@ -11392,19 +11392,19 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H81.test_for_completion()
             H^*(E27*C9; GF(3)):
-                      Trying Symonds' criterion
-                      Successful application of the Symonds criterion
+                Trying Symonds' criterion
+                Successful application of the Symonds criterion
             True
 
         Note that the modified Benson criterion of [GreenKing]_
         applies in degree eight as well::
 
             sage: H81.BensonTest(H81.filter_regular_parameters(),[6,4])
-                      Testing whether it makes sense to try Benson's completeness criterion
-                      It is possible that Benson's degree bound applies
-                      Compute raw_filter_degree_type
-                      Test filter regularity
-                        Filter degree type: [-1, -2, -2]
+                Testing whether it makes sense to try Benson's completeness criterion
+                It is possible that Benson's degree bound applies
+                Compute raw_filter_degree_type
+                Test filter regularity
+                  Filter degree type: [-1, -2, -2]
             True
             sage: CohomologyRing.global_options('warn')
             sage: H81.WhatFRS
@@ -11518,8 +11518,8 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H.BensonTest(H.filter_regular_parameters(),[2,2,1])
             H^*(SmallGroup(64,6); GF(2)):
-                      Testing whether it makes sense to try Benson's completeness criterion
-                      We expect that Benson's test will not apply before degree 3
+                Testing whether it makes sense to try Benson's completeness criterion
+                We expect that Benson's test will not apply before degree 3
 
         So, we must go ahead. The log states that Benson's test will
         not apply before degree three. Perhaps it *does* apply in
@@ -11531,12 +11531,12 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H.BensonTest(H.filter_regular_parameters(),[2,2,1])
             H^*(SmallGroup(64,6); GF(2)):
-                      Testing whether it makes sense to try Benson's completeness criterion
-                      It is possible that Benson's degree bound applies
-                      Compute raw_filter_degree_type
-                      Computing complete Groebner basis
-                      Test filter regularity
-                      > Sequence is NOT filter regular. Sorry.
+                Testing whether it makes sense to try Benson's completeness criterion
+                It is possible that Benson's degree bound applies
+                Compute raw_filter_degree_type
+                Computing complete Groebner basis
+                Test filter regularity
+                > Sequence is NOT filter regular. Sorry.
             False
 
         It does not. But in degree 4, everything works::
@@ -11546,12 +11546,12 @@ is an error. Please inform the author!""")
             sage: CohomologyRing.global_options('info')
             sage: H.BensonTest(H.filter_regular_parameters(),[2,2,1])
             H^*(SmallGroup(64,6); GF(2)):
-                      Testing whether it makes sense to try Benson's completeness criterion
-                      It is possible that Benson's degree bound applies
-                      Compute raw_filter_degree_type
-                      Computing complete Groebner basis
-                      Test filter regularity
-                        Filter degree type: [-1, -2, -3, -3]
+                Testing whether it makes sense to try Benson's completeness criterion
+                It is possible that Benson's degree bound applies
+                Compute raw_filter_degree_type
+                Computing complete Groebner basis
+                Test filter regularity
+                  Filter degree type: [-1, -2, -3, -3]
             True
 
         Now the 'sufficient degree' is less than or equal to the known
