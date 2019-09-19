@@ -1203,26 +1203,44 @@ cdef class COCH(RingElement):
 
 ################
 # Arithmetic
-    def __bool__(self):
-        """
-        TESTS::
+    IF PY_MAJOR_VERSION == 2:
+        def __nonzero__(self):
+            """
+            TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: H = CohomologyRing(32,4)
-            sage: H.make()
-            sage: H.1.is_zero() #indirect doctest
-            False
-            sage: (2*H.1).is_zero() #indirect doctest
-            True
+                sage: from pGroupCohomology import CohomologyRing
+                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+                sage: H = CohomologyRing(32,4)
+                sage: H.make()
+                sage: H.1.is_zero() #indirect doctest
+                False
+                sage: (2*H.1).is_zero() #indirect doctest
+                True
 
-        """
-        cdef FEL f
-        FfSetField((<COCH>self).Data.Data.Field)
-        FfSetNoc((<COCH>self).Data.Data.Noc)
-        return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
+            """
+            cdef FEL f
+            FfSetField((<COCH>self).Data.Data.Field)
+            FfSetNoc((<COCH>self).Data.Data.Noc)
+            return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
+    ELSE:
+        def __bool__(self):
+            """
+            TESTS::
 
-    __nonzero__ = __bool__
+                sage: from pGroupCohomology import CohomologyRing
+                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+                sage: H = CohomologyRing(32,4)
+                sage: H.make()
+                sage: H.1.is_zero() #indirect doctest
+                False
+                sage: (2*H.1).is_zero() #indirect doctest
+                True
+
+            """
+            cdef FEL f
+            FfSetField((<COCH>self).Data.Data.Field)
+            FfSetNoc((<COCH>self).Data.Data.Noc)
+            return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
 
     cpdef _add_(self, other):
         r"""
@@ -2868,25 +2886,45 @@ class MODCOCH(RingElement):
                 br.set_ring()
             return OUT
 
-    def __bool__(self):
-        """
-        TESTS::
+    IF PY_MAJOR_VERSION == 2:
+        def __nonzero__(self):
+            """
+            TESTS::
 
-            sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: H = CohomologyRing(252,10,prime=2)
-            sage: H.make()
-            sage: H.1.is_zero() #indirect doctest
-            False
-            sage: (2*H.1).is_zero() #indirect doctest
-            True
-            sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
-            True
+                sage: from pGroupCohomology import CohomologyRing
+                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+                sage: H = CohomologyRing(252,10,prime=2)
+                sage: H.make()
+                sage: H.1.is_zero() #indirect doctest
+                False
+                sage: (2*H.1).is_zero() #indirect doctest
+                True
+                sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
+                True
 
-        """
-        return self.lc()!=0
+            """
+            return self.lc()!=0
+    ELSE:
+        def __bool__(self):
+            """
+            TESTS::
 
-    __nonzero__ = __bool__
+                sage: from pGroupCohomology import CohomologyRing
+                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+                sage: H = CohomologyRing(252,10,prime=2)
+                sage: H.make()
+                sage: H.1.is_zero() #indirect doctest
+                False
+                sage: (2*H.1).is_zero() #indirect doctest
+                True
+                sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
+                True
+
+            """
+            return self.lc()!=0
+
+    def __nonzero__(self):
+        return self.__bool__()
 
     def _add_(self, other):
         """
