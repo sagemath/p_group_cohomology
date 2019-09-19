@@ -65,7 +65,7 @@ from sage.env import DOT_SAGE, SAGE_ROOT
 from sage.misc.sageinspect import sage_getargspec
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.docs.instancedoc import instancedoc
-from sage.structure.richcmp import richcmp, op_LT, op_NE, op_GT
+from sage.structure.richcmp import richcmp, richcmp_method, op_LT, op_NE, op_GT
 
 # Sage rings etc.
 from sage.all import Matrix
@@ -2137,6 +2137,7 @@ instancedoc(temporary_result)
 ##
 #########################################
 
+@richcmp_method
 class COHO(Ring):
     r"""
     Modular Cohomology Rings of Finite `p`-Groups with coefficients in `\mathbb F_p`.

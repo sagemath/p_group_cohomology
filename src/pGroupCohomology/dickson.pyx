@@ -78,9 +78,10 @@ from sage.all import Integer
 from sage.all import FiniteField as GF
 from sage.all import Matrix
 from sage.all import PolynomialRing
-from sage.structure.richcmp import richcmp, op_LT, op_NE, op_GT
+from sage.structure.richcmp import richcmp, richcmp_method, op_LT, op_NE, op_GT
 
-class DICKSON:
+@richcmp_method
+class DICKSON(object):
     r"""
     A factory for computing Dickson invariants.
 

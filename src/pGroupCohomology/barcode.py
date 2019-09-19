@@ -193,10 +193,11 @@ look in position ``(2,4)``::
 from __future__ import print_function, absolute_import
 from sage.typeset.ascii_art import AsciiArt
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import richcmp, op_LT, op_NE, op_GT
+from sage.structure.richcmp import richcmp, richcmp_method, op_LT, op_NE, op_GT
 
 ##################
 # 2d bar codes
+@richcmp_method
 class BarCode2d(SageObject):
     r"""
     Integer valued bar codes (bar code in a single degree).
@@ -480,7 +481,8 @@ class BarCode2d(SageObject):
 
 from sage.all import PowerSeriesRing, QQ
 
-class BarCode:
+@richcmp_method
+class BarCode(object):
     r"""
     Bar codes (persistent group cohomology).
 
