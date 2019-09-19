@@ -33,7 +33,6 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 import sys
 import os
-import six
 
 import sage
 import sage.all
@@ -152,6 +151,7 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.global_options('info')
         sage: makeGroupData(8,3,folder=tmp_root)
+        <module>:
             Computing basic setup for Small Group number 1 of order 2
             Computing basic setup for Small Group number 2 of order 4
             Computing basic setup for Small Group number 3 of order 8
@@ -327,6 +327,7 @@ def makeSpecialGroupData(H, GStem, folder):
         sage: from pGroupCohomology import CohomologyRing
         sage: CohomologyRing.global_options('info')
         sage: makeSpecialGroupData(G,GStem,folder=tmp_root)
+        <module>:
             Computing basic setup for Small Group number 1 of order 2
             Computing basic setup for Small Group number 2 of order 4
             Computing basic setup for DihedralGroup
@@ -509,7 +510,7 @@ class RESL_sparse_unpickle_class:
         #print "unpickle:",gstem,gps_folder,res_folder,degree, ROOT
         ## First, we check whether a re-rooting occurs
         oldroot = coho_options.get('@oldroot@',None)
-        if isinstance(oldroot, six.string_types):
+        if isinstance(oldroot, str):
             # Our folders are not supposed to be symlinks.
             # Hence, here it is realpath
             oldroot = os.path.realpath(oldroot)
@@ -554,7 +555,7 @@ class RESL_sparse_unpickle_class:
             if Lifts == {1:1}:
                 tmp = load(os.path.join(res_folder,'L'+gstem+'.sobj'))  # realpath here?
                 for X,Y in tmp:
-                    if isinstance(Y, six.string_types):
+                    if isinstance(Y, str):
                         if (newroot is not None):
                             Y = os.path.join(newroot,os.path.split(res_folder)[1], os.path.split(Y)[1])
                     OUT.Lifts[X]=Y
@@ -563,7 +564,7 @@ class RESL_sparse_unpickle_class:
                     OUT.Lifts[(X[0],X[1].deg(),X[1].MTX())] = Y
         else:
             for X,Y in Lifts:
-                if isinstance(Y, six.string_types):
+                if isinstance(Y, str):
                     if newroot is not None:
                         Y =  os.path.join(newroot,os.path.split(res_folder)[1], os.path.split(Y)[1])
                     OUT.Lifts.Data[X]={1:Y}
@@ -1029,7 +1030,7 @@ cdef class RESL:
             Resolution of GF(2)[8gp3]
 
         """
-        if not (isinstance(gstem, six.string_types) and isinstance(res_folder, six.string_types) and isinstance(gps_folder, six.string_types)):
+        if not (isinstance(gstem, str) and isinstance(res_folder, str) and isinstance(gps_folder, str)):
             raise TypeError("strings expected")
         self.gstem = gstem
         rstem = 'Res'+gstem
@@ -1277,7 +1278,7 @@ cdef class RESL:
         usually the matrices representing the differentials are not in memory
         but stored on disk::
 
-            sage: isinstance(R.__getitem_name__(3), six.string_types)
+            sage: isinstance(R.__getitem_name__(3), str)
             True
 
         We verify that indeed the stored matrix coincides with the third
@@ -1337,7 +1338,7 @@ cdef class RESL:
         are not in memory but stored on disk. The file name can be obtained
         with :meth:`__getitem_name__`::
 
-            sage: isinstance(R.__getitem_name__(3), six.string_types)
+            sage: isinstance(R.__getitem_name__(3), str)
             True
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense as MTX
             sage: MTX.from_filename(R.__getitem_name__(3))==R[3]
@@ -1350,7 +1351,7 @@ cdef class RESL:
             if (key<1) or (key>len(self.Diff)):
                 raise IndexError("Index out of range")
             else:
-                if isinstance(self.Diff[key-1], six.string_types):
+                if isinstance(self.Diff[key-1], str):
                     return MTX.from_filename(self.Diff[key-1])
                 else:
                     return self.Diff[key-1]

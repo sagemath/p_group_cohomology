@@ -45,7 +45,6 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 import os
-import six
 from libc.string cimport memcpy
 
 # Sage generalities
@@ -313,7 +312,7 @@ def unpickle_gap_data(G):
         True
 
     """
-    if isinstance(G, six.string_types):
+    if isinstance(G, str):
         return G
     if isinstance(G, GapPickler):
         from pGroupCohomology.auxiliaries import gap
@@ -368,7 +367,7 @@ def pickle_gap_data(G):
         TypeError: Can not pickle 'Group( [ f1, f2, f3 ] )'
 
     """
-    if isinstance(G, six.string_types):
+    if isinstance(G, str):
         return G
     if isinstance(G, SingularElement):
         # In previous Sage versions, most Singular elements pickled
@@ -993,14 +992,14 @@ def is_filter_regular(I, f, H1=None, I2=None):
         [0, 2, 1, 1, 2]
 
     """
-    if isinstance(I, six.string_types):
+    if isinstance(I, str):
         S = singular
         nI = I
         I = S.ideal(nI)
     else:
         S = I._check_valid()
         nI = I.name()
-    if isinstance(f, six.string_types):
+    if isinstance(f, str):
         nf = f
         f = S(nf)
     else:
@@ -1079,7 +1078,7 @@ def is_filter_regular_parameter_system(I, FRS):
         True
 
     """
-    if isinstance(I, six.string_types):
+    if isinstance(I, str):
         S = singular
         I0 = S.ideal(I)
     else:
@@ -1087,7 +1086,7 @@ def is_filter_regular_parameter_system(I, FRS):
         I0 = I
     frs = []
     for f in FRS:
-        if isinstance(f, six.string_types):
+        if isinstance(f, str):
             frs.append(S(f))
         else:
             assert f.parent() is S
@@ -1813,7 +1812,7 @@ class permanent_result(object):
         except AttributeError:
             inst._decorator_cache = {}
         val = inst._decorator_cache[key]
-        if len(val)>1 and not isinstance(val[-1], six.string_types):
+        if len(val)>1 and not isinstance(val[-1], str):
             # If val comes from a permanent cache, then either it is
             # of length 1, or belongs to an interface, and the last
             # item is a string to reconstruct the interface data.
@@ -3199,7 +3198,7 @@ class COHO(Ring):
             s = self.base_ring()(s)
         except TypeError:
             pass
-        if not isinstance(s, six.string_types):
+        if not isinstance(s, str):
             # The following is necessary, since by some oddity the above might
             # return a tuple of an error with an error message!
             if not s in self.base_ring():
@@ -3757,7 +3756,7 @@ class COHO(Ring):
             self.Dickson = Dickson
             self.alpha = alpha
 
-            if isinstance(Resl, six.string_types):
+            if isinstance(Resl, str):
                 if (oldroot is not None):
                     coho_options['@oldroot@'] = oldroot
                 coho_options['@newroot@'] = root
@@ -3803,7 +3802,7 @@ class COHO(Ring):
             for i,Tr in Triangular:
                 self.Triangular[i] = [COCH(self,X[0],X[1],X[2], is_polyrep=True) for X in Tr]
             self.NilBasis = NilBasis
-            if isinstance(Monomials, six.string_types):
+            if isinstance(Monomials, str):
                 self.Monomials = {'bla':1}
                 self.importMonomials()
             else:
@@ -4716,7 +4715,7 @@ Minimal list of algebraic relations:
             return self._property_dict.keys()
         if self._property_dict.get('_need_new_root'):
             coho_logger.warning('%s: Files on disk have been moved - trying to get things right', None, self.GStem)
-            if isinstance(self._property_dict['_need_new_root'], six.string_types):
+            if isinstance(self._property_dict['_need_new_root'], str):
                 newroot = self._property_dict['_need_new_root']
                 defaultname = os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj')
             else:
@@ -5639,7 +5638,7 @@ Minimal list of algebraic relations:
                 L.append(', an ')
             L.append('element of degree %d'%(x.deg()))
             return ''.join(L)
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             return str2html(str(singular.eval(x)))
         return str2html(str(x))
 
@@ -10690,7 +10689,7 @@ is an error. Please inform the author!""")
             else:
                 self.set_ring()
                 selfname = '%sr(%d)'%(self.prefix,self.lastRelevantDeg or self.knownDeg)
-            if isinstance(I, six.string_types):
+            if isinstance(I, str):
                 I = singular(I)
             if not in_quotient:
                 I = singular('%sI+%s'%(self.prefix, I.name()))

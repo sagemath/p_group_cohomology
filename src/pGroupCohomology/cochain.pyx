@@ -133,7 +133,6 @@ It is possible to mix both classes in arithmetic expressions::
 from __future__ import print_function, absolute_import
 import sys
 import os
-import six
 
 ## Sage generalities
 import sage
@@ -2069,7 +2068,7 @@ class MODCOCH(RingElement):
             br = None
         self._SPparent = singular(parent._HP or parent)
         self._SPparent.set_ring()
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             self._Svalue = singular.poly(value)
             #self._str_value = value
         else:
@@ -2474,7 +2473,7 @@ class MODCOCH(RingElement):
             c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
-        if isinstance(s, six.string_types):
+        if isinstance(s, str):
             self._name = s
         else:
             raise TypeError("string expected")
@@ -5504,13 +5503,13 @@ cdef class ChMap(RingHomomorphism):
             True
 
         """
-        if not isinstance(f, six.string_types):
+        if not isinstance(f, str):
             raise TypeError("String expected")
         cdef int i
         cdef int M = len(self.Data)
         for i in range(1, M):
             Data_i = self.Data[i]
-            if isinstance(Data_i, six.string_types):
+            if isinstance(Data_i, str):
                 if Data_i != f+str(i):
                     coho_logger.debug('export data', self)
                     Data_i = self[i]
@@ -5863,7 +5862,7 @@ cdef class ChMap(RingHomomorphism):
             [0 0 1 1 0 0 0 0]
 
         """
-        if isinstance(self.Data[key], six.string_types):
+        if isinstance(self.Data[key], str):
             sobj = '' if self.Data[key].endswith('.sobj') else '.sobj'
             try:
                 return load(self.Data[key]+sobj)  # realpath here?
