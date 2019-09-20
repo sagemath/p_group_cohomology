@@ -89,19 +89,20 @@ class IsomorphismTest:
             0 potential assignments for ['gen(4)', 'gen(3)', 'gen(5)', 'gen(6)', 'gen(1)', 'gen(2)']
             No conclusion on the existence of an isomorphism.
 
-    The statistic of criteria used in the process is as follows::
+    The statistic of criteria used in the process is as follows (sorted in order
+    to have a reproducible test)::
 
-        sage: T.statistic
-        {'Hilbert series of ideals do not match': 129,
-         'isomorphism test': 43200,
-         'nil-deg': 10,
-         'not homomorphism': 43200,
-         ('potential isomorphism', 1): 347,
-         ('potential isomorphism', 2): 28,
-         ('potential isomorphism', 3): 224,
-         ('potential isomorphism', 4): 64,
-         ('potential isomorphism', 5): 240,
-         ('potential isomorphism', 6): 43200}
+        sage: sorted(T.statistic.items(), key=repr)
+        [('Hilbert series of ideals do not match', 129),
+         ('isomorphism test', 43200),
+         ('nil-deg', 10),
+         ('not homomorphism', 43200),
+         (('potential isomorphism', 1), 347),
+         (('potential isomorphism', 2), 28),
+         (('potential isomorphism', 3), 224),
+         (('potential isomorphism', 4), 64),
+         (('potential isomorphism', 5), 240),
+         (('potential isomorphism', 6), 43200)]
 
     So, 43200 possibilites to map the 6 generators have been tested, but none of them
     resulted in a homomorphism (so, it wasn't needed to test bijectivity).
@@ -146,18 +147,18 @@ class IsomorphismTest:
          '1*b_1_0',
          '1*b_1_2',
          '1*b_3_6')
-        sage: T.statistic
-        {'Hilbert series of ideals do not match': 171,
-         'Hilbert series of radicals do not match': 286,
-         'isomorphism test': 169,
-         'nil-deg': 10,
-         'not homomorphism': 168,
-         ('potential isomorphism', 1): 675,
-         ('potential isomorphism', 2): 22,
-         ('potential isomorphism', 3): 316,
-         ('potential isomorphism', 4): 64,
-         ('potential isomorphism', 5): 240,
-         ('potential isomorphism', 6): 169}
+        sage: sorted(T.statistic.items(), key=repr)
+        [('Hilbert series of ideals do not match', 171),
+         ('Hilbert series of radicals do not match', 286),
+         ('isomorphism test', 169),
+         ('nil-deg', 10),
+         ('not homomorphism', 168),
+         (('potential isomorphism', 1), 675),
+         (('potential isomorphism', 2), 22),
+         (('potential isomorphism', 3), 316),
+         (('potential isomorphism', 4), 64),
+         (('potential isomorphism', 5), 240),
+         (('potential isomorphism', 6), 169)]
 
     """
     def __init__(self, D, C, use_annihilator = True, use_radical = False, cutoff = 15):
@@ -641,31 +642,32 @@ class IsomorphismTest:
                 coho_logger.info("No candidates remain", self)
             self._remove_partial_relations_from_cache(len(Gens))
             self._remove_candidates_from_cache(len(Gens))
-            for Ims1,Ims2 in cartesian_product_iterator([FirstHalf, SecondHalf]):
-                Ims = [None if (0!=a!=b!=0) else (a if a else b) for a,b in zip(Ims1,Ims2)]
-                for g in self.rigid_generators:
-                    if 0!=Ims[g[0]-1]!=g[1]:
-                        raise RuntimeError("Value of rigid generator is not assumed")
-                    else:
-                        Ims[g[0]-1] = g[1]
-                        if g[0] not in Gens:
-                            Rigids.append(g[0])
-                if None in Ims:
-                    continue
-                if (0 in Ims and len(set(Ims))-1<len(Ims)-Ims.count(0)) or (0 not in Ims and len(set(Ims))<len(Ims)-Ims.count(0)):
-                    self.statistic['triviality'] = self.statistic.get('triviality',0) + 1
-                    continue
-                if self.potential_partial_isomorphism(Ims):
-                    counter += 1
-                    C.append(tuple(Ims))
-                    if len(Gens)==len(self._domain.Gen):
-                        return C
-                    if allow_cutoff and (counter >= self.cutoff*(2**(len(Ims)-Ims.count(0)-len(self.rigid_generators)-1))):
-                        coho_logger.debug("cutting list of candidates", self)
-                        for k in Gens:
-                            self.not_exhausted_generators.add(k)
-                        self.exhaustive = False
-                        break
+            if FirstHalf:
+                for Ims1,Ims2 in cartesian_product_iterator([FirstHalf, SecondHalf]):
+                    Ims = [None if (0!=a!=b!=0) else (a if a else b) for a,b in zip(Ims1,Ims2)]
+                    for g in self.rigid_generators:
+                        if 0!=Ims[g[0]-1]!=g[1]:
+                            raise RuntimeError("Value of rigid generator is not assumed")
+                        else:
+                            Ims[g[0]-1] = g[1]
+                            if g[0] not in Gens:
+                                Rigids.append(g[0])
+                    if None in Ims:
+                        continue
+                    if (0 in Ims and len(set(Ims))-1<len(Ims)-Ims.count(0)) or (0 not in Ims and len(set(Ims))<len(Ims)-Ims.count(0)):
+                        self.statistic['triviality'] = self.statistic.get('triviality',0) + 1
+                        continue
+                    if self.potential_partial_isomorphism(Ims):
+                        counter += 1
+                        C.append(tuple(Ims))
+                        if len(Gens)==len(self._domain.Gen):
+                            return C
+                        if allow_cutoff and (counter >= self.cutoff*(2**(len(Ims)-Ims.count(0)-len(self.rigid_generators)-1))):
+                            coho_logger.debug("cutting list of candidates", self)
+                            for k in Gens:
+                                self.not_exhausted_generators.add(k)
+                            self.exhaustive = False
+                            break
             if len(C)==1:
                 old_rigids = [x[0] for x in self.rigid_generators]
                 for g in Gens:
@@ -918,14 +920,15 @@ class IsomorphismTest:
         self._SC.set_ring()
         #--tmpI = self._Smap.ideal().std()
         ActiveGens = [i for i,x in enumerate(self._im_gens) if x]
-        if ActiveGens:
-            d = [self._codomain.Gen[i].deg() for i in ActiveGens]
-            SmallerGens = ','.join([x.name() for x in self._codomain.Gen if x.deg()<d])
-            if not SmallerGens:
-                SmallerGens = 0
-        else:
-            SmallerGens = 0
-        self.singular.eval('%smapI = std(ideal(%s)+ideal(%s))'%(self.prefix,SmallerGens,self._Smap.name()))
+        #~ if ActiveGens:
+            #~ d = [self._codomain.Gen[i].deg() for i in ActiveGens]
+            #~ SmallerGens = ','.join([x.name() for x in self._codomain.Gen if x.deg()<d])
+            #~ if not SmallerGens:
+                #~ SmallerGens = 0
+        #~ else:
+            #~ SmallerGens = 0
+        #~ self.singular.eval('%smapI = std(ideal(%s)+ideal(%s))'%(self.prefix,SmallerGens,self._Smap.name()))
+        self.singular.eval('%smapI = std(ideal(%s))'%(self.prefix, self._Smap.name()))
         self.singular.eval('%smapI = std(quotient(std(0),%smapI))'%(self.prefix,self.prefix))
         self._codomain_comm.set_ring()
         # qrels contains *all* quotient relations, including the nontrivials.
@@ -1034,16 +1037,17 @@ class IsomorphismTest:
             sage: T.hilbert_of_image_annihilator() == T.hilbert_of_preimage_annihilator((3,4))
             True
             sage: T.hilbert_of_preimage_annihilator((3,4))
-            -t^7 + 2*t^5 + t^4 - t^3 - 2*t^2 + 1
+            -t^9 + 2*t^8 - t^7 - t^6 + t^5 + t^4 + t^3 - 3*t^2 + 1
 
         """
         self._SD.set_ring()
-        d = [self._domain.Gen[i-1].deg() for i in Gens]
-        SmallerGens = ','.join([x.name() for x in self._domain.Gen if x.deg()<d])
-        if not SmallerGens:
-            SmallerGens = 0
+        #~ d = [self._domain.Gen[i-1].deg() for i in Gens]
+        #~ SmallerGens = ','.join([x.name() for x in self._domain.Gen if x.deg()<d])
+        #~ if not SmallerGens:
+            #~ SmallerGens = 0
         #--tmpI = self.singular('std(ideal(%s))'%(','.join(['var(%d)'%i for i in Gens])))
-        self.singular.eval('%smapI = std(ideal(%s)+ideal(%s))'%(self.prefix, SmallerGens,','.join(['var(%d)'%i for i in Gens])))
+        #~ self.singular.eval('%smapI = std(ideal(%s)+ideal(%s))'%(self.prefix, SmallerGens,','.join(['var(%d)'%i for i in Gens])))
+        self.singular.eval('%smapI = std(ideal(%s))'%(self.prefix, ','.join(['var(%d)'%i for i in Gens])))
         self.singular.eval('%smapI = std(quotient(std(0),%smapI))'%(self.prefix,self.prefix))
         self._domain_comm.set_ring()
         # qrels only contains the "trivial" relations a^2=0. That's why we now add the nontrivials...
@@ -1186,7 +1190,7 @@ class IsomorphismTest:
         and see that in one case the Hilbert series of the ideals generated by
         the generators respectively their images do not match::
 
-            sage: sorted(T.statistic.items())
+            sage: sorted(T.statistic.items(), key=repr)
             [('Hilbert series of ideals do not match', 1),
              (('potential isomorphism', 2), 2)]
 
