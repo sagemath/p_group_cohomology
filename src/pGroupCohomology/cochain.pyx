@@ -1202,44 +1202,46 @@ cdef class COCH(RingElement):
 
 ################
 # Arithmetic
-    IF PY_MAJOR_VERSION == 2:
-        def __nonzero__(self):
-            """
-            TESTS::
+    # For PY_MAJOR_VERSION == 2:
+    def __nonzero__(self):
+        """
+        TESTS::
 
-                sage: from pGroupCohomology import CohomologyRing
-                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-                sage: H = CohomologyRing(32,4)
-                sage: H.make()
-                sage: H.1.is_zero() #indirect doctest
-                False
-                sage: (2*H.1).is_zero() #indirect doctest
-                True
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(32,4)
+            sage: H.make()
+            sage: H.1.is_zero() #indirect doctest
+            False
+            sage: (2*H.1).is_zero() #indirect doctest
+            True
 
-            """
-            cdef FEL f
-            FfSetField((<COCH>self).Data.Data.Field)
-            FfSetNoc((<COCH>self).Data.Data.Noc)
-            return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
-    ELSE:
-        def __bool__(self):
-            """
-            TESTS::
+        """
+        cdef FEL f
+        FfSetField((<COCH>self).Data.Data.Field)
+        FfSetNoc((<COCH>self).Data.Data.Noc)
+        return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
 
-                sage: from pGroupCohomology import CohomologyRing
-                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-                sage: H = CohomologyRing(32,4)
-                sage: H.make()
-                sage: H.1.is_zero() #indirect doctest
-                False
-                sage: (2*H.1).is_zero() #indirect doctest
-                True
+    # For PY_MAJOR_VERSION == 3:
 
-            """
-            cdef FEL f
-            FfSetField((<COCH>self).Data.Data.Field)
-            FfSetNoc((<COCH>self).Data.Data.Noc)
-            return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
+    def __bool__(self):
+        """
+        TESTS::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(32,4)
+            sage: H.make()
+            sage: H.1.is_zero() #indirect doctest
+            False
+            sage: (2*H.1).is_zero() #indirect doctest
+            True
+
+        """
+        cdef FEL f
+        FfSetField((<COCH>self).Data.Data.Field)
+        FfSetNoc((<COCH>self).Data.Data.Noc)
+        return FfFindPivot((<COCH>self).Data.Data.Data, &f)!=-1
 
     cpdef _add_(self, other):
         r"""
@@ -1393,6 +1395,14 @@ cdef class COCH(RingElement):
             sage: H.make()
             sage: H.1*2   # indirect doctest
             (b_2_0)*2: 2-Cocycle in H^*(E27; GF(3))
+
+        Note that division by a scalar is implemented as multiplication
+        by the inverse of the scalar::
+
+            sage: H = CohomologyRing(25,2)
+            sage: H.make()
+            sage: H.1/3
+            (c_2_1)*2: 2-Cocycle in H^*(SmallGroup(25,2); GF(5))
 
         """
         Right = int(right)
@@ -1585,33 +1595,6 @@ cdef class COCH(RingElement):
                 R.ChainmapToCochain((self.Deg+Cdeg,0,OUT)), is_polyrep=self._polyrep and C._polyrep)
         else:
             raise TypeError("Multiplication COCH*%s not defined"%(type(C)))
-
-    def __div__(COCH self, long c):
-        """
-        Quotient of a cochain by a field element.
-
-        TESTS::
-
-            sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: H = CohomologyRing(27,3)
-            sage: H.make()
-            sage: print(H.2)
-            2-Cocycle in H^*(E27; GF(3)),
-            represented by
-            [0 1 0 0]
-            rdeg = 0
-            ydeg = 0
-            sage: print(H.2/2)      # indirect doctest
-            2-Cocycle in H^*(E27; GF(3)),
-            represented by
-            [0 2 0 0]
-
-        """
-        if c == 1:
-            return self
-        else:
-            return COCH(self._parent, self.Deg, '('+self.Name+')/'+str(c%self.Data.Data.Field), self.Data/c, is_polyrep=self._polyrep)
 
     def __pow__(COCH self, int n, x):
         """
@@ -2885,45 +2868,42 @@ class MODCOCH(RingElement):
                 br.set_ring()
             return OUT
 
-    IF PY_MAJOR_VERSION == 2:
-        def __nonzero__(self):
-            """
-            TESTS::
-
-                sage: from pGroupCohomology import CohomologyRing
-                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-                sage: H = CohomologyRing(252,10,prime=2)
-                sage: H.make()
-                sage: H.1.is_zero() #indirect doctest
-                False
-                sage: (2*H.1).is_zero() #indirect doctest
-                True
-                sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
-                True
-
-            """
-            return self.lc()!=0
-    ELSE:
-        def __bool__(self):
-            """
-            TESTS::
-
-                sage: from pGroupCohomology import CohomologyRing
-                sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-                sage: H = CohomologyRing(252,10,prime=2)
-                sage: H.make()
-                sage: H.1.is_zero() #indirect doctest
-                False
-                sage: (2*H.1).is_zero() #indirect doctest
-                True
-                sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
-                True
-
-            """
-            return self.lc()!=0
-
+    # For PY_MAJOR_VERSION == 2:
     def __nonzero__(self):
-        return self.__bool__()
+        """
+        TESTS::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(252,10,prime=2)
+            sage: H.make()
+            sage: H.1.is_zero() #indirect doctest
+            False
+            sage: (2*H.1).is_zero() #indirect doctest
+            True
+            sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
+            True
+
+        """
+        return self.lc()!=0
+    # For PY_MAJOR_VERSION == 3:
+    def __bool__(self):
+        """
+        TESTS::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
+            sage: H = CohomologyRing(252,10,prime=2)
+            sage: H.make()
+            sage: H.1.is_zero() #indirect doctest
+            False
+            sage: (2*H.1).is_zero() #indirect doctest
+            True
+            sage: (H.3^2+H.2*H.3+H.2^2+H.1^3).is_zero() #indirect doctest
+            True
+
+        """
+        return self.lc()!=0
 
     def _add_(self, other):
         """
@@ -3035,6 +3015,12 @@ class MODCOCH(RingElement):
             sage: H.1*2   # indirect doctest
             (a_6_0)*(2): 6-Cocycle in H^*(SmallGroup(400,206); GF(5))
 
+        Note that division by a scalar is implemented as multiplication with the
+        inverse of the scalar::
+
+            sage: H.1/3
+            (a_6_0)*(2): 6-Cocycle in H^*(SmallGroup(400,206); GF(5))
+
         """
         if other==1:
             return self
@@ -3113,48 +3099,6 @@ class MODCOCH(RingElement):
             if br is not None:
                 br.set_ring()
             return OUT
-
-    def __div__(self, other):
-        """
-        Division by an invertible element of the base ring.
-
-        TESTS::
-
-            sage: from pGroupCohomology import CohomologyRing
-            sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: H = CohomologyRing(400,206,prime=5)
-            sage: H.make()
-            sage: print(H.1)
-            a_6_0: 6-Cocycle in H^*(SmallGroup(400,206); GF(5))
-            defined by
-            c_2_1*c_2_2*a_1_0*a_1_1
-            sage: print(H.1/3) #indirect doctest
-            (a_6_0)/(3): 6-Cocycle in H^*(SmallGroup(400,206); GF(5))
-            defined by
-            2*c_2_1*c_2_2*a_1_0*a_1_1
-
-        It is impossible to divide by :class:`MODCOCH`, and of
-        course division by zero is not possible either::
-
-            sage: H.2/H.1
-            Traceback (most recent call last):
-            ...
-            TypeError: Can not divide by <class 'pGroupCohomology.cochain.MODCOCH'>
-
-        """
-        try:
-            self._SPparent.set_ring()
-        except: # singular crashed
-            self._reconstruct_singular_()
-            other._reconstruct_singular_()
-        if not isinstance(other, MODCOCH):
-            if other==1:
-                return self
-            try:
-                return MODCOCH(self.parent(), self._Svalue/other, name='('+self._name+')/('+repr(other)+')', is_polyrep=self._polyrep)
-            except:
-                raise ZeroDivisionError
-        raise TypeError('Can not divide by %s'%repr(MODCOCH))
 
     def is_nilpotent(self):
         """

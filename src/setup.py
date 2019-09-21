@@ -66,9 +66,9 @@ ext_mods = [
     ]
 
 if version_info.major <= 2:
-    env = {'PY_MAJOR_VERSION': 2}
+    PY_MAJOR_VERSION = 2
 elif version_info.major == 3 and version_info.minor >= 6:
-    env = {'PY_MAJOR_VERSION': 3}
+    PY_MAJOR_VERSION = 3
 else:
     raise RuntimeError("Unsupported version")
 
@@ -101,6 +101,6 @@ setup(
               (os.path.join(SAGE_SHARE,'singular','LIB'),
                [os.path.join("pGroupCohomology","dickson.lib")])],
   ext_modules=cythonize(ext_mods, compiler_directives={'embedsignature': True,
-                                                       'language_level': 2}, compile_time_env=env),
+                                                       'language_level': PY_MAJOR_VERSION}),
   cmdclass = {'build_ext': build_ext}
 )

@@ -3261,6 +3261,21 @@ class COHO(Ring):
         """
         return S is self or self.base_ring().has_coerce_map_from(S)
 
+    def fraction_field(self):
+        """
+        EXAMPLES::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()
+            sage: H = CohomologyRing(8,3)
+            sage: H.fraction_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: A cohomology ring is, in general, not an integral domain.
+
+        """
+        raise TypeError("A cohomology ring is, in general, not an integral domain.")
+
     ## Homomorphisms -- Option "cat" is not supported yet
     def Hom(self, other, category=None):
         """
