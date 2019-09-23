@@ -134,6 +134,9 @@ from __future__ import print_function, absolute_import
 import sys
 import os
 
+if (2, 8) < sys.version_info:
+    unicode = str
+
 ## Sage generalities
 import sage
 import sage.all
@@ -2051,7 +2054,7 @@ class MODCOCH(RingElement):
             br = None
         self._SPparent = singular(parent._HP or parent)
         self._SPparent.set_ring()
-        if isinstance(value, str):
+        if isinstance(value, (str, unicode)):
             self._Svalue = singular.poly(value)
             #self._str_value = value
         else:
@@ -2456,8 +2459,8 @@ class MODCOCH(RingElement):
             c_1_0: 1-Cocycle in H^*(SmallGroup(720,763); GF(2))
 
         """
-        if isinstance(s, str):
-            self._name = s
+        if isinstance(s, (str, unicode)):
+            self._name = str(s)
         else:
             raise TypeError("string expected")
         self._latex = None
@@ -5447,13 +5450,14 @@ cdef class ChMap(RingHomomorphism):
             True
 
         """
-        if not isinstance(f, str):
+        if not isinstance(f, (str, unicode)):
             raise TypeError("String expected")
+        f = str(f)
         cdef int i
         cdef int M = len(self.Data)
         for i in range(1, M):
             Data_i = self.Data[i]
-            if isinstance(Data_i, str):
+            if isinstance(Data_i, (str, unicode)):
                 if Data_i != f+str(i):
                     coho_logger.debug('export data', self)
                     Data_i = self[i]
@@ -5806,7 +5810,7 @@ cdef class ChMap(RingHomomorphism):
             [0 0 1 1 0 0 0 0]
 
         """
-        if isinstance(self.Data[key], str):
+        if isinstance(self.Data[key], (str, unicode)):
             sobj = '' if self.Data[key].endswith('.sobj') else '.sobj'
             try:
                 return load(self.Data[key]+sobj)  # realpath here?

@@ -44,7 +44,10 @@ AUTHORS:
 ## Imports
 
 from __future__ import print_function, absolute_import
-import os
+import os, sys
+if (2, 8) < sys.version_info:
+    unicode = str
+
 from libc.string cimport memcpy
 
 # Sage generalities
@@ -132,8 +135,8 @@ def COHO_unpickle(GroupKey, StateFile):
     if not StateFile.endswith('.sobj'):
         StateFile = StateFile+'.sobj'
     # corresponds to '/'.join(...).split('/')[:-3]) ::
-    original_root = os.path.split(os.path.split(os.path.split(StateFile)[0])[0])[0]
-    original_GStem = os.path.split(os.path.split(os.path.split(StateFile)[0])[0])[1] # this is like StateFile.split('/')[-3]
+    original_root = str(os.path.split(os.path.split(os.path.split(StateFile)[0])[0])[0])
+    original_GStem = str(os.path.split(os.path.split(os.path.split(StateFile)[0])[0])[1]) # this is like StateFile.split('/')[-3]
 
     if original_root == '@user_db@': # Probably data have been moved.
         StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])
@@ -145,7 +148,7 @@ def COHO_unpickle(GroupKey, StateFile):
         root = coho_options.get('@use_this_root@') or COHO.local_sources
     elif os.path.realpath(StateFile) == os.path.realpath(os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])):  # Moving to the workspace
         # Here it *is* realpath, because we want to know whether we have a symlink to the local sources
-        coho_logger.warning("WARNING: Moving %r to the workspace", None, original_GStem)
+#~         coho_logger.warning("WARNING: Moving %r to the workspace", None, original_GStem)
         StateFile = os.path.join(coho_options.get('@use_this_root@') or COHO.workspace, original_GStem, "dat", os.path.split(StateFile)[1])
         root = coho_options.get('@use_this_root@') or COHO.workspace
     else:
@@ -312,7 +315,7 @@ def unpickle_gap_data(G):
         True
 
     """
-    if isinstance(G, str):
+    if isinstance(G, (str, unicode)):
         return G
     if isinstance(G, GapPickler):
         from pGroupCohomology.auxiliaries import gap
@@ -367,7 +370,7 @@ def pickle_gap_data(G):
         TypeError: Can not pickle 'Group( [ f1, f2, f3 ] )'
 
     """
-    if isinstance(G, str):
+    if isinstance(G, (str, unicode)):
         return G
     if isinstance(G, SingularElement):
         # In previous Sage versions, most Singular elements pickled
@@ -992,15 +995,15 @@ def is_filter_regular(I, f, H1=None, I2=None):
         [0, 2, 1, 1, 2]
 
     """
-    if isinstance(I, str):
+    if isinstance(I, (str, unicode)):
         S = singular
-        nI = I
+        nI = str(I)
         I = S.ideal(nI)
     else:
         S = I._check_valid()
         nI = I.name()
-    if isinstance(f, str):
-        nf = f
+    if isinstance(f, (str, unicode)):
+        nf = str(f)
         f = S(nf)
     else:
         assert f.parent() is S
@@ -1078,7 +1081,7 @@ def is_filter_regular_parameter_system(I, FRS):
         True
 
     """
-    if isinstance(I, str):
+    if isinstance(I, (str, unicode)):
         S = singular
         I0 = S.ideal(I)
     else:
@@ -1086,7 +1089,7 @@ def is_filter_regular_parameter_system(I, FRS):
         I0 = I
     frs = []
     for f in FRS:
-        if isinstance(f, str):
+        if isinstance(f, (str, unicode)):
             frs.append(S(f))
         else:
             assert f.parent() is S
@@ -1536,8 +1539,8 @@ class permanent_result(object):
         ....:     f.foo(1)
         ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
-        bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
-        foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+        bar interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
+        foo interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
 
     The ``KeyboardInterrupt`` is cached. So, even if we set the attribute
     ``_t`` above to a non-zero value, the error won't go away, unless we
@@ -1548,15 +1551,15 @@ class permanent_result(object):
         ....:     f.bar(1)
         ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
-        bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+        bar interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
         sage: f.bar(1, forced=True)
         3
         sage: try:
         ....:     f.foo(1)
         ....: except KeyboardInterrupt as msg:
         ....:     print(msg)
-        bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
-        foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+        bar interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
+        foo interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
         sage: f.foo(1,forced=True)
         Sym( [ 1 .. 3 ] )
 
@@ -1711,7 +1714,7 @@ class permanent_result(object):
             ....:     f.foo(3)
             ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
-            foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+            foo interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
 
         This results in creating a cache for ``f``. Note that
         even the ``KeyboardInterrupt`` is cached::
@@ -1719,7 +1722,7 @@ class permanent_result(object):
             sage: sorted(f._decorator_cache.items())    #indirect doctest
             [(('bar', Group([ (1,2) ])), [2]),
              (('foo', 3),
-              [KeyboardInterrupt('foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``',)])]
+              [KeyboardInterrupt('foo interrupted. Force re-computation at <...> with ``forced=True``')])]
 
         """
         key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.items()]))
@@ -1812,7 +1815,7 @@ class permanent_result(object):
         except AttributeError:
             inst._decorator_cache = {}
         val = inst._decorator_cache[key]
-        if len(val)>1 and not isinstance(val[-1], str):
+        if len(val)>1 and not isinstance(val[-1], (str, unicode)):
             # If val comes from a permanent cache, then either it is
             # of length 1, or belongs to an interface, and the last
             # item is a string to reconstruct the interface data.
@@ -1880,8 +1883,8 @@ class permanent_result(object):
             ....:     f.foo(1)
             ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
-            bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
-            foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+            bar interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
+            foo interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
 
         The ``KeyboardInterrupt`` is cached. So, even if we set the attribute
         ``_t`` above to a non-zero value, the error won't go away, unless we
@@ -1892,15 +1895,15 @@ class permanent_result(object):
             ....:     f.bar(1)    # indirect doctest
             ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
-            bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+            bar interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
             sage: f.bar(1, forced=True)
             3
             sage: try:
             ....:     f.foo(1)
             ....: except KeyboardInterrupt as msg:
             ....:     print(msg)
-            bar interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
-            foo interrupted. Force re-computation at <....FOO instance at ...> with ``forced=True``
+            bar interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
+            foo interrupted. Force re-computation at <....FOO ... at ...> with ``forced=True``
             sage: f.foo(1,forced=True)
             Sym( [ 1 .. 3 ] )
 
@@ -2202,6 +2205,7 @@ class COHO(Ring):
         sage: X = CohomologyRing(4,2, from_scratch=True)
         sage: X.make()
         sage: X = CohomologyRing(2,1, from_scratch=True, options='info')
+        _get_p_group_from_scratch:
             We compute this cohomology ring from scratch
         H^*(SmallGroup(2,1); GF(2)):
             Initialising maximal p-elementary abelian subgroups
@@ -2234,12 +2238,21 @@ class COHO(Ring):
     ::
 
         sage: H = CohomologyRing(8,3, from_scratch=True)
-        We compute this cohomology ring from scratch
-        Computing basic setup for Small Group number 3 of order 8
+        _get_p_group_from_scratch:
+            We compute this cohomology ring from scratch
+            Computing basic setup for Small Group number 3 of order 8
         H^*(D8; GF(2)):
             Initialising maximal p-elementary abelian subgroups
             Inserting SmallGroup(2,1) as a subgroup
-            Inserting SmallGroup(4,2) as a subgroup...
+            Inserting SmallGroup(4,2) as a subgroup
+        Resolution of GF(2)[4gp2]:
+            Differential reloaded
+            > rk P_02 =   3
+        H^*(SmallGroup(4,2); GF(2)):
+            Import monomials
+        _get_p_group_from_cache_or_db:
+            Checking compatibility of SmallGroups library and stored cohomology ring
+        H^*(D8; GF(2)):
             Computing Dickson invariants in elementary abelian subgroup of rank 2
 
     Now, the basic setup is done. We compute the ring structure, logging
@@ -2367,16 +2380,21 @@ class COHO(Ring):
          a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
+
+    It depends on the python version whether or not the relations are
+    tail-reduced and how they are sorted::
+
+        sage: if (2, 8) < sys.version_info:
+        ....:     expected_rels = ['a_1_0^2', 'a_1_0*a_1_1', 'a_1_1^3', 'a_2_1*a_1_0',
+        ....:           'a_2_1^2+a_2_1*a_1_1^2', 'a_1_0*a_3_3+a_2_1*a_1_1^2',
+        ....:           'a_1_1*a_3_3+a_2_1*a_1_1^2', 'a_2_1*a_3_3', 'a_3_3^2']
+        ....: else:
+        ....:     expected_rels = ['a_1_0^2', 'a_1_0*a_1_1', 'a_1_1^3', 'a_2_1*a_1_0',
+        ....:           'a_2_1^2+a_2_1*a_1_1^2', 'a_1_1*a_3_3+a_2_1^2',
+        ....:           'a_1_0*a_3_3+a_2_1^2', 'a_2_1*a_3_3', 'a_3_3^2']
+        ....:
+        sage: H4.rels() == expected_rels
+        True
 
     An example with `p=3`, so that the cohomology ring is
     non-commutative::
@@ -2625,16 +2643,21 @@ class COHO(Ring):
          a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
+
+    It depends on the python version whether or not the relations are
+    tail-reduced and how they are sorted::
+
+        sage: if (2, 8) < sys.version_info:
+        ....:     expected_rels = ['a_1_0^2', 'a_1_0*a_1_1', 'a_1_1^3', 'a_2_1*a_1_0',
+        ....:           'a_2_1^2+a_2_1*a_1_1^2', 'a_1_0*a_3_3+a_2_1*a_1_1^2',
+        ....:           'a_1_1*a_3_3+a_2_1*a_1_1^2', 'a_2_1*a_3_3', 'a_3_3^2']
+        ....: else:
+        ....:     expected_rels = ['a_1_0^2', 'a_1_0*a_1_1', 'a_1_1^3', 'a_2_1*a_1_0',
+        ....:           'a_2_1^2+a_2_1*a_1_1^2', 'a_1_1*a_3_3+a_2_1^2',
+        ....:           'a_1_0*a_3_3+a_2_1^2', 'a_2_1*a_3_3', 'a_3_3^2']
+        ....:
+        sage: H4.rels() == expected_rels
+        True
 
     We repeat the example, but this time use elimination.
     ::
@@ -2649,16 +2672,8 @@ class COHO(Ring):
          a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
+        sage: H4.rels() == expected_rels
+        True
 
     Now we switch the 'sparse' option on::
 
@@ -2673,16 +2688,8 @@ class COHO(Ring):
          a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
+        sage: H4.rels() == expected_rels
+        True
         sage: CohomologyRing.global_options('nosparse')
 
     And finally, we allow to convert to Sage matrices in some
@@ -2699,16 +2706,8 @@ class COHO(Ring):
          a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
+        sage: H4.rels() == expected_rels
+        True
         sage: CohomologyRing.global_options('useMTX')
 
     """
@@ -2836,7 +2835,7 @@ class COHO(Ring):
         sage: from pGroupCohomology.cohomology import COHO
         sage: tmp_root = tmp_dir()
         sage: H4 = COHO(64,14,root=tmp_root)   # indirect doctest
-        sage: H4.make()          # about 8 seconds
+        sage: H4.make()
         sage: H4.gens()
         [1,
          a_2_1: 2-Cocycle in H^*(SmallGroup(64,14); GF(2)),
@@ -2845,16 +2844,21 @@ class COHO(Ring):
          a_1_0: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_1_1: 1-Cocycle in H^*(SmallGroup(64,14); GF(2)),
          a_3_3: 3-Cocycle in H^*(SmallGroup(64,14); GF(2))]
-        sage: H4.rels()
-        ['a_1_0^2',
-         'a_1_0*a_1_1',
-         'a_1_1^3',
-         'a_2_1*a_1_0',
-         'a_2_1^2+a_2_1*a_1_1^2',
-         'a_1_1*a_3_3+a_2_1^2',
-         'a_1_0*a_3_3+a_2_1^2',
-         'a_2_1*a_3_3',
-         'a_3_3^2']
+
+    It depends on the python version whether or not the relations are
+    tail-reduced and how they are sorted::
+
+        sage: if (2, 8) < sys.version_info:
+        ....:     expected_rels = ['a_1_0^2', 'a_1_0*a_1_1', 'a_1_1^3', 'a_2_1*a_1_0',
+        ....:           'a_2_1^2+a_2_1*a_1_1^2', 'a_1_0*a_3_3+a_2_1*a_1_1^2',
+        ....:           'a_1_1*a_3_3+a_2_1*a_1_1^2', 'a_2_1*a_3_3', 'a_3_3^2']
+        ....: else:
+        ....:     expected_rels = ['a_1_0^2', 'a_1_0*a_1_1', 'a_1_1^3', 'a_2_1*a_1_0',
+        ....:           'a_2_1^2+a_2_1*a_1_1^2', 'a_1_1*a_3_3+a_2_1^2',
+        ....:           'a_1_0*a_3_3+a_2_1^2', 'a_2_1*a_3_3', 'a_3_3^2']
+        ....:
+        sage: H4.rels() == expected_rels
+        True
         sage: G = libgap.DihedralGroup(8)
         sage: G
         <pc group of size 8 with 3 generators>
@@ -3117,6 +3121,8 @@ class COHO(Ring):
         self.MaxelRk  = []
         self.pRank = None
         self._property_dict['useElimination'] = kwds.get('useElimination')
+        print(kwds)
+        print(kwds.get('useSlimgb'))
         if kwds.get('useSlimgb'):
             self.setprop('useSlimgb',True)
         elif kwds.get('useStd'):
@@ -3198,7 +3204,7 @@ class COHO(Ring):
             s = self.base_ring()(s)
         except TypeError:
             pass
-        if not isinstance(s, str):
+        if not isinstance(s, (str, unicode)):
             # The following is necessary, since by some oddity the above might
             # return a tuple of an error with an error message!
             if not s in self.base_ring():
@@ -3688,13 +3694,15 @@ class COHO(Ring):
             sage: CohomologyRing.global_options('debug')
             sage: sorted(K.subgps.items())
             H^*(D8; GF(2)):
-                      Inserting SmallGroup(4,2) as a subgroup
-            Got H^*(SmallGroup(4,2); GF(2)) from cache
+                Inserting SmallGroup(4,2) as a subgroup
+            _get_p_group_from_cache_or_db:
+                Got H^*(SmallGroup(4,2); GF(2)) from cache
             H^*(D8; GF(2)):
-                      Inserting SmallGroup(2,1) as a subgroup
-            Got H^*(SmallGroup(2,1); GF(2)) from cache
+                Inserting SmallGroup(2,1) as a subgroup
+            _get_p_group_from_cache_or_db:
+                Got H^*(SmallGroup(2,1); GF(2)) from cache
             H^*(D8; GF(2)):
-                      Reconstructing subgroup data
+                Reconstructing subgroup data
             [((2, 1), H^*(SmallGroup(2,1); GF(2))), ((4, 2), H^*(SmallGroup(4,2); GF(2)))]
             sage: 'subgps' in K.__dict__
             True
@@ -3771,7 +3779,8 @@ class COHO(Ring):
             self.Dickson = Dickson
             self.alpha = alpha
 
-            if isinstance(Resl, str):
+            if isinstance(Resl, (str, unicode)):
+                Resl = str(Resl)
                 if (oldroot is not None):
                     coho_options['@oldroot@'] = oldroot
                 coho_options['@newroot@'] = root
@@ -3817,7 +3826,7 @@ class COHO(Ring):
             for i,Tr in Triangular:
                 self.Triangular[i] = [COCH(self,X[0],X[1],X[2], is_polyrep=True) for X in Tr]
             self.NilBasis = NilBasis
-            if isinstance(Monomials, str):
+            if isinstance(Monomials, (str, unicode)):
                 self.Monomials = {'bla':1}
                 self.importMonomials()
             else:
@@ -3927,15 +3936,8 @@ class COHO(Ring):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3)
             sage: H.make()
-            sage: K=load(H.autosave_name())
-            WARNING: Files on disk have been moved or are not writeable.
-            > Will try to recover later.
+            sage: K = load(H.autosave_name())
             sage: print(K)
-            8gp3: Files on disk have been moved - trying to get things right
-            H^*(D8; GF(2)):
-                      Try to update cohomology data on disk
-                      > successful
-            <BLANKLINE>
             Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
             <BLANKLINE>
             Computation complete
@@ -3979,7 +3981,7 @@ class COHO(Ring):
             sage: H.exportMonomials()
             sage: H.Monomials={'bla':1}
             sage: H.importMonomials()
-            sage: L2 = H.Monomials.items()
+            sage: L2 = list(H.Monomials.items())
             sage: L2.sort()
             sage: L1 == L2
             True
@@ -4009,7 +4011,7 @@ class COHO(Ring):
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
-            sage: L1 = H.Monomials.items()
+            sage: L1 = list(H.Monomials.items())
             sage: L1.sort()
             sage: L1
             [('b_1_0', b_1_0: 1-Cocycle in H^*(D8; GF(2))),
@@ -4177,7 +4179,7 @@ class COHO(Ring):
         The method is automatically called when trying to access the ``subgps``
         attribute::
 
-            sage: for k,v in CohomologyRing._cache.items():
+            sage: for k,v in list(CohomologyRing._cache.items()):
             ....:     if v is K:
             ....:         del CohomologyRing._cache[k]
             sage: L = loads(dumps(K))
@@ -4601,6 +4603,7 @@ Minimal list of algebraic relations:
              'find_dickson_in_subgroup',
              'find_small_last_parameter',
              'firstOdd',
+             'fraction_field',
              'from_base_ring']
             sage: H.setprop('foo',1)
             sage: [a for a in dir(H) if a.startswith('f')]
@@ -4612,6 +4615,7 @@ Minimal list of algebraic relations:
              'find_small_last_parameter',
              'firstOdd',
              'foo',
+             'fraction_field',
              'from_base_ring']
             sage: H.foo_bar = 1
             sage: [a for a in dir(H) if a.startswith('f')]
@@ -4624,10 +4628,11 @@ Minimal list of algebraic relations:
              'firstOdd',
              'foo',
              'foo_bar',
+             'fraction_field',
              'from_base_ring']
 
         """
-        return dir(self.__class__)+self.__dict__.keys()+self._property_dict.keys()
+        return dir(self.__class__) + list(self.__dict__.keys()) + list(self._property_dict.keys())
 
     def trait_names(self):
         """
@@ -4648,6 +4653,7 @@ Minimal list of algebraic relations:
              'H.find_dickson_in_subgroup',
              'H.find_small_last_parameter',
              'H.firstOdd',
+             'H.fraction_field',
              'H.from_base_ring']
 
         """
@@ -4661,7 +4667,7 @@ Minimal list of algebraic relations:
 
         There will only be an attribute error if foo is not an attribute and
         starts and ends with an underscore. Tab completion and introspection
-        are implemented.
+        are implemented in Python-2, but not in Python-3 yet.
 
         TESTS::
 
@@ -4687,6 +4693,7 @@ Minimal list of algebraic relations:
              'H.find_dickson_in_subgroup',
              'H.find_small_last_parameter',
              'H.firstOdd',
+             'H.fraction_field',
              'H.from_base_ring']
 
         Note that if an attribute hasn't been defined, ``None`` is returned.
@@ -4730,9 +4737,9 @@ Minimal list of algebraic relations:
             return self._property_dict.keys()
         if self._property_dict.get('_need_new_root'):
             coho_logger.warning('%s: Files on disk have been moved - trying to get things right', None, self.GStem)
-            if isinstance(self._property_dict['_need_new_root'], str):
-                newroot = self._property_dict['_need_new_root']
-                defaultname = os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj')
+            if isinstance(self._property_dict['_need_new_root'], (str, unicode)):
+                newroot = str(self._property_dict['_need_new_root'])
+                defaultname = str(os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj'))
             else:
                 # try to infer the new location from the file this ring was loaded from
                 try:
@@ -4882,7 +4889,7 @@ Minimal list of algebraic relations:
             ....:     del H.__an_element
             sage: H.make()
             sage: H.an_element()
-            c_2_2: 2-Cocycle in H^*(D8; GF(2))
+            b_1_0: 1-Cocycle in H^*(D8; GF(2))
 
         """
         if not self.Gen:
@@ -5653,7 +5660,7 @@ Minimal list of algebraic relations:
                 L.append(', an ')
             L.append('element of degree %d'%(x.deg()))
             return ''.join(L)
-        if isinstance(x, str):
+        if isinstance(x, (str, unicode)):
             return str2html(str(singular.eval(x)))
         return str2html(str(x))
 
@@ -6443,7 +6450,8 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(8,1)
             sage: H._gb_command()
             'groebner'
-            sage: H = CohomologyRing(8,2, useSlimgb=True)
+            sage: CohomologyRing.doctest_setup()       # create a new workspace, so that we create a new cohomology ring
+            sage: H = CohomologyRing(8,2, useSlimgb=True, from_scrach=True)
             sage: H._gb_command()
             'slimgb'
 
@@ -6558,8 +6566,9 @@ Minimal list of algebraic relations:
         """
         if not (isinstance(n, int) or isinstance(n,Integer)):
             raise TypeError("degree (first argument) must be an integer")
-        if not (isinstance(s,str)):
+        if not (isinstance(s, (str, unicode))):
             raise TypeError("second argument must be a string")
+        s = str(s)
         coho_logger.info( "Determine degree %d standard monomials",self, n)
         try:
             self.StdMon[0]['1']._check_valid()
@@ -8916,7 +8925,7 @@ is an error. Please inform the author!""")
                 if piv<lm:
                     L.append(M[i].list()[lm:])
             self_s.set_ring()
-            return [singular('+'.join(['%d*%s'%(K(k),s) for k,s in zip(cl,S) if k])) for cl in L]
+            return [singular('+'.join(['{}*{}'.format(K(k),s) for k,s in zip(cl,S) if k])) for cl in L]
 
         def list2sparse(L):
             M = []
@@ -10286,6 +10295,9 @@ is an error. Please inform the author!""")
             False
 
         """
+        if self == other:
+            coho_logger.info("Ring presentations are identical")
+            return tuple(x.name() for x in self.Gen)
         from pGroupCohomology.isomorphism_test import IsomorphismTest
         T = IsomorphismTest(self, other)
         Tinv = IsomorphismTest(other, self)
@@ -10704,7 +10716,7 @@ is an error. Please inform the author!""")
             else:
                 self.set_ring()
                 selfname = '%sr(%d)'%(self.prefix,self.lastRelevantDeg or self.knownDeg)
-            if isinstance(I, str):
+            if isinstance(I, (str, unicode)):
                 I = singular(I)
             if not in_quotient:
                 I = singular('%sI+%s'%(self.prefix, I.name()))

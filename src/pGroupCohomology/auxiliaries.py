@@ -29,7 +29,10 @@ AUTHORS:
 """
 
 from __future__ import print_function, absolute_import
-import os
+import os, sys
+if (2, 8) < sys.version_info:
+    unicode = str
+
 from sage.env import SAGE_SHARE, MTXLIB
 
 ## All other modules will import this version of singular
@@ -322,11 +325,12 @@ class CohoFormatter(logging.Formatter):
             obj = record.funcName
             if obj.startswith('__'):
                 obj = 'CohomologyRing'
-        if isinstance(obj, str):
+        if isinstance(obj, (str, unicode)):
+            obj = str(obj)
             if self.obj != obj:
                 self.obj = obj
                 record.prepend = obj + ':' + os.linesep
-        elif isinstance(self.obj, str) or (self.obj() is not obj):
+        elif isinstance(self.obj, (str, unicode)) or (self.obj() is not obj):
             self.obj = weakref.ref(obj)
             record.prepend = repr(obj) + ':' + os.linesep
         if self.cputime:

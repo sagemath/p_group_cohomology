@@ -31,8 +31,9 @@ AUTHORS:
 """
 
 from __future__ import print_function, absolute_import
-import sys
-import os
+import os, sys
+if (2, 8) < sys.version_info:
+    unicode = str
 
 import sage
 import sage.all
@@ -511,10 +512,10 @@ class RESL_sparse_unpickle_class:
         #print "unpickle:",gstem,gps_folder,res_folder,degree, ROOT
         ## First, we check whether a re-rooting occurs
         oldroot = coho_options.get('@oldroot@',None)
-        if isinstance(oldroot, str):
+        if isinstance(oldroot, (str, unicode)):
             # Our folders are not supposed to be symlinks.
             # Hence, here it is realpath
-            oldroot = os.path.realpath(oldroot)
+            oldroot = os.path.realpath(str(oldroot))
         newroot = coho_options.get('@newroot@',None)
         if isinstance(newroot, basestring):
             newroot = os.path.realpath(newroot)
@@ -556,18 +557,18 @@ class RESL_sparse_unpickle_class:
             if Lifts == {1:1}:
                 tmp = load(os.path.join(res_folder,'L'+gstem+'.sobj'))  # realpath here?
                 for X,Y in tmp:
-                    if isinstance(Y, str):
+                    if isinstance(Y, (str, unicode)):
                         if (newroot is not None):
-                            Y = os.path.join(newroot,os.path.split(res_folder)[1], os.path.split(Y)[1])
+                            Y = os.path.join(newroot,os.path.split(res_folder)[1], os.path.split(str(Y))[1])
                     OUT.Lifts[X]=Y
             else:
                 for X,Y in Lifts.items(): # we have very old data format
                     OUT.Lifts[(X[0],X[1].deg(),X[1].MTX())] = Y
         else:
             for X,Y in Lifts:
-                if isinstance(Y, str):
+                if isinstance(Y, (str, unicode)):
                     if newroot is not None:
-                        Y =  os.path.join(newroot,os.path.split(res_folder)[1], os.path.split(Y)[1])
+                        Y =  os.path.join(newroot,os.path.split(res_folder)[1], os.path.split(str(Y))[1])
                     OUT.Lifts.Data[X]={1:Y}
                 else:
                     OUT.Lifts[X]=Y
@@ -1031,10 +1032,11 @@ cdef class RESL:
             Resolution of GF(2)[8gp3]
 
         """
-        if not (isinstance(gstem, str) and isinstance(res_folder, str) and isinstance(gps_folder, str)):
-            raise TypeError("strings expected")
+        gstem = str(gstem)   # it may be unicode
+        gps_folder = str(gps_folder)
+        res_folder = str(res_folder)
         self.gstem = gstem
-        rstem = 'Res'+gstem
+        rstem = 'Res' + gstem
         self.rstem = rstem
 
         self.gps_folder = gps_folder
@@ -1352,8 +1354,8 @@ cdef class RESL:
             if (key<1) or (key>len(self.Diff)):
                 raise IndexError("Index out of range")
             else:
-                if isinstance(self.Diff[key-1], str):
-                    return MTX.from_filename(self.Diff[key-1])
+                if isinstance(self.Diff[key-1], (str, unicode)):
+                    return MTX.from_filename(str(self.Diff[key-1]))
                 else:
                     return self.Diff[key-1]
         else:
@@ -3779,8 +3781,10 @@ cdef class G_ALG:
         """
         if folder is None:
             folder = ''
-        if not (isinstance(gstem,str) and isinstance(folder,str)):
+        if not (isinstance(gstem, (str, unicode)) and isinstance(folder, (str, unicode))):
             raise TypeError("string expected")
+        gstem = str(gstem)
+        folder = str(folder)
         if gstem=='':
             self.Data = newGroupRecord()
         else:

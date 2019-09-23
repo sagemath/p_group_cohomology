@@ -44,7 +44,9 @@ from pGroupCohomology.auxiliaries import coho_options, coho_logger, safe_save, _
 from pGroupCohomology import barcode
 from pGroupCohomology.cohomology import COHO
 
-import re,os
+import re, os, sys
+if (2, 8) < sys.version_info:
+    unicode = str
 
 #~ import urllib.request, urllib.error
 try:
@@ -443,7 +445,8 @@ class CohomologyRingFactory:
         if not kwds and (not args or (len(args)==1 and not args[0])):
             return dict(coho_options)
         for opt in args:
-            if isinstance(opt, str):
+            if isinstance(opt, (str,unicode)):
+                opt = str(opt)
                 if opt == 'warn':
                     coho_logger.setLevel(logging.WARN)
                     coho_logger.handlers[0].formatter.reset()
@@ -577,7 +580,7 @@ class CohomologyRingFactory:
         """
         if folder:
             self._create_local_sources = True
-            if not isinstance(folder,str):
+            if not isinstance(folder, (str,unicode)):
                 try:
                     from sage.env import SAGE_SHARE
                 except ImportError:
@@ -587,7 +590,7 @@ class CohomologyRingFactory:
                         from sage.misc.misc import SAGE_DATA as SAGE_SHARE
                 folder = os.path.realpath(os.path.join(SAGE_SHARE,'pGroupCohomology'))
             else:
-                folder = os.path.realpath(folder)
+                folder = os.path.realpath(str(folder))
             if os.path.exists(folder):
                 if os.path.isdir(folder):
                     if not os.access(folder,os.W_OK):
@@ -1130,6 +1133,7 @@ class CohomologyRingFactory:
         ####################
         ## Since v2.1, we insist on always using the user's workspace,
         ## but it may be that we have to link to the local sources
+        GStem = str(GStem)
         root_local_sources = COHO.local_sources
         if self._create_local_sources:
             root_workspace = COHO.local_sources
@@ -1186,8 +1190,8 @@ class CohomologyRingFactory:
         ## 4. Search web repository
         elif kwds.get('websource')!=False and (not from_scratch):
             try:
-                if isinstance(kwds.get('websource'), str):
-                    OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
+                if isinstance(kwds.get('websource'), (str, unicode)):
+                    OUT = self.from_remote_sources(GStem, websource=str(kwds.get('websource')))
                 else:
                     OUT = self.from_remote_sources(GStem)
             except URLError as msg:
@@ -1264,7 +1268,7 @@ class CohomologyRingFactory:
         extras['root'] = root_workspace
         if len(KEY)==1:
             extras['gap_input'] = q # we must specify the group order
-            if isinstance(KEY[0], str):
+            if isinstance(KEY[0], (str,unicode)):
                 OUT = COHO(gap.eval(KEY[0]), **extras)
             else:
                 OUT = COHO(gap(KEY[0]), **extras)
@@ -1367,8 +1371,8 @@ class CohomologyRingFactory:
         # 3. Unless the user forbids it, try to obtain it from some web source
         elif kwds.get('websource')!=False and not kwds.get('from_scratch'):
             try:
-                if isinstance(kwds.get('websource'), str):
-                    OUT = self.from_remote_sources(GStem, websource=kwds.get('websource'))
+                if isinstance(kwds.get('websource'), (str, unicode)):
+                    OUT = self.from_remote_sources(GStem, websource=str(kwds.get('websource')))
                 else:
                     OUT = self.from_remote_sources(GStem)
             except:
@@ -1672,8 +1676,8 @@ class CohomologyRingFactory:
             raise ValueError("The syntax for ``CohomologyRing`` has changed. Don't provide the ``root`` keyword, but use the ``set_workspace`` method instead")
         opts = kwds.get('options')
         if opts is not None:
-            if isinstance(opts, str):
-                self.global_options(opts)
+            if isinstance(opts, (str,unicode)):
+                self.global_options(str(opts))
             elif isinstance(opts, dict):
                 coho_options.update(opts)
             else:
@@ -2024,8 +2028,9 @@ class CohomologyRingFactory:
         import os
         if s is None:
             s = os.path.realpath(os.path.join(DOT_SAGE,'pGroupCohomology','db'))
-        if not isinstance(s,str):
+        if not isinstance(s, (str,unicode)):
             raise TypeError("String (pathname) expected")
+        s = str(s)
         if os.path.exists(s):
             if not os.path.isdir(s):
                 raise OSError("There is a file %s that we won't overwrite"%s)
