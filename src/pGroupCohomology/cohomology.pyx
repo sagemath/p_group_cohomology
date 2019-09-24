@@ -2250,15 +2250,7 @@ class COHO(Ring):
         H^*(D8; GF(2)):
             Initialising maximal p-elementary abelian subgroups
             Inserting SmallGroup(2,1) as a subgroup
-            Inserting SmallGroup(4,2) as a subgroup
-        Resolution of GF(2)[4gp2]:
-            Differential reloaded
-            > rk P_02 =   3
-        H^*(SmallGroup(4,2); GF(2)):
-            Import monomials
-        _get_p_group_from_cache_or_db:
-            Checking compatibility of SmallGroups library and stored cohomology ring
-        H^*(D8; GF(2)):
+            ...
             Computing Dickson invariants in elementary abelian subgroup of rank 2
 
     Now, the basic setup is done. We compute the ring structure, logging

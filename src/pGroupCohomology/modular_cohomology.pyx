@@ -1862,7 +1862,7 @@ class MODCOHO(COHO):
         r = self.pRank
         z = self.CenterRk
         if p%2:
-            sgprank = len(G.Gen)/2
+            sgprank = len(G.Gen)//2
         else:
             sgprank = len(G.Gen)
         t = sgprank - z
