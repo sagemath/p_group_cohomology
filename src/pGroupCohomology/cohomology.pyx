@@ -47,6 +47,8 @@ from __future__ import print_function, absolute_import
 import os, sys
 if (2, 8) < sys.version_info:
     unicode = str
+elif str == unicode:
+    raise RuntimeError("<str> is <unicode>, which is a bug. Please recompile.")
 
 from libc.string cimport memcpy
 
@@ -87,6 +89,10 @@ from pGroupCohomology.resolution_bindings cimport *
 from sage.matrix.matrix_gfpn_dense cimport Matrix_gfpn_dense as MTX
 from sage.matrix.matrix_gfpn_dense cimport new_mtx
 from sage.libs.meataxe cimport *
+from sage.cpython.getattr cimport AttributeErrorMessage
+cdef AttributeErrorMessage default_filename_error_message = AttributeErrorMessage()
+default_filename_error_message.name = '_default_filename'
+
 from pGroupCohomology.auxiliaries import singular, _gap_eval_string, Failure
 
 # pGroupCohomology Cython and Python types
@@ -1722,7 +1728,7 @@ class permanent_result(object):
             sage: sorted(f._decorator_cache.items())    #indirect doctest
             [(('bar', Group([ (1,2) ])), [2]),
              (('foo', 3),
-              [KeyboardInterrupt('foo interrupted. Force re-computation at <...> with ``forced=True``')])]
+              [KeyboardInterrupt('foo interrupted. Force re-computation ...)])]
 
         """
         key = tuple([self._name]+[repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t) for t in args]+sorted([(a,repr(t) if hasattr(t,'_check_valid') else (tuple(t) if isinstance(t,list) else t)) for a,t in kwds.items()]))
@@ -2886,8 +2892,8 @@ class COHO(Ring):
 
         self.setprop('KeepBases',kwds.get('KeepBases'))
         Subgroups = kwds.get('Subgroups',True)
-        root = kwds.get('root',COHO.workspace)
-        coho_logger.debug("Group data are rooted at %r", None, root)
+        cdef str root = str(kwds.get('root', COHO.workspace))
+        coho_logger.debug("Group data are rooted at %r.", None, root)
         Hfinal = None
         if len(args) == 1:
             if not hasattr(args[0],'parent'):
@@ -3121,8 +3127,6 @@ class COHO(Ring):
         self.MaxelRk  = []
         self.pRank = None
         self._property_dict['useElimination'] = kwds.get('useElimination')
-        print(kwds)
-        print(kwds.get('useSlimgb'))
         if kwds.get('useSlimgb'):
             self.setprop('useSlimgb',True)
         elif kwds.get('useStd'):
@@ -3802,9 +3806,15 @@ class COHO(Ring):
             else:
                 MaxDeg = max([0]+[X[0] for X in Gen])
                 self.Resl = None
-                for K in Resl[4].keys():
-                    self.Resl = (K[1]).resolution()
-                    break
+                try:
+                    for K in Resl[4].keys():
+                        self.Resl = (K[1]).resolution()
+                        break
+                except:
+                    print(Resl)
+                    print(Resl[4])
+                    print(type(Resl[4]))
+                    raise
             (<RESL>self.Resl).G_Alg.groupname = self.printed_group_name()
             Ring.__init__(self,GF(self.Resl.coef()))
 
@@ -4659,6 +4669,58 @@ Minimal list of algebraic relations:
         """
         return dir(self)
 
+    @property
+    def _default_filename(self):
+        try:
+            return self.__default_filename
+        except AttributeError:
+            default_filename_error_message.cls = type(self)
+            raise AttributeError(default_filename_error_message)
+
+    @_default_filename.deleter
+    def _default_filename(self):
+        try:
+            del self.__default_filename
+        except AttributeError:
+            default_filename_error_message.cls = type(self)
+            raise AttributeError(default_filename_error_message)
+
+    @_default_filename.setter
+    def _default_filename(self, defaultname):
+        try:
+            if self._property_dict.get('_need_new_root'):
+                coho_logger.warning("The data for the cohomology ring at <%x> have apparently been moved.", "Unpickling a cohomology ring", id(self))
+                if isinstance(self._property_dict['_need_new_root'], (str, unicode)):
+                    newroot = str(self._property_dict['_need_new_root'])
+                    default_name = str(os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj'))
+                else:
+                    # try to infer the new location from the file this ring was loaded from
+                    newroot = os.path.split(os.path.split(defaultname)[0])[0]
+                    default_name = defaultname
+                try:
+                    ST = load(os.path.join(os.path.split(defaultname)[0],'dat','State.sobj'))  # realpath here?
+                except (OSError, IOError):
+                    try:
+                        newroot = os.path.split(os.path.split(defaultname)[0])[0]
+                        default_name = defaultname
+                        ST = load(os.path.join(os.path.split(defaultname)[0],'dat','State.sobj'))
+                    except (OSError, IOError):
+                        coho_logger.critical("The new location of data for the cohomology ring at <%x> can't be reconstructed.", "Unpickling a cohomology ring", id(self))
+                        coho_logger.critical("Please try to assign the correct value of `_default_filename` to it.", "Unpickling a cohomology ring")
+                        return
+                self.delprop('_need_new_root')
+                self.__setstate__(ST, newroot=newroot)
+                self.setprop('_dont_save_the_State', True)
+                try:
+                    coho_logger.warning("Try to update cohomology data on disk", self)
+                    safe_save(self, self.autosave_name())
+                    coho_logger.warning( "> successful",self)
+                except (OSError, IOError, RuntimeError):
+                    self.delprop('_dont_save_the_State')
+                    coho_logger.critical( "CRITICAL: No write permission", self)
+        finally:
+            self.__default_filename = defaultname
+
     def __getattr__(self,key):
         """
         H.foo:  return the value of attribute/property 'foo' (None, if undefined).
@@ -4735,40 +4797,6 @@ Minimal list of algebraic relations:
             raise AttributeError("'pGroupCohomology.cohomology.COHO' object has no attribute '_default_filename'")
         if key == '__members__':
             return self._property_dict.keys()
-        if self._property_dict.get('_need_new_root'):
-            coho_logger.warning('%s: Files on disk have been moved - trying to get things right', None, self.GStem)
-            if isinstance(self._property_dict['_need_new_root'], (str, unicode)):
-                newroot = str(self._property_dict['_need_new_root'])
-                defaultname = str(os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj'))
-            else:
-                # try to infer the new location from the file this ring was loaded from
-                try:
-                    defaultname = self._default_filename
-                except AttributeError:
-                    err_msg = os.linesep.join(["Apparently you have moved the data for this cohomology ring.",
-                                               "    The new location of the data can't be reconstructed,",
-                                               "    since _default_filename has not been assigned while unpickling."])
-                    raise IOError(err_msg)
-                # now, infer the new root
-                newroot = os.path.split(os.path.split(defaultname)[0])[0]
-            try:
-                ST = load(os.path.join(os.path.split(defaultname)[0],'dat','State.sobj'))  # realpath here?
-            except (OSError, IOError):
-                err_msg = os.linesep.join(["Apparently you have moved the data for this cohomology ring.",
-                                               "    The new location of the data can't be reconstructed,",
-                                               "    since State.sobj can't be found were it was expected."])
-                raise IOError(err_msg)
-            self.delprop('_need_new_root')
-            self.__setstate__(ST, newroot=newroot)
-            self.setprop('_dont_save_the_State', True)
-            try:
-                coho_logger.warning("Try to update cohomology data on disk",self)
-                safe_save(self, self.autosave_name())
-                coho_logger.warning( "> successful",self)
-            except (OSError, IOError, RuntimeError):
-                self.delprop('_dont_save_the_State')
-                coho_logger.critical( "CRITICAL: No write permission",self)
-            return getattr(self, key)
 
         # After quickloading, the attributes "subgps" and "RestrMaps" are not defined.
         # Hence, if these attributes are required in that case, __getattr__ is called,

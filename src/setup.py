@@ -101,6 +101,6 @@ setup(
               (os.path.join(SAGE_SHARE,'singular','LIB'),
                [os.path.join("pGroupCohomology","dickson.lib")])],
   ext_modules=cythonize(ext_mods, compiler_directives={'embedsignature': True,
-                                                       'language_level': PY_MAJOR_VERSION}),
+                                                       'language_level': PY_MAJOR_VERSION}, build_dir=os.path.join("build","c_files-{}.{}".format(version_info.major, version_info.minor))),
   cmdclass = {'build_ext': build_ext}
 )

@@ -136,6 +136,8 @@ import os
 
 if (2, 8) < sys.version_info:
     unicode = str
+elif str == unicode:
+    raise RuntimeError("<str> is <unicode>, which is a bug. Please recompile.")
 
 ## Sage generalities
 import sage

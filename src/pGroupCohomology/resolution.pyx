@@ -34,6 +34,8 @@ from __future__ import print_function, absolute_import
 import os, sys
 if (2, 8) < sys.version_info:
     unicode = str
+elif str == unicode:
+    raise RuntimeError("<str> is <unicode>, which is a bug. Please recompile.")
 
 import sage
 import sage.all
@@ -101,7 +103,7 @@ def baseMTX(f, m,n, i,j):
 ####################
 ## Group data related auxiliary functions
 
-def makeGroupData(q,n, folder, ElAb=False,Forced=False):
+def makeGroupData(q,n, folder, ElAb=False, Forced=False):
     r"""
     Create basic data files the cohomology computation of ``SmallGroup(q,n)``.
 
@@ -208,10 +210,11 @@ def makeGroupData(q,n, folder, ElAb=False,Forced=False):
     F=Integer(q).factor()
     if len(F)>1:
         raise ValueError("The group order must be a prime power")
+    folder = str(folder)
     if not ElAb:  # we will create data for all smaller elementary abelian groups
         for i in xrange(1,F[0][1]):
             makeGroupData(F[0][0]**i, gap.NumberSmallGroups(F[0][0]**i).sage(), folder, True, Forced)
-    GStem = str(q)+'gp'+str(n)
+    GStem = "{:d}gp{:d}".format(q, n)
     if folder == '':
         gps_folder = GStem
     else:

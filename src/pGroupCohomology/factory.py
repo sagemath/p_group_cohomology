@@ -47,6 +47,8 @@ from pGroupCohomology.cohomology import COHO
 import re, os, sys
 if (2, 8) < sys.version_info:
     unicode = str
+elif str == unicode:
+    raise RuntimeError("<str> is <unicode>, which is a bug. Please recompile.")
 
 #~ import urllib.request, urllib.error
 try:
@@ -1060,6 +1062,9 @@ class CohomologyRingFactory:
         - ``websource`` -- (optional) provides the location of an alternative cohomology
           repository from which data will be downloaded if they can not be found in the cache,
           the workspace or the local sources.
+        - Further keyword arguments will be assigned to properties of the cohomology ring,
+          overriding previous values. Note that the new value of the property will be stored
+          when pickling the cohomology ring.
 
         OUTPUT:
 
@@ -1141,7 +1146,8 @@ class CohomologyRingFactory:
             root_workspace = COHO.workspace
         file_name = os.path.join(GStem,'H%s.sobj'%GStem)
         OUT = None
-        from_scratch = kwds.get('from_scratch')
+        from_scratch = kwds.pop('from_scratch', None)
+        websource = kwds.pop('websource', None)
         if from_scratch:
             coho_options['use_web'] = False
 
@@ -1188,10 +1194,10 @@ class CohomologyRingFactory:
                     del coho_options['@use_this_root@']
                 raise IOError("Saved data at %s are not readable: %s"%(os.path.join(root_local_sources,file_name), msg))
         ## 4. Search web repository
-        elif kwds.get('websource')!=False and (not from_scratch):
+        elif websource!=False and (not from_scratch):
             try:
-                if isinstance(kwds.get('websource'), (str, unicode)):
-                    OUT = self.from_remote_sources(GStem, websource=str(kwds.get('websource')))
+                if isinstance(websource, (str, unicode)):
+                    OUT = self.from_remote_sources(GStem, websource=websource)
                 else:
                     OUT = self.from_remote_sources(GStem)
             except URLError as msg:
@@ -1214,6 +1220,8 @@ class CohomologyRingFactory:
                 coho_logger.info('Checking compatibility of SmallGroups library and stored cohomology ring', None)
                 if OUT.group().canonicalIsomorphism(gap.SmallGroup(KEY[0],KEY[1])) == Failure:
                     raise ValueError("Stored group data for SmallGroup(%d,%d) incompatible with data in the SmallGroups library"%(KEY[0],KEY[1]))
+            for k,v in kwds.items():
+                OUT.setprop(k, v)
         return OUT
 
     def _get_p_group_from_scratch(self, KEY, q, GStem, GroupName, **kwds):

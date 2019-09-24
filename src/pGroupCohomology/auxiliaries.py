@@ -32,6 +32,8 @@ from __future__ import print_function, absolute_import
 import os, sys
 if (2, 8) < sys.version_info:
     unicode = str
+elif str == unicode:
+    raise RuntimeError("<str> is <unicode>, which is a bug. Please recompile.")
 
 from sage.env import SAGE_SHARE, MTXLIB
 
