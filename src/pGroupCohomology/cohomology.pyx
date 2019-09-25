@@ -3936,10 +3936,9 @@ class COHO(Ring):
 
             sage: from pGroupCohomology import CohomologyRing
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
-            sage: H = CohomologyRing(8,3)
+            sage: H = CohomologyRing(8, 3, from_scratch=True)
             sage: H.make()
-            sage: K = load(H.autosave_name())
-            sage: K is H
+            sage: H is load(H.autosave_name())
             True
 
         """

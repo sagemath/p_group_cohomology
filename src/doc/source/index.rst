@@ -58,11 +58,14 @@ of `David Green <https://users.fmi.uni-jena.de/~green/index-en.php>`_.
 Installation
 ------------
 
-Our cohomology package uses the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
-library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. Since 2018 it is
-distributed as a standard package for SageMath.
+The current version of our cohomology package is supposed to work both
+in the python-2 and python-3 versions of SageMath. As a runtime dependency,
+it relies on the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
+library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. Since this is a
+standard package for SageMath sind 2018, there is no special installation step
+needed to provide this dependeny.
 
-Prior to version 3.0, the cohomology package provided a copy of an old
+Prior to version 3.0, the cohomology package comprised a copy of an old
 version of `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_. Now, the package
 links against a MeatAxe fork, `SharedMeatAxe <https://users.fmi.uni-jena.de/~king/SharedMeatAxe/>`_.
 It is a build-time dependency and can be installed in Sage by doing
@@ -71,7 +74,7 @@ It is a build-time dependency and can be installed in Sage by doing
     sage -i meataxe
     sage -b
 
-By `trac ticket 28204 <https://trac.sagemath.org/ticket/28204>`_, the cohomology
+By `trac ticket 28414 <https://trac.sagemath.org/ticket/28414>`_, the cohomology
 package can then be installed in your copy of Sage by
 ::
 

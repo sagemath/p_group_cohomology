@@ -11,6 +11,7 @@ DIST_DIR=$(pwd)/p_group_cohomology-$VERSION
 mkdir -p $DIST_DIR
 cd $SRC
 cp INSTALL $DIST_DIR/
+cp -r test_data $DIST_DIR/
 
 ## The python/cython modules
 # The following creates a .tar.gz-file, which is actually not what we want.
