@@ -3474,9 +3474,9 @@ class COHO(Ring):
             self.delprop('_dont_save_the_State')
         else:
             safe_save(self.__getstate__(), os.path.join(self.dat_folder,'State.sobj'))
-        if self.root == COHO.workspace:
+        if os.path.realpath(self.root) == os.path.realpath(COHO.workspace):
             StateFile = os.path.join('@user_db@',self.GStem,'dat','State')
-        elif self.root == COHO.local_sources:
+        elif os.path.realpath(self.root) == os.path.realpath(COHO.local_sources):
             StateFile = os.path.join('@public_db@',self.GStem,'dat','State')
         else:
             StateFile = self._key[1]
@@ -3939,16 +3939,8 @@ class COHO(Ring):
             sage: H = CohomologyRing(8,3)
             sage: H.make()
             sage: K = load(H.autosave_name())
-            sage: print(K)
-            Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
-            <BLANKLINE>
-            Computation complete
-            Minimal list of generators:
-            [c_2_2: 2-Cocycle in H^*(D8; GF(2)),
-             b_1_0: 1-Cocycle in H^*(D8; GF(2)),
-             b_1_1: 1-Cocycle in H^*(D8; GF(2))]
-            Minimal list of algebraic relations:
-            [b_1_0*b_1_1]
+            sage: K is H
+            True
 
         """
         return os.path.join(self.gps_folder,'H'+self.GStem+'.sobj')
