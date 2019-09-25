@@ -168,8 +168,8 @@ def COHO_unpickle(GroupKey, StateFile):
         try:
             OUT = _cache.get((GroupKey,StateFile)) or _cache.get((GroupKey,StateFile[:-5]))
         except Exception as msg:
-            coho_logger.error("The given group key seems to contain invalid data.", None, exc_info=1)
-            coho_logger.warning("> Will try to recover later.",None)
+            coho_logger.error("The given group key seems to contain invalid data.", "Loading a cohomology ring", exc_info=1)
+            coho_logger.warning("> Will try to recover later.", "Loading a cohomology ring")
             OUT = None
             second_cache_attempt = True
         if OUT is not None:
@@ -179,17 +179,17 @@ def COHO_unpickle(GroupKey, StateFile):
     OUT = COHO()
     # We need write access to the data. If we don't, it is needed
     # to move data to a different location -- *after* loading!
-    coho_logger.debug( 'The state descriptor of the to-be-unpickled ring is expected to be provided at %r', None, StateFile)
+    coho_logger.debug( 'The state descriptor of the to-be-unpickled ring is expected to be provided at %r', "Loading a cohomology ring", StateFile)
     if not os.access(StateFile, os.W_OK):
         # realpath here?
-        coho_logger.warning("WARNING: Files on disk have been moved or are not writeable.", None)
-        coho_logger.warning("> Will try to recover later.", None)
+        coho_logger.warning("Files on disk have been moved or are not writeable.", "Loading a cohomology ring")
+        coho_logger.warning("> Will try to recover later.", "Loading a cohomology ring")
         OUT.GStem = original_GStem
         try:
             q,n = [Integer(nb) for nb in original_GStem.split('gp')]
             OUT.setprop('_key', ((q,n),StateFile))
         except Exception:
-            coho_logger.warning("> Group identifier not reconstructible from %s.", None, original_GStem)
+            coho_logger.warning("> Group identifier not reconstructible from %s.", "Loading a cohomology ring", original_GStem)
         OUT.setprop('_need_new_root', coho_options.get('@use_this_root@',True))
         return OUT
     try:
@@ -198,17 +198,17 @@ def COHO_unpickle(GroupKey, StateFile):
         else:
             ST = load(StateFile+'.sobj')  # realpath here?
     except (OSError, IOError),msg:
-        coho_logger.error("Files on disk have been moved or are not readable.", None, exc_info=1)
-        coho_logger.warning("> Will try to recover later.", None)
+        coho_logger.warning("Files on disk have been moved or are not readable.", "Loading a cohomology ring", exc_info=1)
+        coho_logger.warning("> Will try to recover later.", "Loading a cohomology ring")
         OUT.setprop('_need_new_root', coho_options.get('@use_this_root@',True))
         if '@use_this_root@' in coho_options:
             del coho_options['@use_this_root@']
-        coho_logger.warning("Trying to reconstruct cache key for %s", None, original_GStem)
+        coho_logger.warning("Trying to reconstruct cache key for %s", "Loading a cohomology ring", original_GStem)
         try:
             q,n = [Integer(nb) for nb in original_GStem.split('gp')]
             OUT.setprop('_key', ((q,n),StateFile))
         except Exception:
-            coho_logger.warning("Y Group identifier not reconstructible from %s.", None, original_GStem)
+            coho_logger.warning("Group identifier not reconstructible from %s.", "Loading a cohomology ring", original_GStem)
         if second_cache_attempt:
             NewOUT = _cache.get(OUT._key)
             if NewOUT is not None:
@@ -4663,25 +4663,110 @@ Minimal list of algebraic relations:
 
     @property
     def _default_filename(self):
+        """
+        The name of the file from which this cohomology ring was loaded.
+
+        NOTE:
+
+        In cases when cohomology data on disk are moved, the automatic setting
+        of this attribute during file loading will trigger the fixing of internally
+        defined path names.
+
+        TESTS::
+
+            sage: from pGroupCohomology import CohomologyRing
+            sage: CohomologyRing.doctest_setup()
+            sage: old_workspace = tmp_dir()
+            sage: new_workspace = tmp_dir()
+            sage: CohomologyRing.set_workspace(old_workspace)
+            sage: H = CohomologyRing(8, 3, from_scratch=True)
+
+        Even when requesting a computation from scratch, the cohomology factory
+        will test whether the new cohomology ring can be pickled in the current
+        workspace. By this, the ``_default_filename`` attribute is set::
+
+            sage: H._default_filename == H.autosave_name()
+            True
+
+        We test that the attribute can be deleted, that we get the expected
+        attribute errors, and that it can be redefined::
+
+            sage: del H._default_filename
+            sage: H._default_filename
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'pGroupCohomology.cohomology.COHO' object has no attribute '_default_filename'
+            sage: del H._default_filename
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'COHO_with_category' object has no attribute '_default_filename'
+            sage: H._default_filename = 'foobar'
+            sage: H._default_filename
+            'foobar'
+            sage: H.make()
+
+        We now test that the cohomology factory can cope (at least to some extent)
+        with moving cohomology data to a different location. First, we remove the old
+        cohomology ring, because otherwise loading the moved pickle would simply
+        return the old ring::
+
+            sage: del H
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: import shutil
+            sage: _ = shutil.move(os.path.join(old_workspace,'8gp3'), new_workspace)
+            sage: shutil.rmtree(old_workspace)
+
+        When we now load from the moved pickle, the log shows warnings, but
+        in the end the data reconstruction is successfull::
+
+            sage: G = load(os.path.join(new_workspace, '8gp3', 'H8gp3.sobj'))
+            Loading a cohomology ring:
+                Files on disk have been moved or are not writeable.
+                > Will try to recover later.
+                The data for the cohomology ring at <...> have apparently been moved.
+            H^*(D8; GF(2)):
+                Try to update cohomology data on disk
+                > successful
+            sage: print(G)
+            Cohomology ring of Dihedral group of order 8 with coefficients in GF(2)
+            <BLANKLINE>
+            Computation complete
+            Minimal list of generators:
+            [c_2_2: 2-Cocycle in H^*(D8; GF(2)),
+             b_1_0: 1-Cocycle in H^*(D8; GF(2)),
+             b_1_1: 1-Cocycle in H^*(D8; GF(2))]
+            Minimal list of algebraic relations:
+            [b_1_0*b_1_1]
+
+        """
         try:
-            return self.__default_filename
+            filename = self.__default_filename
+            if filename is not None:
+                return filename
         except AttributeError:
-            default_filename_error_message.cls = type(self)
-            raise AttributeError(default_filename_error_message)
+            pass
+        default_filename_error_message.cls = type(self)
+        raise AttributeError(default_filename_error_message)
 
     @_default_filename.deleter
     def _default_filename(self):
         try:
-            del self.__default_filename
+            if self.__default_filename is not None:
+                del self.__default_filename
+                return
         except AttributeError:
-            default_filename_error_message.cls = type(self)
-            raise AttributeError(default_filename_error_message)
+            pass
+        default_filename_error_message.cls = type(self)
+        raise AttributeError(default_filename_error_message)
 
     @_default_filename.setter
     def _default_filename(self, defaultname):
+        if not isinstance(defaultname, (str, unicode)):
+            raise AttributeError("Attribute '_default_filename' must be a string")
         try:
             if self._property_dict.get('_need_new_root'):
-                coho_logger.warning("The data for the cohomology ring at <%x> have apparently been moved.", "Unpickling a cohomology ring", id(self))
+                coho_logger.warning("The data for the cohomology ring at <%x> have apparently been moved.", "Loading a cohomology ring", id(self))
                 if isinstance(self._property_dict['_need_new_root'], (str, unicode)):
                     newroot = str(self._property_dict['_need_new_root'])
                     default_name = str(os.path.join(newroot,self.GStem,'H'+self.GStem+'.sobj'))
@@ -4697,8 +4782,8 @@ Minimal list of algebraic relations:
                         default_name = defaultname
                         ST = load(os.path.join(os.path.split(defaultname)[0],'dat','State.sobj'))
                     except (OSError, IOError):
-                        coho_logger.critical("The new location of data for the cohomology ring at <%x> can't be reconstructed.", "Unpickling a cohomology ring", id(self))
-                        coho_logger.critical("Please try to assign the correct value of `_default_filename` to it.", "Unpickling a cohomology ring")
+                        coho_logger.critical("The new location of data for the cohomology ring at <%x> can't be reconstructed.", "Loading a cohomology ring", id(self))
+                        coho_logger.critical("Please try to assign the correct value of `_default_filename` to it.", "Loading a cohomology ring")
                         return
                 self.delprop('_need_new_root')
                 self.__setstate__(ST, newroot=newroot)

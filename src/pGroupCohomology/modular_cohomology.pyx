@@ -4542,7 +4542,7 @@ def COHO_from_key(key):
 
 def MODCOHO_unpickle(*L):
     """
-    Unpickling a cohomology ring.
+    COHO_unpickle.
 
     TESTS::
 

@@ -186,7 +186,7 @@ class COCH_unpickle_class:
         sage: C=H.2
         sage: type(C)
         <type 'pGroupCohomology.cochain.COCH'>
-        sage: D=loads(dumps(C))   #indirect doctest
+        sage: D = loads(dumps(C))   #indirect doctest
         sage: print(C)
         1-Cocycle in H^*(D8; GF(2)),
         represented by
