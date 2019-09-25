@@ -98,6 +98,9 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/.
 
 == Changelog ==
 
+  * v3.3 (September 2019):
+    - Python-3 support.
+    - Cleaner code and tests for the mechanism that updates moved data.
   * v3.2 (Simon King, July 2019):
     - Detection of graded non-induced isomorphisms of cohomology rings.
     - Easier creation of a cohomology ring from a tower of subgroups.
