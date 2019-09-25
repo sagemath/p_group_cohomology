@@ -78,7 +78,7 @@ _name2latex = lambda t: _exp_match.sub(lambda m: '^{'+m.group()[1:]+'}', _index_
 ## A rather long unit test: Groups of order 64
 
 def unit_test_64(**kwds):
-    """
+    r"""
     Compare computation from scratch with data in the database.
 
     The cohomology rings for all groups of order 64 are computed
@@ -87,19 +87,24 @@ def unit_test_64(**kwds):
 
     NOTE:
 
-    This test is likely to take between 5 and 30 minutes, depending
+    This test is likely to take between 30 and 60 minutes, depending
     on the computer.
 
     INPUT:
 
-    Optional keyword arguments for the creation of cohomology rings.
+    - test_isomorphism (optional bool, default False): Whether to
+      properly test for isomorphy (which may take a long time)
+      instead of only testing for equality of generator degrees
+      and of Poincaré series.
+    - Optional keyword arguments for the creation of cohomology rings.
 
     OUTPUT:
 
     - A list of integers, giving the address of groups of order 64
       in the Small Groups library for which a cohomology computation
-      yields (with the given keyword arguments) a Poincare series
-      different from the database. So, this list should be empty.
+      yields (with the given keyword arguments) a ring that is not
+      isomorphic to the corresponding entry of the database.
+      So, this list should be empty.
     - A list of three real numbers, giving the total computation time
       (wall time), the Python CPU-time and the Singular CPU-time,
       in seconds.
@@ -113,9 +118,11 @@ def unit_test_64(**kwds):
 
     By default, i.e., without providing an explicit value ``False`` for
     ``from_scratch``, the rings are computed from scratch, using a
-    temporary directory created by the test function (this can be
-    overwritten by providing an explicit value for ``root``). This is
-    a serious test, which should take 5--30 minutes.
+    temporary directory created by the test function (it can be
+    prescribed by providing an explicit value for ``root``). This is
+    a serious test and may involve some isomorphism tests, as different
+    package versions or different options may very well result in
+    different but isomorphic ring sturctures.
 
     Since doctests are supposed to be much shorter, we allow here to
     retrieve the data from the local sources (``from_scratch=False``).
@@ -138,13 +145,16 @@ def unit_test_64(**kwds):
     L = []
     CohomologyRing.reset()
     from sage.all import tmp_dir, walltime, cputime, singular, gap
+    from pGroupCohomology.isomorphism_test import IsomorphismTest
     if 'root' in kwds:
-        CohomologyRing.set_workspace(kwds['root'])
+        workspace = kwds['root']
         del kwds['root']
     else:
-        CohomologyRing.set_workspace(tmp_dir())
+        workspace = tmp_dir()
+    isomorphism_test = kwds.pop('isomorphicm_test', False)
     wt0 = walltime()
     ct0 = cputime()
+    db_workspace = tmp_dir()
     st = int(singular.eval('timer'))
     #~ gt = int(gap.eval('Runtime()'))
     Method = {}
@@ -152,20 +162,44 @@ def unit_test_64(**kwds):
     if 'from_scratch' not in kwds:
         kwds['from_scratch'] = True
     for i in range(1,268):
+        success = True
+        CohomologyRing.set_workspace(workspace)
         H = CohomologyRing(64,i, **kwds)
         H.make()
+        CohomologyRing.set_workspace(db_workspace)
         H_db = CohomologyRing(64,i)
-        if H.degvec!=H_db.degvec or H.poincare_series() != H_db.poincare_series():
-            print("Example",i,"fails")
-            L.append(i)
-        if H.knownDeg < H_db.knownDeg:
-            print("###########################################")
-            print("####### Improvement:",i)
-            print("###########################################")
-        elif H.knownDeg > H_db.knownDeg:
-            print("###########################################")
-            print("####### Regression:",i)
-            print("###########################################")
+        if H != H_db:
+            if H.degvec!=H_db.degvec or H.poincare_series() != H_db.poincare_series():
+                print("Example",i,"fails")
+                success = False
+                L.append(i)
+            else:
+                # First test for trivial isomorphy
+                T = IsomorphismTest(H_db, H)
+                T.set_images(tuple(x.name() for x in H.Gen))
+                if (T.is_homomorphism() and T.is_isomorphism()):
+                    print("Different presentation with equivalent relation ideal in example", i)
+                elif isomorphism_test:
+                    print("Testing isomorphy for example", i)
+                    if H_db.is_isomorphic(H):
+                        print("successful")
+                    else:
+                        print("Example",i,"fails")
+                        success = False
+                        L.append(i)
+                else:
+                    print("We skip isomorphism test for example %d, which we count as failure"%i)
+                    L.append(i)
+                    success = False
+        if success:
+            if H.knownDeg < H_db.knownDeg:
+                print("###########################################")
+                print("####### Improvement:",i)
+                print("###########################################")
+            elif H.knownDeg > H_db.knownDeg:
+                print("###########################################")
+                print("####### Regression:",i)
+                print("###########################################")
         wt = walltime(wt0)
         ct = cputime(ct0)
         print("#%3d: Walltime %3d:%02d.%02d min"%(i, int(wt/60), int(wt%60),int((wt%1)*100)))

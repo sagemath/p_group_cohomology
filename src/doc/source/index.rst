@@ -140,6 +140,8 @@ See SPKG.txt for a more detailed account.
   * v3.3 (September 2019):
 
     - Python-3 support.
+    - Cleaner code and tests for the mechanism that updates moved data.
+    - Use proper isomorphism tests in unit_test_64.
 
   * v3.2 (July 2019):
 
