@@ -1,6 +1,7 @@
 #!/bin/sh
 # create a distribution of p_group_cohomology.
 # Requested argument: The folder with the sources.
+# To be executed from within a Sage shell
 
 # Source folder
 SRC=$1
@@ -15,7 +16,7 @@ cp INSTALL $DIST_DIR/
 # The following creates a .tar.gz-file, which is actually not what we want.
 # So, we unpack it in the end.
 cd src
-python setup.py sdist --dist-dir $DIST_DIR
+sage -python setup.py sdist --dist-dir $DIST_DIR
 cd $DIST_DIR
 tar -xzf pGroupCohomology-$VERSION.tar.gz
 rm pGroupCohomology-$VERSION.tar.gz
