@@ -415,7 +415,7 @@ class IsomorphismTest:
 
         Used internally, not explicitly tested (but implicitly tested elsewhere).
         """
-        clear_list = [k for k in self.candidates_of_gens.cache.keys() if k[0][-1] and any([e in self.not_exhausted_generators for e in k[0][0]])]
+        clear_list = [k for k in self.candidates_of_gens.cache.keys() if k[0][-1] and any(e in self.not_exhausted_generators for e in k[0][0])]
         for k in clear_list:
             del self.candidates_of_gens.cache[k]
 
@@ -619,7 +619,7 @@ class IsomorphismTest:
                             self.not_exhausted_generators.add(i)
                             self.exhaustive = False
                             break
-                if not C and not any([k in self.not_exhausted_generators for k in Gens]):
+                if not C and not any(k in self.not_exhausted_generators for k in Gens):
                     if not self.critical_generators:
                         self.critical_generators = list(Gens)
                     else:
@@ -674,7 +674,7 @@ class IsomorphismTest:
                     if g not in old_rigids:
                         self.rigid_generators.append((g,C[0][g-1]))
                         coho_logger.info("further rigid generator gen(%d) --> %s"%(g,C[0][g-1]), self)
-            if not C and not any([k in self.not_exhausted_generators for k in Gens]):
+            if not C and not any(k in self.not_exhausted_generators for k in Gens):
                 if not self.critical_generators:
                     self.critical_generators = list(Gens)
                 else:
