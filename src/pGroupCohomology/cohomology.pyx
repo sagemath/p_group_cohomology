@@ -4588,41 +4588,14 @@ Minimal list of algebraic relations:
             sage: CohomologyRing.doctest_setup()       # reset, block web access, use temporary workspace
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
-            sage: [a for a in dir(H) if a.startswith('f')]    #indirect doctest
-            ['filter_degree_type',
-             'filter_regular_gready_parameters',
-             'filter_regular_parameters',
-             'find_dickson',
-             'find_dickson_in_subgroup',
-             'find_small_last_parameter',
-             'firstOdd',
-             'fraction_field',
-             'from_base_ring']
+            sage: 'filter_degree_type' in dir(H)       # indirect doctest
+            True
             sage: H.setprop('foo',1)
-            sage: [a for a in dir(H) if a.startswith('f')]
-            ['filter_degree_type',
-             'filter_regular_gready_parameters',
-             'filter_regular_parameters',
-             'find_dickson',
-             'find_dickson_in_subgroup',
-             'find_small_last_parameter',
-             'firstOdd',
-             'foo',
-             'fraction_field',
-             'from_base_ring']
+            sage: 'foo' in dir(H)                      # indirect doctest
+            True
             sage: H.foo_bar = 1
-            sage: [a for a in dir(H) if a.startswith('f')]
-            ['filter_degree_type',
-             'filter_regular_gready_parameters',
-             'filter_regular_parameters',
-             'find_dickson',
-             'find_dickson_in_subgroup',
-             'find_small_last_parameter',
-             'firstOdd',
-             'foo',
-             'foo_bar',
-             'fraction_field',
-             'from_base_ring']
+            sage: 'foo_bar' in dir(H)
+            True
 
         """
         return dir(self.__class__) + list(self.__dict__.keys()) + list(self._property_dict.keys())
@@ -4638,16 +4611,8 @@ Minimal list of algebraic relations:
             sage: H = CohomologyRing(8,3, from_scratch=True)
             sage: H.make()
             sage: import sage.interfaces.tab_completion as tc
-            sage: tc.completions('H.f',globals())  # indirect doctest
-            ['H.filter_degree_type',
-             'H.filter_regular_gready_parameters',
-             'H.filter_regular_parameters',
-             'H.find_dickson',
-             'H.find_dickson_in_subgroup',
-             'H.find_small_last_parameter',
-             'H.firstOdd',
-             'H.fraction_field',
-             'H.from_base_ring']
+            sage: 'H.filter_degree_type' in tc.completions('H.f',globals())  # indirect doctest
+            True
 
         """
         return dir(self)
@@ -4823,8 +4788,8 @@ Minimal list of algebraic relations:
              'H.find_dickson_in_subgroup',
              'H.find_small_last_parameter',
              'H.firstOdd',
-             'H.fraction_field',
-             'H.from_base_ring']
+             ...
+            ]
 
         Note that if an attribute hasn't been defined, ``None`` is returned.
         The only exception are undefined attributes that start and end with
