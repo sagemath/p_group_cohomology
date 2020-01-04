@@ -4787,9 +4787,7 @@ Minimal list of algebraic relations:
              'H.find_dickson',
              'H.find_dickson_in_subgroup',
              'H.find_small_last_parameter',
-             'H.firstOdd',
-             ...
-            ]
+             'H.firstOdd', ...]
 
         Note that if an attribute hasn't been defined, ``None`` is returned.
         The only exception are undefined attributes that start and end with
