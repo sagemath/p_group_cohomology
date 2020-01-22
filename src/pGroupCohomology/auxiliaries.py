@@ -41,6 +41,7 @@ from sage.env import SAGE_SHARE, MTXLIB
 
 from sage.all import singular
 from datetime import timedelta
+from sage.cpython.string import str_to_bytes
 
 ####################
 ## The SharedMeatAxe library needs initialisation, which is
@@ -125,7 +126,11 @@ class unpickle_old_mtx:
 
         """
         from sage.matrix.matrix_gfpn_dense import mtx_unpickle
-        return mtx_unpickle(*args, **kwds)
+        # Input for mtx_unpickle is this:
+        # f, int nr, int nc, bytes Data, bint m
+        # Hence, we ignore kwds and deal with py2->py3 incompatibility.
+        f, nr, nc, Data, m = args
+        return mtx_unpickle(f, nr, nc, str_to_bytes(Data, encoding='latin1'), m)
 
 class unpickle_old_resl:
     """
