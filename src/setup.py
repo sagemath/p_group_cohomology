@@ -31,7 +31,7 @@ import os
 # determine that we have a sufficiently new SageMath version to avoid
 # all kinds of hastle with all the backwards incompatible changes in Sage
 from sage.misc.banner import require_version
-assert require_version(7,3,prerelease=True), "This spkg requires Sage 7.3"
+assert require_version(9,0,prerelease=True), "This spkg requires at least Sage 9.0"
 
 CSAGE = []
 CSAGE_PATH = []
@@ -74,7 +74,7 @@ else:
 
 setup(
   name = "pGroupCohomology",
-  version = "3.3",
+  version = "3.3.1",
   author = "Simon A. King, David J. Green",
   author_email = "simon.king@uni-jena.de, david.green@uni-jena.de",
   license = 'GPLv2+',

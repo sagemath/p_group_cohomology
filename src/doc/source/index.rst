@@ -137,6 +137,10 @@ Versions
 
 See SPKG.txt for a more detailed account.
 
+  * v3.3.1 (January 2020):
+    - Use travis-ci
+    - Fix a backwards incompatible change (unpickling a py2-pickle in py3)
+
   * v3.3 (September 2019):
 
     - Python-3 support.
