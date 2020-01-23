@@ -58,24 +58,23 @@ of `David Green <https://users.fmi.uni-jena.de/~green/index-en.php>`_.
 Installation
 ------------
 
-The current version of our cohomology package is supposed to work both
-in the python-2 and python-3 versions of SageMath. As a runtime dependency,
-it relies on the `Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
+The current version of our cohomology package is for the python-3
+version of SageMath. As a runtime dependency, it relies on the
+`Small Groups <http://www-public.tu-bs.de:8080/~hubesche/small.html>`_
 library of Hans Ulrich Besche, Bettina Eick and Eamonn O'Brien. Since this is a
 standard package for SageMath sind 2018, there is no special installation step
 needed to provide this dependeny.
 
-Prior to version 3.0, the cohomology package comprised a copy of an old
-version of `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_. Now, the package
-links against a MeatAxe fork, `SharedMeatAxe <https://users.fmi.uni-jena.de/~king/SharedMeatAxe/>`_.
+The package links against a fork of `MeatAxe <http://www.math.rwth-aachen.de/~MTX/>`_
+that is called `SharedMeatAxe <https://users.fmi.uni-jena.de/~king/SharedMeatAxe/>`_.
 It is a build-time dependency and can be installed in Sage by doing
 ::
 
     sage -i meataxe
     sage -b
 
-By `trac ticket 28414 <https://trac.sagemath.org/ticket/28414>`_, the cohomology
-package can then be installed in your copy of Sage by
+The current official version of the cohomology package can then be
+installed in your copy of Sage by
 ::
 
     sage -i p_group_cohomology
@@ -84,9 +83,9 @@ Testing
 -------
 
 The package has an extensive test suite. It is recommended to run the tests, although
-this can take a considerable amount of time (easily one hour if a single thread is used).
-If the environment variable ``SAGE_CHECK`` is set to ``yes``, the test script is launched
-right after installing the package. The same effect can be achieved by
+this can take a considerable amount of time. If the environment variable ``SAGE_CHECK``
+is set to ``yes``, the test script is launched right after installing the package.
+The same effect can be achieved by
 ::
 
     sage -i -c p_group_cohomology
