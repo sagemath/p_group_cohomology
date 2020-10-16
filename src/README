@@ -92,6 +92,16 @@ SAGE_ROOT/local/share/doc/p_group_cohomology/.
 
 == Changelog ==
 
+  * v3.3.2 (October 2020):
+    - Cope with changes in installation folders
+    - Use a proper GAP helper module
+  * v3.3.1 (January 2020):
+    - Use travis-ci
+    - Fix a backwards incompatible change (unpickling a py2-pickle in py3)
+  * v3.3 (September 2019):
+    - Python-3 support.
+    - Cleaner code and tests for the mechanism that updates moved data.
+    - Use proper isomorphism tests in unit_test_64.
   * v3.2 (Simon King, July 2019):
     - Detection of graded non-induced isomorphisms of cohomology rings.
     - Easier creation of a cohomology ring from a tower of subgroups.
