@@ -2,6 +2,7 @@
 # GapMB : the GAP 4 code version of MakeBasis
 #
 #       Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+#       Copyright (C) 2020 Simon A. King  <simon.king@uni-jena.de>
 #
 #    This file is part of p_group_cohomology.
 #
@@ -65,23 +66,6 @@ StringToIntegerSequence := function(t)
 end;
 
 # *****************************************************************************
-DeclareProperty("RegularRepresentation",IsPermGroup);
-
-asPermgroup := function(G)
-# Creates the isomorphic image of G in some permutation group
-# Uses defining generators
-  local RegAct;
-  if HasRegularRepresentation(G) then return G; fi;
-  if isPrimePower(Size(G)) then
-     RegAct := Group(verifiedMinGens(regularPermutationAction(G: forceDefiningGenerators)));
-  else
-     RegAct := regularPermutationAction(G: forceDefiningGenerators);
-  fi;
-  SetRegularRepresentation(RegAct, true);
-  return RegAct;
-end;
-
-# *****************************************************************************
 
 regularPermutationAction := function(G)
 # Creates the image of G in S_|G| under the regular permutation action
@@ -99,6 +83,23 @@ regularPermutationAction := function(G)
   L := List(gens, g->PermList(List([1..N], i->Position(S,S[i]*g))));
   gg := Group(L);
   return gg;
+end;
+
+# *****************************************************************************
+DeclareProperty("RegularRepresentation",IsPermGroup);
+
+asPermgroup := function(G)
+# Creates the isomorphic image of G in some permutation group
+# Uses defining generators
+  local RegAct;
+  if HasRegularRepresentation(G) then return G; fi;
+  if isPrimePower(Size(G)) then
+     RegAct := Group(verifiedMinGens(regularPermutationAction(G: forceDefiningGenerators)));
+  else
+     RegAct := regularPermutationAction(G: forceDefiningGenerators);
+  fi;
+  SetRegularRepresentation(RegAct, true);
+  return RegAct;
 end;
 
 # *****************************************************************************

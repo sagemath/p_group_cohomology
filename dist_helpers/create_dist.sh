@@ -5,13 +5,18 @@
 
 # Source folder
 SRC=$1
+
 # Create the distribution in a sub-directory of the current directory
 VERSION=`cat $SRC/downstream/package-version.txt`
 DIST_DIR=$(pwd)/p_group_cohomology-$VERSION
 mkdir -p $DIST_DIR
 cd $SRC
+
+## Copying the parts that do not require compilation
 cp INSTALL $DIST_DIR/
 cp -r test_data $DIST_DIR/
+cp -r gap_helper $DIST_DIR/
+cp -r singular_helper $DIST_DIR/
 
 ## The python/cython modules
 # The following creates a .tar.gz-file, which is actually not what we want.

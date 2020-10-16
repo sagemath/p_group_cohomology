@@ -3,6 +3,7 @@
 # Computing maximal elementary abelian subgroups of finite p-groups
 #
 #       Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+#       Copyright (C) 2020 Simon A. King  <simon.king@uni-jena.de>
 #
 #    This file is part of p_group_cohomology.
 #
@@ -219,7 +220,7 @@ SylowElabsWithRank := function(S,Om, p,r, z)
     Append(found, incrementalStepElabs(Centralizer(S, V),GeneratorsOfGroup(V),p) );
   od;
   return weedConjugates(S,found);
-end; 
+end;
 
 ElabsWithRank := function(G,p,r)
   #Simon King (2010-08): Find all G-conjugacy classes of rank r p-elementary abelian

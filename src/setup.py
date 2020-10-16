@@ -1,6 +1,6 @@
 #*****************************************************************************
 #
-#    Copyright (C) 2009-2019 Simon A. King <simon.king@uni-jena.de>
+#    Copyright (C) 2009-2020 Simon A. King <simon.king@uni-jena.de>
 #
 #    This file is part of p_group_cohomology.
 #
@@ -37,7 +37,7 @@ CSAGE = []
 CSAGE_PATH = []
 
 # Sage >= 6.8
-from sage.env import sage_include_directories, SAGE_SHARE
+from sage.env import sage_include_directories
 
 ext_mods = [
     Extension("pGroupCohomology.resolution",
@@ -74,7 +74,7 @@ else:
 
 setup(
   name = "pGroupCohomology",
-  version = "3.3.1",
+  version = "3.3.2",
   author = "Simon A. King, David J. Green",
   author_email = "simon.king@uni-jena.de, david.green@uni-jena.de",
   license = 'GPLv2+',
@@ -92,15 +92,9 @@ setup(
   url = "https://users.fmi.uni-jena.de/cohomology/documentation/",
   description = "Modular Cohomology Rings of Finite Groups",
   packages = find_packages(),
-  package_data={'pGroupCohomology': ['*.pxd']},
+  package_data = {'pGroupCohomology': ['*.pxd']},
   py_modules = ["pGroupCohomology.auxiliaries", "pGroupCohomology.barcode", "pGroupCohomology.factory", "pGroupCohomology.isomorphism_test"],
-  data_files=[(os.path.join(SAGE_SHARE,"sage","ext","gap","modular_cohomology"),
-              [os.path.join("pGroupCohomology","GapMaxels.g"),
-               os.path.join("pGroupCohomology","GapMB.g"),
-               os.path.join("pGroupCohomology","GapSgs.g")]),
-              (os.path.join(SAGE_SHARE,'singular','LIB'),
-               [os.path.join("pGroupCohomology","dickson.lib")])],
-  ext_modules=cythonize(ext_mods, compiler_directives={'embedsignature': True,
-                                                       'language_level': PY_MAJOR_VERSION}, build_dir=os.path.join("build","c_files-{}.{}".format(version_info.major, version_info.minor))),
+  ext_modules = cythonize(ext_mods, compiler_directives={'embedsignature': True,
+                                                         'language_level': PY_MAJOR_VERSION}, build_dir=os.path.join("build","c_files-{}.{}".format(version_info.major, version_info.minor))),
   cmdclass = {'build_ext': build_ext}
 )

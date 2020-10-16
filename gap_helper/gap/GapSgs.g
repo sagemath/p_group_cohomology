@@ -1,8 +1,8 @@
 #*****************************************************************************
 #  GAP subgroup structure routines
 #
-#       Copyright (C) 2009 David J. Green <david.green@uni-jena.de> and
-#                          Simon A. King  <simon.king@uni-jena.de>
+#       Copyright (C) 2009 David J. Green <david.green@uni-jena.de>
+#       Copyright (C) 2020 Simon A. King  <simon.king@uni-jena.de>
 #
 #    This file is part of p_group_cohomology.
 #
@@ -182,7 +182,8 @@ end;
 ################################################################################
 # Return an isomorphism that maps the generators of H to the generators of H,
 # or fail if this is no isomorphism.
-canonicalIsomorphism := function(G,H)
+InstallGlobalFunction( canonicalIsomorphism,
+function(G,H)
   local phi,phi0;
   if Length(GeneratorsOfGroup(G))>Length(GeneratorsOfGroup(H)) then
     phi0 := canonicalIsomorphism(H,G);
@@ -199,7 +200,8 @@ canonicalIsomorphism := function(G,H)
     return phi;
   fi;
   return fail;
-end;
+end
+);
 
 ################################################################################
 # Return one isomorphism of U to a subgroup of G
@@ -225,7 +227,8 @@ end;
 
 
 ################################################################################
-verifiedMinGens := function(G)
+InstallGlobalFunction( verifiedMinGens,
+function(G)
   local s, gens, H;
   s := RankPGroup(G);
   gens := List([1..s], x -> GeneratorsOfGroup(G)[x]);
@@ -234,7 +237,8 @@ verifiedMinGens := function(G)
     Error("verifiedMinGens: Please explicitly provide minimal generators for the group ", G);
   fi;
   return gens;
-end;
+end
+);
 
 ################################################################################
 easyMakeBasis := function(G, Gname,fldr)
@@ -547,7 +551,8 @@ checkAbelianInvariants := function(A)
 end;
 
 ################################################################################
-makeThisSmallGroup := function(Gid,fldr)
+InstallGlobalFunction( makeThisSmallGroup,
+function(Gid,fldr)
   local q, i, G, Gname, Exec_command;
   G := SmallGroup(Gid);
   q := Gid[1];
@@ -570,7 +575,8 @@ makeThisSmallGroup := function(Gid,fldr)
     makeInclusionInfo(q, Gname,fldr);
   fi;
   return;
-end;
+end
+);
 
 ################################################################################
 theUnderlyingPrime := function(q)
@@ -590,14 +596,16 @@ theUnderlyingPrime := function(q)
 end;
 
 ################################################################################
-isPrimePower := function(q)
+InstallGlobalFunction( isPrimePower,
+function(q)
   local p, n, l;
   if q = 1 then return false; fi;
   l := FactorsInt(q);
   p := l[1];
   n := Length(l);
   return (q = p^n);
-end;
+end
+);
 
 ################################################################################
 makeThisGroup := function(G, Gname,fldr)

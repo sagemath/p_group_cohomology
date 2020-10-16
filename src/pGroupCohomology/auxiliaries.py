@@ -35,7 +35,7 @@ if (2, 8) < sys.version_info:
 elif str == unicode:
     raise RuntimeError("<str> is <unicode>, which is a bug. Please recompile.")
 
-from sage.env import SAGE_SHARE, MTXLIB
+from sage.env import MTXLIB
 
 ## All other modules will import this version of singular
 
@@ -412,11 +412,8 @@ def _gap_reset_random_seed(seed=100):
 #  Gap initialisation code that should be executed once
 #
 ########################
-# Reading some modules
-gap.Read(os.path.join(SAGE_SHARE,'sage','ext','gap','modular_cohomology','GapMaxels.g'))
-gap.Read(os.path.join(SAGE_SHARE,'sage','ext','gap','modular_cohomology','GapMB.g'))
-gap.Read(os.path.join(SAGE_SHARE,'sage','ext','gap','modular_cohomology','GapSgs.g'))
-gap.eval('BindGlobal("exportMTXLIB","MTXLIB=%s; export MTXLIB; ")'%(MTXLIB))
-# Reset the random generator
+
+gap.LoadPackage("p_group_cohomology_helper")
+gap.InstallValue( gap.exportMTXLIB, "MTXLIB=%s; export MTXLIB; "%(MTXLIB) )
 _gap_reset_random_seed()
 
