@@ -136,7 +136,13 @@ Versions
 
 See SPKG.txt for a more detailed account.
 
+  * v3.3.2 (October 2020):
+
+    - Cope with changes in installation folders
+    - Use a proper GAP helper module
+
   * v3.3.1 (January 2020):
+
     - Use travis-ci
     - Fix a backwards incompatible change (unpickling a py2-pickle in py3)
 
