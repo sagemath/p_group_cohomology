@@ -372,7 +372,7 @@ class MODCOHO(COHO):
         else:
             cat = Algebras(base_ring)
         # Avoid some generic stuff that would override essential methods
-        self._no_generic_basering_coercion = True
+#~         self._no_generic_basering_coercion = True # this hack was removed by :trac:`19225`
         Ring.__init__(self,GF(p), category=cat)
         self._prime = p
         if G==None: # used for pickling

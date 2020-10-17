@@ -3134,7 +3134,7 @@ class COHO(Ring):
         else:
             cat = Algebras(base_ring)
         # Avoid some generic stuff that would override essential methods
-        self._no_generic_basering_coercion = True
+#~         self._no_generic_basering_coercion = True # this hack was removed by :trac:`19225`
         Ring.__init__(self,base_ring, category=cat)
 
     ## there will be no copy method
