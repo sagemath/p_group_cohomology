@@ -95,11 +95,7 @@ Documentation
 
 If the environment variable ``SAGE_SPKG_INSTALL_DOCS`` is set to ``yes``, then
 the documentation of our spkg is automatically created and put into
-``SAGE_ROOT/local/share/doc/p_group_cohomology/``. Note, however, that for
-reasons that are not yet fully understood, the documentation does not correctly
-build during package installation. It is, however, possible to build the
-documentation after package installation by opening the source ball, moving to the
-``pGroupCohomology-3.3.2/doc/`` folder in a Sage shell, and doing ``make html``.
+``SAGE_ROOT/local/share/doc/p_group_cohomology/``.
 
 Acknowledgements
 ----------------
