@@ -3108,7 +3108,7 @@ class COHO(Ring):
         if self.Resl.coef()!=2: # non-commutative case
             singular.LIB('ncall.lib')
         singular.LIB('general.lib')
-        singular.LIB('poly.lib')
+        singular.LIB('polylib.lib')
         singular.LIB('dickson.lib')
         singular.eval('option(redSB)');
         singular.eval('int i')
@@ -3877,7 +3877,7 @@ class COHO(Ring):
             if p!=2:
                 singular.LIB("ncall.lib")
             singular.LIB('general.lib')
-            singular.LIB('poly.lib')
+            singular.LIB('polylib.lib')
             singular.LIB('dickson.lib')
             if singular.eval('defined(i)')=='0':
                 singular.eval('int i')
@@ -10062,7 +10062,7 @@ is an error. Please inform the author!""")
         if p!=2:
             singular.LIB("ncall.lib")
         singular.LIB('general.lib')
-        singular.LIB('poly.lib')
+        singular.LIB('polylib.lib')
         singular.LIB('dickson.lib')
         from pGroupCohomology.cochain import MODCOCH
         if singular.eval('defined(i)')=='0':

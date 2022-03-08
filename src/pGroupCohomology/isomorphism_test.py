@@ -218,7 +218,7 @@ class IsomorphismTest:
         i = self.singular._next_var_name()
         self.singular.eval('for (int %s=1; %s<=size(%s[2]); %s++){%s[2][%s]="@"+%s[2][%s];} kill %s;'%(i,i,L.name(),i,L.name(), i,L.name(),i,i))
         if self._domain.base_ring().characteristic()%2:
-            self.singular.LIB("poly.lib")
+            self.singular.LIB("polylib.lib")
             self._dim_command = 'GKdim'
             #self._R_elim = self.singular('gcRingSum(ring(%s))+%s'%(L.name(),self._SD.name()))
         else:

@@ -21,7 +21,7 @@
 //*****************************************************************************
 
 LIB "general.lib";
-LIB "poly.lib";
+LIB "polylib.lib";
 //LIB "ring.lib"; // for changeord
 
 // Auxiliar procedure, since NF in non-commutative rings now removes zeroes from ideals:
