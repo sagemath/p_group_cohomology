@@ -115,7 +115,7 @@ Note that the generators of ``HD`` are :class:`COCH`, while those of
 formed by :class:`MODCOCH`::
 
     sage: type(HD.1)
-    <type 'pGroupCohomology.cochain.COCH'>
+    <class 'pGroupCohomology.cochain.COCH'>
     sage: type(HS.1)
     <class 'pGroupCohomology.cochain.MODCOCH'>
     sage: type(resS_D(HS.1))
@@ -185,7 +185,7 @@ class COCH_unpickle_class:
         sage: H.make()
         sage: C=H.2
         sage: type(C)
-        <type 'pGroupCohomology.cochain.COCH'>
+        <class 'pGroupCohomology.cochain.COCH'>
         sage: D = loads(dumps(C))   #indirect doctest
         sage: print(C)
         1-Cocycle in H^*(D8; GF(2)),
@@ -633,7 +633,7 @@ cdef class COCH(RingElement):
             sage: c = H.1+H.3*H.4; c
             c_2_1+(a_1_0)*(a_1_1): 2-Cocycle in H^*(SmallGroup(32,4); GF(2))
             sage: type(c)
-            <type 'pGroupCohomology.cochain.COCH'>
+            <class 'pGroupCohomology.cochain.COCH'>
             sage: C = c._MODCOCH_()
             sage: type(C)
             <class 'pGroupCohomology.cochain.MODCOCH'>
@@ -1274,7 +1274,7 @@ cdef class COCH(RingElement):
             sage: X = CohomologyRing(720,763,prime=2)
             sage: X.make()
             sage: type(X.sylow_cohomology()('c_2_5*b_1_0'))
-            <type 'pGroupCohomology.cochain.COCH'>
+            <class 'pGroupCohomology.cochain.COCH'>
             sage: type(X.3.as_cocycle_in_sylow())
             <class 'pGroupCohomology.cochain.MODCOCH'>
             sage: print(X.sylow_cohomology()('c_2_5*b_1_0')+X.3.as_cocycle_in_sylow())
@@ -2020,7 +2020,7 @@ class MODCOCH(RingElement):
             sage: H.1
             c_2_2: 2-Cocycle in H^*(D8; GF(2))
             sage: type(H.1)
-            <type 'pGroupCohomology.cochain.COCH'>
+            <class 'pGroupCohomology.cochain.COCH'>
             sage: from pGroupCohomology.cochain import MODCOCH
             sage: c = MODCOCH(H, singular(H.1), name='foo')   # indirect doctest
             sage: c
