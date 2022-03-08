@@ -3,14 +3,10 @@
 # Requested argument: The folder with the sources.
 # To be executed from within a Sage shell
 
-# Source folder
-SRC=$1
-
 # Create the distribution in a sub-directory of the current directory
-VERSION=`cat $SRC/downstream/package-version.txt`
+VERSION=3.3.3
 DIST_DIR=$(pwd)/p_group_cohomology-$VERSION
 mkdir -p $DIST_DIR
-cd $SRC
 
 ## Copying the parts that do not require compilation
 cp INSTALL $DIST_DIR/
@@ -29,11 +25,13 @@ rm pGroupCohomology-$VERSION.tar.gz
 cp pGroupCohomology-$VERSION/README pGroupCohomology-$VERSION/COPYING .
 
 ## The C library
-$SRC/present/configure --prefix=$DIST_DIR
+cd $DIST_DIR/../present
+autoreconf -ivf
+./configure --prefix=$DIST_DIR
 $MAKE distdir
 $MAKE distclean
-rm -r src
+# rm -r src
 
 ## The distribution
-cd ..
+cd $DIST_DIR/..
 tar cf - p_group_cohomology-$VERSION | xz -z -e - > p_group_cohomology-$VERSION.tar.xz
