@@ -1075,7 +1075,6 @@ cdef class RESL:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: res_folder=os.path.join(gps_folder,'dat')
-            sage: m=get_memory_usage()
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.nextDiff()
             sage: R.nextDiff()
@@ -1108,7 +1107,6 @@ cdef class RESL:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: res_folder=os.path.join(gps_folder,'dat')
-            sage: m=get_memory_usage()
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.nextDiff()
             sage: R.nextDiff()
@@ -1155,7 +1153,6 @@ cdef class RESL:
             sage: gstem='8gp3'
             sage: gps_folder=os.path.join(tmp_root,gstem)
             sage: res_folder=os.path.join(gps_folder,'dat')
-            sage: m=get_memory_usage()
             sage: R=RESL(gstem,gps_folder,res_folder)
             sage: R.nextDiff()
             sage: R.nextDiff()
