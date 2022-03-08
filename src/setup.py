@@ -74,7 +74,7 @@ else:
 
 setup(
   name = "pGroupCohomology",
-  version = "3.3.2",
+  version = "3.3.3",
   author = "Simon A. King, David J. Green",
   author_email = "simon.king@uni-jena.de, david.green@uni-jena.de",
   license = 'GPLv2+',
@@ -92,7 +92,7 @@ setup(
   url = "https://users.fmi.uni-jena.de/cohomology/documentation/",
   description = "Modular Cohomology Rings of Finite Groups",
   packages = find_packages(),
-  package_data = {'pGroupCohomology': ['*.pxd']},
+  include_package_data=True,
   py_modules = ["pGroupCohomology.auxiliaries", "pGroupCohomology.barcode", "pGroupCohomology.factory", "pGroupCohomology.isomorphism_test"],
   ext_modules = cythonize(ext_mods, compiler_directives={'embedsignature': True,
                                                          'language_level': PY_MAJOR_VERSION}, build_dir=os.path.join("build","c_files-{}.{}".format(version_info.major, version_info.minor))),

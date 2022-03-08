@@ -1,4 +1,6 @@
 recursive-include pGroupCohomology *.py *.pyx *.pxd *.pxi
+recursive-include pGroupCohomology/p_group_cohomology_helper *.* *
+include pGroupCohomology/singular_helper/dickson.lib
 recursive-exclude pGroupCohomology *.c *.o *.so
 graft doc/source
 recursive-exclude doc/build *
