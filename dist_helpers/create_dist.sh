@@ -2,9 +2,9 @@
 # create a distribution of p_group_cohomology.
 
 # Create the distribution in a sub-directory of the current directory
+git clean -fdx
 VERSION=3.3.3
 DIST_DIR=$(pwd)/p_group_cohomology-$VERSION
-# mkdir -p $DIST_DIR
 
 ## The python/cython modules
 # The following creates a .tar.gz-file, which is actually not what we want.
