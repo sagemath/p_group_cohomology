@@ -108,8 +108,7 @@ from weakref import WeakValueDictionary
 from weakref import ref
 
 # Location of Singular helper lib
-import pGroupCohomology
-os.environ['SINGULARPATH'] = os.path.dirname(pGroupCohomology.__file__)+"/singular_helper"
+os.environ['SINGULARPATH'] = os.path.dirname(__file__)+"/singular_helper"
 
 ##########################################################################
 ##########################################################################

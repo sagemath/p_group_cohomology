@@ -413,9 +413,7 @@ def _gap_reset_random_seed(seed=100):
 #
 ########################
 
-import pGroupCohomology
-gap.ExtendRootDirectories(gap(
-    [os.path.dirname(pGroupCohomology.__file__)+"/p_group_cohomology_helper"]))
+gap.ExtendRootDirectories(gap([os.path.dirname(__file__)+"/p_group_cohomology_helper"]))
 gap.LoadPackage("p_group_cohomology_helper")
 gap.InstallValue( gap.exportMTXLIB, "MTXLIB=%s; export MTXLIB; "%(MTXLIB) )
 _gap_reset_random_seed()
