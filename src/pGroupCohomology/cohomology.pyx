@@ -7892,7 +7892,7 @@ Minimal list of algebraic relations:
         if self.Resl.coef()==2:
             t = len(self.subgps[ID].Gen) - z
         else:
-            t = len(self.subgps[ID].Gen)/2 - z
+            t = len(self.subgps[ID].Gen)//2 - z
         if t<0:
             raise RuntimeError("The p-rank of the center must not exceed the rank of a maximal elementary abelian subgroup")
         if t==0:
@@ -8118,7 +8118,7 @@ Minimal list of algebraic relations:
             if self.CenterRk == 0: # we have a non-primepower group
                 singular.eval('%s = cosetIntersect(%s, %s, %s, %s, %s)'%(DicksonLift.name(), DicksonLift.name(), NilRad.name(), NewDicksonLift.name(), NewNilRad.name(), ','.join([str(j) for j in Integer (self._Order*self._prime**(self._HSyl.DicksonExp or 3)/self._POrder).divisors()])))
             else:
-                singular.eval('%s = cosetIntersect(%s, %s, %s, %s, %s)'%(DicksonLift.name(), DicksonLift.name(), NilRad.name(), NewDicksonLift.name(), NewNilRad.name(), ','.join([str(p**i) for i in range(self._property_dict.get('DicksonExp',3))])))
+                singular.eval('%s = cosetIntersect(%s, %s, %s, %s, %s)'%(DicksonLift.name(), DicksonLift.name(), NilRad.name(), NewDicksonLift.name(), NewNilRad.name(), ','.join([str(Integer(p)**i) for i in range(self._property_dict.get('DicksonExp',3))])))
             if str(DicksonLift.typeof())=='int':
                 coho_logger.info("> simultaneous lift failed at %s subgroup", self, Integer(Sg).ordinal_str())
                 return
@@ -8129,10 +8129,10 @@ Minimal list of algebraic relations:
         ## But first, we need to save the original values, since factorisation
         ## may be interrupted.
         cdef list L=[]
-        for i in range(1,DicksonLift.ncols()+1):
+        for i in range(1,int(DicksonLift.ncols())+1):
             L.append(singular.eval('%s[1,%d]'%(DicksonLift.name(),i)))
         if self.useFactorization:
-            for i in range(1,DicksonLift.ncols()+1):
+            for i in range(1,int(DicksonLift.ncols())+1):
                 try:
                     L[i-1] = self.small_factor(DicksonLift[1,i])
                 except:
