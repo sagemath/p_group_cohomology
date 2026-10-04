@@ -37,32 +37,33 @@ CSAGE = []
 CSAGE_PATH = []
 
 # Sage >= 6.8
-from sage.env import sage_include_directories
+from sage.misc.cython import get_include_dirs
+sage_include_dirs = list(map(str, get_include_dirs()))
 
 ext_mods = [
     Extension("pGroupCohomology.resolution",
               sources = [os.path.join("pGroupCohomology","resolution.pyx")],
-              include_dirs = sage_include_directories(),
+              include_dirs = sage_include_dirs,
               libraries = ['mtx', 'modres']),
 
     Extension("pGroupCohomology.cochain",
               sources = [os.path.join("pGroupCohomology","cochain.pyx")],
-              include_dirs = sage_include_directories(),
+              include_dirs = sage_include_dirs,
               libraries = ['mtx', 'modres']),
 
     Extension("pGroupCohomology.cohomology",
               sources = [os.path.join("pGroupCohomology","cohomology.pyx")],
-              include_dirs = sage_include_directories(),
+              include_dirs = sage_include_dirs,
               libraries = ['mtx', 'modres']),
 
     Extension("pGroupCohomology.modular_cohomology",
               sources = [os.path.join("pGroupCohomology","modular_cohomology.pyx")],
-              include_dirs = sage_include_directories(),
+              include_dirs = sage_include_dirs,
               libraries = ['mtx', 'modres']),
 
     Extension("pGroupCohomology.dickson",
               sources = [os.path.join("pGroupCohomology","dickson.pyx")],
-              include_dirs = sage_include_directories())
+              include_dirs = sage_include_dirs)
     ]
 
 if version_info.major <= 2:
